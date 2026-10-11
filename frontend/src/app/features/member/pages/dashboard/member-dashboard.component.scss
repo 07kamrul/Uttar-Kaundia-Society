@@ -1,0 +1,93 @@
+/* Member dashboard — hero avatar and the stat-tile icon/link extras live
+   here; tiles, meters and month badges come from the global primitives. */
+
+.gov-page {
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.gov-hero-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--emerald-800);
+  color: #fff;
+  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px -4px rgba(31, 61, 42, 0.55);
+}
+
+.stat-tile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  padding-top: 1.4rem;
+}
+
+.stat-tile-icon {
+  position: absolute;
+  top: -0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.55rem;
+  background: var(--emerald-800);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgba(31, 61, 42, 0.55);
+}
+
+.stat-tile-icon-green {
+  background: var(--emerald-600);
+}
+
+.stat-tile-icon-red {
+  background: var(--red-600);
+}
+
+.stat-tile .gov-meter {
+  margin-top: 0.45rem;
+  max-width: 11rem;
+}
+
+.stat-tile-link {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--red-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stat-tile-ok {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--emerald-700);
+}
+
+.month-badge {
+  border-color: var(--gray-200);
+}
+
+.month-badge-paid {
+  background: color-mix(in srgb, var(--emerald-50) 60%, var(--surface));
+  border-color: color-mix(in srgb, var(--emerald-600) 30%, var(--gray-200));
+}
+
+.month-badge-due {
+  background: color-mix(in srgb, var(--red-50) 55%, var(--surface));
+  border-color: color-mix(in srgb, var(--red-600) 30%, var(--gray-200));
+}
+
+.month-badge strong {
+  font-size: 0.82rem;
+  color: var(--gray-700);
+}

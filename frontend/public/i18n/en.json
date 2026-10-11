@@ -457,7 +457,23 @@
       "recentStatusTitle": "Recent Subscription Status",
       "statusPaid": "Paid",
       "statusDue": "Due",
-      "loadError": "Failed to load data."
+      "loadError": "Failed to load data.",
+      "subtitle": "Welcome to your member portal — dues, services and governance in one place.",
+      "quickActions": "Service centre",
+      "quickActionsHint": "Every governance service, one tap away",
+      "viewAll": "View all",
+      "payNow": "Pay now",
+      "allClear": "All settled",
+      "tiles": {
+        "complaints": "File complaints and track progress",
+        "land": "Land protection complaint form",
+        "emergency": "Urgent help in an emergency",
+        "elections": "Nominations, voting and results",
+        "petitions": "Collective member petitions",
+        "welfare": "Ask for welfare-fund support",
+        "membership": "Applications, appeals and waivers",
+        "serviceStandard": "Service targets and performance"
+      }
     },
     "changePassword": {
       "title": "Change Password",
@@ -621,6 +637,7 @@
         "pdfFailed": "Could not generate the report. Try again shortly."
       },
       "filters": {
+        "title": "Filter transactions",
         "search": "Search",
         "searchPlaceholder": "Search description or reference…",
         "type": "Type",
@@ -634,6 +651,8 @@
         "reference": "Reference no.",
         "approvedBy": "Approved by",
         "reset": "Reset",
+        "showAdvanced": "More filters",
+        "hideAdvanced": "Fewer filters",
         "clearAll": "✕ Clear all"
       },
       "type": {
@@ -2716,7 +2735,8 @@
       "nidDoc": "NID document (image/PDF)",
       "ownershipDoc": "Ownership document (image/PDF)",
       "consent": "I confirm the information is accurate and I agree to abide by the society constitution.",
-      "submit": "Submit application"
+      "submit": "Submit application",
+      "success": "Application submitted successfully."
     },
     "ownership": {
       "owner": "Owner",
@@ -2820,7 +2840,8 @@
       "category": "Category",
       "subject": "Subject",
       "details": "Details",
-      "submit": "Submit complaint"
+      "submit": "Submit complaint",
+      "success": "Complaint submitted successfully."
     },
     "statuses": {
       "submitted": "Submitted",
@@ -2870,6 +2891,7 @@
     "title": "Emergency Safe Steps",
     "subtitle": "In danger or under threat: safety first, documentation after.",
     "contactsTitle": "Emergency numbers",
+    "tapToCall": "Tap to call",
     "stepsTitle": "Immediate steps",
     "fileLandComplaint": "File a land complaint",
     "fileComplaint": "File a general complaint",
@@ -3009,6 +3031,7 @@
     "requestedValue": "Correct value",
     "reason": "Reason",
     "submit": "Send request",
+    "submitSuccess": "Your correction request has been submitted — the committee will review it soon.",
     "myRequests": "My requests",
     "noRequests": "No correction requests.",
     "status": "Status",
@@ -3241,7 +3264,8 @@
       "scheduled": "Session called",
       "rejected": "Rejected"
     },
-    "loadError": "Failed to load petitions."
+    "loadError": "Failed to load petitions.",
+    "createSuccess": "Petition submitted successfully."
   },
   "fundControls": {
     "title": "Fund Controls & Audit",
@@ -3343,7 +3367,8 @@
     "amountRequired": "Enter the approved amount.",
     "noReasonYet": "Not decided yet.",
     "requestedReason": "Reason on the application",
-    "adminTitle": "Welfare fund review"
+    "adminTitle": "Welfare fund review",
+    "applySuccess": "Request submitted successfully."
   },
   "auditReports": {
     "uploadTitle": "Upload audit report",
@@ -3432,7 +3457,9 @@
     "certificate": "Certificate (PDF)",
     "seedHint": "Add the first (v1) text of the constitution here. Later versions come only from adopted amendments.",
     "seedText": "Original constitution text",
-    "seed": "Create version 1"
+    "seed": "Create version 1",
+    "submitSuccess": "Proposal submitted successfully.",
+    "withdrawConfirm": "A withdrawn proposal cannot be restored. Withdraw it?"
   },
   "assetRegister": {
     "title": "Asset Register",

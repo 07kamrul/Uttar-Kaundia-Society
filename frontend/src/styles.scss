@@ -224,14 +224,27 @@ a {
   padding: 2rem 1rem;
 }
 
-.btn {
-  display: inline-block;
+/* Base button rules must also cover the bare modifier classes: several
+   components (emergency-help, my-data-panel, complaints-admin,
+   membership-review, membership-governance, land-protection-form) use
+   "btn-primary"/"btn-secondary" without the .btn base class. */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   border: none;
   border-radius: 0.5rem;
   padding: 0.6rem 1.25rem;
   font-weight: 700;
   cursor: pointer;
   font-size: 1rem;
+  line-height: 1.25;
+  font-family: inherit;
   text-decoration: none;
 }
 
@@ -245,7 +258,9 @@ a {
 }
 
 .btn-primary:disabled {
-  background: var(--gray-400);
+  /* Keep the brand green instead of a washed-out gray so a disabled submit
+     still reads as "this form's primary action, not yet available". */
+  background: var(--emerald-800);
   cursor: not-allowed;
 }
 
@@ -2395,6 +2410,47 @@ a {
   color: #f5d78e;
 }
 
+/* Attribute-based tones: several governance pages set [data-tone] on
+   ds-tag/ds-badge (good | warn | bad | neutral) without a colour class.
+   Without these rules the attribute was a silent no-op and every tag
+   rendered in the default gray. Mirrors the ds-tag-* palette. */
+.ds-tag[data-tone='good'],
+.ds-badge[data-tone='good'] {
+  background: var(--emerald-50);
+  border-color: color-mix(in srgb, var(--emerald-600) 30%, transparent);
+  color: var(--emerald-700);
+}
+
+.ds-tag[data-tone='warn'],
+.ds-badge[data-tone='warn'] {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
+.ds-tag[data-tone='bad'],
+.ds-badge[data-tone='bad'] {
+  background: var(--red-50);
+  border-color: color-mix(in srgb, var(--red-600) 30%, transparent);
+  color: var(--red-700);
+}
+
+:root[data-theme='dark'] .ds-tag[data-tone='warn'],
+:root[data-theme='dark'] .ds-badge[data-tone='warn'] {
+  background: #3a2e12;
+  border-color: #8a6e30;
+  color: #f5d78e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .ds-tag[data-tone='warn'],
+  :root:not([data-theme='light']) .ds-badge[data-tone='warn'] {
+    background: #3a2e12;
+    border-color: #8a6e30;
+    color: #f5d78e;
+  }
+}
+
 /* --- avatar / name --- */
 
 .ds-avatar {
@@ -3663,4 +3719,343 @@ a {
 
 .app-body:has(app-plot-map) .app-content {
   padding: 0;
+}
+
+/* ==========================================================================
+   Member governance pages — shared page language (hero band, shield notice,
+   rich empty state, success banner, vertical timeline, quick-action tiles,
+   status-rail item cards, progress meter). Built only from the theme tokens
+   so light/dark repaint automatically; every grid collapses on mobile.
+   ========================================================================== */
+
+.gov-hero {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--emerald-50) 55%, transparent), transparent 55%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.gov-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 0.65rem;
+  background: var(--emerald-800);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgba(31, 61, 42, 0.55);
+}
+
+.gov-hero-text {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.gov-hero-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--emerald-900);
+  line-height: 1.3;
+}
+
+.gov-hero-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.gov-hero-side {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Gold-edged shield notice (anti-retaliation etc.). */
+.gov-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  border-inline-start: 4px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--amber-50) 55%, var(--surface));
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.gov-notice app-icon {
+  color: var(--gold-strong);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.gov-notice p {
+  margin: 0;
+}
+
+/* Empty state with icon + explanation instead of a bare gray sentence. */
+.gov-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 2.25rem 1rem;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+
+.gov-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--emerald-50);
+  color: var(--emerald-700);
+}
+
+.gov-empty p {
+  margin: 0;
+  max-width: 30rem;
+  line-height: 1.7;
+}
+
+/* Inline success confirmation after a form submit. */
+.gov-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0 0 0.9rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--emerald-50);
+  border: 1px solid color-mix(in srgb, var(--emerald-600) 30%, transparent);
+  color: var(--emerald-800);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* Vertical event timeline (complaint/membership history). */
+.gov-timeline {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+
+.gov-timeline li {
+  position: relative;
+  padding: 0 0 0.85rem 1.45rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.gov-timeline li::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0.3rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--emerald-600);
+  box-shadow: 0 0 0 3px var(--emerald-50);
+}
+
+.gov-timeline li::after {
+  content: '';
+  position: absolute;
+  left: 0.49rem;
+  top: 1.1rem;
+  bottom: 0.05rem;
+  width: 1.5px;
+  background: var(--gray-200);
+}
+
+.gov-timeline li:last-child {
+  padding-bottom: 0.1rem;
+}
+
+.gov-timeline li:last-child::after {
+  display: none;
+}
+
+/* Quick-action tiles (dashboard service centre). 11.5rem floor keeps a
+   57rem content area at 4 columns so 8 tiles fill two even rows. */
+.gov-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.gov-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--gray-800);
+  text-decoration: none;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+.gov-tile:hover {
+  border-color: color-mix(in srgb, var(--emerald-600) 40%, var(--gray-200));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.gov-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.55rem;
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.gov-tile-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.gov-tile-hint {
+  font-size: 0.74rem;
+  color: var(--gray-500);
+  line-height: 1.55;
+}
+
+/* Status-rail list item card (petitions / welfare / amendments lists). */
+.gov-item {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  padding: 0.95rem 1.05rem;
+  border: 1px solid var(--gray-200);
+  border-inline-start: 3px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--gray-50);
+}
+
+.gov-item-green {
+  border-inline-start-color: var(--emerald-600);
+}
+
+.gov-item-amber {
+  border-inline-start-color: var(--gold);
+}
+
+.gov-item-red {
+  border-inline-start-color: var(--red-600);
+}
+
+.gov-item-blue {
+  border-inline-start-color: #4a7fb5;
+}
+
+:root[data-theme='dark'] .gov-item-blue {
+  border-inline-start-color: #7fa8d9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .gov-item-blue {
+    border-inline-start-color: #7fa8d9;
+  }
+}
+
+.gov-item-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.gov-item-chiprow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+}
+
+.gov-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.gov-item-note {
+  width: 100%;
+  border-inline-start: 3px solid var(--emerald-600);
+  padding-inline-start: 0.65rem;
+}
+
+.gov-item-note p {
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+/* Progress meter with tone variants. */
+.gov-meter {
+  width: 100%;
+  max-width: 26rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--gray-200);
+  overflow: hidden;
+}
+
+.gov-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--emerald-600);
+  transition: width 0.25s ease;
+}
+
+.gov-meter-fill-amber {
+  background: var(--gold);
+}
+
+.gov-meter-fill-red {
+  background: var(--red-600);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gov-meter-fill,
+  .gov-tile {
+    transition: none;
+  }
 }

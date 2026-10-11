@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { IconComponent } from '../../../../shared/icon/icon.component';
+import { IconComponent, type IconName } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
 import {
   FundControlsService,
@@ -18,9 +18,12 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   imports: [FormsModule, TranslatePipe, IconComponent],
   template: `
     <div class="page-container">
-      <header class="page-header">
-        <h1 class="page-title"><app-icon name="coin" [size]="22" /> {{ 'welfareFund.title' | translate }}</h1>
-        <p class="page-subtitle">{{ 'welfareFund.memberSubtitle' | translate }}</p>
+      <header class="gov-hero">
+        <span class="gov-hero-icon"><app-icon name="coin" [size]="22" /></span>
+        <div class="gov-hero-text">
+          <h1 class="gov-hero-title">{{ 'welfareFund.title' | translate }}</h1>
+          <p class="gov-hero-sub">{{ 'welfareFund.memberSubtitle' | translate }}</p>
+        </div>
       </header>
 
       @if (error()) {
@@ -28,98 +31,204 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       }
 
       <!-- Apply -->
-      <section class="card">
-        <h2 class="wf-section-title">{{ 'welfareFund.applyTitle' | translate }}</h2>
-        <p class="field-hint">{{ 'welfareFund.applyHint' | translate }}</p>
-        <form (ngSubmit)="apply()" #applyForm="ngForm">
-          <div class="field">
-            <label for="wf-type">{{ 'welfareFund.type' | translate }}</label>
-            <select id="wf-type" class="field-control" name="requestType" [(ngModel)]="formType" required>
-              @for (type of requestTypes(); track type.key) {
-                <option [value]="type.key">{{ typeLabel(type.key) }}</option>
-              }
-            </select>
+      <section class="ds-card">
+        <div class="ds-card-header">
+          <span class="ds-card-icon"><app-icon name="plus" [size]="18" /></span>
+          <div class="ds-card-heading">
+            <h2 class="ds-card-title">{{ 'welfareFund.applyTitle' | translate }}</h2>
+            <p class="ds-card-sub">{{ 'welfareFund.applyHint' | translate }}</p>
           </div>
-          <div class="field">
-            <label for="wf-amount">{{ 'welfareFund.amount' | translate }}</label>
-            <input id="wf-amount" class="field-control" type="number" min="1" name="amount"
-                   [(ngModel)]="formAmount" required />
-          </div>
-          <div class="field">
-            <label for="wf-reason">{{ 'welfareFund.reason' | translate }}</label>
-            <textarea id="wf-reason" class="field-control" rows="4" name="reason"
-                      [(ngModel)]="formReason" maxlength="5000" required></textarea>
-          </div>
-          @if (formError()) {
-            <p class="field-error">{{ formError() }}</p>
-          }
-          <button type="submit" class="btn btn-primary"
-                  [disabled]="applyForm.invalid || !formAmount || !formReason.trim() || saving()">
-            {{ 'welfareFund.apply' | translate }}
-          </button>
-        </form>
+        </div>
+        <div class="ds-card-body">
+          <form (ngSubmit)="apply()" #applyForm="ngForm">
+            <div class="field">
+              <span class="wf-type-label" id="wf-type-label">{{ 'welfareFund.type' | translate }}</span>
+              <div class="wf-type-grid" role="radiogroup" aria-labelledby="wf-type-label">
+                @for (type of requestTypes(); track type.key) {
+                  <button
+                    type="button"
+                    class="wf-type-card"
+                    [class.is-picked]="formType === type.key"
+                    [attr.aria-pressed]="formType === type.key"
+                    (click)="formType = type.key"
+                  >
+                    <span class="wf-type-icon"><app-icon [name]="type.icon" [size]="19" /></span>
+                    <span class="wf-type-name">{{ type.label }}</span>
+                    <span class="wf-type-check"><app-icon name="check" [size]="13" /></span>
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="field wf-amount-field">
+              <label for="wf-amount">{{ 'welfareFund.amount' | translate }}</label>
+              <div class="wf-amount-wrap">
+                <span class="wf-amount-prefix">৳</span>
+                <input id="wf-amount" class="field-control" type="number" min="1" name="amount"
+                       [(ngModel)]="formAmount" required />
+              </div>
+            </div>
+            <div class="field">
+              <label for="wf-reason">{{ 'welfareFund.reason' | translate }}</label>
+              <textarea id="wf-reason" class="field-control" rows="4" name="reason"
+                        [(ngModel)]="formReason" maxlength="5000" required></textarea>
+            </div>
+            @if (formError()) {
+              <p class="field-error">{{ formError() }}</p>
+            }
+            @if (applySuccess()) {
+              <p class="gov-success"><app-icon name="check-circle" [size]="16" /> {{ 'welfareFund.applySuccess' | translate }}</p>
+            }
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary"
+                      [disabled]="applyForm.invalid || !formAmount || !formReason.trim() || saving()">
+                {{ 'welfareFund.apply' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
       <!-- My requests -->
-      <section class="card">
-        <h2 class="wf-section-title">{{ 'welfareFund.myRequests' | translate }}</h2>
-        @if (loading()) {
-          @for (i of [1, 2]; track i) {
-            <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div>
-          }
-        } @else if (requests().length === 0) {
-          <div class="ds-empty">{{ 'welfareFund.empty' | translate }}</div>
-        } @else {
-          <div class="wf-list">
-            @for (request of requests(); track request.id) {
-              <article class="wf-item">
-                <div class="wf-item-head">
-                  <strong>{{ request.requestNo }}</strong>
-                  <span class="ds-tag" [class.ds-tag-blue]="request.status === 'submitted' || request.status === 'under_review'"
-                        [class.ds-tag-green]="request.status === 'approved' || request.status === 'disbursed'"
-                        [class.ds-tag-amber]="request.status === 'rejected'">
-                    {{ 'welfareFund.status.' + request.status | translate }}
-                  </span>
-                </div>
-                <p class="wf-meta">
-                  {{ 'welfareFund.types.' + request.requestType | translate }}
-                  · {{ 'welfareFund.amountLabel' | translate: { amount: taka(request.amountRequested) } }}
-                  @if (request.approvedAmount != null) {
-                    · {{ 'welfareFund.approvedLabel' | translate: { amount: taka(request.approvedAmount) } }}
-                  }
-                </p>
-                <p class="wf-reason">{{ request.reason }}</p>
-                @if (request.committeeReason) {
-                  <div class="wf-decision">
-                    <strong>{{ 'welfareFund.committeeReason' | translate }}</strong>
-                    <p>{{ request.committeeReason }}</p>
-                  </div>
-                }
-                @if (request.status === 'approved' || request.status === 'rejected' || request.status === 'disbursed') {
-                  <button type="button" class="btn btn-secondary btn-sm" (click)="downloadLetter(request)">
-                    {{ 'welfareFund.decisionLetter' | translate }}
-                  </button>
-                }
-              </article>
-            }
+      <section class="ds-card">
+        <div class="ds-card-header">
+          <span class="ds-card-icon"><app-icon name="inbox" [size]="18" /></span>
+          <div class="ds-card-heading">
+            <h2 class="ds-card-title">{{ 'welfareFund.myRequests' | translate }}</h2>
           </div>
-        }
+        </div>
+        <div class="ds-card-body">
+          @if (loading()) {
+            @for (i of [1, 2]; track i) {
+              <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div>
+            }
+          } @else if (requests().length === 0) {
+            <div class="gov-empty">
+              <span class="gov-empty-icon"><app-icon name="coin" [size]="22" /></span>
+              <p>{{ 'welfareFund.empty' | translate }}</p>
+            </div>
+          } @else {
+            <div class="wf-list">
+              @for (request of requests(); track request.id) {
+                <article class="gov-item" [class.gov-item-green]="request.status === 'approved' || request.status === 'disbursed'" [class.gov-item-red]="request.status === 'rejected'" [class.gov-item-blue]="request.status === 'submitted' || request.status === 'under_review'">
+                  <div class="gov-item-head">
+                    <strong class="ds-mono">{{ request.requestNo }}</strong>
+                    <span class="ds-tag" [attr.data-tone]="requestTone(request.status)">
+                      {{ 'welfareFund.status.' + request.status | translate }}
+                    </span>
+                  </div>
+                  <div class="gov-item-chiprow">
+                    <span class="wf-type-chip"><app-icon [name]="typeIcon(request.requestType)" [size]="14" /> {{ 'welfareFund.types.' + request.requestType | translate }}</span>
+                    · {{ 'welfareFund.amountLabel' | translate: { amount: taka(request.amountRequested) } }}
+                    @if (request.approvedAmount != null) {
+                      · <strong>{{ 'welfareFund.approvedLabel' | translate: { amount: taka(request.approvedAmount) } }}</strong>
+                    }
+                  </div>
+                  <p>{{ request.reason }}</p>
+                  @if (request.committeeReason) {
+                    <div class="gov-item-note">
+                      <strong>{{ 'welfareFund.committeeReason' | translate }}</strong>
+                      <p>{{ request.committeeReason }}</p>
+                    </div>
+                  }
+                  @if (request.status === 'approved' || request.status === 'rejected' || request.status === 'disbursed') {
+                    <button type="button" class="btn btn-secondary btn-sm" (click)="downloadLetter(request)">
+                      <span class="wf-btn-icon"><app-icon name="download" [size]="15" /></span>
+                      {{ 'welfareFund.decisionLetter' | translate }}
+                    </button>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </div>
       </section>
     </div>
   `,
   styles: [
     `
       .page-container { display: grid; gap: 1rem; }
-      .page-title { display: flex; align-items: center; gap: 0.5rem; }
-      .wf-section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
+      /* Support-type picker: tap cards instead of a bare select. */
+      .wf-type-label { font-size: 0.875rem; font-weight: 500; color: var(--gray-700); margin-bottom: 0.25rem; display: block; }
+      .wf-type-grid {
+        display: grid;
+        gap: 0.6rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      @media (min-width: 640px) {
+        .wf-type-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      }
+      .wf-type-card {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 0.35rem;
+        padding: 0.8rem 0.5rem 0.7rem;
+        border: 1.5px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        color: var(--gray-800);
+        font: inherit;
+        cursor: pointer;
+        text-align: center;
+        transition: border-color 0.12s, background-color 0.12s, box-shadow 0.12s;
+      }
+      .wf-type-card:hover { border-color: var(--field-border-hover); }
+      .wf-type-card.is-picked {
+        border-color: var(--emerald-600);
+        background: var(--emerald-50);
+        box-shadow: var(--field-focus-ring);
+      }
+      .wf-type-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 50%;
+        background: var(--surface-2);
+        color: var(--emerald-800);
+      }
+      .wf-type-card.is-picked .wf-type-icon { background: var(--emerald-800); color: #fff; }
+      .wf-type-name { font-size: 0.82rem; font-weight: 700; line-height: 1.35; }
+      .wf-type-check {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.2rem;
+        height: 1.2rem;
+        border-radius: 50%;
+        border: 1.5px solid var(--gray-300);
+        color: transparent;
+        background: var(--surface);
+      }
+      .wf-type-card.is-picked .wf-type-check {
+        background: var(--emerald-600);
+        border-color: var(--emerald-600);
+        color: #fff;
+      }
+      /* Amount with a fixed taka prefix beside the global-styled input. */
+      .wf-amount-field { max-width: 18rem; }
+      .wf-amount-wrap { display: flex; align-items: stretch; }
+      .wf-amount-prefix {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 0.7rem;
+        border: 1px solid var(--field-border);
+        border-right: none;
+        border-radius: var(--field-radius) 0 0 var(--field-radius);
+        background: var(--surface-2);
+        color: var(--gray-600);
+        font-weight: 700;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+      .wf-amount-wrap .field-control { border-radius: 0 var(--field-radius) var(--field-radius) 0; }
       .wf-list { display: grid; gap: 0.85rem; }
-      .wf-item { display: grid; gap: 0.45rem; justify-items: start; padding: 0.85rem; border-radius: 0.5rem; background: var(--surface-2, #f7f7f5); border: 1px solid var(--gray-200, #e5e7eb); }
-      .wf-item-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-      .wf-meta { margin: 0; font-size: 0.82rem; color: var(--gray-600); }
-      .wf-reason { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
-      .wf-decision { border-inline-start: 3px solid var(--emerald-600, #2e5138); padding-inline-start: 0.6rem; }
-      .wf-decision p { margin: 0.2rem 0 0; font-size: 0.9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-      .error-box { background: var(--surface-2, #f7f7f5); border: 1px solid var(--red-600, #9c3a2c); border-radius: 0.5rem; padding: 0.75rem; color: var(--red-600, #9c3a2c); }
+      .wf-type-chip { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 600; color: var(--gray-700); }
+      .wf-btn-icon { display: inline-flex; vertical-align: -3px; margin-inline-end: 0.3rem; }
     `,
   ],
 })
@@ -129,6 +238,7 @@ export class WelfareFundComponent implements OnInit {
   readonly saving = signal(false);
   readonly error = signal('');
   readonly formError = signal('');
+  readonly applySuccess = signal(false);
   readonly requests = signal<WelfareFundRequest[]>([]);
 
   formType: WelfareRequestType = 'medical';
@@ -144,13 +254,31 @@ export class WelfareFundComponent implements OnInit {
     this.load();
   }
 
-  requestTypes(): { key: WelfareRequestType; label: string }[] {
-    return this.requestTypeKeys.map((key) => ({ key, label: this.typeLabel(key) }));
+  requestTypes(): { key: WelfareRequestType; label: string; icon: IconName }[] {
+    return this.requestTypeKeys.map((key) => ({
+      key,
+      label: this.typeLabel(key),
+      icon: this.typeIcon(key),
+    }));
+  }
+
+  typeIcon(key: WelfareRequestType): IconName {
+    if (key === 'medical') return 'plus';
+    if (key === 'emergency') return 'alert';
+    if (key === 'education') return 'doc';
+    return 'sparkle';
   }
 
   typeLabel(key: WelfareRequestType): string {
     const translated = this.translate.instant('welfareFund.types.' + key);
     return translated.startsWith('welfareFund.types.') ? key : translated;
+  }
+
+  requestTone(status: string): string {
+    if (status === 'approved' || status === 'disbursed') return 'good';
+    if (status === 'rejected') return 'bad';
+    if (status === 'under_review') return 'warn';
+    return 'neutral';
   }
 
   taka(value: number): string {
@@ -180,6 +308,7 @@ export class WelfareFundComponent implements OnInit {
     if (this.formAmount == null || this.formAmount <= 0 || !this.formReason.trim()) return;
     this.saving.set(true);
     this.formError.set('');
+    this.applySuccess.set(false);
     this.fundControls
       .applyForWelfareFund(this.formType, this.formAmount, this.formReason.trim())
       .subscribe({
@@ -187,6 +316,7 @@ export class WelfareFundComponent implements OnInit {
           this.saving.set(false);
           this.formAmount = null;
           this.formReason = '';
+          this.applySuccess.set(true);
           this.load();
         },
         error: (err) => {

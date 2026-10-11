@@ -114,6 +114,10 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
   // Tabs for the income/expense summary section.
   trendTab: 'monthly' | 'yearly' = 'monthly';
 
+  // The four rarely-used ledger filters stay collapsed behind a toggle so the
+  // common search/type/category row stays above the fold.
+  showAdvanced = false;
+
   readonly pageSizeOptions = PAGE_SIZES;
 
   private readonly cdr = inject(ChangeDetectorRef);

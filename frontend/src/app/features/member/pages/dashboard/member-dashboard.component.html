@@ -1,53 +1,128 @@
-<div style="max-width:56rem;margin:0 auto">
+<div class="gov-page">
   @if (loading) {
     <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
   } @else if (error) {
     <div class="error-box"><p style="margin:0">{{ error }}</p></div>
   } @else if (profile) {
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">{{ 'welcome' | translate: { name: profile.fullName } }}</h1>
+    <header class="gov-hero">
+      <span class="gov-hero-avatar">{{ heroInitials }}</span>
+      <div class="gov-hero-text">
+        <h1 class="gov-hero-title">{{ 'welcome' | translate: { name: profile.fullName } }}</h1>
+        <p class="gov-hero-sub">{{ 'member.dashboard.subtitle' | translate }}</p>
       </div>
-    </div>
+      <div class="gov-hero-side">
+        <span class="ds-badge ds-mono">{{ profile.memberId }}</span>
+      </div>
+    </header>
 
+    <!-- Contributions at a glance: ID, settled months meter, due attention. -->
     <div class="stat-tile-grid">
       <div class="card stat-tile">
+        <span class="stat-tile-icon"><app-icon name="id-card" [size]="18" /></span>
         <p class="stat-tile-label">{{ 'member.dashboard.memberIdLabel' | translate }}</p>
-        <p class="stat-tile-value">{{ profile.memberId }}</p>
+        <p class="stat-tile-value ds-mono">{{ profile.memberId }}</p>
       </div>
       <div class="card stat-tile">
+        <span class="stat-tile-icon stat-tile-icon-green"><app-icon name="check-circle" [size]="18" /></span>
         <p class="stat-tile-label">{{ 'member.dashboard.paidMonthsLabel' | translate }}</p>
         <p class="stat-tile-value" style="color:var(--emerald-800)">{{ paidCount }} / {{ totalCount }}</p>
-      </div>
-      <div class="card stat-tile">
-        <p class="stat-tile-label">{{ 'member.dashboard.dueMonthsLabel' | translate }}</p>
-        <p class="stat-tile-value" [style.color]="dueCount ? 'var(--red-700)' : 'var(--emerald-800)'">{{ dueCount }}</p>
-      </div>
-    </div>
-
-    <!-- Governance modules 1 & 5: one-card entry to complaints + emergency help -->
-    <div class="card" style="padding:1rem 1.1rem;display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
-      <p class="stat-tile-label" style="margin:0;flex:1 1 100%">{{ 'complaintsModule.title' | translate }}</p>
-      <a class="btn-secondary" routerLink="/complaints">{{ 'nav.complaints' | translate }}</a>
-      <a class="btn-secondary" routerLink="/complaints/land-protection">{{ 'complaintsModule.landFormLink' | translate }}</a>
-      <a class="btn-secondary" routerLink="/emergency-help">{{ 'nav.emergencyHelp' | translate }}</a>
-    </div>
-
-    @if (recentInstallments.length) {
-      <div class="card" style="padding:1rem 1.1rem">
-        <p class="stat-tile-label" style="margin-bottom:0.6rem">{{ 'member.dashboard.recentStatusTitle' | translate }}</p>
-        <div class="month-badge-strip">
-          @for (installment of recentInstallments; track installment.id) {
-            <span
-              class="status-badge"
-              [class.status-paid]="installment.status === 'paid'"
-              [class.status-due]="installment.status === 'due'"
-            >
-              {{ installment.labelKey | translate }}: {{ (installment.status === 'paid' ? 'member.dashboard.statusPaid' : 'member.dashboard.statusDue') | translate }}
-            </span>
-          }
+        <div class="gov-meter" role="progressbar" [attr.aria-valuenow]="paidCount" [attr.aria-valuemax]="totalCount">
+          <span class="gov-meter-fill" [style.width.%]="paidPercent"></span>
         </div>
       </div>
+      <div class="card stat-tile">
+        <span class="stat-tile-icon" [class.stat-tile-icon-red]="dueCount > 0"><app-icon name="receipt" [size]="18" /></span>
+        <p class="stat-tile-label">{{ 'member.dashboard.dueMonthsLabel' | translate }}</p>
+        <p class="stat-tile-value" [style.color]="dueCount ? 'var(--red-700)' : 'var(--emerald-800)'">{{ dueCount }}</p>
+        @if (dueCount > 0) {
+          <a class="stat-tile-link" routerLink="/installments">{{ 'member.dashboard.payNow' | translate }}</a>
+        } @else {
+          <p class="stat-tile-ok">{{ 'member.dashboard.allClear' | translate }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Service centre: every governance module one tap away. -->
+    <section class="ds-card">
+      <div class="ds-card-header">
+        <span class="ds-card-icon"><app-icon name="sparkle" [size]="18" /></span>
+        <div class="ds-card-heading">
+          <h2 class="ds-card-title">{{ 'member.dashboard.quickActions' | translate }}</h2>
+          <p class="ds-card-sub">{{ 'member.dashboard.quickActionsHint' | translate }}</p>
+        </div>
+      </div>
+      <div class="ds-card-body">
+        <div class="gov-tile-grid">
+          <a class="gov-tile" routerLink="/complaints">
+            <span class="gov-tile-icon"><app-icon name="inbox" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.complaints' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.complaints' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/complaints/land-protection">
+            <span class="gov-tile-icon"><app-icon name="map" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'complaintsModule.landFormLink' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.land' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/emergency-help">
+            <span class="gov-tile-icon"><app-icon name="alert" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.emergencyHelp' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.emergency' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/elections">
+            <span class="gov-tile-icon"><app-icon name="check-circle" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.elections' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.elections' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/petitions">
+            <span class="gov-tile-icon"><app-icon name="doc" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.petitions' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.petitions' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/welfare-fund">
+            <span class="gov-tile-icon"><app-icon name="coin" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.welfareFund' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.welfare' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/membership">
+            <span class="gov-tile-icon"><app-icon name="users" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.membership' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.membership' | translate }}</span>
+          </a>
+          <a class="gov-tile" routerLink="/service-standard">
+            <span class="gov-tile-icon"><app-icon name="chart" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.serviceStandard' | translate }}</span>
+            <span class="gov-tile-hint">{{ 'member.dashboard.tiles.serviceStandard' | translate }}</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    @if (recentInstallments.length) {
+      <section class="ds-card">
+        <div class="ds-card-header">
+          <span class="ds-card-icon"><app-icon name="receipt" [size]="18" /></span>
+          <div class="ds-card-heading">
+            <h2 class="ds-card-title">{{ 'member.dashboard.recentStatusTitle' | translate }}</h2>
+          </div>
+          <a class="ds-link" routerLink="/installments">{{ 'member.dashboard.viewAll' | translate }}</a>
+        </div>
+        <div class="ds-card-body">
+          <div class="month-badge-strip">
+            @for (installment of recentInstallments; track installment.id) {
+              <span
+                class="month-badge"
+                [class.month-badge-paid]="installment.status === 'paid'"
+                [class.month-badge-due]="installment.status === 'due'"
+              >
+                <strong>{{ installment.labelKey | translate }}</strong>
+                <span class="status-badge" [class.status-paid]="installment.status === 'paid'" [class.status-due]="installment.status === 'due'">
+                  {{ (installment.status === 'paid' ? 'member.dashboard.statusPaid' : 'member.dashboard.statusDue') | translate }}
+                </span>
+              </span>
+            }
+          </div>
+        </div>
+      </section>
     }
   }
 </div>

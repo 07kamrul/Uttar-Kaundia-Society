@@ -18,121 +18,167 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   imports: [TranslatePipe, FormsModule, IconComponent, NgTemplateOutlet],
   template: `
     <div class="page-container">
-      <header class="page-header">
-        <h1 class="page-title"><app-icon name="doc" [size]="22" /> {{ 'petitions.title' | translate }}</h1>
-        <p class="page-subtitle">{{ 'petitions.subtitle' | translate }}</p>
+      <header class="gov-hero">
+        <span class="gov-hero-icon"><app-icon name="doc" [size]="22" /></span>
+        <div class="gov-hero-text">
+          <h1 class="gov-hero-title">{{ 'petitions.title' | translate }}</h1>
+          <p class="gov-hero-sub">{{ 'petitions.subtitle' | translate }}</p>
+        </div>
+        <div class="gov-hero-side">
+          <span class="ds-badge">{{ 'petitions.thresholdHint' | translate: { percent: digits(thresholdPercent()) } }}</span>
+          @if (petitionResponseDays() > 0) {
+            <span class="ds-badge">{{ 'petitions.responseDaysHint' | translate: { days: digits(petitionResponseDays()) } }}</span>
+          }
+        </div>
       </header>
 
       @if (error()) {
         <div class="error-box" role="alert"><p style="margin: 0">{{ error() }}</p></div>
       }
 
-      <!-- নতুন পিটিশন -->
-      <section class="card">
-        <h2 class="pt-section-title">{{ 'petitions.createTitle' | translate }}</h2>
-        <p class="field-hint">
-          {{ 'petitions.thresholdHint' | translate: { percent: digits(thresholdPercent()) } }}
-          @if (petitionResponseDays() > 0) {
-            · {{ 'petitions.responseDaysHint' | translate: { days: digits(petitionResponseDays()) } }}
-          }
-        </p>
-        <form (ngSubmit)="createPetition()" #createForm="ngForm">
-          <div class="field">
-            <label for="pt-title">{{ 'petitions.petitionTitle' | translate }}</label>
-            <input id="pt-title" class="field-control" name="title" [(ngModel)]="newTitle" maxlength="255" required />
+      <div class="pt-split">
+        <!-- নতুন পিটিশন -->
+        <section class="ds-card">
+          <div class="ds-card-header">
+            <span class="ds-card-icon"><app-icon name="plus" [size]="18" /></span>
+            <div class="ds-card-heading">
+              <h2 class="ds-card-title">{{ 'petitions.createTitle' | translate }}</h2>
+            </div>
           </div>
-          <div class="field">
-            <label for="pt-justification">{{ 'petitions.justification' | translate }}</label>
-            <textarea id="pt-justification" class="field-control" rows="4" maxlength="5000" name="justification" [(ngModel)]="newJustification" required></textarea>
+          <div class="ds-card-body">
+            <form (ngSubmit)="createPetition()" #createForm="ngForm">
+              <div class="field">
+                <label for="pt-title">{{ 'petitions.petitionTitle' | translate }}</label>
+                <input id="pt-title" class="field-control" name="title" [(ngModel)]="newTitle" maxlength="255" required />
+              </div>
+              <div class="field">
+                <label for="pt-justification">{{ 'petitions.justification' | translate }}</label>
+                <textarea id="pt-justification" class="field-control" rows="4" maxlength="5000" name="justification" [(ngModel)]="newJustification" required></textarea>
+              </div>
+              @if (formError()) {
+                <p class="field-error">{{ formError() }}</p>
+              }
+              @if (createSuccess()) {
+                <p class="gov-success"><app-icon name="check-circle" [size]="16" /> {{ 'petitions.createSuccess' | translate }}</p>
+              }
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" [disabled]="createForm.invalid || !newTitle.trim() || !newJustification.trim() || saving()">
+                  {{ 'petitions.create' | translate }}
+                </button>
+              </div>
+            </form>
           </div>
-          @if (formError()) {
-            <p class="field-error">{{ formError() }}</p>
-          }
-          <button type="submit" class="btn btn-primary" [disabled]="createForm.invalid || !newTitle.trim() || !newJustification.trim() || saving()">
-            {{ 'petitions.create' | translate }}
-          </button>
-        </form>
-      </section>
+        </section>
 
-      <!-- স্বাক্ষর করুন: পিটিশন আইডি দিয়ে -->
-      <section class="card">
-        <h2 class="pt-section-title">{{ 'petitions.signTitle' | translate }}</h2>
-        <p class="field-hint">{{ 'petitions.signHint' | translate }}</p>
-        <form (ngSubmit)="signById()" #signForm="ngForm">
-          <div class="field">
-            <label for="pt-sign-id">{{ 'petitions.petitionId' | translate }}</label>
-            <input id="pt-sign-id" class="field-control" type="number" min="1" name="signPetitionId" [(ngModel)]="signPetitionId" required />
+        <!-- স্বাক্ষর করুন: পিটিশন আইডি দিয়ে -->
+        <section class="ds-card">
+          <div class="ds-card-header">
+            <span class="ds-card-icon"><app-icon name="check" [size]="18" /></span>
+            <div class="ds-card-heading">
+              <h2 class="ds-card-title">{{ 'petitions.signTitle' | translate }}</h2>
+              <p class="ds-card-sub">{{ 'petitions.signHint' | translate }}</p>
+            </div>
           </div>
-          @if (signErrorText()) {
-            <p class="field-error">{{ signErrorText() }}</p>
-          }
-          @if (signSuccessText()) {
-            <p class="pt-success">{{ signSuccessText() | translate }}</p>
-          }
-          <button type="submit" class="btn btn-secondary" [disabled]="signForm.invalid || !signPetitionId || signing()">
-            {{ 'petitions.sign' | translate }}
-          </button>
-        </form>
-      </section>
+          <div class="ds-card-body">
+            <form (ngSubmit)="signById()" #signForm="ngForm">
+              <div class="field pt-id-field">
+                <label for="pt-sign-id">{{ 'petitions.petitionId' | translate }}</label>
+                <input id="pt-sign-id" class="field-control" type="number" min="1" name="signPetitionId" [(ngModel)]="signPetitionId" required />
+              </div>
+              @if (signErrorText()) {
+                <p class="field-error">{{ signErrorText() }}</p>
+              }
+              @if (signSuccessText()) {
+                <p class="gov-success"><app-icon name="check-circle" [size]="16" /> {{ signSuccessText() | translate }}</p>
+              }
+              <div class="form-actions">
+                <button type="submit" class="btn btn-secondary" [disabled]="signForm.invalid || !signPetitionId || signing()">
+                  {{ 'petitions.sign' | translate }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
 
       <!-- আমার পিটিশন -->
-      <section class="card">
-        <h2 class="pt-section-title">{{ 'petitions.myPetitions' | translate }}</h2>
-        @if (loading()) {
-          @for (i of [1, 2]; track i) { <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div> }
-        } @else if (petitions().length === 0) {
-          <div class="ds-empty">{{ 'petitions.empty' | translate }}</div>
-        } @else {
-          <div class="pt-list">
-            @for (petition of petitions(); track petition.id) {
-              <ng-container [ngTemplateOutlet]="petitionCard" [ngTemplateOutletContext]="{ $implicit: petition }" />
-            }
+      <section class="ds-card">
+        <div class="ds-card-header">
+          <span class="ds-card-icon"><app-icon name="doc" [size]="18" /></span>
+          <div class="ds-card-heading">
+            <h2 class="ds-card-title">{{ 'petitions.myPetitions' | translate }}</h2>
           </div>
-        }
+        </div>
+        <div class="ds-card-body">
+          @if (loading()) {
+            @for (i of [1, 2]; track i) { <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div> }
+          } @else if (petitions().length === 0) {
+            <div class="gov-empty">
+              <span class="gov-empty-icon"><app-icon name="doc" [size]="22" /></span>
+              <p>{{ 'petitions.empty' | translate }}</p>
+            </div>
+          } @else {
+            <div class="pt-list">
+              @for (petition of petitions(); track petition.id) {
+                <ng-container [ngTemplateOutlet]="petitionCard" [ngTemplateOutletContext]="{ $implicit: petition }" />
+              }
+            </div>
+          }
+        </div>
       </section>
 
       <!-- স্বাক্ষরিত পিটিশনের অগ্রগতি -->
       @if (signedPetitions().length > 0) {
-        <section class="card">
-          <h2 class="pt-section-title">{{ 'petitions.signedPetitions' | translate }}</h2>
-          <div class="pt-list">
-            @for (petition of signedPetitions(); track petition.id) {
-              <ng-container [ngTemplateOutlet]="petitionCard" [ngTemplateOutletContext]="{ $implicit: petition }" />
-            }
+        <section class="ds-card">
+          <div class="ds-card-header">
+            <span class="ds-card-icon"><app-icon name="check" [size]="18" /></span>
+            <div class="ds-card-heading">
+              <h2 class="ds-card-title">{{ 'petitions.signedPetitions' | translate }}</h2>
+            </div>
+          </div>
+          <div class="ds-card-body">
+            <div class="pt-list">
+              @for (petition of signedPetitions(); track petition.id) {
+                <ng-container [ngTemplateOutlet]="petitionCard" [ngTemplateOutletContext]="{ $implicit: petition }" />
+              }
+            </div>
           </div>
         </section>
       }
 
       <!-- পিটিশন কার্ড -->
       <ng-template #petitionCard let-petition>
-        <article class="pt-item">
-          <div class="pt-item-head">
-            <strong>{{ petition.title }}</strong>
-            <span class="ds-tag" [class.ds-tag-green]="petition.status === 'scheduled' || petition.status === 'responded'" [class.ds-tag-amber]="petition.status === 'rejected'" [class.ds-tag-blue]="petition.status === 'submitted' || petition.status === 'under_review'">
+        <article class="gov-item" [class.gov-item-green]="petition.status === 'scheduled' || petition.status === 'responded'" [class.gov-item-red]="petition.status === 'rejected'" [class.gov-item-blue]="petition.status === 'submitted' || petition.status === 'under_review'">
+          <div class="gov-item-head">
+            <strong class="pt-title">{{ petition.title }}</strong>
+            <span class="ds-tag" [attr.data-tone]="petition.status === 'scheduled' || petition.status === 'responded' ? 'good' : petition.status === 'rejected' ? 'bad' : 'neutral'">
               {{ 'petitions.statuses.' + petition.status | translate }}
             </span>
           </div>
           <p class="pt-justification">{{ petition.justification }}</p>
-          <p class="pt-meta">
-            {{ petition.petitionNo }}
+
+          <div class="pt-progress-row">
+            <div class="gov-meter" role="progressbar" [attr.aria-valuenow]="petition.signatureCount" [attr.aria-valuemax]="petition.requiredCount">
+              <span class="gov-meter-fill" [style.width.%]="progressPercent(petition)"></span>
+            </div>
+            <strong class="pt-progress-pct" [class.pt-progress-pct-met]="progressPercent(petition) >= 100">{{ digits(progressPercent(petition)) }}%</strong>
+          </div>
+          <p class="gov-item-chiprow">
+            <span class="ds-mono">{{ petition.petitionNo }}</span>
             · {{ 'petitions.signatures' | translate: { count: digits(petition.signatureCount), required: digits(petition.requiredCount) } }}
             @if (petition.responseDue) {
               · {{ 'petitions.responseDue' | translate: { date: fmtDate(petition.responseDue) } }}
             }
           </p>
 
-          <div class="pt-progress" role="progressbar" [attr.aria-valuenow]="petition.signatureCount" [attr.aria-valuemax]="petition.requiredCount">
-            <span class="pt-progress-fill" [style.width.%]="progressPercent(petition)"></span>
-          </div>
-
           @if (petition.sla; as sla) {
-            <span class="ds-badge" [class.ds-badge-green]="sla.state === 'met' || sla.state === 'on_track'" [class.ds-badge-blue]="sla.state === 'due_soon'">
+            <span class="ds-badge" [attr.data-tone]="sla.state === 'overdue' ? 'bad' : sla.state === 'due_soon' ? 'warn' : 'good'">
               {{ 'petitions.sla.' + sla.state | translate }}
             </span>
           }
 
           @if (petition.committeeResponse) {
-            <div class="pt-response">
+            <div class="gov-item-note">
               <strong>{{ 'petitions.committeeResponse' | translate }}</strong>
               <p>{{ petition.committeeResponse }}</p>
             </div>
@@ -144,18 +190,19 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   styles: [
     `
       .page-container { display: grid; gap: 1rem; }
-      .page-title { display: flex; align-items: center; gap: 0.5rem; }
-      .pt-section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
+      /* Create + sign side by side on wide screens. */
+      .pt-split { display: grid; gap: 1rem; align-items: start; }
+      @media (min-width: 1024px) {
+        .pt-split { grid-template-columns: 3fr 2fr; }
+      }
+      .pt-id-field { max-width: 14rem; }
       .pt-list { display: grid; gap: 0.85rem; }
-      .pt-item { display: grid; gap: 0.45rem; justify-items: start; padding: 0.85rem; border-radius: 0.5rem; background: var(--surface-2, #f7f7f5); border: 1px solid var(--gray-200, #e5e7eb); }
-      .pt-item-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-      .pt-justification { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
-      .pt-meta { margin: 0; font-size: 0.82rem; color: var(--gray-600); }
-      .pt-progress { width: 100%; max-width: 420px; height: 10px; border-radius: 999px; background: var(--gray-200, #e5e7eb); overflow: hidden; }
-      .pt-progress-fill { display: block; height: 100%; background: var(--emerald-600, #2e5138); border-radius: 999px; transition: width 0.2s ease; }
-      .pt-response { border-inline-start: 3px solid var(--emerald-600, #2e5138); padding-inline-start: 0.6rem; }
-      .pt-response p { margin: 0.2rem 0 0; font-size: 0.9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-      .pt-success { color: var(--emerald-700, #2e5138); font-weight: 600; margin: 0 0 0.5rem; }
+      .pt-title { font-size: 0.95rem; line-height: 1.45; overflow-wrap: anywhere; }
+      .pt-justification { color: var(--gray-600); font-size: 0.88rem; }
+      .pt-progress-row { display: flex; align-items: center; gap: 0.7rem; width: 100%; }
+      .pt-progress-row .gov-meter { flex: 1; max-width: none; }
+      .pt-progress-pct { font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--gray-700); flex-shrink: 0; }
+      .pt-progress-pct-met { color: var(--emerald-700); }
     `,
   ],
 })
@@ -174,6 +221,7 @@ export class MemberPetitionsComponent implements OnInit {
   readonly signErrorText = signal('');
   readonly signSuccessText = signal('');
   readonly formError = signal('');
+  readonly createSuccess = signal(false);
   readonly thresholdPercent = signal(20);
   readonly petitionResponseDays = signal(30);
 
@@ -208,6 +256,7 @@ export class MemberPetitionsComponent implements OnInit {
     if (this.saving()) return;
     this.saving.set(true);
     this.formError.set('');
+    this.createSuccess.set(false);
     this.petitionsService
       .createPetition({ title: this.newTitle.trim(), justification: this.newJustification.trim() })
       .subscribe({
@@ -215,6 +264,7 @@ export class MemberPetitionsComponent implements OnInit {
           this.saving.set(false);
           this.newTitle = '';
           this.newJustification = '';
+          this.createSuccess.set(true);
           this.load();
         },
         error: (err) => {

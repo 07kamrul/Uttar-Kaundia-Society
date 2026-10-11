@@ -8,6 +8,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { IconComponent } from '../../../../shared/icon/icon.component';
 import { MemberService, type MemberProfile } from '../../../../core/services/member.service';
 import type { Installment } from '../../../../core/models/admin.model';
 import { monthNameKey } from '../../../../shared/constants/months';
@@ -22,8 +23,9 @@ interface RecentContribution {
   selector: 'app-member-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RouterLink],
+  imports: [TranslatePipe, RouterLink, IconComponent],
   templateUrl: './member-dashboard.component.html',
+  styleUrl: './member-dashboard.component.scss',
 })
 export class MemberDashboardComponent implements OnInit {
   profile: MemberProfile | null = null;
@@ -70,5 +72,23 @@ export class MemberDashboardComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  /** Share of months settled, for the contributions meter. */
+  get paidPercent(): number {
+    if (this.totalCount === 0) return 0;
+    return Math.round((this.paidCount * 100) / this.totalCount);
+  }
+
+  /** First letters of the name words, for the hero avatar. */
+  get heroInitials(): string {
+    const name = this.profile?.fullName?.trim() ?? '';
+    return name
+      ? name
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join('')
+      : '?';
   }
 }

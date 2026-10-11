@@ -1731,3 +1731,23 @@ nav.section.payments	আমার পেমেন্ট	My Payments
 nav.section.community	সমাজ ও এলাকা	Community
 nav.section.management	ব্যবস্থাপনা	Management
 nav.section.administration	প্রশাসন	Administration
+member.dashboard.subtitle	সদস্য পোর্টালে স্বাগতম — চাঁদা, সেবা ও গঠনমূলক অংশগ্রহণ এক জায়গায়।	Welcome to your member portal — dues, services and governance in one place.
+member.dashboard.quickActions	সেবা কেন্দ্র	Service centre
+member.dashboard.quickActionsHint	গভর্নেন্স সেবাগুলো এক ক্লিকে	Every governance service, one tap away
+member.dashboard.viewAll	সব দেখুন	View all
+member.dashboard.payNow	পরিশোধ করুন	Pay now
+member.dashboard.allClear	সব পরিশোধিত	All settled
+member.dashboard.tiles.complaints	অভিযোগ জমা দিন ও অগ্রগতি দেখুন	File complaints and track progress
+member.dashboard.tiles.land	ভূমি রক্ষা আবেদন ফর্ম	Land protection complaint form
+member.dashboard.tiles.emergency	আপদকালীন তাৎক্ষণিক সহায়তা	Urgent help in an emergency
+member.dashboard.tiles.elections	মনোনয়ন, ভোটদান ও ফলাফল	Nominations, voting and results
+member.dashboard.tiles.petitions	সম্মিলিত স্বার্থের আবেদন	Collective member petitions
+member.dashboard.tiles.welfare	কল্যাণ তহবিল থেকে সহায়তা চান	Ask for welfare-fund support
+member.dashboard.tiles.membership	আবেদন, আপিল ও ছাড়	Applications, appeals and waivers
+member.dashboard.tiles.serviceStandard	সেবার সময়সীমা ও কর্মদক্ষতা	Service targets and performance
+complaintsModule.new.success	অভিযোগ সফলভাবে জমা হয়েছে।	Complaint submitted successfully.
+membershipGov.apply.success	সদস্যপদের আবেদন সফলভাবে জমা হয়েছে।	Application submitted successfully.
+petitions.createSuccess	পিটিশন সফলভাবে জমা হয়েছে।	Petition submitted successfully.
+welfareFund.applySuccess	আবেদন সফলভাবে জমা হয়েছে।	Request submitted successfully.
+amendments.submitSuccess	প্রস্তাব সফলভাবে জমা হয়েছে।	Proposal submitted successfully.
+amendments.withdrawConfirm	প্রত্যাহার করা হলে প্রস্তাবটি আর ফিরিয়ে আনা যাবে না। নিশ্চিত?	A withdrawn proposal cannot be restored. Withdraw it?

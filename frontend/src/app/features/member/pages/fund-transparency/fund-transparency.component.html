@@ -288,6 +288,23 @@
   <!-- Ledger: full transaction list with combinable filters -->
   <section class="ledger-section">
     <div class="card ledger-filters-card">
+      <div class="filters-head">
+        <h2 class="filters-title">{{ 'member.fundTransparency.filters.title' | translate }}</h2>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm filters-toggle"
+          [class.expanded]="showAdvanced"
+          [attr.aria-expanded]="showAdvanced"
+          (click)="showAdvanced = !showAdvanced"
+        >
+          <app-icon name="chevron-down" [size]="14" />
+          {{
+            (showAdvanced
+              ? 'member.fundTransparency.filters.hideAdvanced'
+              : 'member.fundTransparency.filters.showAdvanced') | translate
+          }}
+        </button>
+      </div>
       <div class="filters-grid">
         <div class="field">
           <label for="ftSearch">{{ 'member.fundTransparency.filters.search' | translate }}</label>
@@ -319,60 +336,62 @@
             }
           </select>
         </div>
-        <div class="field">
-          <label>{{ 'member.fundTransparency.filters.dateRange' | translate }}</label>
-          <div class="date-range-row">
-            <app-date-picker
-              [value]="ledgerDateFrom"
-              (valueChange)="ledgerDateFrom = $event; applyFilters()"
-              [max]="ledgerDateTo"
-              [clearable]="true"
-            />
-            <app-date-picker
-              [value]="ledgerDateTo"
-              (valueChange)="ledgerDateTo = $event; applyFilters()"
-              [min]="ledgerDateFrom"
-              [clearable]="true"
-            />
+        @if (showAdvanced) {
+          <div class="field">
+            <label>{{ 'member.fundTransparency.filters.dateRange' | translate }}</label>
+            <div class="date-range-row">
+              <app-date-picker
+                [value]="ledgerDateFrom"
+                (valueChange)="ledgerDateFrom = $event; applyFilters()"
+                [max]="ledgerDateTo"
+                [clearable]="true"
+              />
+              <app-date-picker
+                [value]="ledgerDateTo"
+                (valueChange)="ledgerDateTo = $event; applyFilters()"
+                [min]="ledgerDateFrom"
+                [clearable]="true"
+              />
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label>{{ 'member.fundTransparency.filters.amountRange' | translate }}</label>
-          <div class="amount-range-row">
+          <div class="field">
+            <label>{{ 'member.fundTransparency.filters.amountRange' | translate }}</label>
+            <div class="amount-range-row">
+              <input
+                type="number"
+                min="0"
+                [placeholder]="'member.fundTransparency.filters.min' | translate"
+                [(ngModel)]="minAmount"
+                (ngModelChange)="applyFilters()"
+              />
+              <input
+                type="number"
+                min="0"
+                [placeholder]="'member.fundTransparency.filters.max' | translate"
+                [(ngModel)]="maxAmount"
+                (ngModelChange)="applyFilters()"
+              />
+            </div>
+          </div>
+          <div class="field">
+            <label for="ftReference">{{ 'member.fundTransparency.filters.reference' | translate }}</label>
             <input
-              type="number"
-              min="0"
-              [placeholder]="'member.fundTransparency.filters.min' | translate"
-              [(ngModel)]="minAmount"
+              id="ftReference"
+              type="text"
+              [(ngModel)]="referenceFilter"
               (ngModelChange)="applyFilters()"
             />
+          </div>
+          <div class="field">
+            <label for="ftApprover">{{ 'member.fundTransparency.filters.approvedBy' | translate }}</label>
             <input
-              type="number"
-              min="0"
-              [placeholder]="'member.fundTransparency.filters.max' | translate"
-              [(ngModel)]="maxAmount"
+              id="ftApprover"
+              type="text"
+              [(ngModel)]="approvedByName"
               (ngModelChange)="applyFilters()"
             />
           </div>
-        </div>
-        <div class="field">
-          <label for="ftReference">{{ 'member.fundTransparency.filters.reference' | translate }}</label>
-          <input
-            id="ftReference"
-            type="text"
-            [(ngModel)]="referenceFilter"
-            (ngModelChange)="applyFilters()"
-          />
-        </div>
-        <div class="field">
-          <label for="ftApprover">{{ 'member.fundTransparency.filters.approvedBy' | translate }}</label>
-          <input
-            id="ftApprover"
-            type="text"
-            [(ngModel)]="approvedByName"
-            (ngModelChange)="applyFilters()"
-          />
-        </div>
+        }
         <div class="field field-actions">
           <button type="button" class="btn btn-secondary" (click)="clearAllFilters()">
             {{ 'member.fundTransparency.filters.reset' | translate }}
@@ -579,7 +598,10 @@
     @if (auditLoading) {
       <div class="skeleton-line" style="height: 64px"></div>
     } @else if (auditReports.length === 0) {
-      <div class="ds-empty">{{ 'auditReports.memberEmpty' | translate }}</div>
+      <div class="audit-empty">
+        <span class="empty-state-icon"><app-icon name="doc" [size]="22" /></span>
+        <p class="empty-title">{{ 'auditReports.memberEmpty' | translate }}</p>
+      </div>
     } @else {
       @for (report of auditReports; track report.id) {
         <article class="audit-summary">
