@@ -199,6 +199,24 @@ export const routes: Routes = [
               ).then((m) => m.ServiceStandardComponent),
           },
           {
+            // Modules 2 & 3 (governance expansion): member election
+            // participation - vote and/or stand as a candidate.
+            path: 'elections',
+            canActivate: [permissionGuard(['election.vote', 'election.candidate'])],
+            loadComponent: () =>
+              import('./features/member/pages/elections/elections.component').then(
+                (m) => m.MemberElectionsComponent,
+              ),
+          },
+          {
+            path: 'petitions',
+            canActivate: [permissionGuard(['petition.create'])],
+            loadComponent: () =>
+              import('./features/member/pages/petitions/petitions.component').then(
+                (m) => m.MemberPetitionsComponent,
+              ),
+          },
+          {
             path: 'change-password',
             loadComponent: () =>
               import('./features/member/pages/change-password/change-password.component').then(
@@ -441,6 +459,23 @@ export const routes: Routes = [
               import('./features/management/pages/events/events.component').then(
                 (m) => m.EventsComponent,
               ),
+          },
+          {
+            // Modules 2 & 3 (governance expansion)
+            path: 'committee-registry',
+            canActivate: [permissionGuard(['committee_registry.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/committee-registry/committee-registry.component'
+              ).then((m) => m.CommitteeRegistryComponent),
+          },
+          {
+            path: 'elections-admin',
+            canActivate: [permissionGuard(['election.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/elections-admin/elections-admin.component'
+              ).then((m) => m.ElectionsAdminComponent),
           },
         ],
       },

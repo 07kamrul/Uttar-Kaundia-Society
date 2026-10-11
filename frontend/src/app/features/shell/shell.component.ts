@@ -142,6 +142,22 @@ const NAV_SECTIONS: NavSection[] = [
         icon: 'check-circle',
         requiredPermission: ['service_standard.view'],
       },
+      // Modules 2 & 3 (governance expansion): member election participation
+      // and special-session petitions.
+      {
+        labelKey: 'nav.elections',
+        route: '/elections',
+        icon: 'check-circle',
+        requiredPermission: ['election.vote', 'election.candidate'],
+        requiredRoles: ['member'],
+      },
+      {
+        labelKey: 'nav.petitions',
+        route: '/petitions',
+        icon: 'doc',
+        requiredPermission: ['petition.create'],
+        requiredRoles: ['member'],
+      },
       // জরুরি নিরাপদ পদক্ষেপ: open to every authenticated account.
       {
         labelKey: 'nav.emergencyHelp',
@@ -181,6 +197,19 @@ const NAV_SECTIONS: NavSection[] = [
           'member_suspension.manage',
           'membership_appeal.manage',
         ],
+      },
+      // Modules 2 & 3 (governance expansion): committee registry + elections.
+      {
+        labelKey: 'nav.committeeRegistry',
+        route: '/committee-registry',
+        icon: 'id-card',
+        requiredPermission: ['committee_registry.manage'],
+      },
+      {
+        labelKey: 'nav.electionsAdmin',
+        route: '/elections-admin',
+        icon: 'chart',
+        requiredPermission: ['election.manage'],
       },
       {
         labelKey: 'nav.complaintsAdmin',
