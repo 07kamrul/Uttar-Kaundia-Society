@@ -25,7 +25,10 @@ final class MemberDeleted extends MembersEvent {
 final class MemberPasswordResetRequested extends MembersEvent {
   const MemberPasswordResetRequested(this.memberId, {this.completer});
   final String memberId;
-  final Completer<bool>? completer;
+
+  /// Completes with null when the password was emailed, or with the temporary
+  /// password when the email failed; completes with an error on failure.
+  final Completer<String?>? completer;
   @override
   List<Object?> get props => [memberId];
 }

@@ -1169,7 +1169,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMembersListResetModalSuccessNoEmail =>
-      'Password reset successfully, but the email could not be sent. Please share the new password with the member directly.';
+      'Password reset successfully, but the email could not be sent. Please share this temporary password with the member directly:';
 
   @override
   String get adminMembersListResetModalTitle => 'Reset Password?';

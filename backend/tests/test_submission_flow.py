@@ -158,7 +158,11 @@ async def test_submission_approval_member_id_login_flow(
         json={"current_password": temp_password, "new_password": "newpass123"},
         headers=member_headers,
     )
-    assert change_response.status_code == 204
+    assert change_response.status_code == 200
+    # The old session is revoked; the fresh token returned by the call works.
+    assert (await client.get("/api/member/me", headers=member_headers)).status_code == 401
+    fresh_headers = {"Authorization": f"Bearer {change_response.json()['access_token']}"}
+    assert (await client.get("/api/member/me", headers=fresh_headers)).status_code == 200
 
     relogin = await client.post(
         "/api/member/login",

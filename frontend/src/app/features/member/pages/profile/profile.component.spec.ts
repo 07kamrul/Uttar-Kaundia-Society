@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
@@ -25,6 +27,10 @@ function setup(updateProfile = vi.fn((p: object) => of({ ...PROFILE, ...p } as M
     providers: [
       provideRouter([]),
       provideTranslateService(),
+      // Child panels (my documents, data corrections) call the API directly;
+      // keep those requests in the test backend instead of the real network.
+      provideHttpClient(),
+      provideHttpClientTesting(),
       {
         provide: MemberService,
         useValue: {

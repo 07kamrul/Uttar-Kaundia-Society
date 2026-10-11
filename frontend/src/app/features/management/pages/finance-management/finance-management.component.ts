@@ -17,7 +17,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import {
   FinanceService,
   formatTaka,
-  type FinanceCategory,
+  type IncomeSourceKey,
   type FinanceLedgerPage,
   type FinanceOverview,
   type FinancePeriod,
@@ -27,6 +27,10 @@ import {
   type PaymentSourceType,
   type UnlinkedPayment,
 } from '../../../../core/services/finance.service';
+import {
+  GovernanceService,
+  type GovernanceConstants,
+} from '../../../../core/services/governance.service';
 import { monthNameKey } from '../../../../shared/constants/months';
 
 const STATUS_FILTERS: (FinanceStatus | 'all')[] = [
@@ -88,6 +92,12 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
   formDescription = '';
   formReference = '';
   formInternalNotes = '';
+  // Module 4 — income-source policy on the create/edit form.
+  incomeSources: GovernanceConstants['income_sources'] = [];
+  formIncomeSource: IncomeSourceKey | '' = '';
+  formIncomeJustification = '';
+  formForeignFunding = false;
+  formGovRef = '';
   formAttachment: File | null = null;
   attachmentPreviewUrl: string | null = null;
   formError = '';
@@ -122,13 +132,27 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
 
   private readonly cdr = inject(ChangeDetectorRef);
 
+  // Module 4 — holders of fund.approve_secondary can sign the second approval.
+  readonly canSecondaryApprove: boolean;
+
   constructor(
     private finance: FinanceService,
     private adminService: AdminService,
+    private governance: GovernanceService,
     private auth: AuthService,
     private translate: TranslateService,
   ) {
     this.canManageConfig = this.auth.hasPermission('manage_system_config');
+    this.canSecondaryApprove = this.auth.hasAnyPermission(['fund.approve_secondary']);
+    this.governance.constants().subscribe({
+      next: (constants) => {
+        this.incomeSources = constants.income_sources;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.incomeSources = [];
+      },
+    });
   }
 
   ngOnInit(): void {
@@ -283,6 +307,10 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
     this.formDescription = '';
     this.formReference = '';
     this.formInternalNotes = '';
+    this.formIncomeSource = '';
+    this.formIncomeJustification = '';
+    this.formForeignFunding = false;
+    this.formGovRef = '';
     this.clearAttachment();
     this.paymentLinkEnabled = false;
     this.selectedPayment = null;
@@ -306,6 +334,10 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
     this.formDescription = txn.description;
     this.formReference = txn.referenceNo ?? '';
     this.formInternalNotes = txn.internalNotes ?? '';
+    this.formIncomeSource = (txn.incomeSource ?? '') as IncomeSourceKey | '';
+    this.formIncomeJustification = txn.incomeJustification ?? '';
+    this.formForeignFunding = txn.isForeignFunding ?? false;
+    this.formGovRef = txn.governmentApprovalRef ?? '';
     this.clearAttachment();
     this.paymentLinkEnabled = false;
     this.selectedPayment = null;
@@ -464,10 +496,33 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
     if (this.formCategoryId == null) {
       this.formFieldErrors['categoryId'] = this.translate.instant('admin.financeManagement.errors.categoryRequired');
     }
+    if (this.formType === 'income') {
+      if (this.formIncomeSource === 'other_income' && !this.formIncomeJustification.trim()) {
+        this.formFieldErrors['incomeJustification'] = this.translate.instant(
+          'admin.financeManagement.errors.justificationRequired',
+        );
+      }
+      if (this.formForeignFunding && !this.formGovRef.trim()) {
+        this.formFieldErrors['governmentApprovalRef'] = this.translate.instant(
+          'admin.financeManagement.errors.govRefRequired',
+        );
+      }
+    }
     if (Object.keys(this.formFieldErrors).length) {
       this.cdr.markForCheck();
       return;
     }
+
+    // Module 4 fields ride along on both create and update payloads.
+    const incomePolicy =
+      this.formType === 'income'
+        ? {
+            incomeSource: (this.formIncomeSource || null) as IncomeSourceKey | null,
+            incomeJustification: this.formIncomeJustification.trim() || null,
+            isForeignFunding: this.formForeignFunding,
+            governmentApprovalRef: this.formGovRef.trim() || null,
+          }
+        : {};
 
     this.saving = true;
     const linkType = this.selectedPayment && this.formType === 'income' ? this.selectedPayment.sourceType : null;
@@ -486,6 +541,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
           internalNotes: this.formInternalNotes.trim() || null,
           linkedPaymentType: linkType ?? this.editing.linkedPaymentType ?? null,
           linkedPaymentId: linkId ?? this.editing.linkedPaymentId ?? null,
+          ...incomePolicy,
         })
         .subscribe({
           next: (txn) => this.finishSave(txn),
@@ -504,6 +560,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
           status,
           linkedPaymentType: linkType,
           linkedPaymentId: linkId,
+          ...incomePolicy,
         })
         .subscribe({
           next: (txn) => this.finishSave(txn),
@@ -603,6 +660,27 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  /** Module 4: second signature on a large expense. */
+  secondaryApprove(txn: FinanceTransaction): void {
+    this.finance.secondaryApproveTransaction(txn.id).subscribe({
+      next: () => {
+        this.load();
+        this.loadOverview();
+      },
+      error: (err) => {
+        this.error =
+          (typeof err?.error?.detail === 'string' && err.error.detail) ||
+          this.translate.instant('admin.financeManagement.errors.actionFailed');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /** True while the two-person flow waits for the second signature. */
+  awaitingSecondary(txn: FinanceTransaction): boolean {
+    return txn.type === 'expense' && txn.status === 'pending' && txn.requiresSecondary === true;
   }
 
   submitDraft(txn: FinanceTransaction): void {

@@ -217,6 +217,24 @@ export const routes: Routes = [
               ),
           },
           {
+            // Modules 4 & 6 (governance expansion): member welfare-fund
+            // applications and constitution amendment participation.
+            path: 'welfare-fund',
+            canActivate: [permissionGuard(['welfare_fund.apply'])],
+            loadComponent: () =>
+              import('./features/member/pages/welfare-fund/welfare-fund.component').then(
+                (m) => m.WelfareFundComponent,
+              ),
+          },
+          {
+            path: 'amendments',
+            canActivate: [permissionGuard(['amendment.propose', 'service_standard.view'])],
+            loadComponent: () =>
+              import('./features/member/pages/amendments/amendments.component').then(
+                (m) => m.MemberAmendmentsComponent,
+              ),
+          },
+          {
             path: 'change-password',
             loadComponent: () =>
               import('./features/member/pages/change-password/change-password.component').then(
@@ -476,6 +494,51 @@ export const routes: Routes = [
               import(
                 './features/management/pages/elections-admin/elections-admin.component'
               ).then((m) => m.ElectionsAdminComponent),
+          },
+          {
+            // Module 4 (governance expansion): fund controls hub - income
+            // sources, two-person threshold, signatories, audit reports,
+            // welfare requests. One section per permission.
+            path: 'fund-controls',
+            canActivate: [
+              permissionGuard([
+                'fund.manage',
+                'signatory.manage',
+                'audit_report.manage',
+                'welfare_fund.review',
+              ]),
+            ],
+            loadComponent: () =>
+              import(
+                './features/management/pages/fund-controls/fund-controls.component'
+              ).then((m) => m.FundControlsComponent),
+          },
+          {
+            // Module 6 (governance expansion): constitution amendment
+            // lifecycle and version register.
+            path: 'amendments-admin',
+            canActivate: [permissionGuard(['amendment.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/amendments/amendments.component'
+              ).then((m) => m.AmendmentsComponent),
+          },
+          {
+            // Module 7 (governance expansion): registers.
+            path: 'asset-register',
+            canActivate: [permissionGuard(['asset_register.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/asset-register/asset-register.component'
+              ).then((m) => m.AssetRegisterComponent),
+          },
+          {
+            path: 'welfare-activities',
+            canActivate: [permissionGuard(['welfare_activity.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/welfare-activities/welfare-activities.component'
+              ).then((m) => m.WelfareActivitiesComponent),
           },
         ],
       },

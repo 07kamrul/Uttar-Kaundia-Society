@@ -158,6 +158,21 @@ const NAV_SECTIONS: NavSection[] = [
         requiredPermission: ['petition.create'],
         requiredRoles: ['member'],
       },
+      // Modules 4 & 6 (governance expansion): welfare-fund applications and
+      // constitution amendments (propose + version register).
+      {
+        labelKey: 'nav.welfareFund',
+        route: '/welfare-fund',
+        icon: 'coin',
+        requiredPermission: ['welfare_fund.apply'],
+        requiredRoles: ['member'],
+      },
+      {
+        labelKey: 'nav.amendments',
+        route: '/amendments',
+        icon: 'doc',
+        requiredPermission: ['amendment.propose', 'service_standard.view'],
+      },
       // জরুরি নিরাপদ পদক্ষেপ: open to every authenticated account.
       {
         labelKey: 'nav.emergencyHelp',
@@ -216,6 +231,37 @@ const NAV_SECTIONS: NavSection[] = [
         route: '/complaints-admin',
         icon: 'inbox',
         requiredPermission: ['complaint.manage', 'complaint.investigate'],
+      },
+      // Modules 4, 6 & 7 (governance expansion): fund controls, amendment
+      // tracker and registers.
+      {
+        labelKey: 'nav.fundControls',
+        route: '/fund-controls',
+        icon: 'shield',
+        requiredPermission: [
+          'fund.manage',
+          'signatory.manage',
+          'audit_report.manage',
+          'welfare_fund.review',
+        ],
+      },
+      {
+        labelKey: 'nav.amendmentsAdmin',
+        route: '/amendments-admin',
+        icon: 'doc',
+        requiredPermission: ['amendment.manage'],
+      },
+      {
+        labelKey: 'nav.assetRegister',
+        route: '/asset-register',
+        icon: 'inbox',
+        requiredPermission: ['asset_register.manage'],
+      },
+      {
+        labelKey: 'nav.welfareActivities',
+        route: '/welfare-activities',
+        icon: 'users',
+        requiredPermission: ['welfare_activity.manage'],
       },
       {
         labelKey: 'nav.submissions',

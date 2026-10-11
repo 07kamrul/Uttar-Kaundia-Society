@@ -130,7 +130,14 @@ describe('AdminService route coverage', () => {
     http.expectOne((r) => r.url.endsWith('/admin/members')).flush([]);
 
     service.getMemberProfile('9').subscribe();
-    http.expectOne((r) => r.url.endsWith('/admin/members/9')).flush({});
+    http.expectOne((r) => r.url.endsWith('/admin/members/9')).flush({
+      properties: [],
+      nominees: [],
+      installments: [],
+      fee_summary: { due_count: 0, paid_count: 0, due_total: 0, paid_total: 0 },
+      picnic_payments: [],
+      audit_trail: [],
+    });
 
     service.getMemberInstallments('9').subscribe();
     http.expectOne((r) => r.url.endsWith('/admin/members/9/installments')).flush([]);

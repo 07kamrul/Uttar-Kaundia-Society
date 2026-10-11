@@ -127,6 +127,7 @@ async def _ensure_unique_reference(db: AsyncSession, method: str, transaction_re
         select(InstallmentPayment.id).where(
             InstallmentPayment.method == method,
             InstallmentPayment.transaction_ref == transaction_ref,
+            InstallmentPayment.status != PAYMENT_STATUS_REJECTED,
         )
     )
     if existing.first() is not None:

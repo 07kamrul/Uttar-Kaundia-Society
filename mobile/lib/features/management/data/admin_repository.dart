@@ -123,9 +123,12 @@ class AdminRepository {
       _api.delete('$_base/members/$memberId');
 
   /// Returns whether the notification email was sent.
-  Future<bool> resetMemberPassword(String memberId) async {
-    final data = await _api.post('$_base/members/$memberId/reset-password', {});
-    return (data as Map)['email_sent'] == true;
+  /// Returns null when the new password was emailed to the member; otherwise
+  /// the temporary password the admin must hand over in person.
+  Future<String?> resetMemberPassword(String memberId) async {
+    final data = await _api.post('$_base/members/$memberId/reset-password', {}) as Map;
+    if (data['email_sent'] == true) return null;
+    return data['temporary_password'] as String? ?? '';
   }
 
   // ----- Installments -----

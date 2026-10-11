@@ -54,3 +54,27 @@ async def test_approve_conflicts_when_installment_paid_meanwhile(
     }
     assert rows[due[1].id].status == InstallmentStatus.DUE
     assert rows[due[0].id].paid_at.replace(tzinfo=timezone.utc) == manual_paid_at
+
+
+async def test_rejected_payment_reference_can_be_resubmitted(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    from tests.test_installment_payments import _member_headers
+
+    await _seed_accounts(db_session)
+    admin = await _seed_admin(db_session)
+    member = await _seed_member(db_session, "reuse@example.com")
+    due = await _seed_due(db_session, member, [6])
+    first = await client.post(URL, data=_form([due[0].id], ref="TRXREUSE1"), headers=_member_headers(member))
+    await client.post(
+        f"/api/admin/installment-payments/{first.json()['id']}/reject",
+        json={"reason": "Wrong amount"},
+        headers=_admin_headers(admin),
+    )
+
+    resubmit = await client.post(URL, data=_form([due[0].id], ref="TRXREUSE1"), headers=_member_headers(member))
+    duplicate = await client.post(URL, data=_form([due[0].id], ref="TRXREUSE1"), headers=_member_headers(member))
+
+    assert resubmit.status_code == 201
+    # A live (pending/approved) payment still blocks the same reference.
+    assert duplicate.status_code == 409

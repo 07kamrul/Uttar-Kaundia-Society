@@ -59,12 +59,12 @@ class MembersBloc extends Bloc<MembersEvent, MembersState> {
   ) async {
     emit(state.copyWith(busyId: () => e.memberId, error: () => null));
     try {
-      final sent = await _repository.resetMemberPassword(e.memberId);
+      final tempPassword = await _repository.resetMemberPassword(e.memberId);
       emit(state.copyWith(busyId: () => null));
-      e.completer?.complete(sent);
+      e.completer?.complete(tempPassword);
     } catch (err) {
       emit(state.copyWith(busyId: () => null, error: () => err));
-      e.completer?.complete(false);
+      e.completer?.completeError(err);
     }
   }
 }

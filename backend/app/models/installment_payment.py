@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Table, func
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Table, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -28,8 +28,16 @@ class InstallmentPayment(Base):
 
     __tablename__ = "installment_payments"
     __table_args__ = (
-        # The same mobile-banking / bank transaction can back one payment only.
-        Index("uq_installment_payments_method_ref", "method", "transaction_ref", unique=True),
+        # The same mobile-banking / bank transaction can back one live payment
+        # only; a REJECTED one frees the reference so a member can resubmit it.
+        Index(
+            "uq_installment_payments_method_ref",
+            "method",
+            "transaction_ref",
+            unique=True,
+            postgresql_where=text("status <> 'rejected'"),
+            sqlite_where=text("status <> 'rejected'"),
+        ),
         Index("ix_installment_payments_status_created", "status", "created_at"),
     )
 

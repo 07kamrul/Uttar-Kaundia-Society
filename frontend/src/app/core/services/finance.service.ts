@@ -6,6 +6,14 @@ import { toFileUrl } from './admin.service';
 
 export type FinanceType = 'income' | 'expense';
 export type FinanceStatus = 'draft' | 'pending' | 'approved' | 'rejected';
+/** Constitutional income sources (GET /api/governance/constants). */
+export type IncomeSourceKey =
+  | 'admission_fee'
+  | 'subscription'
+  | 'donation'
+  | 'welfare_fund'
+  | 'government_grant'
+  | 'other_income';
 export type FinancePeriod = 'month' | 'year' | 'custom' | 'all';
 export type PaymentSourceType = 'installment' | 'picnic_payment' | 'cost_share';
 
@@ -31,6 +39,14 @@ export interface FinanceTransaction {
   linkedPaymentId?: number | null;
   createdByName?: string | null;
   isActive?: boolean;
+  // Module 4 — income-source policy + two-person approval.
+  incomeSource?: IncomeSourceKey | null;
+  incomeJustification?: string | null;
+  isForeignFunding?: boolean;
+  governmentApprovalRef?: string | null;
+  requiresSecondary?: boolean;
+  secondApprovedByName?: string | null;
+  secondApprovedAt?: string | null;
 }
 
 export interface FinanceTotals {
@@ -112,6 +128,10 @@ export interface FinanceTransactionInput {
   status?: 'draft' | 'pending';
   linkedPaymentType?: PaymentSourceType | null;
   linkedPaymentId?: number | null;
+  incomeSource?: IncomeSourceKey | null;
+  incomeJustification?: string | null;
+  isForeignFunding?: boolean;
+  governmentApprovalRef?: string | null;
 }
 
 export interface FinanceLedgerFilters {
@@ -195,6 +215,13 @@ interface TransactionApiModel {
   linked_payment_id?: number | null;
   created_by_name?: string | null;
   is_active?: boolean;
+  income_source?: string | null;
+  income_justification?: string | null;
+  is_foreign_funding?: boolean;
+  government_approval_ref?: string | null;
+  requires_secondary?: boolean;
+  second_approved_by_name?: string | null;
+  second_approved_at?: string | null;
 }
 
 interface LedgerApiModel {
@@ -258,6 +285,13 @@ function toTransaction(api: TransactionApiModel): FinanceTransaction {
     linkedPaymentId: api.linked_payment_id ?? null,
     createdByName: api.created_by_name ?? null,
     isActive: api.is_active ?? true,
+    incomeSource: (api.income_source as IncomeSourceKey | null) ?? null,
+    incomeJustification: api.income_justification ?? null,
+    isForeignFunding: api.is_foreign_funding ?? false,
+    governmentApprovalRef: api.government_approval_ref ?? null,
+    requiresSecondary: api.requires_secondary ?? false,
+    secondApprovedByName: api.second_approved_by_name ?? null,
+    secondApprovedAt: api.second_approved_at ?? null,
   };
 }
 
@@ -396,6 +430,10 @@ export class FinanceService {
     if (input.status !== undefined) payload['status'] = input.status;
     if (input.linkedPaymentType !== undefined) payload['linked_payment_type'] = input.linkedPaymentType ?? null;
     if (input.linkedPaymentId !== undefined) payload['linked_payment_id'] = input.linkedPaymentId ?? null;
+    if (input.incomeSource !== undefined) payload['income_source'] = input.incomeSource ?? null;
+    if (input.incomeJustification !== undefined) payload['income_justification'] = input.incomeJustification ?? null;
+    if (input.isForeignFunding !== undefined) payload['is_foreign_funding'] = input.isForeignFunding;
+    if (input.governmentApprovalRef !== undefined) payload['government_approval_ref'] = input.governmentApprovalRef ?? null;
     return payload;
   }
 
@@ -416,6 +454,13 @@ export class FinanceService {
   approveTransaction(id: number): Observable<FinanceTransaction> {
     return this.http
       .post<TransactionApiModel>(`${this.adminBase}/finance/transactions/${id}/approve`, {})
+      .pipe(map(toTransaction));
+  }
+
+  /** Module 4: second signature on a large expense (fund.approve_secondary). */
+  secondaryApproveTransaction(id: number): Observable<FinanceTransaction> {
+    return this.http
+      .post<TransactionApiModel>(`${this.adminBase}/finance/transactions/${id}/secondary-approve`, {})
       .pipe(map(toTransaction));
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -230,14 +232,44 @@ class _MemberCard extends StatelessWidget {
       confirmLabel: loc.adminMembersListResetModalConfirmLabel,
     );
     if (!confirmed || !context.mounted) return;
-    final sent = await dispatchForBool(
-        bloc, (c) => MemberPasswordResetRequested(m.id, completer: c));
+    final completer = Completer<String?>();
+    bloc.add(MemberPasswordResetRequested(m.id, completer: completer));
+    final String? tempPassword;
+    try {
+      tempPassword = await completer.future;
+    } catch (_) {
+      return; // MembersState.error already surfaces the failure.
+    }
     if (!context.mounted) return;
-    showAppToast(
-      context,
-      sent
-          ? loc.adminMembersListResetModalSuccessMessage(m.fullName)
-          : loc.adminMembersListResetModalSuccessNoEmail,
+    if (tempPassword == null) {
+      showAppToast(context, loc.adminMembersListResetModalSuccessMessage(m.fullName));
+      return;
+    }
+    // Email failed: the admin must pass the random temporary password on, so
+    // keep it on screen (and selectable) until dismissed.
+    final String shownPassword = tempPassword;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(loc.adminMembersListResetModalSuccessNoEmail),
+            const SizedBox(height: 12),
+            SelectableText(
+              shownPassword,
+              style: Theme.of(ctx).textTheme.titleLarge,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
+          ),
+        ],
+      ),
     );
   }
 

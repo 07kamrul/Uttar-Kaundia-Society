@@ -421,7 +421,7 @@
       }
     }
   },
-  "adminMembersListResetModalSuccessNoEmail": "Password reset successfully, but the email could not be sent. Please share the new password with the member directly.",
+  "adminMembersListResetModalSuccessNoEmail": "Password reset successfully, but the email could not be sent. Please share this temporary password with the member directly:",
   "adminMembersListResetModalTitle": "Reset Password?",
   "adminMembersListResetPasswordTitle": "Reset password and email new credentials",
   "adminMembersListSubtitle": "View members' information and subscription status",

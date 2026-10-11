@@ -2270,7 +2270,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminMembersListResetModalSuccessNoEmail.
   ///
   /// In bn, this message translates to:
-  /// **'পাসওয়ার্ড রিসেট সফল হয়েছে, তবে ইমেইল পাঠানো যায়নি। অনুগ্রহ করে সরাসরি সদস্যকে নতুন পাসওয়ার্ড জানিয়ে দিন।'**
+  /// **'পাসওয়ার্ড রিসেট সফল হয়েছে, তবে ইমেইল পাঠানো যায়নি। অনুগ্রহ করে সরাসরি সদস্যকে এই অস্থায়ী পাসওয়ার্ড জানিয়ে দিন:'**
   String get adminMembersListResetModalSuccessNoEmail;
 
   /// No description provided for @adminMembersListResetModalTitle.

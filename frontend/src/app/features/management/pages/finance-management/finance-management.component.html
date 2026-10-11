@@ -233,9 +233,18 @@
                   </button>
                 }
                 @if (txn.status === 'draft' || txn.status === 'pending') {
-                  <button type="button" class="btn btn-primary btn-sm" (click)="openAction('approve', txn)">
-                    {{ 'admin.financeManagement.actions.approve' | translate }}
-                  </button>
+                  @if (awaitingSecondary(txn)) {
+                    <span class="ds-tag ds-tag-amber">{{ 'admin.financeManagement.actions.awaitingSecondary' | translate }}</span>
+                    @if (canSecondaryApprove) {
+                      <button type="button" class="btn btn-primary btn-sm" (click)="secondaryApprove(txn)">
+                        {{ 'admin.financeManagement.actions.secondaryApprove' | translate }}
+                      </button>
+                    }
+                  } @else {
+                    <button type="button" class="btn btn-primary btn-sm" (click)="openAction('approve', txn)">
+                      {{ 'admin.financeManagement.actions.approve' | translate }}
+                    </button>
+                  }
                   <button type="button" class="btn btn-secondary btn-sm" (click)="openAction('reject', txn)">
                     {{ 'admin.financeManagement.actions.reject' | translate }}
                   </button>
@@ -278,6 +287,26 @@
                         <div>
                           <p class="txn-detail-label">{{ 'admin.financeManagement.ledger.reversalOf' | translate }}</p>
                           <p>#{{ txn.reversalOfId }}</p>
+                        </div>
+                      }
+                      @if (txn.secondApprovedByName) {
+                        <div>
+                          <p class="txn-detail-label">{{ 'admin.financeManagement.ledger.secondApprover' | translate }}</p>
+                          <p>{{ txn.secondApprovedByName }}</p>
+                        </div>
+                      }
+                      @if (txn.incomeSource) {
+                        <div>
+                          <p class="txn-detail-label">{{ 'admin.financeManagement.ledger.incomeSource' | translate }}</p>
+                          <p>
+                            {{ txn.incomeSource }}
+                            @if (txn.isForeignFunding) {
+                              <span class="ds-tag ds-tag-amber">{{ 'admin.financeManagement.ledger.foreignFunding' | translate }}</span>
+                            }
+                          </p>
+                          @if (txn.governmentApprovalRef) {
+                            <p class="muted">{{ txn.governmentApprovalRef }}</p>
+                          }
                         </div>
                       }
                     </div>
@@ -469,6 +498,45 @@
         </div>
       </div>
 
+      <!-- Module 4: income-source policy (which constitutional source, other-income
+           justification, foreign-funding government approval) -->
+      @if (formType === 'income') {
+        <div class="payment-link-box">
+          <div class="field">
+            <label for="fm-income-source">{{ 'admin.financeManagement.incomeSource.label' | translate }}</label>
+            <select id="fm-income-source" name="incomeSource" [(ngModel)]="formIncomeSource">
+              <option value="">{{ 'admin.financeManagement.incomeSource.unspecified' | translate }}</option>
+              @for (source of incomeSources; track source.key) {
+                <option [value]="source.key">{{ lang === 'bn' ? source.bn : source.en }}</option>
+              }
+            </select>
+          </div>
+          @if (formIncomeSource === 'other_income') {
+            <div class="field">
+              <label for="fm-income-justification">{{ 'admin.financeManagement.incomeSource.justification' | translate }}</label>
+              <textarea id="fm-income-justification" class="field-control" rows="2" name="incomeJustification"
+                        [(ngModel)]="formIncomeJustification" required></textarea>
+              @if (formFieldErrors['incomeJustification']) {
+                <p class="field-error">{{ formFieldErrors['incomeJustification'] }}</p>
+              }
+            </div>
+          }
+          <label class="checkbox-label">
+            <input type="checkbox" name="formForeignFunding" [(ngModel)]="formForeignFunding" />
+            {{ 'admin.financeManagement.incomeSource.foreign' | translate }}
+          </label>
+          @if (formForeignFunding) {
+            <div class="field">
+              <label for="fm-gov-ref">{{ 'admin.financeManagement.incomeSource.govRef' | translate }}</label>
+              <input id="fm-gov-ref" class="field-control" name="govRef" [(ngModel)]="formGovRef" required />
+              @if (formFieldErrors['governmentApprovalRef']) {
+                <p class="field-error">{{ formFieldErrors['governmentApprovalRef'] }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <!-- Payment linking: avoid double-counting collections already recorded -->
       @if (formType === 'income') {
         <div class="payment-link-box">
@@ -560,6 +628,9 @@
           ({{ actionTarget.referenceNo }})
         }
       </p>
+      @if (modal === 'approve' && actionTarget?.type === 'expense' && !actionTarget?.attachmentUrl) {
+        <p class="field-error">{{ 'admin.financeManagement.modals.approve.receiptRequired' | translate }}</p>
+      }
       @if (modal === 'approve') {
         <p class="modal-message hint-text">
           {{ 'admin.financeManagement.modals.approve.twoPerson' | translate }}
