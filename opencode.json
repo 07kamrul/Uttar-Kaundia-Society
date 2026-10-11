@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["docs/AI_RULES.md", "AI_SESSIONS.md"],
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.sqlite3": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "ls*": "allow",
+      "npm run*": "allow",
+      "npm test*": "allow",
+      "pytest*": "allow",
+      "bash scripts/ai/*": "allow",
+      "psql*": "deny",
+      "mysql*": "deny",
+      "mongosh*": "deny",
+      "redis-cli*": "deny",
+      "sqlite3*": "deny",
+      "pg_dump*": "deny",
+      "pg_restore*": "deny",
+      "alembic upgrade*": "deny",
+      "alembic downgrade*": "deny",
+      "alembic stamp*": "deny",
+      "docker exec*": "deny",
+      "docker compose exec*": "deny",
+      "ssh*": "deny",
+      "scp*": "deny",
+      "sftp*": "deny",
+      "rsync*": "deny",
+      "kubectl*": "deny",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git reset --hard*": "deny",
+      "git clean -f*": "deny"
+    }
+  }
+}

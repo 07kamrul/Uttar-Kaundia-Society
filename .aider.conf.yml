@@ -1,0 +1,4 @@
+# Aider: always load the project AI rules and the session ledger as read-only context.
+read:
+  - CONVENTIONS.md
+  - AI_SESSIONS.md

@@ -1,0 +1,16 @@
+# AI tools must never see secrets or databases (see docs/AI_RULES.md).
+# Same content in: .aiderignore .cursorignore .codeiumignore .geminiignore (+ section in .zcodeignore)
+.env
+.env.*
+**/.env
+**/.env.*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.pem
+*.key
+**/id_rsa*
+**/id_ed25519*
+backups/
+**/*.dump
+data/_raw/

@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(psql:*)",
+      "Bash(mysql:*)",
+      "Bash(mongosh:*)",
+      "Bash(redis-cli:*)",
+      "Bash(sqlite3:*)",
+      "Bash(pg_dump:*)",
+      "Bash(pg_restore:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(alembic downgrade:*)",
+      "Bash(alembic stamp:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sftp:*)",
+      "Bash(rsync:*)",
+      "Bash(kubectl:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./backend/.env)",
+      "Read(./backend/.env.*)",
+      "Read(./backend/db.sqlite3)",
+      "Read(~/.ssh/**)",
+      "Edit(./.env*)",
+      "Edit(./backend/.env*)"
+    ],
+    "ask": [
+      "Edit(./docs/AI_RULES.md)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./scripts/ai/block-infra.sh)",
+      "Edit(./scripts/ai/sync_rules.*)",
+      "Edit(./opencode.json)",
+      "Edit(./.codex/**)",
+      "Edit(./.githooks/**)",
+      "Write(./docs/AI_RULES.md)",
+      "Write(./.claude/settings.json)",
+      "Write(./scripts/ai/block-infra.sh)",
+      "Write(./opencode.json)",
+      "Write(./.codex/**)",
+      "Write(./.githooks/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/ai/block-infra.sh\"" }
+        ]
+      }
+    ]
+  }
+}

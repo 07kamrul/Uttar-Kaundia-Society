@@ -1,0 +1,12 @@
+# Project-level Codex CLI settings (applied when this project is trusted).
+# Rules for every AI: docs/AI_RULES.md (synced into AGENTS.md, which Codex reads automatically).
+
+# Ask before running anything outside the sandbox.
+approval_policy = "on-request"
+
+# Writes allowed only inside this workspace.
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# No network from sandboxed commands: blocks remote database and server connections.
+network_access = false

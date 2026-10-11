@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Tool-independent guardrail (works for every AI and human). Enable once per clone:
+#   git config core.hooksPath .githooks
+# Blocks commits of secrets/databases and stale AI rule copies. See docs/AI_RULES.md.
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+fail=0
+
+# 1. Forbidden files (secrets, databases, keys). .env.example is allowed.
+FORBIDDEN_FILES='(^|/)\.env(\.[^/]*)?$|\.sqlite3(-[a-z]+)?$|\.db$|\.pem$|\.key$|(^|/)id_(rsa|ed25519)[^/]*$|\.dump$'
+bad_files="$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$FORBIDDEN_FILES" | grep -vE '\.env\.example$' || true)"
+if [ -n "$bad_files" ]; then
+  echo "pre-commit: refusing to commit secret or database files:" >&2
+  printf '  %s\n' $bad_files >&2
+  fail=1
+fi
+
+# 2. Secret-looking content in added lines.
+SECRET_PATTERNS='-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9_-]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|(postgres|postgresql|mysql|mongodb(\+srv)?)://[^:@/ ]+:[^@/ ]+@'
+secret_hits="$(git diff --cached -U0 --diff-filter=ACMR | grep -E '^\+[^+]' | grep -E -- "$SECRET_PATTERNS" || true)"
+if [ -n "$secret_hits" ]; then
+  echo "pre-commit: staged changes look like they contain secrets or DB credentials:" >&2
+  printf '%s\n' "$secret_hits" | cut -c1-120 >&2
+  fail=1
+fi
+
+# 3. AI rule copies must match docs/AI_RULES.md.
+if ! bash "$REPO_ROOT/scripts/ai/sync_rules.sh" --check >/dev/null; then
+  echo "pre-commit: AI rule copies are stale. Run: bash scripts/ai/sync_rules.sh" >&2
+  fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "Commit blocked by .githooks/pre-commit (see docs/AI_RULES.md)." >&2
+  exit 1
+fi
+exit 0

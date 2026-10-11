@@ -5,20 +5,23 @@
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
 - Status: DONE
-- Current session ID: SESSION-20261011-1718-claude
+- Current session ID: SESSION-20261011-1808-claude
 - Current agent: claude
-- Current task / user prompt: Fix Dokploy build: target stage runtime not found in backend/Dockerfile
-- Last completed step: none
+- Current task / user prompt: Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook
+- Last completed step: Phase 1-2 done: docs/AI_RULES.md master + sync_rules.sh/.ps1; synced 8 tool files
 - NEXT step: none (awaiting next user prompt)
-- Files touched so far: none
+- Files touched so far: docs/AI_RULES.md, scripts/ai/sync_rules.*, AGENTS.md, .zcode/RULES.md, .github/copilot-instructions.md, .cursor/rules/ai-rules.mdc, GEMINI.md, .windsurfrules, .clinerules, CONVENTIONS.md
 - Uncommitted / half-finished work: none
 - Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-11 17:18
+- Last updated (UTC): 2026-10-11 18:16
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
 - [x] Execute EXECUTE-GOVERNANCE-VERIFICATION.md — governance modules final re-verification, integration sweeps, visual QA, report | sessions: `SESSION-20261011-1253-zcode`
 - [x] Fix Dokploy build: target stage runtime not found in backend/Dockerfile | sessions: `SESSION-20261011-1718-claude`
+- [ ] Make member governance pages UI+functionality smart, professional, user friendly, fully responsive | sessions: `SESSION-20261011-1728-zcode`
+- [x] Make the 3 screenshot pages (emergency-safety, profile correction-request, funds/fund-addition) UI+functionality smart, professional, user friendly, fully responsive on any device | sessions: `SESSION-20261011-1804-claude`
+- [x] Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook | sessions: `SESSION-20261011-1808-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -91,6 +94,67 @@
 - Summary of work done: Named the backend Dockerfile stage 'runtime' so Dokploy build target resolves
 - Files created/modified/deleted: backend/Dockerfile, backend/dev.db-shm.pre-gov-verify.bak, backend/dev.db-wal.pre-gov-verify.bak, backend/dev.db.pre-gov-verify.bak
 - Remaining work (exact): none
+- Notes for the next agent: none
+
+### [SESSION-20261011-1728-zcode] START
+- Agent: zcode
+- Model: GLM-5.3-Flash
+- Started (UTC): 2026-10-11 17:28
+- User prompt: Make member governance pages UI+functionality smart, professional, user friendly, fully responsive
+- Resumed from: none
+- Plan: 1 explore member gov pages; 2 redesign each page UI/UX; 3 responsive mobile; 4 verify desktop+mobile screenshots; 5 build+tests; 6 ledger END
+#### CHECKPOINTS
+- [17:30] Explored all 8 member governance pages + design system + tests + i18n + icons -> read only -> Redesign pages: dashboard first, then service-standard, elections, complaints, membership, petitions, welfare-fund, amendments (ds-card language, responsive grids, better disabled buttons)
+### END
+- Ended (UTC): 2026-10-11 17:33
+- End reason: LIMIT_REACHED
+- Summary of work done: Read-only exploration only; no code changes.
+- Files created/modified/deleted: none
+- Remaining work (exact): see SESSION-20261011-1733-zcode
+- Notes for the next agent: superseded by new session
+
+### [SESSION-20261011-1733-zcode] START
+- Agent: zcode
+- Model: GLM-5.3-Flash
+- Started (UTC): 2026-10-11 17:33
+- User prompt: make those ui and functionality smart, professional and user friendly with fully responsive any kind of size and device (3 screenshots: emergency-safety page, profile correction-request section, funds/fund-addition page)
+- Resumed from: SESSION-20261011-1728-zcode
+- Plan: 1 explore the 3 target pages; 2 redesign UI/UX per page incl. raw-input/label bug fixes; 3 full responsiveness; 4 verify desktop+mobile screenshots via visual-judge; 5 build+tests; 6 ledger END + commit
+#### CHECKPOINTS
+- [17:43] Redesigned 8 member pages (dashboard, service-standard, elections, complaints, membership, petitions, welfare-fund, amendments) + shared gov-* primitives in styles.scss + data-tone badge colors + 20 i18n keys -> frontend/src/styles.scss, frontend/src/app/features/member/pages/{dashboard,service-standard,elections,complaints,membership,petitions,welfare-fund,amendments}/*, frontend/public/i18n/{bn,en,json keys.tsv} -> Run vitest + ng build, then visual QA at 1440/390 widths
+- [17:44] Explored 3 target pages; root cause found: btn-* modifier classes used without .btn base (styles.scss) render raw; plan: global btn fix + redesign emergency-help & my-data-panel + polish fund-transparency (filters collapse, totals chips, audit empty state) + i18n keys -> read only -> Edit styles.scss button base group, then rewrite emergency-help.component.ts
+
+### [SESSION-20261011-1804-claude] START
+- Agent: claude
+- Model: claude-opus-5-5
+- Started (UTC): 2026-10-11 18:04
+- User prompt: Implement rules so AI cannot access the database or server
+- Resumed from: SESSION-20261011-1733-zcode
+- Plan: Create .claude/settings.json deny rules, scripts/ai/block-infra.sh hook, AGENTS.md note
+#### CHECKPOINTS
+### END
+- Ended (UTC): 2026-10-11 18:05
+- End reason: COMPLETED
+- Summary of work done: Added AI no-database/no-server rules: settings deny list, PreToolUse hook block-infra.sh, AGENTS.md policy section
+- Files created/modified/deleted: AI_SESSIONS.md, frontend/src/styles.scss, frontend/src/app/features/member/pages/{dashboard, service-standard, elections, complaints, membership, petitions, welfare-fund, amendments}/*, frontend/public/i18n/{bn, en, json keys.tsv}, read only, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, frontend/public/i18n/keys.tsv, frontend/src/app/features/member/pages/amendments/amendments.component.ts, frontend/src/app/features/member/pages/complaints/complaints.component.ts, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.html, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.ts, frontend/src/app/features/member/pages/elections/elections.component.ts, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.html, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.scss, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.ts, frontend/src/app/features/member/pages/membership/membership.component.ts, frontend/src/app/features/member/pages/petitions/petitions.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.ts, frontend/src/app/features/member/pages/welfare-fund/welfare-fund.component.ts, .claude/settings.json, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.scss
+- Remaining work (exact): none for this task; zcode UI task SESSION-20261011-1733-zcode remains open at its NEXT step
+- Notes for the next agent: none
+
+### [SESSION-20261011-1808-claude] START
+- Agent: claude
+- Model: claude-opus-5-5
+- Started (UTC): 2026-10-11 18:08
+- User prompt: Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook
+- Resumed from: none
+- Plan: Phases 1-5 of approved plan
+#### CHECKPOINTS
+- [18:10] Phase 1-2 done: docs/AI_RULES.md master + sync_rules.sh/.ps1; synced 8 tool files -> docs/AI_RULES.md, scripts/ai/sync_rules.*, AGENTS.md, .zcode/RULES.md, .github/copilot-instructions.md, .cursor/rules/ai-rules.mdc, GEMINI.md, .windsurfrules, .clinerules, CONVENTIONS.md -> Condense CLAUDE.md to @AGENTS.md pointer, then Phase 3 configs (opencode.json, .codex/config.toml, ignore files, .aider.conf.yml)
+### END
+- Ended (UTC): 2026-10-11 18:16
+- End reason: COMPLETED
+- Summary of work done: Cross-AI rules: master docs/AI_RULES.md synced by scripts/ai/sync_rules.sh/.ps1 into AGENTS.md, .zcode/RULES.md, Copilot, Cursor, Gemini, Windsurf, Cline, Aider files; CLAUDE.md imports AGENTS.md; opencode.json and .codex/config.toml locks; ignore files; Claude ask-rules and extended block-infra hook; .githooks/pre-commit guard. Verified with scratchpad test suite.
+- Files created/modified/deleted: docs/AI_RULES.md, scripts/ai/sync_rules.*, AGENTS.md, .zcode/RULES.md, .github/copilot-instructions.md, .cursor/rules/ai-rules.mdc, GEMINI.md, .windsurfrules, .clinerules, CONVENTIONS.md, .zcodeignore, CLAUDE.md, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, frontend/public/i18n/keys.tsv, frontend/src/app/features/member/pages/amendments/amendments.component.ts, frontend/src/app/features/member/pages/complaints/complaints.component.ts, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.html, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.ts, frontend/src/app/features/member/pages/elections/elections.component.ts, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.html, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.scss, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.ts, frontend/src/app/features/member/pages/membership/membership.component.ts, frontend/src/app/features/member/pages/petitions/petitions.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.ts
+- Remaining work (exact): User must enable the git hooks folder once (see .githooks/pre-commit header); AI is not allowed to change git hook config. Commit new files when ready.
 - Notes for the next agent: none
 
 ## ARCHIVE
