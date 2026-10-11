@@ -2335,7 +2335,6 @@
     "property": {
       "itemTitle": "সম্পত্তি",
       "countLabel": "সম্পত্তির সংখ্যা",
-      "countSelectPlaceholder": "নির্বাচন করুন",
       "typeLabel": "সম্পত্তির ধরন",
       "typeOtherPlaceholder": "বিস্তারিত লিখুন",
       "typeRequired": "সম্পত্তির ধরন আবশ্যক",
@@ -2378,7 +2377,13 @@
       "ownershipOptions": {
         "single": "একক",
         "joint": "যৌথ"
-      }
+      },
+      "add": "সম্পত্তি যোগ করুন",
+      "remove": "সম্পত্তি বাদ দিন",
+      "removeConfirm": "সম্পত্তি #{{n}}-এ তথ্য দেওয়া আছে। তবুও বাদ দিতে চান?",
+      "maxReached": "সর্বোচ্চ {{max}}টি সম্পত্তি যোগ করা যাবে।",
+      "added": "সম্পত্তি #{{n}} যোগ করা হয়েছে",
+      "removed": "সম্পত্তি #{{n}} বাদ দেওয়া হয়েছে"
     },
     "urgentContact": {
       "nameLabel": "নাম",

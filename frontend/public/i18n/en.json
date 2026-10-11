@@ -2335,7 +2335,6 @@
     "property": {
       "itemTitle": "Property",
       "countLabel": "Number of Properties",
-      "countSelectPlaceholder": "Select",
       "typeLabel": "Property Type",
       "typeOtherPlaceholder": "Enter details",
       "typeRequired": "Property type is required",
@@ -2378,7 +2377,13 @@
       "ownershipOptions": {
         "single": "Single",
         "joint": "Joint"
-      }
+      },
+      "add": "Add Property",
+      "remove": "Remove Property",
+      "removeConfirm": "Property #{{n}} has information entered. Remove it anyway?",
+      "maxReached": "You can add up to {{max}} properties.",
+      "added": "Property #{{n}} added",
+      "removed": "Property #{{n}} removed"
     },
     "urgentContact": {
       "nameLabel": "Name",

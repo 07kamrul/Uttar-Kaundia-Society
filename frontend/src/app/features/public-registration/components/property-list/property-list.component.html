@@ -1,16 +1,51 @@
 <section [formGroup]="form">
   <h2 class="section-title">{{ 'registration.stepTitles.property' | translate }}</h2>
-  <div class="field" style="max-width:16rem">
-    <label for="propertyCount">{{ 'registration.property.countLabel' | translate }} <span class="required">*</span></label>
-    <select id="propertyCount" [value]="form.get('propertyCount')?.value" (change)="onCountChange($event)">
-      <option value="">{{ 'registration.property.countSelectPlaceholder' | translate }}</option>
-      @for (n of propertyCounts; track n) {
-        <option [value]="n">{{ n }}</option>
-      }
-    </select>
+
+  <div class="property-toolbar">
+    <div class="property-toolbar__info">
+      <span class="property-toolbar__label" id="propertyCountLabel">
+        {{ 'registration.property.countLabel' | translate }} <span class="required">*</span>
+      </span>
+      <span class="property-count-badge" role="status" aria-labelledby="propertyCountLabel">
+        <strong>{{ count }}</strong> / {{ maxCount }}
+      </span>
+    </div>
+
+    <div class="property-toolbar__actions">
+      <button
+        type="button"
+        class="btn btn-ghost property-btn"
+        data-testid="remove-property"
+        [disabled]="!canRemove"
+        (click)="removeProperty(count - 1)"
+      >
+        <span aria-hidden="true">−</span> {{ 'registration.property.remove' | translate }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary property-btn"
+        data-testid="add-property"
+        [disabled]="!canAdd"
+        (click)="addProperty()"
+      >
+        <span aria-hidden="true">+</span> {{ 'registration.property.add' | translate }}
+      </button>
+    </div>
   </div>
+  @if (!canAdd) {
+    <p class="property-toolbar__hint">{{ 'registration.property.maxReached' | translate: { max: maxCount } }}</p>
+  }
 
   @for (p of properties.controls; track p; let i = $index) {
-    <app-property-item [property]="propertyGroup(i)" [index]="i" [submitAttempted]="submitAttempted" />
+    <app-property-item
+      [id]="'property-card-' + i"
+      [property]="propertyGroup(i)"
+      [index]="i"
+      [canRemove]="canRemove"
+      [submitAttempted]="submitAttempted"
+      (removeProperty)="removeProperty(i)"
+    />
   }
+
+  <p class="visually-hidden" aria-live="polite">{{ liveMessage }}</p>
 </section>

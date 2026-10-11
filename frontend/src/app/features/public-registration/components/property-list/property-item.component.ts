@@ -35,6 +35,7 @@ export class PropertyItemComponent implements OnInit {
   @Input({ required: true }) property!: FormGroup;
   @Input({ required: true }) index = 0;
   @Input() submitAttempted = false;
+  @Input() canRemove = false;
   @Output() removeProperty = new EventEmitter<void>();
 
   // Seeded with the static defaults so the form renders immediately; replaced

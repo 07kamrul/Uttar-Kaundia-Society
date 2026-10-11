@@ -1,0 +1,86 @@
+.property-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+}
+
+.property-toolbar__info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.property-toolbar__label {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.property-count-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-700);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.property-toolbar__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.property-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.5rem;
+  white-space: nowrap;
+}
+
+.property-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.property-toolbar__hint {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.85rem;
+  color: var(--gold-strong);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .property-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .property-toolbar__info {
+    justify-content: space-between;
+  }
+
+  .property-toolbar__actions .property-btn {
+    flex: 1;
+    min-height: 2.75rem;
+  }
+}

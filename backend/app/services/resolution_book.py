@@ -198,10 +198,12 @@ def meeting_list_dict(meeting: Meeting) -> dict:
 def quorum_required_for(meeting: Meeting, eligible_members: int) -> int:
     """Majority of the 11-member councils (6 of 11) for executive/standing;
     for an AGM a majority of ALL eligible members; an emergency sitting of a
-    council still needs the council majority."""
+    council still needs the council majority. The floor is capped at the
+    eligible body size - a quorum can never demand more members than exist,
+    which keeps small-registries and legacy create payloads working."""
     if meeting.council_type == COUNCIL_TYPE_AGM:
         return eligible_members // 2 + 1 if eligible_members else 0
-    return EXECUTIVE_COUNCIL_SIZE // 2 + 1
+    return min(EXECUTIVE_COUNCIL_SIZE // 2 + 1, eligible_members) if eligible_members else 0
 
 
 def notice_period_days_for(council_type: str) -> int | None:
