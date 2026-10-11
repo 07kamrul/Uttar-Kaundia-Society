@@ -436,14 +436,24 @@ def _require_casting_vote_on_tie(resolution: Resolution) -> None:
         )
 
 
-async def _enforce_quorum(db: AsyncSession, meeting: Meeting, *, acknowledge: bool, admin: AdminUser) -> None:
+async def _enforce_quorum(
+    db: AsyncSession,
+    meeting: Meeting,
+    *,
+    acknowledge: bool,
+    admin: AdminUser,
+    present: int | None = None,
+) -> None:
     """Marking a meeting completed stores quorum_present/quorum_required. Below
     quorum the write is REJECTED with 409 unless `acknowledge` is set - then
     quorum_acknowledged=True is stored (visible warning badge forever) and the
-    acknowledgement itself is audit-logged."""
+    acknowledgement itself is audit-logged. `present` lets the atomic create
+    path reuse the payload-derived count (the freshly-added attendance rows are
+    not reachable through the relationship without a lazy load)."""
     if meeting.status != MEETING_STATUS_COMPLETED:
         return
-    present = present_count(meeting)
+    if present is None:
+        present = present_count(meeting)
     required = quorum_required_for(meeting, await count_eligible_members(db))
     meeting.quorum_present = present
     meeting.quorum_required = required
@@ -535,7 +545,7 @@ async def create_meeting(
     present = sum(1 for entry in payload.attendance if entry.status == ATTENDANCE_PRESENT)
     await _apply_attendance(db, meeting, payload.attendance)
     await _apply_resolutions(db, meeting, payload.resolutions, present)
-    await _enforce_quorum(db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin)
+    await _enforce_quorum(db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin, present=present)
 
     record_audit(
         db,

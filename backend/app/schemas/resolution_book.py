@@ -41,6 +41,11 @@ class ResolutionIn(BaseModel):
     task: str | None = Field(default=None, max_length=1000)
     due_date: dt_date | None = None
     status: str = Field(default="pending", pattern=_RESOLUTION_STATUS_PATTERN)
+    # Module 3 additions - optional so the pre-existing create-meeting payload
+    # (no vote_mode) keeps working unchanged; None means the plain default.
+    vote_mode: str | None = Field(default=None, pattern=_VOTE_MODE_PATTERN)
+    casting_vote: str | None = Field(default=None, pattern=_CASTING_VOTE_PATTERN)
+    casting_note: str | None = Field(default=None, max_length=1000)
 
     @field_validator("decision")
     @classmethod
