@@ -651,3 +651,29 @@
     max-width: 100%;
   }
 }
+
+// Module 4: published audit summaries.
+.audit-summary {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--gray-200, #e5e7eb);
+}
+
+.audit-summary:first-of-type {
+  border-top: 0;
+}
+
+.audit-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.audit-summary-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

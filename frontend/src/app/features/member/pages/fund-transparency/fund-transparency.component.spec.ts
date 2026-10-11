@@ -4,6 +4,9 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import {
+  FundControlsService,
+} from '../../../../core/services/fund-controls.service';
+import {
   FinanceService,
   formatFinanceAmount,
   formatPercent,
@@ -79,6 +82,13 @@ describe('FundTransparencyComponent', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: FinanceService, useValue: { getSummary, getTransactions } },
+        {
+          provide: FundControlsService,
+          useValue: {
+            memberAuditReports: vi.fn(() => of([])),
+            downloadMemberAuditFile: vi.fn(() => of(new Blob())),
+          },
+        },
       ],
     });
 

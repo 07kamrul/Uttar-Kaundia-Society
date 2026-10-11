@@ -11,6 +11,21 @@
     </div>
   </div>
 
+  @if (canManageAudit && auditReminder?.reminderWindowActive) {
+    <div class="card" style="padding:1.25rem;margin-bottom:1.5rem;border-inline-start:4px solid var(--gold, #c9a34c)">
+      <div style="display:flex;gap:0.6rem;align-items:flex-start">
+        <app-icon name="alert" [size]="20" />
+        <div>
+          <strong>{{ 'auditReports.reminderTitle' | translate: { fy: auditReminder!.fiscalYear } }}</strong>
+          <p style="margin:0.2rem 0 0.5rem">{{ 'auditReports.reminderBody' | translate }}</p>
+          <a [routerLink]="['/fund-controls']" class="btn btn-secondary btn-sm" style="text-decoration:none">
+            {{ 'auditReports.reminderCta' | translate }}
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+
   @if (canManageCosts) {
     <div class="card" style="padding:1.25rem;margin-bottom:1.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">

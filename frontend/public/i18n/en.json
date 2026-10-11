@@ -282,7 +282,13 @@
     "committeeRegistry": "Committee Registry",
     "electionsAdmin": "Elections Admin",
     "elections": "Elections",
-    "petitions": "Petitions"
+    "petitions": "Petitions",
+    "welfareFund": "Welfare Fund",
+    "amendments": "Amendments",
+    "fundControls": "Fund Controls",
+    "amendmentsAdmin": "Amendment Tracker",
+    "assetRegister": "Asset Register",
+    "welfareActivities": "Welfare Activities"
   },
   "forbidden": {
     "title": "Access Denied",
@@ -2057,7 +2063,10 @@
         "count": "{{count}} transactions",
         "page": "Page {{page}} of {{total}}",
         "empty": "No transactions",
-        "emptyHint": "Add the first entry with 'New transaction'."
+        "emptyHint": "Add the first entry with 'New transaction'.",
+        "secondApprover": "Second approver",
+        "incomeSource": "Income source",
+        "foreignFunding": "Foreign funding"
       },
       "form": {
         "type": "Type",
@@ -2088,13 +2097,16 @@
         "reject": "Reject",
         "reverse": "Reverse",
         "saveDraft": "Save draft",
-        "savePending": "Save & submit"
+        "savePending": "Save & submit",
+        "awaitingSecondary": "Awaiting second approval",
+        "secondaryApprove": "Second approval"
       },
       "modals": {
         "approve": {
           "title": "Approve transaction",
           "twoPerson": "Two-person control: the creator cannot approve their own entry — another committee member approves.",
-          "confirm": "Approve"
+          "confirm": "Approve",
+          "receiptRequired": "This expense has no receipt/voucher attached — upload one before approving."
         },
         "reject": {
           "title": "Reject transaction",
@@ -2122,7 +2134,16 @@
         "reasonRequired": "A reason is required.",
         "categoryAddFailed": "Could not add the category.",
         "attachmentFailed": "Attachment upload failed.",
-        "actionFailed": "The action failed. Please retry."
+        "actionFailed": "The action failed. Please retry.",
+        "justificationRequired": "The 'Other' income source requires a written justification.",
+        "govRefRequired": "Foreign funding requires a government approval reference."
+      },
+      "incomeSource": {
+        "label": "Income source",
+        "unspecified": "Unspecified",
+        "justification": "Income-source justification (required)",
+        "foreign": "Foreign funding",
+        "govRef": "Government approval reference"
       }
     },
     "roadmap": {
@@ -3214,5 +3235,246 @@
       "rejected": "Rejected"
     },
     "loadError": "Failed to load petitions."
+  },
+  "fundControls": {
+    "title": "Fund Controls & Audit",
+    "subtitle": "Income sources, two-person approval on large expenses, bank signatories and the annual audit — all in one place.",
+    "tabs": {
+      "income-policy": "Income policy",
+      "threshold": "Two-person limit",
+      "signatories": "Bank signatories",
+      "audit": "Annual audit",
+      "welfare": "Welfare requests"
+    },
+    "auditReminder": {
+      "title": "Prepare the annual audit report (FY {{fy}})",
+      "body": "The fiscal year has ended but no audit report has been filed for it yet. This reminder shows from June onward."
+    },
+    "incomePolicy": {
+      "title": "Income-source policy",
+      "hint": "By the constitution the society's income may come only from the sources below. The 'Other' source requires a written justification.",
+      "needsJustification": "Justification required",
+      "foreignTitle": "Foreign funding",
+      "foreignBody": "Foreign funding is not acceptable without government approval — the system rejects such transactions without an approval reference."
+    },
+    "threshold": {
+      "title": "Second-approval threshold for expenses",
+      "hint": "Expenses above this amount need two signatures — the second from another fund.approve_secondary holder who is not the first approver.",
+      "defaultTag": "Constitution default",
+      "newValue": "New threshold (taka)",
+      "save": "Save",
+      "saved": "Saved"
+    },
+    "signatories": {
+      "title": "Bank signatories",
+      "bankLetter": "Bank letter (PDF)",
+      "add": "Add signatory",
+      "empty": "No signatories registered.",
+      "member": "Member",
+      "bank": "Bank & branch",
+      "account": "Account",
+      "validity": "Validity",
+      "inactive": "Inactive",
+      "addTitle": "Add signatory",
+      "editTitle": "Edit signatory",
+      "last4": "Last 4 digits of account number",
+      "last4Hint": "The full account number is never stored — only the last 4 digits are kept.",
+      "scope": "Signing authority (joint/individual etc.)",
+      "termId": "Committee term id (optional)",
+      "validFrom": "Valid from",
+      "validTo": "Valid to (optional)",
+      "memberRequired": "Please select a member.",
+      "deactivateReason": "Reason for deactivating:"
+    }
+  },
+  "welfareFund": {
+    "title": "Member Welfare Fund",
+    "memberSubtitle": "In hard times the organisation stands with you — apply for support from the welfare fund.",
+    "applyTitle": "New application",
+    "applyHint": "Only one application can be open at a time. Every decision is made by the committee — there is no automatic approval.",
+    "apply": "Submit application",
+    "myRequests": "My applications",
+    "empty": "No applications yet.",
+    "type": "Request type",
+    "amount": "Amount needed (taka)",
+    "reason": "Decision reason",
+    "amountLabel": "Requested: {{amount}}",
+    "approvedLabel": "Approved: {{amount}}",
+    "decisionLetter": "Decision letter (PDF)",
+    "loadError": "Could not load applications.",
+    "applyError": "The application was not submitted. Check the reason and amount.",
+    "letterError": "Could not download the decision letter.",
+    "types": {
+      "medical": "Medical",
+      "emergency": "Emergency",
+      "education": "Education",
+      "other": "Other"
+    },
+    "status": {
+      "label": "Status",
+      "all": "All statuses",
+      "submitted": "Submitted",
+      "under_review": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "disbursed": "Disbursed"
+    },
+    "noAutoApproval": "Note: no application is ever approved automatically; the committee's written decision is final.",
+    "requestNo": "Request no.",
+    "member": "Member",
+    "startReview": "Start review",
+    "decide": "Decide",
+    "disburse": "Mark disbursed",
+    "decideTitle": "Decision: {{no}}",
+    "decideRequested": "Requested amount: {{amount}}",
+    "decision": "Decision",
+    "approvedAmount": "Approved amount (taka)",
+    "committeeReason": "Committee reason (required for both approval and rejection)",
+    "reasonRequired": "A decision reason is required.",
+    "amountRequired": "Enter the approved amount.",
+    "noReasonYet": "Not decided yet.",
+    "requestedReason": "Reason on the application"
+  },
+  "auditReports": {
+    "uploadTitle": "Upload audit report",
+    "fiscalYear": "Fiscal year (e.g. 2025-26)",
+    "reportDate": "Report date",
+    "file": "File (PDF/image)",
+    "summary": "Summary",
+    "upload": "Upload",
+    "listTitle": "Audit reports",
+    "empty": "No audit report has been filed.",
+    "fyLabel": "FY {{fy}}",
+    "published": "Published",
+    "unpublished": "Not published",
+    "noSummary": "No summary written yet.",
+    "editSummary": "Edit summary",
+    "download": "Download file",
+    "publish": "Publish to members",
+    "memberTitle": "Annual audit summaries",
+    "memberHint": "Summaries of published audit reports appear here.",
+    "memberEmpty": "No audit summary has been published yet.",
+    "loadError": "Could not load audit reports.",
+    "downloadError": "Could not download the file.",
+    "reminderTitle": "Audit reminder: FY {{fy}}",
+    "reminderBody": "No annual audit report has been filed for this fiscal year. June is the last month of the FY — please prepare the report.",
+    "reminderCta": "Manage audit reports"
+  },
+  "amendments": {
+    "memberTitle": "Constitution Amendments",
+    "memberSubtitle": "Propose an amendment to the constitution and read the version history.",
+    "adminTitle": "Constitution Amendment Tracker",
+    "adminSubtitle": "Proposal → properly-noticed meeting → vote → new version.",
+    "proposeTitle": "Propose an amendment",
+    "proposeHint": "Your proposal goes to the committee; the decision happens in a properly-noticed meeting.",
+    "title": "Title",
+    "rationale": "Rationale",
+    "proposedText": "Proposed text",
+    "isDissolution": "This is a dissolution proposal",
+    "dissolutionNotice": "The dissolution process will be completed manually with legal advice; this system never dissolves the society automatically.",
+    "dissolutionTag": "Dissolution",
+    "submit": "Submit proposal",
+    "myProposals": "My proposals",
+    "noProposals": "No proposals yet.",
+    "statuses": {
+      "all": "All statuses",
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "scheduled": "Scheduled",
+      "adopted": "Adopted",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "majority": {
+      "simple": "Simple majority",
+      "four_fifths": "Four-fifths"
+    },
+    "adoptedAsVersion": "Adopted as version {{version}}",
+    "decisionNote": "Decision note",
+    "withdraw": "Withdraw",
+    "versionsTitle": "Constitution versions",
+    "versionsHint": "Each adopted amendment adds a new version; older versions are never changed.",
+    "versionsAdminHint": "The version register only grows — it cannot be edited. New versions come only from adopted amendments.",
+    "noVersions": "No versions yet.",
+    "versionLabel": "Version {{version}}",
+    "currentVersion": "Current version",
+    "viewText": "View full text",
+    "loadError": "Could not load data.",
+    "submitError": "The proposal was not submitted.",
+    "withdrawError": "Could not withdraw the proposal.",
+    "adminCreate": "Create proposal",
+    "proposedBy": "Proposed by {{name}}",
+    "meetingRef": "Meeting: {{meeting}}",
+    "pickMeeting": "Pick a meeting",
+    "meetingNotNoticed": "notice not published",
+    "schedule": "Schedule in meeting",
+    "recordVotes": "Record votes",
+    "votesFor": "For",
+    "votesAgainst": "Against",
+    "votesAbstain": "Abstain",
+    "votesLine": "Votes — for {{for}}, against {{against}}, abstain {{abstain}}",
+    "decide": "Apply votes",
+    "simpleHint": "Simple majority: for > against AND for at least half + 1.",
+    "fourFifthsHint": "Dissolution proposals need four-fifths: for at least 80% of (for + against).",
+    "reject": "Reject",
+    "rejectReason": "Rejection reason",
+    "rejectReasonRequired": "A rejection reason is required.",
+    "certificate": "Certificate (PDF)",
+    "seedHint": "Add the first (v1) text of the constitution here. Later versions come only from adopted amendments.",
+    "seedText": "Original constitution text",
+    "seed": "Create version 1"
+  },
+  "assetRegister": {
+    "title": "Asset Register",
+    "subtitle": "The society's register of movable and immovable assets.",
+    "downloadPdf": "Register (PDF)",
+    "add": "Add asset",
+    "addTitle": "Add asset",
+    "editTitle": "Edit asset",
+    "search": "Search by name/code/category…",
+    "includeInactive": "Show deactivated assets",
+    "empty": "The asset register is empty.",
+    "code": "Code",
+    "name": "Asset name",
+    "category": "Category",
+    "acquired": "Acquired",
+    "value": "Value (taka)",
+    "condition": "Condition",
+    "inactive": "Deactivated",
+    "location": "Location",
+    "description": "Description",
+    "conditions": {
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "lost": "Lost"
+    },
+    "deactivateReason": "Reason for removing from the register:",
+    "loadError": "Could not load assets."
+  },
+  "welfareActivities": {
+    "title": "Welfare Activities",
+    "subtitle": "Records of training, welfare and other activities.",
+    "downloadPdf": "List (PDF)",
+    "add": "Add activity",
+    "addTitle": "Add activity",
+    "editTitle": "Edit activity",
+    "allTypes": "All types",
+    "type": "Type",
+    "titleLabel": "Activity title",
+    "date": "Date",
+    "participantsLabel": "Participants count",
+    "participants": "Participants: {{count}}",
+    "organizer": "Organizer",
+    "outcome": "Outcome",
+    "empty": "No activities recorded.",
+    "types": {
+      "training": "Training",
+      "welfare": "Welfare",
+      "other": "Other"
+    },
+    "memberTitle": "Recent welfare activities",
+    "memberHint": "Recent activities organised by the committee.",
+    "loadError": "Could not load activities."
   }
 }

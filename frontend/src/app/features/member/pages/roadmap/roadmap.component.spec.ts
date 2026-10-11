@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { RegistersService } from '../../../../core/services/registers.service';
 import {
   RoadmapService,
   currentTimeframeIndex,
@@ -155,6 +156,7 @@ describe('RoadmapComponent', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: RoadmapService, useValue: { getRoadmap, downloadPdf: vi.fn() } },
+        { provide: RegistersService, useValue: { memberActivities: vi.fn(() => of([])) } },
       ],
     });
     const fixture = TestBed.createComponent(RoadmapComponent);
@@ -211,7 +213,7 @@ describe('RoadmapManagementComponent', () => {
     };
     TestBed.configureTestingModule({
       imports: [RoadmapManagementComponent],
-      providers: [provideRouter([]), provideTranslateService(), { provide: RoadmapService, useValue: service }],
+      providers: [provideRouter([]), provideTranslateService(), { provide: RoadmapService, useValue: service }, { provide: RegistersService, useValue: { memberActivities: vi.fn(() => of([])) } }],
     });
     const fixture = TestBed.createComponent(RoadmapManagementComponent);
     fixture.detectChanges();

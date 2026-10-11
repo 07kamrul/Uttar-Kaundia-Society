@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FinanceService } from '../../../../core/services/finance.service';
+import { GovernanceService } from '../../../../core/services/governance.service';
 import { FinanceManagementComponent } from './finance-management.component';
 
 const overview = {
@@ -56,6 +57,10 @@ describe('FinanceManagementComponent', () => {
         provideRouter([]),
         provideTranslateService(),
         {
+          provide: GovernanceService,
+          useValue: { constants: vi.fn(() => of({ income_sources: [] })) },
+        },
+        {
           provide: FinanceService,
           useValue: {
             adminTransactions,
@@ -84,7 +89,7 @@ describe('FinanceManagementComponent', () => {
         },
         {
           provide: AuthService,
-          useValue: { hasPermission: () => false },
+          useValue: { hasPermission: () => false, hasAnyPermission: () => false },
         },
       ],
     });

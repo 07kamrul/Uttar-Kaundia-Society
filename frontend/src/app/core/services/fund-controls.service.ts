@@ -320,7 +320,15 @@ export class FundControlsService {
   }
 
   auditReminder(): Observable<AuditReminder> {
-    return this.http.get<AuditReminderApiShape>(`${this.adminBase}/fund-controls/audit-reminder`);
+    return this.http
+      .get<AuditReminderApiShape>(`${this.adminBase}/fund-controls/audit-reminder`)
+      .pipe(
+        map((api) => ({
+          fiscalYear: api.fiscal_year,
+          currentFyReportExists: api.current_fy_report_exists,
+          reminderWindowActive: api.reminder_window_active,
+        })),
+      );
   }
 
   downloadAuditFile(id: number): Observable<Blob> {

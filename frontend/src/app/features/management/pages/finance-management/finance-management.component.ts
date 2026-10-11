@@ -17,6 +17,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import {
   FinanceService,
   formatTaka,
+  type FinanceCategory,
   type IncomeSourceKey,
   type FinanceLedgerPage,
   type FinanceOverview,

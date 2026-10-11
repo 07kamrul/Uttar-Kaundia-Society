@@ -14,6 +14,7 @@ import {
   type RoadmapStatus,
   type RoadmapTimeframe,
 } from '../../../../core/services/roadmap.service';
+import { RegistersService, type WelfareActivity } from '../../../../core/services/registers.service';
 import { RoadmapSlidesComponent } from './roadmap-slides.component';
 import { renderRoadmapShareImage } from './roadmap-share-image';
 
@@ -42,7 +43,9 @@ function saveBlob(blob: Blob, filename: string): void {
 })
 export class RoadmapComponent implements OnInit {
   private readonly roadmapService = inject(RoadmapService);
+  private readonly registers = inject(RegistersService);
   private readonly language = inject(LanguageService);
+  readonly lang = this.language.lang;
 
   readonly statusFilters = STATUS_FILTERS;
   readonly roadmap = signal<Roadmap | null>(null);
@@ -54,8 +57,8 @@ export class RoadmapComponent implements OnInit {
   readonly pdfBusy = signal(false);
   readonly imageBusy = signal(false);
   readonly exportError = signal('');
-
-  readonly lang = this.language.lang;
+  // Module 7: member-visible welfare activities (read-only, most recent first).
+  readonly welfareActivities = signal<WelfareActivity[]>([]);
   readonly currentIndex = computed(() => {
     const data = this.roadmap();
     return data ? currentTimeframeIndex(data) : 0;
@@ -67,6 +70,18 @@ export class RoadmapComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.loadWelfareActivities();
+  }
+
+  loadWelfareActivities(): void {
+    this.registers.memberActivities().subscribe({
+      next: (activities) => this.welfareActivities.set(activities),
+      error: () => this.welfareActivities.set([]),
+    });
+  }
+
+  activityTypeKey(type: string): string {
+    return 'welfareActivities.types.' + type;
   }
 
   load(): void {

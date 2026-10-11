@@ -15,6 +15,10 @@ import { TrendChartComponent } from '../../../../shared/charts/trend-chart.compo
 import { SparklineComponent } from '../../../../shared/charts/sparkline.component';
 import { AttachmentService } from '../../../../core/services/attachment.service';
 import {
+  FundControlsService,
+  type AuditReport,
+} from '../../../../core/services/fund-controls.service';
+import {
   FinanceService,
   formatFinanceAmount,
   formatPercent,
@@ -57,6 +61,11 @@ interface Insight {
 })
 export class FundTransparencyComponent implements OnInit, OnDestroy {
   readonly pageSizes = PAGE_SIZES;
+
+  // ----- বার্ষিক অডিট সারসংক্ষেপ (Module 4: published audit summaries) -----
+  auditReports: AuditReport[] = [];
+  auditLoading = false;
+  auditError = '';
   readonly periodTypes: FinancePeriod[] = ['month', 'year', 'custom', 'all'];
 
   // ----- Period -----
@@ -109,6 +118,7 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly attachments = inject(AttachmentService);
+  private readonly fundControls = inject(FundControlsService);
 
   constructor(
     private finance: FinanceService,
@@ -117,6 +127,42 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applyPeriod();
+    this.loadAuditReports();
+  }
+
+  loadAuditReports(): void {
+    this.auditLoading = true;
+    this.fundControls.memberAuditReports().subscribe({
+      next: (reports) => {
+        this.auditReports = reports;
+        this.auditLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.auditLoading = false;
+        this.auditError = this.translate.instant('auditReports.loadError');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  downloadAuditReport(report: AuditReport): void {
+    this.fundControls.downloadMemberAuditFile(report.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `audit-report-${report.fiscalYear}.pdf`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: () => {
+        this.auditError = this.translate.instant('auditReports.downloadError');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   ngOnDestroy(): void {

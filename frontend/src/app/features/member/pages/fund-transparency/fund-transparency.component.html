@@ -572,6 +572,35 @@
     }
   </section>
 
+  <!-- বার্ষিক অডিট সারসংক্ষেপ: published audit summaries (Module 4) -->
+  <section class="card">
+    <h2 class="breakdown-title">{{ 'auditReports.memberTitle' | translate }}</h2>
+    <p class="field-hint">{{ 'auditReports.memberHint' | translate }}</p>
+    @if (auditLoading) {
+      <div class="skeleton-line" style="height: 64px"></div>
+    } @else if (auditReports.length === 0) {
+      <div class="ds-empty">{{ 'auditReports.memberEmpty' | translate }}</div>
+    } @else {
+      @for (report of auditReports; track report.id) {
+        <article class="audit-summary">
+          <div class="audit-summary-head">
+            <strong>{{ 'auditReports.fyLabel' | translate: { fy: report.fiscalYear } }}</strong>
+            <span class="ds-tag ds-tag-green">{{ 'auditReports.published' | translate }}</span>
+            <span class="ds-tag">{{ report.reportDate }}</span>
+          </div>
+          @if (report.summaryText) {
+            <p class="audit-summary-text">{{ report.summaryText }}</p>
+          }
+          @if (report.hasFile) {
+            <button type="button" class="btn btn-secondary btn-sm" (click)="downloadAuditReport(report)">
+              {{ 'auditReports.download' | translate }}
+            </button>
+          }
+        </article>
+      }
+    }
+  </section>
+
   <!-- Attachment preview modal -->
   @if (previewOpen) {
     <div class="modal-backdrop" (click)="closePreview()">

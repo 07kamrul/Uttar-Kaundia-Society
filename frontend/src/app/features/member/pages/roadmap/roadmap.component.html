@@ -241,3 +241,23 @@
     }
   }
 </div>
+
+<!-- Module 7: recent welfare activities (read-only) -->
+@if (welfareActivities().length > 0) {
+  <section class="card" style="padding:1.25rem">
+    <h2 style="margin:0 0 0.5rem;font-size:1.05rem">{{ 'welfareActivities.memberTitle' | translate }}</h2>
+    <p class="field-hint" style="margin:0 0 0.75rem">{{ 'welfareActivities.memberHint' | translate }}</p>
+    <ul style="list-style:none;margin:0;padding:0;display:grid;gap:0.5rem">
+      @for (activity of welfareActivities(); track activity.id) {
+        <li style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:baseline;padding:0.5rem 0;border-top:1px solid var(--gray-200, #e5e7eb)">
+          <span class="ds-tag">{{ activity.activityDate }}</span>
+          <strong>{{ activity.title }}</strong>
+          <span class="ds-tag ds-tag-blue">{{ activityTypeKey(activity.activityType) | translate }}</span>
+          <span style="font-size:0.82rem;color:var(--gray-600)">
+            {{ 'welfareActivities.participants' | translate: { count: digits(activity.participantsCount) } }}
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+}

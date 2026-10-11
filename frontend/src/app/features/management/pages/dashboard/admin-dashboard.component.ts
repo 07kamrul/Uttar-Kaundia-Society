@@ -6,6 +6,10 @@ import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { SocietyCostService } from '../../../../core/services/society-cost.service';
 import { FinanceService, formatTaka, type FinanceOverview } from '../../../../core/services/finance.service';
+import {
+  FundControlsService,
+  type AuditReminder,
+} from '../../../../core/services/fund-controls.service';
 import type { SocietyCostSummary } from '../../../../core/services/society-cost.service';
 import type { SubmissionSummary } from '../../../../core/models/admin.model';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -28,24 +32,43 @@ export class AdminDashboardComponent implements OnInit {
   costSummaryLoading = false;
 
   readonly canManageFinance: boolean;
+  readonly canManageAudit: boolean;
   financeOverview: FinanceOverview | null = null;
+  auditReminder: AuditReminder | null = null;
 
   constructor(
     private adminService: AdminService,
     private costService: SocietyCostService,
     private financeService: FinanceService,
+    private fundControls: FundControlsService,
     private auth: AuthService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
   ) {
     this.canManageCosts = this.auth.hasPermission('manage_costs');
     this.canManageFinance = this.auth.hasPermission('manage_finance');
+    this.canManageAudit = this.auth.hasAnyPermission(['fund.manage', 'audit_report.manage']);
   }
 
   ngOnInit(): void {
     this.load();
     if (this.canManageCosts) this.loadCostSummary();
     if (this.canManageFinance) this.loadFinanceOverview();
+    if (this.canManageAudit) this.loadAuditReminder();
+  }
+
+  /** Module 4: June audit reminder (window active while the FY has no report). */
+  private loadAuditReminder(): void {
+    this.fundControls.auditReminder().subscribe({
+      next: (reminder) => {
+        this.auditReminder = reminder;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.auditReminder = null;
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   load(): void {

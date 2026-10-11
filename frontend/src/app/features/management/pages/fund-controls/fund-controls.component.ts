@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -28,7 +27,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
   selector: 'app-fund-controls',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, MemberPickerComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, MemberPickerComponent],
   template: `
     <div class="fc-page">
       <div class="page-header">
@@ -73,7 +72,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           <ul class="fc-source-list">
             @for (source of settings()?.incomeSources ?? []; track source.key) {
               <li>
-                <span class="ds-tag ds-tag-blue">{{ lang() === 'bn' ? source.bn : source.en }}</span>
+                <span class="ds-tag ds-tag-blue">{{ lang === 'bn' ? source.bn : source.en }}</span>
                 @if (source.requires_justification) {
                   <span class="ds-tag ds-tag-amber">{{ 'fundControls.incomePolicy.needsJustification' | translate }}</span>
                 }

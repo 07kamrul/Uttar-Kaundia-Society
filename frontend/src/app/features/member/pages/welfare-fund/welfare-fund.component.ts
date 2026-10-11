@@ -131,8 +131,6 @@ export class WelfareFundComponent implements OnInit {
   readonly formError = signal('');
   readonly requests = signal<WelfareFundRequest[]>([]);
 
-  readonly lang = this.language.lang;
-
   formType: WelfareRequestType = 'medical';
   formAmount: number | null = null;
   formReason = '';
@@ -140,6 +138,7 @@ export class WelfareFundComponent implements OnInit {
   private readonly fundControls = inject(FundControlsService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  readonly lang = this.language.lang;
 
   ngOnInit(): void {
     this.load();
