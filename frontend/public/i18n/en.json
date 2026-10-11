@@ -168,7 +168,11 @@
     "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
-    "retry": "Retry"
+    "retry": "Retry",
+    "loadFailed": "Could not load data. Please try again.",
+    "saveFailed": "Could not save. Please try again.",
+    "actions": "Actions",
+    "id": "ID"
   },
   "nav": {
     "admin": "Admin",
@@ -218,7 +222,14 @@
     },
     "societyCosts": "Society Costs",
     "submissions": "Submissions",
-    "otherFees": "Other Fees"
+    "otherFees": "Other Fees",
+    "membership": "Membership & Applications",
+    "complaints": "Complaints",
+    "serviceStandard": "Service Standards",
+    "emergencyHelp": "Emergency Safe Steps",
+    "membershipReview": "Membership Review",
+    "membershipGovernance": "Membership Governance",
+    "complaintsAdmin": "Complaints Admin"
   },
   "forbidden": {
     "title": "Access Denied",
@@ -845,6 +856,12 @@
         "error": "Could not send the report. Please try again."
       },
       "draw": {
+        "snapToRs": "Snap to RS dag lines",
+        "snapped": "Snapped to RS dag",
+        "showRsLayer": "Show RS dag layer",
+        "rsMatch": "Your drawn boundary matches RS dag No. {{dag}} by {{pct}}%",
+        "rsDiverges": "Your drawn boundary matches RS dag No. {{dag}} by only {{pct}}% — it differs noticeably from the RS dag line.",
+        "rsNoMatch": "Your drawn boundary does not overlap any RS dag. Check its position.",
         "open": "Draw boundary",
         "title": "Draw your plot boundary",
         "editTitle": "Edit my boundary",
@@ -884,6 +901,11 @@
       },
       "views": {
         "title": "Map views",
+        "layers": "Layers",
+        "rs": "RS dag map",
+        "rsHint": "Reference grid of RS dag parcels (not an ownership claim)",
+        "rsArea": "Approx. area",
+        "rsReferenceOnly": "Reference information only — not an ownership claim.",
         "boundaries": "My plot boundary map",
         "boundariesHint": "Member-marked boundaries",
         "bds": "BDS dag map",
@@ -2139,6 +2161,8 @@
       "memberFilter": "Member ID"
     },
     "plotBoundaries": {
+      "rsMatchValue": "RS dag No. {{dag}} · {{pct}}% overlap",
+      "rsNoMatch": "No RS dag overlaps this shape",
       "title": "Plot Boundaries",
       "subtitle": "Review member-drawn plot boundaries",
       "searchPlaceholder": "Search by dag number",
@@ -2153,6 +2177,7 @@
         "khatian": "Khatian",
         "dag": "Dag",
         "landQuantity": "Declared land",
+        "rsMatch": "RS dag match",
         "computedArea": "Computed area",
         "property": "Property"
       },
@@ -2573,6 +2598,338 @@
       "approved": "Member",
       "applicant": "Applicant",
       "pending": "Pending",
+      "rejected": "Rejected"
+    }
+  },
+  "membershipGov": {
+    "title": "Membership & Applications",
+    "subtitle": "Your applications, appeals, fee waivers and notices — all in one place.",
+    "myApplications": "My applications",
+    "myAppeals": "My appeals",
+    "myWaivers": "My waiver requests",
+    "no": "No.",
+    "status": "Status",
+    "sla": {
+      "on_track": "On track",
+      "due_soon": "Due soon",
+      "overdue": "Overdue",
+      "met": "Met"
+    },
+    "submittedAt": "Submitted",
+    "rejectionReason": "Rejection reason",
+    "appealThis": "Appeal this decision",
+    "actionNo": "Action",
+    "tabs": {
+      "applications": "Applications",
+      "appeals": "Appeals",
+      "waivers": "Waivers",
+      "notices": "Notices"
+    },
+    "apply": {
+      "title": "New application",
+      "fullName": "Full name",
+      "fatherName": "Father's/husband's name",
+      "motherName": "Mother's name",
+      "mobile": "Mobile",
+      "email": "Email",
+      "ownershipType": "Ownership type",
+      "address": "Address (house/road)",
+      "nidDoc": "NID document (image/PDF)",
+      "ownershipDoc": "Ownership document (image/PDF)",
+      "consent": "I confirm the information is accurate and I agree to abide by the society constitution.",
+      "submit": "Submit application"
+    },
+    "ownership": {
+      "owner": "Owner",
+      "co_owner": "Co-owner",
+      "inheritance": "Inheritance",
+      "purchased": "Purchased",
+      "other": "Other"
+    },
+    "statuses": {
+      "received": "Received",
+      "under_review": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "noticed": "Noticed",
+      "awaiting_response": "Awaiting response",
+      "decided": "Decided",
+      "cancelled": "Cancelled",
+      "submitted": "Submitted"
+    },
+    "appealStatuses": {
+      "submitted": "Submitted",
+      "under_review": "Under review",
+      "upheld": "Upheld",
+      "overturned": "Overturned"
+    },
+    "waiverStatuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "actionStatuses": {
+      "draft": "Draft",
+      "noticed": "Noticed",
+      "awaiting_response": "Awaiting response",
+      "decided": "Decided",
+      "cancelled": "Cancelled"
+    },
+    "events": {
+      "submitted": "Submitted",
+      "membership_application.start_review": "Review started",
+      "reviewed_approved": "Approved",
+      "reviewed_rejected": "Rejected"
+    },
+    "appeals": {
+      "file": "File an appeal",
+      "target": "Decision to appeal",
+      "selectTarget": "Select a decision",
+      "grounds": "Grounds",
+      "windowNote": "An appeal must be filed within 30 days of the decision.",
+      "window": "Window expires",
+      "decision": "Decision",
+      "reviewer": "Reviewer",
+      "submit": "Submit appeal",
+      "windowClosed": "The appeal window has closed."
+    },
+    "waivers": {
+      "apply": "Apply for waiver or installment",
+      "type": "Type",
+      "typewaiver": "Waiver",
+      "typeinstallment": "Installment",
+      "reason": "Reason (required)",
+      "months": "Months",
+      "note": "Committee note",
+      "submit": "Submit",
+      "reasonRequired": "A reason is required."
+    },
+    "notices": {
+      "title": "Suspension/termination notices",
+      "type": "Type",
+      "typesuspend": "Suspension",
+      "typeterminate": "Termination",
+      "reason": "Reason",
+      "deadline": "Response deadline",
+      "respond": "Your response",
+      "sendResponse": "Send response"
+    },
+    "empty": {
+      "applications": "No applications yet. Apply using the form above.",
+      "appeals": "No appeals yet.",
+      "waivers": "No waiver requests yet.",
+      "notices": "No notices against you."
+    }
+  },
+  "complaintsModule": {
+    "title": "Complaints",
+    "subtitle": "File complaints and track progress — acknowledgement within 3 working days, first update within 15.",
+    "landFormLink": "Land protection form (Annex-3)",
+    "emergencyLink": "Emergency safe steps",
+    "myComplaints": "My complaints",
+    "no": "No.",
+    "subject": "Subject",
+    "status": "Status",
+    "slaAck": "Ack deadline",
+    "slaUpdate": "Update deadline",
+    "resolution": "Resolution",
+    "downloadFormCopy": "Download form copy (PDF)",
+    "empty": "No complaints yet.",
+    "new": {
+      "title": "New complaint",
+      "category": "Category",
+      "subject": "Subject",
+      "details": "Details",
+      "submit": "Submit complaint"
+    },
+    "statuses": {
+      "submitted": "Submitted",
+      "acknowledged": "Acknowledged",
+      "investigating": "Investigating",
+      "resolved": "Resolved",
+      "rejected": "Rejected",
+      "closed": "Closed"
+    },
+    "events": {
+      "submitted": "Submitted",
+      "acknowledged": "Acknowledged",
+      "first_update": "First update",
+      "complaint.assigned": "Assigned",
+      "complaint.updated": "Updated",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "land": {
+      "title": "Land protection complaint (Annex-3)",
+      "subtitle": "Use this dedicated form for land grabbing or threats.",
+      "sectionComplainant": "Complainant information",
+      "complainantName": "Name",
+      "complainantContact": "Contact",
+      "sectionLand": "Land information",
+      "location": "Land location",
+      "dagNo": "Dag number",
+      "khatianNo": "Khatian number",
+      "sectionIncident": "Incident",
+      "accusedParty": "Accused party",
+      "incidentDate": "Incident date",
+      "incidentDescription": "What happened",
+      "emergencyPrompt": "I am in danger right now / I feel unsafe",
+      "emergencyTitle": "If you are in danger, call first",
+      "sectionEvidence": "Evidence",
+      "evidenceFile": "Attach evidence file (optional)",
+      "sectionConsent": "Signature & consent",
+      "signatureName": "Name as signature",
+      "signatureDate": "Date",
+      "disclaimer": "I understand — this is not a substitute for a GD/police case or court.",
+      "consent": "I confirm the information provided is accurate.",
+      "submit": "Submit form",
+      "missingFields": "Some required fields are missing."
+    }
+  },
+  "emergency": {
+    "title": "Emergency Safe Steps",
+    "subtitle": "In danger or under threat: safety first, documentation after.",
+    "contactsTitle": "Emergency numbers",
+    "stepsTitle": "Immediate steps",
+    "fileLandComplaint": "File a land complaint",
+    "fileComplaint": "File a general complaint",
+    "steps": [
+      "Move yourself and family to safety; call 999 if needed.",
+      "For women & children issues, call 109.",
+      "Save photos, videos and witness names from the scene.",
+      "Keep dag and khatian papers at hand.",
+      "Once safe, file a written complaint with the society."
+    ]
+  },
+  "serviceStandard": {
+    "title": "Service Standards",
+    "subtitle": "The committee's promised deadlines and real performance.",
+    "target": "Target",
+    "met": "Met on time",
+    "avgDays": "Average working days",
+    "noLiveData": "Not enough data for this service yet."
+  },
+  "membershipReview": {
+    "title": "Membership Applications Review",
+    "no": "Application no.",
+    "applicant": "Applicant",
+    "status": "Status",
+    "sla": "Deadline",
+    "details": "Details",
+    "father": "Father",
+    "mother": "Mother",
+    "email": "Email",
+    "ownership": "Ownership",
+    "startReview": "Start review",
+    "approve": "Approve",
+    "reject": "Reject",
+    "confirmReject": "Confirm rejection",
+    "rejectReason": "Rejection reason (required)",
+    "pdf": "Letter (PDF)",
+    "empty": "No applications in this list.",
+    "filters": {
+      "received": "New",
+      "under_review": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "all": "All"
+    }
+  },
+  "membershipGovernance": {
+    "title": "Membership Governance",
+    "member": "Member",
+    "memberId": "Member ID",
+    "approve": "Approve",
+    "reject": "Reject",
+    "tabs": {
+      "waivers": "Waivers",
+      "actions": "Suspension/Termination",
+      "appeals": "Appeals",
+      "corrections": "Data corrections",
+      "arrears": "Arrears"
+    },
+    "waivers": {
+      "title": "Waiver / installment requests"
+    },
+    "actions": {
+      "title": "Suspension / termination workflow",
+      "issueNotice": "Issue written notice",
+      "reason": "Reason",
+      "sendNotice": "Send notice",
+      "confirmSuspend": "Confirm suspension",
+      "drop": "Drop",
+      "markNoticed": "Mark noticed",
+      "cancel": "Cancel"
+    },
+    "appeals": {
+      "title": "Appeals",
+      "reviewerRule": "Rule: the original decision-maker cannot review the appeal (also enforced server-side).",
+      "reviewerId": "Reviewer ID",
+      "assign": "Assign"
+    },
+    "corrections": {
+      "title": "Data correction requests",
+      "field": "Field",
+      "pending": "Pending",
+      "applied": "Applied",
+      "rejected": "Rejected",
+      "apply": "Apply"
+    },
+    "arrears": {
+      "title": "Subscription arrears",
+      "months": "Months",
+      "expected": "Expected",
+      "paid": "Paid",
+      "due": "Due"
+    },
+    "empty": {
+      "waivers": "No requests.",
+      "actions": "No actions.",
+      "appeals": "No appeals.",
+      "corrections": "No requests.",
+      "arrears": "No data."
+    }
+  },
+  "complaintsAdmin": {
+    "title": "Complaints Admin",
+    "assignee": "Assignee",
+    "assigneeId": "Assignee ID (not the accused)",
+    "assign": "Assign",
+    "acknowledge": "Acknowledge",
+    "work": "Work",
+    "updateNote": "Update note",
+    "sendUpdate": "Send update",
+    "resolve": "Resolve",
+    "close": "Close",
+    "downloadEvidence": "Download evidence",
+    "empty": "No complaints in this list.",
+    "filters": {
+      "submitted": "New",
+      "acknowledged": "Acknowledged",
+      "investigating": "Investigating",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "all": "All"
+    }
+  },
+  "myData": {
+    "title": "View my data / request correction",
+    "documents": "My uploaded documents",
+    "noDocuments": "No documents uploaded.",
+    "downloadError": "Download failed.",
+    "requestCorrection": "Request a correction",
+    "field": "Field (e.g. mobile)",
+    "fieldPlaceholder": "e.g. mobile",
+    "requestedValue": "Correct value",
+    "reason": "Reason",
+    "submit": "Send request",
+    "myRequests": "My requests",
+    "noRequests": "No correction requests.",
+    "status": "Status",
+    "statuses": {
+      "pending": "Pending",
+      "applied": "Applied",
       "rejected": "Rejected"
     }
   }

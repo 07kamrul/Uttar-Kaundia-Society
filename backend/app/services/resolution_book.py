@@ -16,16 +16,27 @@ from app.models.member import Member
 from app.models.notice import Notice
 from app.models.resolution_book import (
     ATTENDANCE_PRESENT,
+    COUNCIL_TYPE_AGM,
+    COUNCIL_TYPE_EMERGENCY,
+    COUNCIL_TYPE_EXECUTIVE,
+    COUNCIL_TYPE_STANDING,
     MEETING_STATUS_COMPLETED,
     RESOLUTION_STATUS_DONE,
     RESOLUTION_STATUS_IN_PROGRESS,
     RESOLUTION_STATUS_PENDING,
+    VOTE_MODE_OPEN,
     Meeting,
     MeetingAttendance,
     MeetingRecording,
     Resolution,
 )
 from app.services.audit import record_audit
+from app.services.governance import (
+    AGM_NOTICE_DAYS,
+    EMERGENCY_MEETING_NOTICE_DAYS,
+    EXECUTIVE_COUNCIL_SIZE,
+    is_election_eligible,
+)
 
 # Committee edits stay normal edits until this many hours after the meeting
 # date; beyond the window an Admin must do it and the change is audited as a
@@ -133,6 +144,13 @@ def member_ref(member: Member | None) -> dict | None:
 
 
 def resolution_to_dict(resolution: Resolution) -> dict:
+    # Ballot secrecy: per-member choices ride along ONLY for open votes.
+    choices = None
+    if resolution.vote_mode == VOTE_MODE_OPEN:
+        choices = [
+            {"member": member_ref(c.member), "choice": c.choice}
+            for c in sorted(resolution.open_choices, key=lambda c: c.member_id)
+        ]
     return {
         "id": resolution.id,
         "meeting_id": resolution.meeting_id,
@@ -145,6 +163,10 @@ def resolution_to_dict(resolution: Resolution) -> dict:
         "task": resolution.task,
         "due_date": resolution.due_date,
         "status": resolution.status,
+        "vote_mode": resolution.vote_mode,
+        "casting_vote": resolution.casting_vote,
+        "casting_note": resolution.casting_note,
+        "open_choices": choices,
         "updated_at": resolution.updated_at,
     }
 
@@ -160,11 +182,58 @@ def meeting_list_dict(meeting: Meeting) -> dict:
         "chairperson": meeting.chairperson,
         "next_meeting_date": meeting.next_meeting_date,
         "status": meeting.status,
+        "council_type": meeting.council_type,
+        "notice_published_at": meeting.notice_published_at,
+        "scheduled_start_at": meeting.scheduled_start_at,
+        "quorum_present": meeting.quorum_present,
+        "quorum_required": meeting.quorum_required,
+        "quorum_acknowledged": meeting.quorum_acknowledged,
         "resolution_count": len(meeting.resolutions),
         "attendance_present": present,
         "attendance_total": total,
         "attendance_percent": percent,
     }
+
+
+def quorum_required_for(meeting: Meeting, eligible_members: int) -> int:
+    """Majority of the 11-member councils (6 of 11) for executive/standing;
+    for an AGM a majority of ALL eligible members; an emergency sitting of a
+    council still needs the council majority."""
+    if meeting.council_type == COUNCIL_TYPE_AGM:
+        return eligible_members // 2 + 1 if eligible_members else 0
+    return EXECUTIVE_COUNCIL_SIZE // 2 + 1
+
+
+def notice_period_days_for(council_type: str) -> int | None:
+    """Required calendar-day notice before scheduled_start_at, or None when
+    the council type has no minimum."""
+    if council_type == COUNCIL_TYPE_AGM:
+        return AGM_NOTICE_DAYS
+    if council_type == COUNCIL_TYPE_EMERGENCY:
+        return EMERGENCY_MEETING_NOTICE_DAYS
+    return None
+
+
+async def count_eligible_members(db: AsyncSession) -> int:
+    from app.models.member import (
+        GOVERNANCE_STATUS_SUSPENDED,
+        MEMBER_CLASS_FOUNDER,
+        MEMBER_CLASS_GENERAL,
+        Member,
+        MemberStatus,
+    )
+
+    return (
+        await db.execute(
+            select(func.count())
+            .select_from(Member)
+            .where(
+                Member.status == MemberStatus.APPROVED,
+                Member.governance_status != GOVERNANCE_STATUS_SUSPENDED,
+                Member.member_class.in_((MEMBER_CLASS_FOUNDER, MEMBER_CLASS_GENERAL)),
+            )
+        )
+    ).scalar_one()
 
 
 def meeting_detail_dict(
@@ -178,6 +247,7 @@ def meeting_detail_dict(
         "agenda": meeting.agenda,
         "summary": meeting.summary,
         "created_by": created_by_name,
+        "casting_vote_used": meeting.casting_vote_used,
         "updated_at": meeting.updated_at,
         "resolutions": [resolution_to_dict(r) for r in sorted(meeting.resolutions, key=lambda r: r.resolution_no)],
         "attendance": [

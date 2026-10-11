@@ -65,6 +65,7 @@ _SUMMARY_COLUMNS = (
     Member.mobile,
     Member.email,
     Member.created_at,
+    Member.member_class,
 )
 
 # Bound on audit rows returned with a member profile.
@@ -626,6 +627,7 @@ async def list_members(
             mobile=member.mobile,
             email=member.email,
             created_at=member.created_at,
+            member_class=member.member_class,
             due_installments=due_counts.get(member.id, 0),
         )
         for member in members

@@ -123,6 +123,33 @@ const NAV_SECTIONS: NavSection[] = [
       },
       // Published notices/events - the same public pages logged-out visitors read.
       {
+        labelKey: 'nav.membership',
+        route: '/membership',
+        icon: 'id-card',
+        requiredPermission: ['profile.view_own'],
+        requiredRoles: ['member'],
+      },
+      {
+        labelKey: 'nav.complaints',
+        route: '/complaints',
+        icon: 'inbox',
+        requiredPermission: ['profile.view_own'],
+        requiredRoles: ['member'],
+      },
+      {
+        labelKey: 'nav.serviceStandard',
+        route: '/service-standard',
+        icon: 'check-circle',
+        requiredPermission: ['service_standard.view'],
+      },
+      // জরুরি নিরাপদ পদক্ষেপ: open to every authenticated account.
+      {
+        labelKey: 'nav.emergencyHelp',
+        route: '/emergency-help',
+        icon: 'alert',
+        openAccess: true,
+      },
+      {
         labelKey: 'nav.notices',
         route: '/notices',
         icon: 'doc',
@@ -139,6 +166,28 @@ const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'nav.section.management',
     items: [
+      {
+        labelKey: 'nav.membershipReview',
+        route: '/membership-review',
+        icon: 'id-card',
+        requiredPermission: ['membership_application.manage'],
+      },
+      {
+        labelKey: 'nav.membershipGovernance',
+        route: '/membership-governance',
+        icon: 'shield',
+        requiredPermission: [
+          'member_waiver.manage',
+          'member_suspension.manage',
+          'membership_appeal.manage',
+        ],
+      },
+      {
+        labelKey: 'nav.complaintsAdmin',
+        route: '/complaints-admin',
+        icon: 'inbox',
+        requiredPermission: ['complaint.manage', 'complaint.investigate'],
+      },
       {
         labelKey: 'nav.submissions',
         route: '/submissions',

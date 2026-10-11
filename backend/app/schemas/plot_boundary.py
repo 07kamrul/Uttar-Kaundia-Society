@@ -122,6 +122,8 @@ class BoundaryVersionOut(BaseModel):
     version: int
     geometry: dict
     computed_area_sqm: float | None
+    rs_plot_no: str | None = None
+    rs_match_pct: float | None = None
     review_status: str
     status: str  # alias of review_status for older clients
     change_type: str
@@ -140,6 +142,8 @@ def version_out(v: PlotBoundaryVersion) -> BoundaryVersionOut:
         version=v.version,
         geometry=v.geom,
         computed_area_sqm=float(v.computed_area_sqm) if v.computed_area_sqm is not None else None,
+        rs_plot_no=v.rs_plot_no,
+        rs_match_pct=float(v.rs_match_pct) if v.rs_match_pct is not None else None,
         review_status=v.review_status,
         status=v.review_status,
         change_type=v.change_type,
@@ -177,6 +181,8 @@ class AdminBoundaryOut(BaseModel):
     geometry: dict | None
     computed_area_sqm: float | None
     computed_area_shotangsho: float | None
+    rs_plot_no: str | None = None
+    rs_match_pct: float | None = None
     review_note: str | None
 
     is_deleted: bool

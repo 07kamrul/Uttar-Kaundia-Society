@@ -15,14 +15,21 @@ from app.services.plot_boundary import ValidationIssue
 from app.api.routes import (
     admin,
     auth,
+    committee_registry,
+    elections,
+    petitions,
     land_data,
     shared_data,
     fee_payments,
     fee_types,
     other_fees,
     finance,
+    governance,
     installment_payments,
     member,
+    member_governance,
+    membership_appeal,
+    complaints,
     neighbours,
     notices,
     plot_boundary_admin,
@@ -156,6 +163,13 @@ app.include_router(plot_map.router, prefix=api_router_prefix)
 app.include_router(land_data.router, prefix=api_router_prefix)
 app.include_router(shared_data.router, prefix=api_router_prefix)
 app.include_router(plot_boundary_admin.router, prefix=api_router_prefix)
+app.include_router(member_governance.router, prefix=api_router_prefix)
+app.include_router(membership_appeal.router, prefix=api_router_prefix)
+app.include_router(complaints.router, prefix=api_router_prefix)
+app.include_router(governance.router, prefix=api_router_prefix)
+app.include_router(committee_registry.router, prefix=api_router_prefix)
+app.include_router(elections.router, prefix=api_router_prefix)
+app.include_router(petitions.router, prefix=api_router_prefix)
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 

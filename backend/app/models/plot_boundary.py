@@ -67,6 +67,9 @@ class PlotBoundary(Base):
     geom: Mapped[dict] = mapped_column(JSON, nullable=False)
     computed_area_sqm: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
     computed_area_shotangsho: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    # RS dag (RAJUK masterplan) this shape best matches, computed server-side.
+    rs_plot_no: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    rs_match_pct: Mapped[float | None] = mapped_column(Numeric(5, 1), nullable=True)
 
     # Derived mirror for cheap filtering; authoritative state is the versions.
     status: Mapped[str] = mapped_column(
@@ -124,6 +127,8 @@ class PlotBoundaryVersion(Base):
 
     geom: Mapped[dict] = mapped_column(JSON, nullable=False)
     computed_area_sqm: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    rs_plot_no: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    rs_match_pct: Mapped[float | None] = mapped_column(Numeric(5, 1), nullable=True)
 
     review_status: Mapped[str] = mapped_column(
         String(32), default=ReviewStatus.PENDING.value, nullable=False, index=True

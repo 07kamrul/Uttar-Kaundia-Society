@@ -114,7 +114,7 @@ class LocalJsonLandDataProvider(LandDataProvider):
                 "Run scripts/ingest_land_data/ingest.py to produce it."
             )
         try:
-            meta = json.loads(meta_path.read_text())
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             raise LandDataError(f"Land dataset meta.json is corrupt: {exc}") from exc
 
@@ -134,7 +134,7 @@ class LocalJsonLandDataProvider(LandDataProvider):
         sheets_path = self.root / "sheets.json"
         if not sheets_path.is_file():
             raise LandDataError(f"Land dataset file missing: {sheets_path}")
-        raw = json.loads(sheets_path.read_text())
+        raw = json.loads(sheets_path.read_text(encoding="utf-8"))
         return {survey: sorted(sheets) for survey, sheets in raw.items()}
 
     def _build_index(self) -> None:
@@ -145,7 +145,7 @@ class LocalJsonLandDataProvider(LandDataProvider):
                 if not path.is_file():
                     raise LandDataError(f"Land dataset file missing: {path}")
                 try:
-                    fc = json.loads(path.read_text())
+                    fc = json.loads(path.read_text(encoding="utf-8"))
                 except json.JSONDecodeError as exc:
                     raise LandDataError(f"Land dataset file corrupt ({path}): {exc}") from exc
                 for feature in fc.get("features", []):
@@ -221,7 +221,7 @@ class LocalJsonLandDataProvider(LandDataProvider):
         if not path.is_file():
             return []
         try:
-            fc = json.loads(path.read_text())
+            fc = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             raise LandDataError(f"Land dataset file corrupt ({path}): {exc}") from exc
         out = []

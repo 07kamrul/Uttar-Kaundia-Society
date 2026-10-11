@@ -22,6 +22,7 @@ import {
   type MemberProfileUpdatePayload,
 } from '../../../../core/services/member.service';
 import { AttachmentService } from '../../../../core/services/attachment.service';
+import { MyDataPanelComponent } from './my-data-panel.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneInputComponent } from '../../../../shared/phone-input/phone-input.component';
@@ -62,6 +63,7 @@ const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
     IconComponent,
     PhoneInputComponent,
     ConfirmModalComponent,
+    MyDataPanelComponent,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',

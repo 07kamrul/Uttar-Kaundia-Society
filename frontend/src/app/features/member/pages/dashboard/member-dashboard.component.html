@@ -25,6 +25,14 @@
       </div>
     </div>
 
+    <!-- Governance modules 1 & 5: one-card entry to complaints + emergency help -->
+    <div class="card" style="padding:1rem 1.1rem;display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
+      <p class="stat-tile-label" style="margin:0;flex:1 1 100%">{{ 'complaintsModule.title' | translate }}</p>
+      <a class="btn-secondary" routerLink="/complaints">{{ 'nav.complaints' | translate }}</a>
+      <a class="btn-secondary" routerLink="/complaints/land-protection">{{ 'complaintsModule.landFormLink' | translate }}</a>
+      <a class="btn-secondary" routerLink="/emergency-help">{{ 'nav.emergencyHelp' | translate }}</a>
+    </div>
+
     @if (recentInstallments.length) {
       <div class="card" style="padding:1rem 1.1rem">
         <p class="stat-tile-label" style="margin-bottom:0.6rem">{{ 'member.dashboard.recentStatusTitle' | translate }}</p>

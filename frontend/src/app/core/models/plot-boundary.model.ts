@@ -198,6 +198,9 @@ export interface AdminBoundary {
   khatianNo: string | null;
   memberName: string;
   memberMobile: string | null;
+  /** RS dag (RAJUK masterplan) the drawn shape best matches, computed server-side. */
+  rsPlotNo?: string | null;
+  rsMatchPct?: number | null;
 }
 
 export interface AdminBoundaryApiModel {
@@ -223,6 +226,8 @@ export interface AdminBoundaryApiModel {
   khatian_no: string | null;
   member_name: string;
   member_mobile: string | null;
+  rs_plot_no?: string | null;
+  rs_match_pct?: number | null;
 }
 
 export type DisputeStatus = 'open' | 'resolved' | 'dismissed';
@@ -347,6 +352,8 @@ export function toAdminBoundary(api: AdminBoundaryApiModel): AdminBoundary {
     khatianNo: api.khatian_no,
     memberName: api.member_name,
     memberMobile: api.member_mobile,
+    rsPlotNo: api.rs_plot_no ?? null,
+    rsMatchPct: api.rs_match_pct ?? null,
   };
 }
 

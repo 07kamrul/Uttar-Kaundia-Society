@@ -29,7 +29,7 @@ from app.models.plot_boundary import (
     SubmittedByRole,
 )
 from app.models.property import Property
-from app.services import geo
+from app.services import geo, rs_match
 from app.services.audit import record_audit
 
 
@@ -170,6 +170,8 @@ def _new_version(
         version=boundary.current_version,
         geom=boundary.geom,
         computed_area_sqm=boundary.computed_area_sqm,
+        rs_plot_no=boundary.rs_plot_no,
+        rs_match_pct=boundary.rs_match_pct,
         review_status=review_status.value,
         status=review_status.value,  # legacy mirror column
         change_type=change_type.value,
@@ -216,12 +218,21 @@ async def _supersede_pending(db: AsyncSession, boundary: PlotBoundary) -> None:
     boundary.pending_version_id = None
 
 
+def apply_rs_match(boundary: PlotBoundary, geometry: dict) -> None:
+    """Record the best-matching RS dag for the drawn shape (server-side, so the
+    stored reference cannot be spoofed by the client)."""
+    match = rs_match.match_for_geometry(geometry)
+    boundary.rs_plot_no = match.rs_plot_no if match else None
+    boundary.rs_match_pct = match.match_pct if match else None
+
+
 async def _validate_and_stage(
     db: AsyncSession, boundary: PlotBoundary, geometry: dict, property_row: Property | None
 ) -> float:
     ring = validate_polygon(geometry)
     area = round(geo.geodesic_area_sqm(ring), 2)
     boundary.geom = geometry
+    apply_rs_match(boundary, geometry)
     boundary.computed_area_sqm = area
     boundary.computed_area_shotangsho = round(geo.to_shotangsho(area), 2)
     boundary.review_note = "; ".join(area_warnings(ring, property_row)) or None
@@ -263,6 +274,7 @@ async def create_boundary(db: AsyncSession, member: Member, property_id: int, ge
         review_note="; ".join(area_warnings(ring, property_row)) or None,
         current_version=1,
     )
+    apply_rs_match(boundary, geometry)
     db.add(boundary)
     await db.flush()
     version = _new_version(
@@ -383,6 +395,7 @@ async def admin_create_boundary(
         review_note="; ".join(area_warnings(ring, property_row)) or None,
         current_version=1,
     )
+    apply_rs_match(boundary, geometry)
     db.add(boundary)
     await db.flush()
     version = _new_version(

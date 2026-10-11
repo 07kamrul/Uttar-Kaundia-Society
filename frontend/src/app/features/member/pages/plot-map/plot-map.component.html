@@ -14,10 +14,11 @@
               [placeholder]="'member.plotMap.searchPlaceholder' | translate"
               [value]="search()"
               (input)="onSearchInput($any($event.target).value)"
+              (keydown.enter)="searchDag($event)"
               [attr.aria-label]="'member.plotMap.searchPlaceholder' | translate"
             />
           </div>
-        } @else if (mapMode() === 'bds' || mapMode() === 'rajuk') {
+        } @else if (mapMode() === 'bds') {
           <form class="dag-search" (submit)="searchDag($event)">
             <app-icon name="pin" [size]="16" />
             <input
@@ -62,22 +63,45 @@
         }
       </div>
 
-      <!-- Map view switcher: segmented control -->
-      <div class="map-modes" role="tablist" [attr.aria-label]="'member.plotMap.views.title' | translate">
-        @for (view of mapModes; track view.mode) {
+      <!-- Layer switcher: collapses into an expandable panel on phones -->
+      <div class="map-layers" [class.open]="layersPanelOpen()">
+        <button
+          type="button"
+          class="toolbar-btn layers-toggle"
+          (click)="toggleLayersPanel()"
+          [attr.aria-expanded]="layersPanelOpen()"
+        >
+          <app-icon name="layers" [size]="15" />
+          <span class="btn-label">{{ 'member.plotMap.views.layers' | translate }}</span>
+          <app-icon class="legend-caret" [class.open]="layersPanelOpen()" name="chevron-down" [size]="14" />
+        </button>
+        <div class="map-modes" role="tablist" [attr.aria-label]="'member.plotMap.views.title' | translate">
+          @for (view of mapModes; track view.mode) {
+            <button
+              type="button"
+              role="tab"
+              class="map-mode-tab"
+              [class.active]="mapMode() === view.mode"
+              [attr.aria-selected]="mapMode() === view.mode"
+              [title]="'member.plotMap.views.' + view.mode + 'Hint' | translate"
+              (click)="selectMapMode(view.mode)"
+            >
+              <app-icon [name]="view.icon" [size]="15" />
+              <span class="btn-label">{{ view.labelKey | translate }}</span>
+            </button>
+          }
           <button
             type="button"
-            role="tab"
-            class="map-mode-tab"
-            [class.active]="mapMode() === view.mode"
-            [attr.aria-selected]="mapMode() === view.mode"
-            [title]="'member.plotMap.views.' + view.mode + 'Hint' | translate"
-            (click)="selectMapMode(view.mode)"
+            class="map-mode-tab rs-toggle"
+            [class.active]="rsOverlayOn()"
+            [attr.aria-pressed]="rsOverlayOn()"
+            [title]="'member.plotMap.views.rsHint' | translate"
+            (click)="toggleRsOverlay()"
           >
-            <app-icon [name]="view.icon" [size]="15" />
-            <span class="btn-label">{{ view.labelKey | translate }}</span>
+            <app-icon name="doc" [size]="15" />
+            <span class="btn-label">{{ 'member.plotMap.views.rs' | translate }}</span>
           </button>
-        }
+        </div>
       </div>
 
       @if (dagNotFound()) {
@@ -126,6 +150,12 @@
             <span class="legend-chip" role="listitem">
               <span class="legend-swatch" [style.background]="item.color"></span>
               {{ 'member.plotMap.status.' + item.status | translate }}
+            </span>
+          }
+          @if (rsOverlayOn()) {
+            <span class="legend-chip" role="listitem">
+              <span class="legend-swatch legend-swatch-rs"></span>
+              {{ 'member.plotMap.views.rs' | translate }}
             </span>
           }
         </div>
@@ -387,6 +417,40 @@
           </ul>
         }
       } @else {
+        <div class="snap-row">
+          <label class="snap-toggle" [class.disabled]="!rsOverlayOn()">
+            <input
+              type="checkbox"
+              [checked]="snapEnabled() && rsOverlayOn()"
+              [disabled]="!rsOverlayOn()"
+              (change)="toggleSnap()"
+            />
+            <span>{{ 'member.plotMap.draw.snapToRs' | translate }}</span>
+          </label>
+          @if (isSnapped()) {
+            <span class="snap-badge" role="status">{{ 'member.plotMap.draw.snapped' | translate }}</span>
+          }
+          @if (!rsOverlayOn()) {
+            <button type="button" class="toolbar-btn ghost" (click)="toggleRsOverlay()">
+              <span class="btn-label">{{ 'member.plotMap.draw.showRsLayer' | translate }}</span>
+            </button>
+          }
+        </div>
+        @if (rsMatch(); as match) {
+          <p class="rs-match" [class.diverges]="match.diverges" role="status">
+            <app-icon [name]="match.diverges ? 'alert' : 'check-circle'" [size]="14" />
+            @if (match.diverges) {
+              {{ 'member.plotMap.draw.rsDiverges' | translate: { dag: digits(match.rsPlotNo), pct: digits(match.matchPct) } }}
+            } @else {
+              {{ 'member.plotMap.draw.rsMatch' | translate: { dag: digits(match.rsPlotNo), pct: digits(match.matchPct) } }}
+            }
+          </p>
+        } @else if (drawnGeometry()) {
+          <p class="rs-match diverges" role="status">
+            <app-icon name="alert" [size]="14" />
+            {{ 'member.plotMap.draw.rsNoMatch' | translate }}
+          </p>
+        }
         <div class="validation-panel" aria-live="polite">
           @if (validation(); as v) {
             @if (v.selfIntersection) {

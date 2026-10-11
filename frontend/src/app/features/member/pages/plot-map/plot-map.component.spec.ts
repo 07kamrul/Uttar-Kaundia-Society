@@ -2,7 +2,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { provideTranslateService } from '@ngx-translate/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject, throwError, type Observable } from 'rxjs';
-import { vi } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
+
+// Layer preferences persist in localStorage; give every test a fresh in-memory
+// store so one test's preference never leaks into the next.
+beforeEach(() => {
+  const data = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => void data.set(key, value),
+    removeItem: (key: string) => void data.delete(key),
+  });
+});
+afterEach(() => vi.unstubAllGlobals());
 import { AuthService } from '../../../../core/services/auth.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { LandDataService, type LandFeatureCollection } from '../../../../core/services/land-data.service';
@@ -67,7 +79,7 @@ export const L = vi.hoisted(() => {
     eachLayer: vi.fn(),
     getBounds: vi.fn(() => ({ pad: vi.fn(() => ({})) })),
     getLatLngs: vi.fn(() => []),
-    pm: { enable: vi.fn(), disable: vi.fn() },
+    pm: { enable: vi.fn(), disable: vi.fn(), setOptions: vi.fn() },
   });
   // A fresh stub per L.map() call: tests assert on recorded calls (fitBounds,
   // moveend handlers…), and one shared instance would leak counts across tests.
@@ -92,7 +104,8 @@ export const L = vi.hoisted(() => {
       };
       return bounds;
     }),
-    pm: { enableDraw: vi.fn(), disable: vi.fn() },
+    createPane: vi.fn(() => ({ style: {} })),
+    pm: { enableDraw: vi.fn(), disable: vi.fn(), setGlobalOptions: vi.fn(), Draw: {} },
   });
   const stub = {
     map: vi.fn(() => makeMapStub()),
@@ -304,7 +317,8 @@ describe('PlotMapComponent', () => {
   it('renders the legend chips for every status colour', () => {
     const { el } = setup();
     const chips = el.querySelectorAll('.legend-chip');
-    expect(chips.length).toBe(5);
+    // five statuses + the RS dag reference layer entry (overlay is on by default)
+    expect(chips.length).toBe(6);
   });
 
   it('fetches the owner on polygon click: skeleton first, then details', () => {
@@ -409,14 +423,15 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
     );
   });
 
-  it('shows the RS dag search placeholder in the RAJUK view', () => {
-    const { fixture, component, el } = setup();
-    component.selectMapMode('rajuk');
+  it('wires the boundaries-view search box to the RS dag layer on Enter', () => {
+    const { fixture, component, el, lookupRsPlot } = setup();
+    const input = el.querySelector<HTMLInputElement>('.dag-search input')!;
+    input.value = '4611';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     fixture.detectChanges();
-    const form = el.querySelector('form.dag-search')!;
-    expect(form.querySelector('input')!.getAttribute('placeholder')).toBe(
-      'member.plotMap.views.rsSearchPlaceholder',
-    );
+    expect(component.search()).toBe('4611');
+    expect(lookupRsPlot).toHaveBeenCalledWith('4611');
   });
 
   it('looks the dag up on the BDS endpoint, converting Bangla digits', () => {
@@ -427,10 +442,9 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
     expect(lookupDag).toHaveBeenCalledWith('bds', '4611');
   });
 
-  it('looks the plot up on the masterplan endpoint in the RAJUK view', () => {
+  it('looks the plot up on the masterplan endpoint in the default view', () => {
     const { component, lookupRsPlot, lookupDag } = setup();
-    component.mapMode.set('rajuk');
-    component.dagQuery.set('RS-105');
+    component.search.set('RS-105');
     component.searchDag();
     expect(lookupRsPlot).toHaveBeenCalledWith('RS-105');
     expect(lookupDag).not.toHaveBeenCalled();
@@ -449,13 +463,22 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
     expect(el.querySelector('.dag-search-clear')).not.toBeNull();
   });
 
-  it('normalizes the RS- prefix when highlighting a RAJUK hit', () => {
+  it('normalizes the RS- prefix when highlighting an RS dag hit', () => {
     const { component, lookupRsPlot } = setup();
     lookupRsPlot.mockReturnValue(of(dagCollection({ rs_plot_no: 'RS-105', plot_no: 105 })));
-    component.mapMode.set('rajuk');
-    component.dagQuery.set('105');
+    component.search.set('105');
     component.searchDag();
     expect(component.highlightDag()).toBe('105');
+  });
+
+  it('turns the RS overlay back on when a search hit would otherwise be invisible', () => {
+    localStorage.setItem('krmf_plot_map_layers', JSON.stringify({ rsOverlay: false, snapToRs: true }));
+    const { component, lookupRsPlot } = setup();
+    lookupRsPlot.mockReturnValue(of(dagCollection({ rs_plot_no: 'RS-105', plot_no: 105 })));
+    expect(component.rsOverlayOn()).toBe(false);
+    component.search.set('105');
+    component.searchDag();
+    expect(component.rsOverlayOn()).toBe(true);
   });
 
   it('reports not-found and never flies when the dag does not exist', () => {
@@ -523,6 +546,46 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
     component.selectMapMode('boundaries');
     component.selectMapMode('bds');
     expect(dagsInBbox).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('plot-map RS dag overlay and snapping', () => {
+  it('shows the RS dag layer by default and loads its parcels', () => {
+    const { component, masterplanInBbox } = setup();
+    expect(component.rsOverlayOn()).toBe(true);
+    expect(masterplanInBbox).toHaveBeenCalled();
+  });
+
+  it('persists the overlay toggle for the next visit', () => {
+    const { component } = setup();
+    component.toggleRsOverlay();
+    expect(component.rsOverlayOn()).toBe(false);
+    expect(JSON.parse(localStorage.getItem('krmf_plot_map_layers')!)).toEqual({
+      rsOverlay: false,
+      snapToRs: true,
+    });
+  });
+
+  it('does not fetch RS parcels on load when the overlay is off', () => {
+    localStorage.setItem('krmf_plot_map_layers', JSON.stringify({ rsOverlay: false, snapToRs: true }));
+    const { masterplanInBbox } = setup();
+    expect(masterplanInBbox).not.toHaveBeenCalled();
+  });
+
+  it('defaults snapping on and can switch it off', () => {
+    const { component } = setup();
+    expect(component.snapEnabled()).toBe(true);
+    component.toggleSnap();
+    expect(component.snapEnabled()).toBe(false);
+  });
+
+  it('offers an RS dag toggle in the layer switcher and a collapsible mobile panel', () => {
+    const { fixture, component, el } = setup();
+    expect(el.querySelector('.rs-toggle')?.getAttribute('aria-pressed')).toBe('true');
+    expect(el.querySelector('.map-layers')?.classList.contains('open')).toBe(false);
+    component.toggleLayersPanel();
+    fixture.detectChanges();
+    expect(el.querySelector('.map-layers')?.classList.contains('open')).toBe(true);
   });
 });
 

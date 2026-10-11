@@ -23,8 +23,26 @@ from app.models.resolution_book import (
     Meeting,
     MeetingAttendance,
     MeetingRecording,
+    OpenVoteChoice,
     Resolution,
+    SpecialSessionPetition,
 )
+from app.models.committee_election import (
+    CommitteeTerm,
+    Election,
+    ElectionComplaint,
+    Nomination,
+    PostVacancy,
+    VoterSnapshot,
+    Vote,
+)
+from app.models.membership_appeal import (
+    FeeWaiver,
+    MembershipAction,
+    MembershipApplication,
+    MembershipAppeal,
+)
+from app.models.complaint import Complaint, DataCorrectionRequest
 from app.models.plot_boundary import (
     BoundaryDispute,
     ReviewStatus,
@@ -35,6 +53,21 @@ from app.models.plot_boundary import (
 
 __all__ = [
     "Meeting",
+    "OpenVoteChoice",
+    "SpecialSessionPetition",
+    "CommitteeTerm",
+    "Election",
+    "ElectionComplaint",
+    "Nomination",
+    "PostVacancy",
+    "VoterSnapshot",
+    "Vote",
+    "MembershipApplication",
+    "FeeWaiver",
+    "MembershipAction",
+    "MembershipAppeal",
+    "Complaint",
+    "DataCorrectionRequest",
     "FeePayment",
     "MeetingAttendance",
     "MeetingRecording",

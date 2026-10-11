@@ -284,6 +284,19 @@
                   {{ 'member.plotMap.details.shotangsho' | translate }}
                 </dd>
               </div>
+              <div class="fact rs-fact">
+                <dt>
+                  <app-icon name="map" [size]="13" />
+                  {{ 'admin.plotBoundaries.table.rsMatch' | translate }}
+                </dt>
+                <dd>
+                  @if (sel.rsPlotNo) {
+                    {{ 'admin.plotBoundaries.rsMatchValue' | translate: { dag: digits(sel.rsPlotNo), pct: digits(sel.rsMatchPct) } }}
+                  } @else {
+                    {{ 'admin.plotBoundaries.rsNoMatch' | translate }}
+                  }
+                </dd>
+              </div>
             </dl>
 
             @if (actionErrorKey(); as key) {

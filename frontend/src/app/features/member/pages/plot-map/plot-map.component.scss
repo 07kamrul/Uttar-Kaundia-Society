@@ -1054,6 +1054,127 @@
   }
 }
 
+/* ---- RS দাগ reference layer -------------------------------------------- */
+
+:host ::ng-deep .rs-dag-label {
+  background: none;
+  border: none;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: #7a3a06;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 3px #fff,
+    0 0 3px #fff;
+  pointer-events: none;
+}
+
+:host ::ng-deep .rajuk-popup .rs-popup-note {
+  font-size: 0.75rem;
+  color: var(--gray-600, #666);
+  font-style: italic;
+}
+
+/* While drawing, RS parcels must not swallow clicks (or open popups); Geoman
+   snaps to their geometry, not to DOM events, so snapping is unaffected. */
+:host ::ng-deep .rs-drawing .leaflet-rsPane-pane path {
+  pointer-events: none;
+}
+
+.map-mode-tab.rs-toggle.active {
+  background: #b5530a;
+  color: #fff;
+}
+
+.legend-swatch-rs {
+  background: transparent;
+  border: 2px dashed #b5530a;
+  box-sizing: border-box;
+}
+
+.snap-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.snap-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  // Comfortable touch target.
+  min-height: 36px;
+
+  input {
+    width: 18px;
+    height: 18px;
+  }
+
+  &.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.snap-badge {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fff3e0;
+  color: #b34700;
+  border: 1px solid #ff6d00;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.rs-match {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #e8f5e9;
+  color: #1b5e20;
+
+  &.diverges {
+    background: #fff4e5;
+    color: #8a4b00;
+  }
+}
+
+/* Layer switcher: on phones it collapses behind a "Layers" button. */
+.map-layers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+
+  .layers-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .map-layers {
+    .layers-toggle {
+      display: inline-flex;
+    }
+
+    &:not(.open) .map-modes {
+      display: none;
+    }
+  }
+}
+
 /* Pulsing dot marking the member's live position (Leaflet divIcon). */
 :host ::ng-deep .my-location-dot {
   background: none;

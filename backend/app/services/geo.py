@@ -170,7 +170,9 @@ def polygons_overlap(ring_a: list[list[float]], ring_b: list[list[float]]) -> bo
     return False
 
 
-def intersection_area_sqm(ring_a: list[list[float]], ring_b: list[list[float]]) -> float:
+def intersection_area_sqm(
+    ring_a: list[list[float]], ring_b: list[list[float]], *, skip_overlap_gate: bool = False
+) -> float:
     """Geodesic area of the overlap of two rings, via Sutherland–Hodgman
     clipping against a convexised clip ring and spherical-excess area.
 
@@ -178,7 +180,11 @@ def intersection_area_sqm(ring_a: list[list[float]], ring_b: list[list[float]]) 
     polygons the reported overlap area is an upper bound — always sufficient
     for the committee's "how big is the dispute" figure.
     """
-    if not polygons_overlap(ring_a, ring_b):
+    # ``polygons_overlap`` misses overlaps whose edges are only collinear (no
+    # interior vertex, no proper crossing) — common once vertices are snapped.
+    # Callers that expect that may skip the gate; clipping then yields ~0 for
+    # merely touching rings.
+    if not skip_overlap_gate and not polygons_overlap(ring_a, ring_b):
         return 0.0
     # Drop the closing duplicate before clipping; degenerate zero-length
     # edges corrupt the half-plane tests.

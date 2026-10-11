@@ -344,7 +344,7 @@ async def test_subscription_quote_endpoint_matches_configured_tiers(client: Asyn
     response = await client.post(
         "/api/public/registration/subscription-quote", json={"land_size_decimal": "3"}
     )
-    assert Decimal(response.json()["total"]) == Decimal("120")
+    assert Decimal(response.json()["total"]) == Decimal("140")
 
 
 async def test_submission_ignores_client_sent_subscription_amount(
@@ -353,7 +353,8 @@ async def test_submission_ignores_client_sent_subscription_amount(
     payload = _submission_payload()
     payload["properties"][0]["my_share_quantity"] = "3"
     # Tampered: the client sends a subscription amount that doesn't match the
-    # tiered calculation for a 3-decimal share (100 base + 2 x 10 = 120).
+    # tiered calculation for a 3-decimal share (100 base + 2 x 20 = 140,
+    # per the constitutional ২০ টাকা per extra decimal).
     payload["subscription"] = "999999"
 
     response = await client.post("/api/submissions", data={"payload": json.dumps(payload)})
@@ -367,7 +368,7 @@ async def test_submission_ignores_client_sent_subscription_amount(
     detail_response = await client.get(
         f"/api/admin/submissions/{member_pk}", headers=admin_headers
     )
-    assert Decimal(detail_response.json()["subscription"]) == Decimal("120")
+    assert Decimal(detail_response.json()["subscription"]) == Decimal("140")
 
 
 async def test_admin_replaces_missing_document(

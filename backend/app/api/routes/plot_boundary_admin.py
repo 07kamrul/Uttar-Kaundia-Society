@@ -14,6 +14,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.routes.plot_map import _parse_bbox
+from app.core.config import get_settings
 from app.core.permissions import require_permission
 from app.db.session import get_db
 from app.models.admin import AdminUser
@@ -39,6 +41,7 @@ from app.schemas.plot_boundary import (
 from app.services import plot_boundary as boundary_service
 from app.services.audit import record_audit
 from app.services.email import send_email
+from app.services.land_data import LandDataProvider, get_land_data_provider
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +104,8 @@ async def _to_admin_out(boundary: PlotBoundary, property_row: Property | None, m
         geometry=actionable.geom if actionable else None,
         computed_area_sqm=actionable.computed_area_sqm if actionable else None,
         computed_area_shotangsho=boundary.computed_area_shotangsho,
+        rs_plot_no=actionable.rs_plot_no if actionable else None,
+        rs_match_pct=float(actionable.rs_match_pct) if actionable and actionable.rs_match_pct is not None else None,
         review_note=(pending.review_note if pending else boundary.review_note),
         is_deleted=boundary.is_deleted,
         deleted_reason=boundary.deleted_reason,
@@ -122,6 +127,25 @@ async def _boundary_out_or_404(db: AsyncSession, boundary_id: int) -> AdminBound
     property_row = await db.get(Property, boundary.property_id)
     member = await db.get(Member, boundary.member_id)
     return await _to_admin_out(boundary, property_row, member, db)
+
+
+@router.get("/rs-dag-layer")
+def rs_dag_layer(
+    bbox: str = Query(..., description="minLng,minLat,maxLng,maxLat"),
+    _admin: AdminUser = Depends(require_permission(REVIEW_PERMISSION)),
+    provider: LandDataProvider = Depends(get_land_data_provider),
+) -> dict:
+    """RS dag (RAJUK masterplan) parcels under a viewport, so the reviewer sees
+    the drawn boundary on the reference grid. Reference data only — no owners."""
+    viewport = _parse_bbox(bbox)
+    cap = get_settings().land_map_result_cap
+    features = provider.masterplan_features_in_bbox(viewport, limit=cap + 1)
+    return {
+        "type": "FeatureCollection",
+        "count": min(len(features), cap),
+        "truncated": len(features) > cap,
+        "features": features[:cap],
+    }
 
 
 @router.get("/plot-boundaries/pending/count", response_model=PendingCountOut)

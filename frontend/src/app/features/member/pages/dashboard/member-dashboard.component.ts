@@ -5,6 +5,7 @@ import {
   ChangeDetectorRef,
   inject,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MemberService, type MemberProfile } from '../../../../core/services/member.service';
@@ -21,7 +22,7 @@ interface RecentContribution {
   selector: 'app-member-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, RouterLink],
   templateUrl: './member-dashboard.component.html',
 })
 export class MemberDashboardComponent implements OnInit {

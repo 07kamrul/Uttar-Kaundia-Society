@@ -63,8 +63,11 @@ async def _seed_admission_fee(db_session: AsyncSession):
             FeeSetting(
                 key="monthly_subscription_base_amount", value=100, start_date=date(2000, 1, 1)
             ),
+            # 20.00 per extra decimal per the constitution
+            # (গঠনতন্ত্র: প্রতি অতিরিক্ত ডেসিমেলে ২০ টাকা). Kept as a versioned
+            # FeeSetting row; the calculators never hardcode it.
             FeeSetting(
-                key="monthly_subscription_additional_rate", value=10, start_date=date(2000, 1, 1)
+                key="monthly_subscription_additional_rate", value=20.00, start_date=date(2000, 1, 1)
             ),
             FeeSetting(
                 key="monthly_subscription_base_threshold", value=1, start_date=date(2000, 1, 1)

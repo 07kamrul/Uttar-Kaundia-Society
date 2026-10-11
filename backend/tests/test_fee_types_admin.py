@@ -71,7 +71,7 @@ async def test_list_fee_types_includes_current_versions_and_counts(
     # Tiered fee collapses the three settings rows into one snapshot.
     tiered = by_key["monthly_subscription"]["current_version"]["values"]
     assert tiered["monthly_subscription_base_amount"] == 100
-    assert tiered["monthly_subscription_additional_rate"] == 10
+    assert tiered["monthly_subscription_additional_rate"] == 20
     assert tiered["monthly_subscription_base_threshold"] == 1
 
     # Picnic has no active versions in this DB -> visible "no version" gap.

@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +25,8 @@ from app.models.admin import AdminUser
 from app.models.member import Member
 from app.models.resolution_book import (
     ATTENDANCE_PRESENT,
+    CASTING_VOTE_NONE,
+    COUNCIL_TYPES,
     MEETING_STATUS_CANCELLED,
     MEETING_STATUS_COMPLETED,
     MEETING_STATUS_SCHEDULED,
@@ -34,9 +37,12 @@ from app.models.resolution_book import (
     RECORDING_TYPES,
     RECORDING_VIDEO,
     RESOLUTION_STATUS_DONE,
+    VOTE_MODE_OPEN,
+    VOTE_MODE_SECRET,
     Meeting,
     MeetingAttendance,
     MeetingRecording,
+    OpenVoteChoice,
     Resolution,
 )
 from app.schemas.resolution_book import (
@@ -46,6 +52,7 @@ from app.schemas.resolution_book import (
     MeetingDetailOut,
     MeetingPageOut,
     MeetingUpdate,
+    OpenChoiceBulkIn,
     RecordingOut,
     ResolutionCreate,
     ResolutionOut,
@@ -57,6 +64,7 @@ from app.services.audit import record_audit
 from app.services.finance import BN_MONTHS
 from app.services.resolution_book import (
     build_dashboard,
+    count_eligible_members,
     edit_cutoff_exceeded,
     list_meetings,
     load_meeting,
@@ -65,8 +73,10 @@ from app.services.resolution_book import (
     new_meeting_notice_title,
     next_meeting_no,
     next_meeting_notice_title,
+    notice_period_days_for,
     present_count,
     publish_resolution_book_notice,
+    quorum_required_for,
     resolution_done_notice_title,
     resolution_to_dict,
     search_meetings_and_resolutions,
@@ -286,6 +296,10 @@ async def export_meeting_pdf(
         agenda=meeting.agenda,
         summary=meeting.summary,
         next_meeting_date=meeting.next_meeting_date,
+        council_type=meeting.council_type,
+        quorum_present=meeting.quorum_present,
+        quorum_required=meeting.quorum_required,
+        quorum_acknowledged=meeting.quorum_acknowledged,
         resolutions=tuple(
             MinutesPdfResolution(
                 resolution_no=r.resolution_no,
@@ -297,6 +311,8 @@ async def export_meeting_pdf(
                 task=r.task,
                 due_date=r.due_date,
                 status=r.status,
+                vote_mode=r.vote_mode,
+                casting_vote=r.casting_vote,
             )
             for r in sorted(meeting.resolutions, key=lambda r: r.resolution_no)
         ),
@@ -394,9 +410,64 @@ async def _apply_resolutions(
                 task=payload.task,
                 due_date=payload.due_date,
                 status=payload.status,
+                vote_mode=payload.vote_mode,
+                casting_vote=payload.casting_vote,
+                casting_note=payload.casting_note,
             )
         )
     await db.flush()
+
+
+def _require_casting_vote_on_tie(resolution: Resolution) -> None:
+    """A tied recorded vote (for == against > 0) cannot be marked done without
+    an explicit casting vote (গঠনতন্ত্র: সভাপতির সিদ্ধান্তমূলক ভোট)."""
+    if (
+        resolution.status == RESOLUTION_STATUS_DONE
+        and resolution.vote_for == resolution.vote_against
+        and resolution.vote_for > 0
+        and (resolution.casting_vote is None or resolution.casting_vote == CASTING_VOTE_NONE)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "ভোট সমান (সমর্থন = বিপক্ষ)। সিদ্ধান্ত সম্পন্ন করতে স্পষ্ট casting vote নির্বাচন করুন। "
+                "Vote is tied - pick an explicit casting vote before marking the resolution done."
+            ),
+        )
+
+
+async def _enforce_quorum(db: AsyncSession, meeting: Meeting, *, acknowledge: bool, admin: AdminUser) -> None:
+    """Marking a meeting completed stores quorum_present/quorum_required. Below
+    quorum the write is REJECTED with 409 unless `acknowledge` is set - then
+    quorum_acknowledged=True is stored (visible warning badge forever) and the
+    acknowledgement itself is audit-logged."""
+    if meeting.status != MEETING_STATUS_COMPLETED:
+        return
+    present = present_count(meeting)
+    required = quorum_required_for(meeting, await count_eligible_members(db))
+    meeting.quorum_present = present
+    meeting.quorum_required = required
+    if present >= required or meeting.quorum_acknowledged:
+        return
+    if not acknowledge:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"কোরাম পূরণ হয়নি: উপস্থিত {present}, প্রয়োজন {required}। "
+                f"স্বীকার করলে acknowledge_no_quorum=true পাঠান। "
+                f"Quorum not met (present {present}, required {required}) - "
+                "resubmit with acknowledge_no_quorum=true to record it anyway."
+            ),
+        )
+    meeting.quorum_acknowledged = True
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="meeting.no_quorum_acknowledged",
+        entity_type="meeting",
+        entity_id=str(meeting.id),
+        detail=f"{meeting.meeting_no}: quorum {present}/{required} NOT met - completion acknowledged",
+    )
 
 
 async def _audit_and_notice(
@@ -454,6 +525,8 @@ async def create_meeting(
         summary=payload.summary,
         next_meeting_date=payload.next_meeting_date,
         status=payload.status,
+        council_type=payload.council_type,
+        scheduled_start_at=payload.scheduled_start_at,
         created_by=admin.id,
     )
     db.add(meeting)
@@ -462,6 +535,7 @@ async def create_meeting(
     present = sum(1 for entry in payload.attendance if entry.status == ATTENDANCE_PRESENT)
     await _apply_attendance(db, meeting, payload.attendance)
     await _apply_resolutions(db, meeting, payload.resolutions, present)
+    await _enforce_quorum(db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin)
 
     record_audit(
         db,
@@ -513,10 +587,15 @@ async def update_meeting(
         "summary",
         "next_meeting_date",
         "status",
+        "council_type",
+        "scheduled_start_at",
     ):
         if field in sent and getattr(payload, field) != getattr(meeting, field):
             changes.append(field)
             setattr(meeting, field, getattr(payload, field))
+    status_changed_to_completed = "status" in changes and meeting.status == MEETING_STATUS_COMPLETED
+    if status_changed_to_completed:
+        await _enforce_quorum(db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin)
     if not changes:
         return MeetingDetailOut(**meeting_detail_dict(meeting))
 
@@ -600,9 +679,13 @@ async def add_resolution(
         task=payload.task,
         due_date=payload.due_date,
         status=payload.status,
+        vote_mode=payload.vote_mode,
+        casting_vote=payload.casting_vote,
+        casting_note=payload.casting_note,
     )
     db.add(resolution)
     await db.flush()
+    _require_casting_vote_on_tie(resolution)
     record_audit(
         db,
         actor_admin_id=admin.id,
@@ -651,15 +734,22 @@ async def update_resolution(
             votes_changed = True
     if votes_changed:
         validate_votes(present_count(meeting), resolution.vote_for, resolution.vote_against, resolution.vote_neutral)
-    for field in ("assigned_to_member_id", "task", "due_date", "status"):
+    for field in ("assigned_to_member_id", "task", "due_date", "status", "vote_mode", "casting_vote", "casting_note"):
         if field in sent and getattr(payload, field) != getattr(resolution, field):
             setattr(resolution, field, getattr(payload, field))
             changes.append(field)
+    if "vote_mode" in changes and resolution.vote_mode == VOTE_MODE_SECRET:
+        # Going secret wipes any per-member attribution rows - ballot secrecy.
+        for choice in list(resolution.open_choices):
+            await db.delete(choice)
+        await db.flush()
 
     if not changes:
         return ResolutionStatusUpdateOut(
             resolution=ResolutionOut(**resolution_to_dict(resolution))
         )
+    if "status" in changes:
+        _require_casting_vote_on_tie(resolution)
 
     record_audit(
         db,
@@ -725,3 +815,168 @@ async def upload_recording(
         uploaded_by=admin.name,
         uploaded_at=recording.uploaded_at,
     )
+
+
+# ---------------------------------------------------------------------------
+# Module 3 — সভা ও কোরাম: notice publishing, quorum, vote mode
+# ---------------------------------------------------------------------------
+
+
+class PublishNoticeIn(BaseModel):
+    override: bool = False
+
+
+class CompleteIn(BaseModel):
+    """Explicit complete-meeting call: records quorum and rejects (409) when
+    the sitting is below quorum unless explicitly acknowledged."""
+
+    acknowledge_no_quorum: bool = False
+
+
+@router.post("/resolution-book/meetings/{meeting_id}/publish-notice", response_model=MeetingDetailOut)
+async def publish_meeting_notice(
+    meeting_id: int,
+    payload: PublishNoticeIn,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("meeting.manage")),
+) -> MeetingDetailOut:
+    """Publish the sitting notice. AGM sittings need >= 15 calendar days
+    notice and emergency sittings >= 3 days before scheduled_start_at;
+    publishing too late is rejected with 409 unless override=true (audited as
+    an override)."""
+    meeting = await load_meeting(db, meeting_id)
+    if not meeting.scheduled_start_at:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="নির্ধারিত সময় (scheduled_start_at) ছাড়া নোটিশ প্রকাশ করা যায় না। "
+            "Set scheduled_start_at before publishing the notice.",
+        )
+    required_days = notice_period_days_for(meeting.council_type)
+    now = datetime.now(timezone.utc)
+    # SQLite returns naive datetimes; treat stored values as UTC.
+    scheduled = meeting.scheduled_start_at
+    if scheduled.tzinfo is None:
+        scheduled = scheduled.replace(tzinfo=timezone.utc)
+    override_used = False
+    if required_days is not None:
+        days_notice = (scheduled - now).total_seconds() / 86400
+        if days_notice < required_days:
+            if not payload.override:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"নোটিশের সময় অপর্যাপ্ত: প্রয়োজন {required_days} দিন, আছে {days_notice:.0f} দিন। "
+                        f"প্রয়োজনে override=true ব্যবহার করুন (নথিভুক্ত হবে)। "
+                        f"Notice period too short ({days_notice:.0f} days < {required_days}); "
+                        "pass override=true to force (audited)."
+                    ),
+                )
+            override_used = True
+    meeting.notice_published_at = now
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="meeting.notice_published" + ("_override" if override_used else ""),
+        entity_type="meeting",
+        entity_id=str(meeting.id),
+        detail=(
+            f"{meeting.meeting_no} ({meeting.council_type}): notice published "
+            f"{required_days or 0}-day rule"
+            + (f" OVERRIDE ({days_notice:.0f} days)" if override_used else "")
+        ),
+    )
+    label = meeting.scheduled_start_at.astimezone(_DHAKA).strftime("%d-%m-%Y %H:%M")
+    await publish_resolution_book_notice(
+        db,
+        admin,
+        title=f"🗓️ সভার নোটিশ: {meeting.meeting_no}",
+        body=(
+            f"সভার ধরন: {meeting.council_type}\n"
+            f"সভাপতি: {meeting.chairperson}\n"
+            f"নির্ধারিত সময়: {label}\n"
+            f"আলোচ্যসূচি: {_short(meeting.agenda)}"
+        ),
+    )
+    meeting_id_value = meeting.id
+    await db.commit()
+    db.expire_all()
+    meeting = await load_meeting(db, meeting_id_value)
+    return MeetingDetailOut(**meeting_detail_dict(meeting))
+
+
+@router.post("/resolution-book/meetings/{meeting_id}/complete", response_model=MeetingDetailOut)
+async def complete_meeting(
+    meeting_id: int,
+    payload: CompleteIn,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("meeting.manage")),
+) -> MeetingDetailOut:
+    meeting = await load_meeting(db, meeting_id)
+    if meeting.status == MEETING_STATUS_COMPLETED:
+        return MeetingDetailOut(**meeting_detail_dict(meeting))
+    meeting.status = MEETING_STATUS_COMPLETED
+    await _enforce_quorum(db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin)
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="meeting.completed",
+        entity_type="meeting",
+        entity_id=str(meeting.id),
+        detail=(
+            f"{meeting.meeting_no}: completed, quorum "
+            f"{meeting.quorum_present}/{meeting.quorum_required}"
+            + (" (acknowledged shortfall)" if meeting.quorum_acknowledged else "")
+        ),
+    )
+    meeting_id_value = meeting.id
+    await db.commit()
+    db.expire_all()
+    meeting = await load_meeting(db, meeting_id_value)
+    return MeetingDetailOut(**meeting_detail_dict(meeting))
+
+
+@router.post("/resolution-book/resolutions/{resolution_id}/choices", response_model=MeetingDetailOut)
+async def record_open_vote_choices(
+    resolution_id: int,
+    payload: OpenChoiceBulkIn,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("vote_record.manage")),
+) -> MeetingDetailOut:
+    """Per-member attribution exists ONLY for open votes. A secret resolution
+    refuses member-attributed rows outright."""
+    resolution = (
+        await db.execute(select(Resolution).where(Resolution.id == resolution_id))
+    ).scalar_one_or_none()
+    if resolution is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resolution not found.")
+    if resolution.vote_mode != VOTE_MODE_OPEN:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="গোপন ভোটে সদস্যভিত্তিক ভোট সংরক্ষণ করা যায় না। "
+            "Secret ballots never store per-member choices.",
+        )
+    await _resolve_members_exist(db, {e.member_id for e in payload.entries})
+    for existing in list(resolution.open_choices):
+        await db.delete(existing)
+    await db.flush()
+    for entry in payload.entries:
+        db.add(
+            OpenVoteChoice(
+                resolution_id=resolution.id,
+                member_id=entry.member_id,
+                choice=entry.choice,
+            )
+        )
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="resolution.open_choices",
+        entity_type="resolution",
+        entity_id=str(resolution.id),
+        detail=f"open vote choices recorded: {len(payload.entries)} entries",
+    )
+    meeting_id = resolution.meeting_id
+    await db.commit()
+    db.expire_all()
+    meeting = await load_meeting(db, meeting_id)
+    return MeetingDetailOut(**meeting_detail_dict(meeting))

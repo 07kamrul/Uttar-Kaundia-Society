@@ -168,6 +168,37 @@ export const routes: Routes = [
               ),
           },
           {
+            // Modules 1 & 5 (governance expansion)
+            path: 'membership',
+            loadComponent: () =>
+              import('./features/member/pages/membership/membership.component').then(
+                (m) => m.MembershipComponent,
+              ),
+          },
+          {
+            path: 'complaints',
+            loadComponent: () =>
+              import('./features/member/pages/complaints/complaints.component').then(
+                (m) => m.ComplaintsComponent,
+              ),
+          },
+          {
+            path: 'complaints/land-protection',
+            canActivate: [permissionGuard(['land_complaint.create'])],
+            loadComponent: () =>
+              import(
+                './features/member/pages/complaints/land-protection-form.component'
+              ).then((m) => m.LandProtectionFormComponent),
+          },
+          {
+            path: 'service-standard',
+            canActivate: [permissionGuard(['service_standard.view'])],
+            loadComponent: () =>
+              import(
+                './features/member/pages/service-standard/service-standard.component'
+              ).then((m) => m.ServiceStandardComponent),
+          },
+          {
             path: 'change-password',
             loadComponent: () =>
               import('./features/member/pages/change-password/change-password.component').then(
@@ -218,6 +249,15 @@ export const routes: Routes = [
           import('./features/member/pages/resolution-book/meeting-detail.component').then(
             (m) => m.MeetingDetailComponent,
           ),
+      },
+      {
+        // জরুরি নিরাপদ পদক্ষেপ - static help page, open to any authenticated
+        // account (also linked from the public complaint forms).
+        path: 'emergency-help',
+        loadComponent: () =>
+          import(
+            './features/member/pages/complaints/emergency-help.component'
+          ).then((m) => m.EmergencyHelpComponent),
       },
       {
         path: 'resolution-book/add',
@@ -363,6 +403,36 @@ export const routes: Routes = [
               import('./features/management/pages/notices/notices.component').then(
                 (m) => m.NoticesComponent,
               ),
+          },
+          {
+            path: 'membership-review',
+            canActivate: [permissionGuard(['membership_application.manage'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/membership-review/membership-review.component'
+              ).then((m) => m.MembershipReviewComponent),
+          },
+          {
+            path: 'membership-governance',
+            canActivate: [
+              permissionGuard([
+                'member_waiver.manage',
+                'member_suspension.manage',
+                'membership_appeal.manage',
+              ]),
+            ],
+            loadComponent: () =>
+              import(
+                './features/management/pages/membership-governance/membership-governance.component'
+              ).then((m) => m.MembershipGovernanceComponent),
+          },
+          {
+            path: 'complaints-admin',
+            canActivate: [permissionGuard(['complaint.manage', 'complaint.investigate'])],
+            loadComponent: () =>
+              import(
+                './features/management/pages/complaints-admin/complaints-admin.component'
+              ).then((m) => m.ComplaintsAdminComponent),
           },
           {
             path: 'events-management',

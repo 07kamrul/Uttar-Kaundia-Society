@@ -43,6 +43,8 @@ import type {
   PolygonGeometry,
 } from '../../../../core/models/plot-boundary.model';
 import { validateDrawing, type DrawValidation } from './boundary-validation';
+import { readLayerPrefs, writeLayerPrefs } from './layer-prefs';
+import { bestRsMatch, rsArea, rsLabelNumber, snapDistancePx, type RsMatch } from './rs-match';
 import { environment } from '../../../../../environments/environment';
 
 const MOVE_DEBOUNCE_MS = 300;
@@ -53,7 +55,23 @@ const DISCLAIMER_KEY = 'krmf_boundary_disclaimer_dismissed';
 const MOUZA_CENTER: L.LatLngTuple = [23.7985, 90.3325];
 const BDS_LABEL_MIN_ZOOM = 16;
 
-export type PlotMapMode = 'boundaries' | 'bds' | 'rajuk';
+export type PlotMapMode = 'boundaries' | 'bds';
+
+/** Pane for the RS dag reference layer: below member polygons (overlayPane = 400). */
+const RS_PANE = 'rsPane';
+const RS_PANE_Z_INDEX = '390';
+const RS_LABEL_MIN_ZOOM = 16;
+/** Smaller parcels stay unlabeled until zoomed in, so labels thin out at low zoom. */
+const RS_LABEL_MIN_PX = 22;
+const RS_LABEL_ALL_ZOOM = 18;
+const RS_STYLE: L.PathOptions = {
+  color: '#b5530a',
+  weight: 1.2,
+  dashArray: '5,4',
+  fillColor: '#e8a15a',
+  fillOpacity: 0.06,
+};
+const SNAP_CUE_COLOR = '#ff6d00';
 
 /** Leaflet default marker/icons are unused; polygons only. */
 const STATUS_COLORS: Record<string, string> = {
@@ -225,8 +243,32 @@ export class PlotMapComponent implements AfterViewInit {
   readonly mapModes: Array<{ mode: PlotMapMode; labelKey: string; icon: IconName }> = [
     { mode: 'boundaries', labelKey: 'member.plotMap.views.boundaries', icon: 'edit' },
     { mode: 'bds', labelKey: 'member.plotMap.views.bds', icon: 'map' },
-    { mode: 'rajuk', labelKey: 'member.plotMap.views.rajuk', icon: 'doc' },
   ];
+
+  // RS দাগ reference layer (RAJUK masterplan RS plots) + snapping, persisted per browser.
+  private readonly layerPrefs = readLayerPrefs();
+  readonly rsOverlayOn = signal(this.layerPrefs.rsOverlay);
+  readonly snapEnabled = signal(this.layerPrefs.snapToRs);
+  /** True while the cursor/vertex is snapped onto an RS dag edge or corner. */
+  readonly isSnapped = signal(false);
+  /** Mobile: layer switcher collapses into an expandable panel. */
+  readonly layersPanelOpen = signal(false);
+  private readonly rsCollection = signal<LandFeatureCollection | null>(null);
+  private readonly isTouchDevice =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
+  /** How well the drawn shape matches the best RS dag (null = no overlap). */
+  readonly rsMatch = computed<RsMatch | null>(() => {
+    const geometry = this.drawnGeometry();
+    const collection = this.rsCollection();
+    if (!geometry || !collection) return null;
+    try {
+      return bestRsMatch(geometry, collection.features);
+    } catch {
+      return null; // half-drawn ring: no summary yet
+    }
+  });
 
   // Dag-number search on the official map views (BDS dag no / RAJUK RS dag no).
   readonly dagQuery = signal('');
@@ -246,15 +288,15 @@ export class PlotMapComponent implements AfterViewInit {
   private featuresSub: Subscription | null = null;
   private drawnLayer: L.Polygon | null = null;
   private bdsLayer: L.GeoJSON | null = null;
-  private rajukLayer: L.GeoJSON | null = null;
-  private rajukSub: Subscription | null = null;
+  private rsLayer: L.GeoJSON | null = null;
+  private rsSub: Subscription | null = null;
+  private snapCue: L.CircleMarker | null = null;
   // Last fetched collection + requested bounds per official view. The whole
   // mouza dataset fits one capped response, so a covered viewport re-renders
   // from cache instead of re-downloading on every pan.
   private bdsCollection: LandFeatureCollection | null = null;
   private bdsLoadedBounds: L.LatLngBounds | null = null;
-  private rajukCollection: LandFeatureCollection | null = null;
-  private rajukLoadedBounds: L.LatLngBounds | null = null;
+  private rsLoadedBounds: L.LatLngBounds | null = null;
 
   private properties = signal<MemberProperty[]>([]);
 
@@ -270,6 +312,7 @@ export class PlotMapComponent implements AfterViewInit {
     this.zone.runOutsideAngular(() => this.initMap());
     this.loadProperties();
     this.loadFeatures();
+    if (this.rsOverlayOn()) this.loadRsPlots();
     // Leaflet measures the container once at construction and never again;
     // the shell keeps settling afterwards (disclaimer text, fonts, legend,
     // sidebar, rotation), leaving tiles covering only part of the box. The
@@ -313,6 +356,8 @@ export class PlotMapComponent implements AfterViewInit {
     // A natural fitBounds of the mouza bbox lands at ~z13, which reads as
     // "middle of nowhere" — start at z14 so the mouza fills the view.
     map.setView(SOCIETY_CENTER, 14);
+    // RS dag parcels sit under member polygons; Geoman snaps to them for any pane.
+    map.createPane(RS_PANE).style.zIndex = RS_PANE_Z_INDEX;
 
     const street = L.tileLayer(environment.mapTileUrl, {
       maxZoom: 19,
@@ -355,9 +400,16 @@ export class PlotMapComponent implements AfterViewInit {
       setTimeout(() => popup.update(), MOVE_DEBOUNCE_MS + 50);
       requestAnimationFrame(() => popup.update());
     });
-    map.on('zoomend', () => this.zone.runOutsideAngular(() => this.updateBdsLabels()));
+    map.on('zoomend', () =>
+      this.zone.runOutsideAngular(() => {
+        this.updateBdsLabels();
+        this.updateRsLabels();
+      }),
+    );
     map.on('move', () => this.updateSheetPos());
 
+    map.on('pm:drawstart', (event: { workingLayer?: L.Layer }) => this.bindSnapCue(event.workingLayer));
+    map.on('pm:drawend', () => this.clearSnapCue());
     map.on('pm:drawmove', () => this.zone.run(() => this.syncDrawnGeometry()));
     map.on('pm:vertexadded', () => this.zone.run(() => this.syncDrawnGeometry()));
     map.on('pm:change', () => this.zone.run(() => this.syncDrawnGeometry()));
@@ -370,15 +422,16 @@ export class PlotMapComponent implements AfterViewInit {
     });
 
     this.map = map;
+    this.applyDrawingMode();
   }
 
   // ---- Data loading -------------------------------------------------------
 
   /** Reload whichever layer the active map view needs. */
   private onViewMoved(): void {
-    if (this.mapMode() === 'rajuk') {
-      this.loadRajukPlots();
-    } else if (this.mapMode() === 'bds') {
+    if (this.rsOverlayOn() || this.drawStep() === 'draw') this.loadRsPlots();
+    this.updateRsLabels();
+    if (this.mapMode() === 'bds') {
       this.loadBdsMouza();
       this.updateBdsLabels();
     } else if (this.mapMode() === 'boundaries') {
@@ -442,7 +495,8 @@ export class PlotMapComponent implements AfterViewInit {
         weight: 2,
         fillOpacity: 0.25,
         dashArray: isProposal ? '6,6' : undefined,
-      });
+        snapIgnore: true,
+      } as L.PolylineOptions);
       layer.on('click', (event) =>
         this.zone.run(() => this.onFeatureClick(feature, (event as L.LeafletMouseEvent).latlng)),
       );
@@ -472,25 +526,93 @@ export class PlotMapComponent implements AfterViewInit {
       this.search.set('');
       this.renderFeatures(); // hides member polygons filtered by cleared search
     }
-    // The dag search is mode-specific (BDS dag no vs RAJUK RS dag no).
+    // The dag search is mode-specific (BDS dag no vs RS dag no).
     this.clearDagSearch();
 
     if (mode === 'bds') {
-      this.removeRajukLayer();
       this.loadBdsMouza();
     } else {
       this.removeBdsLayer();
     }
+  }
 
-    if (mode === 'rajuk') {
-      this.loadRajukPlots();
+  // ---- RS দাগ overlay (RAJUK masterplan RS plots) ---------------------------
+
+  toggleRsOverlay(): void {
+    this.setRsOverlay(!this.rsOverlayOn());
+  }
+
+  private setRsOverlay(on: boolean): void {
+    this.rsOverlayOn.set(on);
+    this.persistLayerPrefs();
+    this.applyDrawingMode();
+    if (on) {
+      this.loadRsPlots();
     } else {
-      this.removeRajukLayer();
-      if (this.rajukSub) {
-        this.rajukSub.unsubscribe();
-        this.rajukSub = null;
-      }
+      this.removeRsLayer();
     }
+  }
+
+  toggleSnap(): void {
+    this.snapEnabled.update((enabled) => !enabled);
+    this.persistLayerPrefs();
+    this.applyDrawingMode();
+    if (!this.snapEnabled()) this.clearSnapCue();
+  }
+
+  toggleLayersPanel(): void {
+    this.layersPanelOpen.update((open) => !open);
+  }
+
+  private persistLayerPrefs(): void {
+    writeLayerPrefs({ rsOverlay: this.rsOverlayOn(), snapToRs: this.snapEnabled() });
+  }
+
+  /** Geoman options shared by drawing and vertex editing. */
+  private snapOptions(): Record<string, unknown> {
+    return {
+      snappable: this.snapEnabled() && this.rsOverlayOn(),
+      snapDistance: snapDistancePx(this.isTouchDevice),
+      snapSegment: true,
+      snapVertex: true,
+    };
+  }
+
+  /** Pushes the current snap settings to Geoman, including a draw in progress. */
+  private applyDrawingMode(): void {
+    const map = this.map;
+    if (!map) return;
+    const options = this.snapOptions();
+    map.pm.setGlobalOptions(options as never);
+    const draw = (map.pm.Draw as unknown as Record<string, { setOptions?: (o: unknown) => void }>)['Polygon'];
+    draw?.setOptions?.(options);
+    this.drawnLayer?.pm.setOptions(options as never);
+    this.mapContainer().nativeElement.classList.toggle('rs-drawing', this.drawStep() === 'draw');
+  }
+
+  /** Orange ring where the vertex has snapped onto an RS dag boundary. */
+  private bindSnapCue(layer: L.Layer | undefined): void {
+    layer?.on('pm:snap', (event: unknown) => {
+      const latlng = (event as { snapLatLng?: L.LatLng }).snapLatLng;
+      if (!latlng || !this.map) return;
+      this.snapCue?.remove();
+      this.snapCue = L.circleMarker(latlng, {
+        radius: 9,
+        color: SNAP_CUE_COLOR,
+        weight: 3,
+        fillOpacity: 0.25,
+        interactive: false,
+        snapIgnore: true,
+      } as L.CircleMarkerOptions).addTo(this.map);
+      this.zone.run(() => this.isSnapped.set(true));
+    });
+    layer?.on('pm:unsnap', () => this.zone.run(() => this.clearSnapCue()));
+  }
+
+  private clearSnapCue(): void {
+    this.snapCue?.remove();
+    this.snapCue = null;
+    this.isSnapped.set(false);
   }
 
   private loadBdsMouza(): void {
@@ -544,8 +666,8 @@ export class PlotMapComponent implements AfterViewInit {
     if (!map) return;
     this.removeBdsLayer();
     this.bdsLayer = L.geoJSON(collection as never, {
-      style: (feature) =>
-        this.externalStyle('bds', (feature as LandPlotFeature | undefined)?.properties),
+      snapIgnore: true,
+      style: (feature) => this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
       onEachFeature: (feature, layer) =>
         layer.on('click', () =>
           this.zone.run(() => this.openDagDialog((feature as LandPlotFeature).properties)),
@@ -611,76 +733,131 @@ export class PlotMapComponent implements AfterViewInit {
     this.bdsLayer = null;
   }
 
-  private loadRajukPlots(): void {
+  private loadRsPlots(): void {
     const map = this.map;
     if (!map) return;
     const viewport = map.getBounds();
-    if (this.rajukCollection && this.rajukLoadedBounds?.contains(viewport)) {
-      this.externalTruncated.set(!!this.rajukCollection.truncated);
-      if (!this.rajukLayer) this.renderRajuk(this.rajukCollection);
+    const cached = this.rsCollection();
+    if (cached && this.rsLoadedBounds?.contains(viewport)) {
+      if (this.rsOverlayOn() && !this.rsLayer) this.renderRs(cached);
       return;
     }
     const requestBounds = viewport.pad(0.25);
-    this.externalLoading.set(true);
-    this.rajukSub?.unsubscribe();
-    this.rajukSub = this.landDataService
+    this.rsSub?.unsubscribe();
+    this.rsSub = this.landDataService
       .masterplanInBbox(requestBounds.toBBoxString())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collection) => {
-          this.externalLoading.set(false);
-          if (this.mapMode() !== 'rajuk' || !this.map) return;
-          this.rajukCollection = collection;
-          this.rajukLoadedBounds = requestBounds;
-          this.externalTruncated.set(!!collection.truncated);
-          this.renderRajuk(collection);
+          this.rsCollection.set(collection);
+          this.rsLoadedBounds = requestBounds;
+          this.externalError.set(false);
+          if (this.rsOverlayOn()) this.renderRs(collection);
         },
-        error: () => {
-          this.externalLoading.set(false);
-          this.externalError.set(true);
-        },
+        error: () => this.externalError.set(true),
       });
   }
 
-  private renderRajuk(collection: LandFeatureCollection): void {
+  private renderRs(collection: LandFeatureCollection): void {
     const map = this.map;
     if (!map) return;
-    this.removeRajukLayer();
-    this.rajukLayer = L.geoJSON(collection as never, {
-      style: (feature) =>
-        this.externalStyle('rajuk', (feature as LandPlotFeature | undefined)?.properties),
-      onEachFeature: (feature, layer) =>
+    this.removeRsLayer();
+    // `pane` is valid on Leaflet path options but missing from GeoJSONOptions typings.
+    const options = {
+      pane: RS_PANE,
+      style: (feature?: unknown) => this.rsStyle((feature as LandPlotFeature | undefined)?.properties),
+      onEachFeature: (feature: unknown, layer: L.Layer) =>
         layer.bindPopup(
-          this.rajukPopupHtml(feature as LandPlotFeature, layer as L.Polygon),
+          () => this.rsPopupHtml(feature as LandPlotFeature, layer as L.Polygon),
           this.externalPopupOptions(),
         ),
-    }).addTo(map);
+    };
+    this.rsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
+    this.updateRsLabels();
   }
 
-  private rajukPopupHtml(feature: LandPlotFeature, layer: L.Polygon): string {
+  private rsStyle(props?: LandPlotFeature['properties']): L.PathOptions {
+    const highlight = this.mapMode() === 'boundaries' ? this.highlightDag() : null;
+    if (!highlight || this.dagKeyOf(props) !== highlight) return RS_STYLE;
+    return {
+      ...RS_STYLE,
+      color: '#e65100',
+      weight: 4,
+      dashArray: undefined,
+      fillOpacity: 0.5,
+      className: 'dag-search-hit',
+    };
+  }
+
+  /** Reference info only — never an ownership claim. */
+  private rsPopupHtml(feature: LandPlotFeature, layer: L.Polygon): string {
     const props = feature.properties ?? {};
     const center = layer.getBounds().getCenter();
     const streetView = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
+    const t = (key: string) => this.translate.instant(`member.plotMap.views.${key}`);
+    const area = rsArea(feature.geometry);
+    const areaLine = area
+      ? `<p>${t('rsArea')}: ≈ ${this.digits(area.shotangsho.toFixed(2))} ${this.translate.instant('member.plotMap.details.shotangsho')} (${this.digits(Math.round(area.sqm))} m²)</p>`
+      : '';
     return `
       <div class="rajuk-popup">
-        <strong>${this.translate.instant('member.plotMap.views.rsPlotNo')}: ${this.digits(props.rs_plot_no ?? props.plot_no ?? '')}</strong>
-        <p>${this.translate.instant('member.plotMap.views.rsJlNo')}: 245</p>
-        <p>${this.translate.instant('member.plotMap.views.mouzaLabel')}</p>
-        <p>${this.translate.instant('member.plotMap.views.thanaLabel')}</p>
-        <a href="${streetView}" target="_blank" rel="noopener noreferrer">
-          ${this.translate.instant('member.plotMap.views.streetView')}
-        </a>
+        <strong>${t('rsPlotNo')}: ${this.digits(props.rs_plot_no ?? props.plot_no ?? '')}</strong>
+        <p>${t('rsJlNo')}: 245</p>
+        <p>${t('mouzaLabel')}</p>
+        <p>${t('thanaLabel')}</p>
+        ${areaLine}
+        <p class="rs-popup-note">${t('rsReferenceOnly')}</p>
+        <a href="${streetView}" target="_blank" rel="noopener noreferrer">${t('streetView')}</a>
       </div>`;
   }
 
-  private removeRajukLayer(): void {
-    if (this.map && this.rajukLayer) {
-      this.map.removeLayer(this.rajukLayer);
-      this.rajukLayer = null;
-    }
+  /** Dag numbers on each parcel: nothing below zoom 16, only parcels big
+   * enough to read at 16-17, every parcel from 18. Capped to what is in view. */
+  private updateRsLabels(): void {
+    const map = this.map;
+    const layer = this.rsLayer;
+    if (!map || !layer) return;
+    const zoom = map.getZoom();
+    const view = map.getBounds().pad(0.1);
+    layer.eachLayer((child: L.Layer) => {
+      const polygon = child as L.Polygon & { __rsLabel?: L.Marker };
+      const bounds = polygon.getBounds();
+      const text = rsLabelNumber((polygon.feature as LandPlotFeature | undefined)?.properties);
+      const visible =
+        !!text && zoom >= RS_LABEL_MIN_ZOOM && view.intersects(bounds) && this.isParcelLabelable(bounds, zoom);
+      if (visible && !polygon.__rsLabel) {
+        polygon.__rsLabel = L.marker(bounds.getCenter(), {
+          icon: L.divIcon({ className: 'rs-dag-label', html: this.digits(text), iconSize: null as never }),
+          interactive: false,
+          keyboard: false,
+          snapIgnore: true,
+        } as L.MarkerOptions).addTo(map);
+      } else if (!visible && polygon.__rsLabel) {
+        map.removeLayer(polygon.__rsLabel);
+        polygon.__rsLabel = undefined;
+      }
+    });
   }
 
-  // ---- Dag-number search (BDS dag / RAJUK RS dag) --------------------------
+  private isParcelLabelable(bounds: L.LatLngBounds, zoom: number): boolean {
+    if (zoom >= RS_LABEL_ALL_ZOOM || !this.map) return true;
+    const sw = this.map.latLngToContainerPoint(bounds.getSouthWest());
+    const ne = this.map.latLngToContainerPoint(bounds.getNorthEast());
+    return Math.min(Math.abs(ne.x - sw.x), Math.abs(ne.y - sw.y)) >= RS_LABEL_MIN_PX;
+  }
+
+  private removeRsLayer(): void {
+    const map = this.map;
+    if (!map || !this.rsLayer) return;
+    this.rsLayer.eachLayer((child: L.Layer) => {
+      const label = (child as L.Polygon & { __rsLabel?: L.Marker }).__rsLabel;
+      if (label) map.removeLayer(label);
+    });
+    map.removeLayer(this.rsLayer);
+    this.rsLayer = null;
+  }
+
+  // ---- Dag-number search (BDS dag / RS dag) ---------------------------------
 
   private dagKeyOf(props: LandPlotFeature['properties'] | undefined): string {
     if (!props) return '';
@@ -688,16 +865,10 @@ export class PlotMapComponent implements AfterViewInit {
     return value === undefined || value === null ? '' : normalizeDagNo(String(value));
   }
 
-  /** Layer style that keeps the searched dag highlighted across bbox reloads. */
-  private externalStyle(
-    mode: 'bds' | 'rajuk',
-    props?: LandPlotFeature['properties'],
-  ): L.PathOptions {
-    const base: L.PathOptions =
-      mode === 'bds'
-        ? { color: '#1a3fd4', weight: 2, fillColor: '#2b50e0', fillOpacity: 0.2 }
-        : { color: '#7a8b12', weight: 1.5, fillColor: '#b7c94a', fillOpacity: 0.3 };
-    const dialogDag = mode === 'bds' ? this.dagDialog()?.dag : undefined;
+  /** BDS layer style that keeps the searched dag highlighted across bbox reloads. */
+  private bdsStyle(props?: LandPlotFeature['properties']): L.PathOptions {
+    const base: L.PathOptions = { color: '#1a3fd4', weight: 2, fillColor: '#2b50e0', fillOpacity: 0.2 };
+    const dialogDag = this.dagDialog()?.dag;
     if (dialogDag && this.dagKeyOf(props) === dialogDag) {
       return { ...base, color: '#d32f2f', weight: 3, fillColor: '#d32f2f', fillOpacity: 0.4 };
     }
@@ -708,13 +879,13 @@ export class PlotMapComponent implements AfterViewInit {
 
   /** Restyles the already-rendered layer so a hit lights up immediately. */
   private styleSearchedLayer(): void {
-    const layer = this.mapMode() === 'bds' ? this.bdsLayer : this.rajukLayer;
+    const isBds = this.mapMode() === 'bds';
+    const layer = isBds ? this.bdsLayer : this.rsLayer;
     if (!layer) return;
     layer.eachLayer((child: L.Layer) => {
       const polygon = child as L.Polygon;
-      polygon.setStyle(
-        this.externalStyle(this.mapMode() as 'bds' | 'rajuk', polygon.feature?.properties),
-      );
+      const props = polygon.feature?.properties;
+      polygon.setStyle(isBds ? this.bdsStyle(props) : this.rsStyle(props));
     });
   }
 
@@ -730,28 +901,30 @@ export class PlotMapComponent implements AfterViewInit {
     this.styleSearchedLayer();
   }
 
+  /** BDS mode searches the BDS dag layer; the default view searches the RS dag layer. */
   searchDag(event?: Event): void {
     event?.preventDefault();
-    const mode = this.mapMode();
-    if (mode !== 'bds' && mode !== 'rajuk') return;
-    const query = toAsciiDigits(this.dagQuery().trim());
+    const isBds = this.mapMode() === 'bds';
+    const query = toAsciiDigits((isBds ? this.dagQuery() : this.search()).trim());
     if (!query) return;
     this.dagNotFound.set(false);
     this.externalError.set(false);
     this.externalLoading.set(true);
-    const request$ =
-      mode === 'bds'
-        ? this.landDataService.lookupDag('bds', query)
-        : this.landDataService.lookupRsPlot(query);
+    const request$ = isBds
+      ? this.landDataService.lookupDag('bds', query)
+      : this.landDataService.lookupRsPlot(query);
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (collection) => {
         this.externalLoading.set(false);
         const features = collection.features ?? [];
         if (!features.length) {
           this.highlightDag.set(null);
-          this.dagNotFound.set(true);
+          this.styleSearchedLayer();
+          // A member-plot hit in the default view still counts as found.
+          this.dagNotFound.set(isBds || this.featureLayers.size === 0);
           return;
         }
+        if (!isBds && !this.rsOverlayOn()) this.setRsOverlay(true);
         this.highlightDag.set(this.dagKeyOf(features[0].properties));
         this.styleSearchedLayer();
         this.fitToFeatures(features);
@@ -973,7 +1146,10 @@ export class PlotMapComponent implements AfterViewInit {
     this.drawStep.set('draw');
     this.saveErrorKey.set(null);
     this.drawnGeometry.set(null);
+    this.loadRsPlots(); // the match summary needs RS parcels even if the overlay is hidden
+    this.applyDrawingMode();
     this.map.pm.enableDraw('Polygon', {
+      ...this.snapOptions(),
       allowSelfIntersection: false,
       // touch-friendly defaults (geoman enables them with touch support on).
       templineStyle: { color: MINE_COLOR, weight: 3 },
@@ -992,7 +1168,9 @@ export class PlotMapComponent implements AfterViewInit {
       color: MINE_COLOR,
     }).addTo(this.map);
     this.drawnLayer = layer;
-    layer.pm.enable({ allowSelfIntersection: false, allowRemoval: false } as never);
+    this.loadRsPlots();
+    layer.pm.enable({ ...this.snapOptions(), allowSelfIntersection: false, allowRemoval: false } as never);
+    this.applyDrawingMode();
     this.attachEditListeners(layer);
   }
 
@@ -1019,6 +1197,8 @@ export class PlotMapComponent implements AfterViewInit {
     this.drawStep.set(this.showDrawPanel() ? 'pick' : 'idle');
     this.selectedPropertyId.set(null);
     this.saveErrorKey.set(null);
+    this.clearSnapCue();
+    this.applyDrawingMode();
   }
 
   private declaredQuantity(): string | null {

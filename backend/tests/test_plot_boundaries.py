@@ -789,3 +789,61 @@ async def test_member_cannot_touch_another_members_boundary(client, db_session):
     assert edit.status_code == 404
     assert withdraw.status_code == 404
     assert mine.json() == []
+
+
+# --- RS dag match ---------------------------------------------------------------------
+
+# Real RS-4611 parcel from the ingested RAJUK masterplan overlay.
+RS_4611 = {
+    "type": "Polygon",
+    "coordinates": [[
+        [90.336616, 23.801257], [90.336642, 23.801159], [90.336541, 23.801178],
+        [90.336525, 23.801222], [90.33653, 23.801272], [90.336616, 23.801257],
+    ]],
+}
+
+
+async def test_submission_stores_server_computed_rs_match(client, db_session):
+    member = await _member(db_session, "RS Drawer")
+    response = await _draw(client, member, geometry=RS_4611)
+    assert response.status_code == 201
+
+    boundary = (await db_session.execute(select(PlotBoundary))).scalars().one()
+    version = await _pending_version(db_session, boundary.id)
+    assert boundary.rs_plot_no == "RS-4611"
+    assert float(boundary.rs_match_pct) >= 95.0
+    assert version.rs_plot_no == "RS-4611"
+
+
+async def test_submission_far_from_any_rs_dag_has_no_match(client, db_session):
+    member = await _member(db_session, "Freehand")
+    assert (await _draw(client, member)).status_code == 201  # SQUARE: no RS parcel
+
+    boundary = (await db_session.execute(select(PlotBoundary))).scalars().one()
+    assert boundary.rs_plot_no is None
+    assert boundary.rs_match_pct is None
+
+
+async def test_admin_rs_dag_layer_returns_parcels_for_viewport(client, db_session):
+    admin = await _make_admin(db_session)
+    response = await client.get(
+        "/api/admin/rs-dag-layer",
+        params={"bbox": "90.3360,23.8005,90.3375,23.8020"},
+        headers=_admin_headers(admin),
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["type"] == "FeatureCollection"
+    assert any(f["properties"]["rs_plot_no"] == "RS-4611" for f in body["features"])
+
+
+async def test_admin_rs_dag_layer_rejects_bad_bbox_and_members(client, db_session):
+    admin = await _make_admin(db_session)
+    bad = await client.get("/api/admin/rs-dag-layer", params={"bbox": "nope"}, headers=_admin_headers(admin))
+    assert bad.status_code == 422
+
+    member = await _member(db_session, "Not An Admin")
+    denied = await client.get(
+        "/api/admin/rs-dag-layer", params={"bbox": "90.33,23.80,90.34,23.81"}, headers=_member_headers(member)
+    )
+    assert denied.status_code in (401, 403)

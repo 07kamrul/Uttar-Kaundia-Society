@@ -94,6 +94,15 @@ class Member(Base):
         Boolean, default=True, server_default=true(), nullable=False
     )
 
+    # Governance (foundation): member class + suspension record. These never
+    # gate authentication or land-info access.
+    member_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    governance_status: Mapped[str] = mapped_column(
+        String(16), default=GOVERNANCE_STATUS_ACTIVE, server_default=GOVERNANCE_STATUS_ACTIVE, nullable=False
+    )
+    suspension_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    suspension_notice_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

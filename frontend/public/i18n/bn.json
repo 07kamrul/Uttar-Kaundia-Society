@@ -168,7 +168,11 @@
     "delete": "মুছুন",
     "save": "সংরক্ষণ",
     "cancel": "বাতিল",
-    "retry": "আবার চেষ্টা করুন"
+    "retry": "আবার চেষ্টা করুন",
+    "loadFailed": "তথ্য আনা যায়নি। আবার চেষ্টা করুন।",
+    "saveFailed": "সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+    "actions": "কার্যক্রম",
+    "id": "আইডি"
   },
   "nav": {
     "admin": "প্রশাসক",
@@ -218,7 +222,14 @@
     },
     "societyCosts": "সোসাইটি খরচ",
     "submissions": "সাবমিশন",
-    "otherFees": "অন্যান্য ফি"
+    "otherFees": "অন্যান্য ফি",
+    "membership": "সদস্যপদ ও আবেদন",
+    "complaints": "অভিযোগ",
+    "serviceStandard": "সেবা মান",
+    "emergencyHelp": "জরুরি নিরাপদ পদক্ষেপ",
+    "membershipReview": "সদস্য আবেদন পর্যালোচনা",
+    "membershipGovernance": "সদস্য শাসন (ছাড়/সাসপেনশন/আপিল)",
+    "complaintsAdmin": "অভিযোগ ব্যবস্থাপনা"
   },
   "forbidden": {
     "title": "প্রবেশাধিকার নেই",
@@ -845,6 +856,12 @@
         "error": "রিপোর্ট পাঠানো যায়নি। আবার চেষ্টা করুন।"
       },
       "draw": {
+        "snapToRs": "RS দাগের রেখায় স্ন্যাপ করুন",
+        "snapped": "RS দাগে স্ন্যাপ হয়েছে",
+        "showRsLayer": "RS দাগ স্তর দেখান",
+        "rsMatch": "আপনার আঁকা সীমানা RS দাগ নং {{dag}} এর সাথে {{pct}}% মিলে যাচ্ছে",
+        "rsDiverges": "আপনার আঁকা সীমানা RS দাগ নং {{dag}} এর সাথে মাত্র {{pct}}% মিলছে — RS দাগের রেখা থেকে উল্লেখযোগ্যভাবে আলাদা।",
+        "rsNoMatch": "আপনার আঁকা সীমানা কোনো RS দাগের সাথে মিলছে না। অবস্থান যাচাই করুন।",
         "open": "সীমানা আঁকুন",
         "title": "আপনার প্লটের সীমানা আঁকুন",
         "editTitle": "আমার সীমানা সম্পাদনা",
@@ -884,6 +901,11 @@
       },
       "views": {
         "title": "ম্যাপ ভিউ",
+        "layers": "স্তরসমূহ",
+        "rs": "RS দাগ ম্যাপ",
+        "rsHint": "RS দাগ খণ্ডের রেফারেন্স গ্রিড (মালিকানার দাবি নয়)",
+        "rsArea": "আনুমানিক আয়তন",
+        "rsReferenceOnly": "শুধু তথ্যসূত্র — এটি মালিকানার দাবি নয়।",
         "boundaries": "আমার প্লট সীমানা ম্যাপ",
         "boundariesHint": "সদস্য চিহ্নিত সীমানা",
         "bds": "বিডিএস ড্যাগ ম্যাপ",
@@ -2139,6 +2161,8 @@
       "memberFilter": "সদস্য আইডি"
     },
     "plotBoundaries": {
+      "rsMatchValue": "RS দাগ নং {{dag}} · {{pct}}% মিল",
+      "rsNoMatch": "কোনো RS দাগের সাথে এই আকৃতি মিলছে না",
       "title": "প্লট সীমানা",
       "subtitle": "সদস্যদের আঁকা প্লট সীমানা পর্যালোচনা করুন",
       "searchPlaceholder": "দাগ নম্বর দিয়ে খুঁজুন",
@@ -2153,6 +2177,7 @@
         "khatian": "খতিয়ান",
         "dag": "দাগ",
         "landQuantity": "ঘোষিত জমি",
+        "rsMatch": "RS দাগ মিল",
         "computedArea": "নির্ধারিত আয়তন",
         "property": "প্রপার্টি"
       },
@@ -2574,6 +2599,338 @@
       "applicant": "আবেদনকারী",
       "pending": "অপেক্ষমাণ",
       "rejected": "বাতিল"
+    }
+  },
+  "membershipGov": {
+    "title": "সদস্যপদ ও আবেদন",
+    "subtitle": "আপনার আবেদন, আপিল, চাঁদা ছাড় ও নোটিশ — সব এক জায়গায়।",
+    "myApplications": "আমার আবেদনসমূহ",
+    "myAppeals": "আমার আপিল",
+    "myWaivers": "আমার ছাড়/কিস্তির আবেদন",
+    "no": "নম্বর",
+    "status": "অবস্থা",
+    "sla": {
+      "on_track": "সময় আছে",
+      "due_soon": "শিগগির",
+      "overdue": "সময় শেষ",
+      "met": "সময়মতো"
+    },
+    "submittedAt": "জমার তারিখ",
+    "rejectionReason": "বাতিলের কারণ",
+    "appealThis": "এই সিদ্ধান্তের বিরুদ্ধে আপিল করুন",
+    "actionNo": "পদক্ষেপ",
+    "tabs": {
+      "applications": "আবেদন",
+      "appeals": "আপিল",
+      "waivers": "ছাড়/কিস্তি",
+      "notices": "নোটিশ ও জবাব"
+    },
+    "apply": {
+      "title": "নতুন আবেদন",
+      "fullName": "পূর্ণ নাম",
+      "fatherName": "পিতা/স্বামীর নাম",
+      "motherName": "মাতার নাম",
+      "mobile": "মোবাইল",
+      "email": "ইমেইল",
+      "ownershipType": "মালিকানার ধরন",
+      "address": "ঠিকানা (বাড়ি/রোড)",
+      "nidDoc": "জাতীয় পরিচয়পত্র (ছবি/পিডিএফ)",
+      "ownershipDoc": "মালিকানা দলিল (ছবি/পিডিএফ)",
+      "consent": "আমি প্রদত্ত তথ্যের সঠিকতা নিশ্চিত করছি এবং সোসাইটির গঠনতন্ত্র মেনে চলার সম্মতি দিচ্ছি।",
+      "submit": "আবেদন জমা দিন"
+    },
+    "ownership": {
+      "owner": "মালিক",
+      "co_owner": "যৌথ মালিক",
+      "inheritance": "উত্তরাধিকার",
+      "purchased": "ক্রয়",
+      "other": "অন্যান্য"
+    },
+    "statuses": {
+      "received": "গৃহীত",
+      "under_review": "পর্যালোচনাধীন",
+      "approved": "অনুমোদিত",
+      "rejected": "বাতিল",
+      "pending": "অপেক্ষমাণ",
+      "noticed": "নোটিশ দেওয়া হয়েছে",
+      "awaiting_response": "জবাবের অপেক্ষায়",
+      "decided": "সিদ্ধান্ত হয়েছে",
+      "cancelled": "বাতিল",
+      "submitted": "দাখিল"
+    },
+    "appealStatuses": {
+      "submitted": "দাখিল",
+      "under_review": "পর্যালোচনাধীন",
+      "upheld": "মূল সিদ্ধান্ত বহাল",
+      "overturned": "সিদ্ধান্ত বাতিল"
+    },
+    "waiverStatuses": {
+      "pending": "অপেক্ষমাণ",
+      "approved": "অনুমোদিত",
+      "rejected": "প্রত্যাখ্যাত"
+    },
+    "actionStatuses": {
+      "draft": "খসড়া",
+      "noticed": "নোটিশ দেওয়া হয়েছে",
+      "awaiting_response": "জবাবের অপেক্ষায়",
+      "decided": "সিদ্ধান্ত হয়েছে",
+      "cancelled": "বাতিল"
+    },
+    "events": {
+      "submitted": "আবেদন জমা",
+      "membership_application.start_review": "পর্যালোচনা শুরু",
+      "reviewed_approved": "অনুমোদিত",
+      "reviewed_rejected": "বাতিল"
+    },
+    "appeals": {
+      "file": "আপিল দাখিল",
+      "target": "যে সিদ্ধান্তের বিরুদ্ধে আপিল",
+      "selectTarget": "নির্বাচন করুন",
+      "grounds": "আপিলের কারণ",
+      "windowNote": "সিদ্ধান্তের ৩০ দিনের মধ্যে আপিল করতে হবে।",
+      "window": "আপিলের শেষ তারিখ",
+      "decision": "সিদ্ধান্ত",
+      "reviewer": "পর্যালোচক",
+      "submit": "আপিল জমা দিন",
+      "windowClosed": "আপিলের সময়সীমা পেরিয়ে গেছে।"
+    },
+    "waivers": {
+      "apply": "ছাড় বা কিস্তির আবেদন",
+      "type": "ধরন",
+      "typewaiver": "ছাড়",
+      "typeinstallment": "কিস্তি",
+      "reason": "কারণ (আবশ্যক)",
+      "months": "মাস সংখ্যা",
+      "note": "কমিটির মন্তব্য",
+      "submit": "আবেদন জমা দিন",
+      "reasonRequired": "কারণ লিখতে হবে।"
+    },
+    "notices": {
+      "title": "সাসপেনশন/বহিষ্কার নোটিশ",
+      "type": "ধরন",
+      "typesuspend": "সাসপেনশন",
+      "typeterminate": "বহিষ্কার",
+      "reason": "কারণ",
+      "deadline": "জবাবের শেষ তারিখ",
+      "respond": "আপনার জবাব",
+      "sendResponse": "জবাব পাঠান"
+    },
+    "empty": {
+      "applications": "এখনো কোনো আবেদন নেই। উপরের ফর্ম থেকে আবেদন করুন।",
+      "appeals": "কোনো আপিল নেই।",
+      "waivers": "কোনো ছাড়ের আবেদন নেই।",
+      "notices": "আপনার বিরুদ্ধে কোনো নোটিশ নেই।"
+    }
+  },
+  "complaintsModule": {
+    "title": "অভিযোগ ব্যবস্থা",
+    "subtitle": "অভিযোগ দাখিল করুন এবং অগ্রগতি দেখুন — ৩ কার্যদিবসে স্বীকৃতি, ১৫ কার্যদিবসে প্রথম আপডেট।",
+    "landFormLink": "জমি সুরক্ষা ফর্ম (সংযুক্তি-৩)",
+    "emergencyLink": "জরুরি নিরাপদ পদক্ষেপ",
+    "myComplaints": "আমার অভিযোগ",
+    "no": "নম্বর",
+    "subject": "বিষয়",
+    "status": "অবস্থা",
+    "slaAck": "স্বীকৃতির সময়সীমা",
+    "slaUpdate": "আপডেটের সময়সীমা",
+    "resolution": "সমাধান",
+    "downloadFormCopy": "ফর্মের কপি (পিডিএফ)",
+    "empty": "এখনো কোনো অভিযোগ নেই।",
+    "new": {
+      "title": "নতুন অভিযোগ",
+      "category": "ধরন",
+      "subject": "বিষয়",
+      "details": "বিস্তারিত",
+      "submit": "অভিযোগ জমা দিন"
+    },
+    "statuses": {
+      "submitted": "দাখিল",
+      "acknowledged": "স্বীকৃত",
+      "investigating": "তদন্তাধীন",
+      "resolved": "নিষ্পত্তি",
+      "rejected": "খারিজ",
+      "closed": "বন্ধ"
+    },
+    "events": {
+      "submitted": "জমা",
+      "acknowledged": "স্বীকৃত",
+      "first_update": "প্রথম আপডেট",
+      "complaint.assigned": "দায়িত্ব দেওয়া হয়েছে",
+      "complaint.updated": "আপডেট",
+      "resolved": "নিষ্পত্তি",
+      "closed": "বন্ধ"
+    },
+    "land": {
+      "title": "জমি সুরক্ষা অভিযোগ (সংযুক্তি-৩)",
+      "subtitle": "জমি জবরদখল/হুমকির ক্ষেত্রে এই নির্দিষ্ট ফর্মটি পূরণ করুন।",
+      "sectionComplainant": "অভিযোগকারীর তথ্য",
+      "complainantName": "নাম",
+      "complainantContact": "যোগাযোগ",
+      "sectionLand": "জমির তথ্য",
+      "location": "জমির অবস্থান",
+      "dagNo": "দাগ নম্বর",
+      "khatianNo": "খতিয়ান নম্বর",
+      "sectionIncident": "ঘটনার বিবরণ",
+      "accusedParty": "অভিযুক্ত পক্ষ",
+      "incidentDate": "ঘটনার তারিখ",
+      "incidentDescription": "কী ঘটেছে",
+      "emergencyPrompt": "এই মুহূর্তে আমি বিপদে আছি / নিরাপত্তাহীনতা অনুভব করছি",
+      "emergencyTitle": "আপনি বিপদে থাকলে আগে ফোন করুন",
+      "sectionEvidence": "প্রমাণ",
+      "evidenceFile": "প্রমাণ ফাইল সংযুক্ত করুন (ঐচ্ছিক)",
+      "sectionConsent": "স্বাক্ষর ও সম্মতি",
+      "signatureName": "নাম স্বাক্ষর হিসেবে",
+      "signatureDate": "তারিখ",
+      "disclaimer": "আমি বুঝেছি — এটি জিডি/আদালতের বিকল্প নয়।",
+      "consent": "আমি প্রদত্ত তথ্য সঠিক বলে নিশ্চিত করছি।",
+      "submit": "ফর্ম জমা দিন",
+      "missingFields": "কিছু আবশ্যক ঘর পূরণ হয়নি।"
+    }
+  },
+  "emergency": {
+    "title": "জরুরি নিরাপদ পদক্ষেপ",
+    "subtitle": "বিপদ বা হুমকির মুখে প্রথমে নিরাপত্তা, পরে ডকুমেন্টেশন।",
+    "contactsTitle": "জরুরি নম্বর",
+    "stepsTitle": "তাৎক্ষণিক পদক্ষেপ",
+    "fileLandComplaint": "জমি সুরক্ষা অভিযোগ করুন",
+    "fileComplaint": "সাধারণ অভিযোগ করুন",
+    "steps": [
+      "নিজে ও পরিবারকে নিরাপদে সরিয়ে নিন; প্রয়োজনে ৯৯৯ এ ফোন করুন।",
+      "নারী ও শিশু সংক্রান্ত হলে ১০৯ এ কল করুন।",
+      "ঘটনাস্থলের ছবি, ভিডিও ও সাক্ষীর নাম সংরক্ষণ করুন।",
+      "দাগ ও খতিয়ানের কাগজপত্র হাতের কাছে রাখুন।",
+      "নিরাপদ হওয়ার পর সোসাইটিতে লিখিত অভিযোগ দিন।"
+    ]
+  },
+  "serviceStandard": {
+    "title": "সেবা মান",
+    "subtitle": "সোসাইটি কমিটির প্রতিশ্রুত সময়সীমা ও বাস্তব পারফরম্যান্স।",
+    "target": "লক্ষ্য",
+    "met": "সময়মতো পূরণ",
+    "avgDays": "গড় কার্যদিবস",
+    "noLiveData": "এই সেবায় এখনো যথেষ্ট তথ্য নেই।"
+  },
+  "membershipReview": {
+    "title": "সদস্য আবেদন পর্যালোচনা",
+    "no": "আবেদন নম্বর",
+    "applicant": "আবেদনকারী",
+    "status": "অবস্থা",
+    "sla": "সময়সীমা",
+    "details": "বিস্তারিত",
+    "father": "পিতা",
+    "mother": "মাতা",
+    "email": "ইমেইল",
+    "ownership": "মালিকানা",
+    "startReview": "পর্যালোচনা শুরু",
+    "approve": "অনুমোদন",
+    "reject": "বাতিল",
+    "confirmReject": "বাতিল নিশ্চিত করুন",
+    "rejectReason": "বাতিলের কারণ (আবশ্যক)",
+    "pdf": "চিঠি (পিডিএফ)",
+    "empty": "এই তালিকায় কোনো আবেদন নেই।",
+    "filters": {
+      "received": "নতুন",
+      "under_review": "পর্যালোচনাধীন",
+      "approved": "অনুমোদিত",
+      "rejected": "বাতিল",
+      "all": "সব"
+    }
+  },
+  "membershipGovernance": {
+    "title": "সদস্য শাসন ব্যবস্থা",
+    "member": "সদস্য",
+    "memberId": "সদস্য আইডি",
+    "approve": "অনুমোদন",
+    "reject": "প্রত্যাখ্যান",
+    "tabs": {
+      "waivers": "ছাড়/কিস্তি",
+      "actions": "সাসপেনশন/বহিষ্কার",
+      "appeals": "আপিল",
+      "corrections": "তথ্য সংশোধন",
+      "arrears": "চাঁদা বকেয়া"
+    },
+    "waivers": {
+      "title": "ছাড়/কিস্তির আবেদন"
+    },
+    "actions": {
+      "title": "সাসপেনশন/বহিষ্কার প্রক্রিয়া",
+      "issueNotice": "লিখিত নোটিশ ইস্যু",
+      "reason": "কারণ",
+      "sendNotice": "নোটিশ পাঠান",
+      "confirmSuspend": "সাসপেনশন নিশ্চিত",
+      "drop": "পদক্ষেপ বাতিল",
+      "markNoticed": "নোটিশ হিসেবে চিহ্নিত",
+      "cancel": "বাতিল"
+    },
+    "appeals": {
+      "title": "আপিল ব্যবস্থাপনা",
+      "reviewerRule": "নিয়ম: মূল সিদ্ধান্তদাতা নিজে আপিল পর্যালোচনা করতে পারবেন না (সার্ভারেও প্রযোজ্য)।",
+      "reviewerId": "পর্যালোচকের আইডি",
+      "assign": "দায়িত্ব দিন"
+    },
+    "corrections": {
+      "title": "তথ্য সংশোধনের অনুরোধ",
+      "field": "ঘর",
+      "pending": "অপেক্ষমাণ",
+      "applied": "প্রয়োগ করা হয়েছে",
+      "rejected": "প্রত্যাখ্যাত",
+      "apply": "প্রয়োগ"
+    },
+    "arrears": {
+      "title": "চাঁদা বকেয়া",
+      "months": "মাস",
+      "expected": "প্রত্যাশিত",
+      "paid": "পরিশোধিত",
+      "due": "বকেয়া"
+    },
+    "empty": {
+      "waivers": "কোনো আবেদন নেই।",
+      "actions": "কোনো পদক্ষেপ নেই।",
+      "appeals": "কোনো আপিল নেই।",
+      "corrections": "কোনো অনুরোধ নেই।",
+      "arrears": "তথ্য নেই।"
+    }
+  },
+  "complaintsAdmin": {
+    "title": "অভিযোগ ব্যবস্থাপনা",
+    "assignee": "দায়িত্বপ্রাপ্ত",
+    "assigneeId": "দায়িত্বপ্রাপ্তের আইডি (অভিযুক্ত নিজে নয়)",
+    "assign": "দায়িত্ব দিন",
+    "acknowledge": "স্বীকৃতি দিন",
+    "work": "কার্যক্রম",
+    "updateNote": "আপডেট নোট",
+    "sendUpdate": "আপডেট পাঠান",
+    "resolve": "নিষ্পত্তি",
+    "close": "বন্ধ করুন",
+    "downloadEvidence": "প্রমাণ ডাউনলোড",
+    "empty": "এই তালিকায় কোনো অভিযোগ নেই।",
+    "filters": {
+      "submitted": "নতুন",
+      "acknowledged": "স্বীকৃত",
+      "investigating": "তদন্তাধীন",
+      "resolved": "নিষ্পত্তি",
+      "closed": "বন্ধ",
+      "all": "সব"
+    }
+  },
+  "myData": {
+    "title": "আমার তথ্য দেখুন / সংশোধনের অনুরোধ",
+    "documents": "আমার জমা দেওয়া কাগজ",
+    "noDocuments": "কোনো কাগজ জমা নেই।",
+    "downloadError": "ডাউনলোড ব্যর্থ হয়েছে।",
+    "requestCorrection": "সংশোধনের অনুরোধ করুন",
+    "field": "ঘর (যেমন: mobile)",
+    "fieldPlaceholder": "যেমন: mobile",
+    "requestedValue": "সঠিক মান",
+    "reason": "কারণ",
+    "submit": "অনুরোধ পাঠান",
+    "myRequests": "আমার অনুরোধসমূহ",
+    "noRequests": "কোনো সংশোধনের অনুরোধ নেই।",
+    "status": "অবস্থা",
+    "statuses": {
+      "pending": "অপেক্ষমাণ",
+      "applied": "প্রয়োগ করা হয়েছে",
+      "rejected": "প্রত্যাখ্যাত"
     }
   }
 }

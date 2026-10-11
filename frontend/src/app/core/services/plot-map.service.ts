@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import type { LandFeatureCollection } from './land-data.service';
 import {
   toAdminBoundary,
   toBoundaryDispute,
@@ -111,6 +112,11 @@ export class PlotMapService {
     return this.http
       .get<{ count: number }>(this.adminUrl('plot-boundaries/pending/count'))
       .pipe(map((body) => body.count));
+  }
+
+  /** RS dag parcels under a viewport for the admin review map (reference only). */
+  adminRsDagLayer(bbox: string): Observable<LandFeatureCollection> {
+    return this.http.get<LandFeatureCollection>(this.adminUrl('rs-dag-layer'), { params: { bbox } });
   }
 
   /** Approve/reject a pending VERSION (not the boundary). */

@@ -115,6 +115,7 @@ class MemberSummary(BaseModel):
     mobile: str
     email: str
     created_at: datetime
+    member_class: str | None = None
     due_installments: int = 0
 
 

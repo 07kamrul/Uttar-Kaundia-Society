@@ -122,7 +122,14 @@ def register_report_fonts(pdf: FPDF) -> None:
     pdf.add_font("latin", "", str(FONT_DIR / "NotoSans-Regular.ttf"))
     pdf.add_font("latin", "B", str(FONT_DIR / "NotoSans-Bold.ttf"))
     pdf.set_fallback_fonts(["latin"])
-    pdf.set_text_shaping(True)
+    try:
+        # Bangla shaping needs uharfbuzz; degrade to unshaped rendering when
+        # the optional dependency is missing instead of failing the export.
+        import uharfbuzz  # noqa: F401
+
+        pdf.set_text_shaping(True)
+    except ModuleNotFoundError:
+        pdf.set_text_shaping(False)
     pdf.set_text_color(*INK)
 
 

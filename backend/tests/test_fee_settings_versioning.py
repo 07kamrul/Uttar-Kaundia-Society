@@ -128,11 +128,11 @@ async def test_subscription_quote_as_of_past_date_uses_that_versions_rate(
         client,
         headers,
         "monthly_subscription_additional_rate",
-        20,
+        30,
         start_date=tomorrow.isoformat(),
     )
-    # The previous version (from the conftest seed, start 2000-01-01, rate 10)
-    # stays active until tomorrow.
+    # The previous version (from the conftest seed, start 2000-01-01, rate 20 -
+    # the constitutional ২০ টাকা per extra decimal) stays active until tomorrow.
 
     before = await client.post(
         "/api/public/registration/subscription-quote",
@@ -144,7 +144,7 @@ async def test_subscription_quote_as_of_past_date_uses_that_versions_rate(
     )
     assert before.status_code == 200
     assert after.status_code == 200
-    assert float(before.json()["extra_rate"]) == 10
-    assert float(before.json()["total"]) == 120
-    assert float(after.json()["extra_rate"]) == 20
-    assert float(after.json()["total"]) == 140
+    assert float(before.json()["extra_rate"]) == 20
+    assert float(before.json()["total"]) == 140
+    assert float(after.json()["extra_rate"]) == 30
+    assert float(after.json()["total"]) == 160

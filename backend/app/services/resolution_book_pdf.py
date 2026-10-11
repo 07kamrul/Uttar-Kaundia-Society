@@ -25,6 +25,14 @@ _BN_DIGITS = str.maketrans("0123456789", "০১২৩৪৫৬৭৮৯")
 
 STATUS_LABELS = {"pending": "অপেক্ষমাণ", "in_progress": "চলমান", "done": "সম্পন্ন"}
 TYPE_LABELS = {"online": "অনলাইন", "offline": "অফলাইন"}
+COUNCIL_TYPE_LABELS = {
+    "executive": "কার্যনির্বাহী পরিষদ",
+    "standing": "স্থায়ী পরিষদ",
+    "agm": "বার্ষিক সাধারণ সভা (AGM)",
+    "emergency": "জরুরি সভা",
+}
+VOTE_MODE_LABELS = {"open": "উন্মুক্ত ভোট", "secret": "গোপন ভোট"}
+CASTING_VOTE_LABELS = {"none": "নেই", "for": "পক্ষে", "against": "বিপক্ষে", "neutral": "নিরপেক্ষ"}
 
 
 def bn_digits(value: int | str) -> str:
@@ -48,6 +56,8 @@ class MinutesPdfResolution:
     task: str | None
     due_date: date | None
     status: str
+    vote_mode: str | None = None
+    casting_vote: str | None = None
 
 
 @dataclass(frozen=True)
@@ -70,6 +80,10 @@ class MinutesPdfData:
     next_meeting_date: date | None
     resolutions: tuple[MinutesPdfResolution, ...]
     attendance: tuple[MinutesPdfAttendance, ...]
+    council_type: str = "executive"
+    quorum_present: int | None = None
+    quorum_required: int | None = None
+    quorum_acknowledged: bool = False
 
 
 def _vote_bar(pdf: ReportPDF, vote_for: int, vote_against: int, vote_neutral: int) -> None:
@@ -135,6 +149,20 @@ def build_meeting_minutes_pdf(data: MinutesPdfData) -> bytes:
     pdf.add_page()
 
     _header_block(pdf, data)
+
+    # Council type + quorum line (Module 3)
+    pdf.set_font("bn", "", 9.5)
+    pdf.set_text_color(*INK_SOFT)
+    quorum_bits = [f"পরিষদ: {COUNCIL_TYPE_LABELS.get(data.council_type, data.council_type)}"]
+    if data.quorum_required is not None:
+        line = f"কোরাম: উপস্থিত {bn_digits(data.quorum_present or 0)}/{bn_digits(data.quorum_required)}"
+        if data.quorum_present is not None and data.quorum_present < data.quorum_required:
+            line += " — কোরাম পূরণ হয়নি"
+            if data.quorum_acknowledged:
+                line += " (স্বীকৃত)"
+        quorum_bits.append(line)
+    pdf.multi_cell(w=0, text="   |   ".join(quorum_bits), new_x="LMARGIN", new_y="NEXT")
+    pdf.set_text_color(*INK)
 
     # Agenda
     section_title(pdf, "আলোচ্যসূচি")
@@ -210,6 +238,16 @@ def build_meeting_minutes_pdf(data: MinutesPdfData) -> bytes:
             extras.append(f"কাজ: {resolution.task}")
         if resolution.due_date:
             extras.append(f"শেষ তারিখ: {bn_date(resolution.due_date)}")
+        if resolution.vote_mode:
+            mode = VOTE_MODE_LABELS.get(resolution.vote_mode, resolution.vote_mode)
+            if resolution.vote_mode == "secret":
+                extras.append(f"ভোটের ধরন: {mode} (গোপন — প্রতি-সদস্য হিসাব নেই)")
+            else:
+                extras.append(f"ভোটের ধরন: {mode}")
+        if resolution.casting_vote and resolution.casting_vote != "none":
+            extras.append(
+                f"সিদ্ধান্তমূলক ভোট: {CASTING_VOTE_LABELS.get(resolution.casting_vote, resolution.casting_vote)}"
+            )
         pdf.multi_cell(w=0, text="   |   ".join(extras), new_x="LMARGIN", new_y="NEXT")
         pdf.ln(1.5)
         pdf.set_text_color(*INK)

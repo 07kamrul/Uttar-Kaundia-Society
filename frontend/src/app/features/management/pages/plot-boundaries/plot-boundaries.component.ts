@@ -307,12 +307,36 @@ export class PlotBoundariesComponent implements OnInit {
     const layer = L.geoJSON(boundary.geometry as never, {
       style: { color: '#c9861e', weight: 2, fillOpacity: 0.3 },
     }).addTo(map);
-    map.fitBounds(layer.getBounds().pad(0.4));
+    const viewBounds = layer.getBounds().pad(0.4);
+    map.fitBounds(viewBounds);
     this.previewMap = map;
+    this.showRsDagUnder(map, viewBounds);
     // Panels that paint hidden (mobile swap) leave the map zero-width;
     // observing the container re-measures Leaflet once it settles.
     this.previewResize = new ResizeObserver(() => map.invalidateSize());
     this.previewResize.observe(el);
+  }
+
+  /** Draws the RS dag reference grid beneath the reviewed boundary (on by default). */
+  private showRsDagUnder(map: L.Map, bounds: L.LatLngBounds): void {
+    this.plotMapService
+      // The server filters by parcel centroid; pad so parcels crossing the edge still load.
+      .adminRsDagLayer(bounds.pad(0.5).toBBoxString())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (collection) => {
+          // The reviewer may have moved to another boundary while this loaded.
+          if (this.previewMap !== map) return;
+          const rsLayer = L.geoJSON(collection as never, {
+            interactive: false,
+            style: { color: '#b5530a', weight: 1.2, dashArray: '5,4', fillColor: '#e8a15a', fillOpacity: 0.06 },
+          }).addTo(map);
+          rsLayer.bringToBack();
+        },
+        error: () => {
+          // Reference layer is optional context; the review itself still works.
+        },
+      });
   }
 
   openApprove(): void {

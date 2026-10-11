@@ -102,7 +102,7 @@ describe('MemberDashboardComponent', () => {
     });
     TestBed.configureTestingModule({
       imports: [MemberDashboardComponent],
-      providers: [provideTranslateService(), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideRouter([]), provideTranslateService(), provideHttpClient(), provideHttpClientTesting()],
     });
     const fixture = TestBed.createComponent(MemberDashboardComponent);
     fixture.detectChanges();
