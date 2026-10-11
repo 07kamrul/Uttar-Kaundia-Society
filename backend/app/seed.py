@@ -7,7 +7,7 @@ import asyncio
 
 from sqlalchemy import select
 
-from app.core.config import get_settings
+from app.core.config import INSECURE_ADMIN_PASSWORD, get_settings
 from app.core.security import hash_password
 from app.db.session import AsyncSessionLocal
 from app.models.admin import AdminRole, AdminUser
@@ -23,6 +23,12 @@ async def seed_admin() -> None:
         if existing is not None:
             print(f"Admin user already exists: {settings.admin_email}")
             return
+
+        if settings.admin_password == INSECURE_ADMIN_PASSWORD and not settings.is_dev_env:
+            raise SystemExit(
+                "Refusing to create the bootstrap admin with the default password. "
+                "Set ADMIN_PASSWORD (and ADMIN_EMAIL) before seeding."
+            )
 
         role_result = await db.execute(select(Role).where(Role.name == settings.admin_role))
         role = role_result.scalar_one_or_none()

@@ -31,9 +31,9 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       <section class="card">
         <h2 class="pt-section-title">{{ 'petitions.createTitle' | translate }}</h2>
         <p class="field-hint">
-          {{ 'petitions.thresholdHint' | translate: { percent: digits(thresholdPercent) } }}
-          @if (petitionResponseDays > 0) {
-            · {{ 'petitions.responseDaysHint' | translate: { days: digits(petitionResponseDays) } }}
+          {{ 'petitions.thresholdHint' | translate: { percent: digits(thresholdPercent()) } }}
+          @if (petitionResponseDays() > 0) {
+            · {{ 'petitions.responseDaysHint' | translate: { days: digits(petitionResponseDays()) } }}
           }
         </p>
         <form (ngSubmit)="createPetition()" #createForm="ngForm">

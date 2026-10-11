@@ -25,21 +25,28 @@ class ApiClient {
         )
       ..interceptors.add(InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _tokenProvider();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          // Absolute URLs (attachments, external links) may point off-origin;
+          // never leak the session token to a host other than the API.
+          if (options.uri.origin == _apiOrigin) {
+            final token = await _tokenProvider();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           handler.next(options);
         },
       ));
     if (kDebugMode && AppConfig.flavor == 'dev') {
-      _dio.interceptors.add(LogInterceptor(requestBody: false, responseBody: false));
+      _dio.interceptors.add(
+        LogInterceptor(requestHeader: false, requestBody: false, responseBody: false),
+      );
     }
   }
 
   final TokenProvider _tokenProvider;
   final void Function() _onUnauthorized;
   late final Dio _dio;
+  static final String _apiOrigin = Uri.parse(AppConfig.apiBaseUrl).origin;
 
   Dio get dio => _dio;
 

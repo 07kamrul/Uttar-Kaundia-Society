@@ -7,6 +7,7 @@ import { LanguageService } from '../../../../core/services/language.service';
 import { GovernanceService, type CouncilPost } from '../../../../core/services/governance.service';
 import {
   ElectionsService,
+  type Election,
   type MyElection,
 } from '../../../../core/services/elections.service';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
@@ -256,7 +257,7 @@ export class MemberElectionsComponent implements OnInit {
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
-  readonly elections = signal<MyElection[]>([]);
+  readonly elections = signal<Election[]>([]);
   readonly selectedId = signal<number | null>(null);
   readonly detail = signal<MyElection | null>(null);
   readonly councilPostsState = signal<CouncilPost[]>([]);

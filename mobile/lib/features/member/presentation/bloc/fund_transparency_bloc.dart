@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/api_exception.dart';
 import '../../../../shared/utils/download_utils.dart';
 import '../../data/finance_repository.dart';
 import '../../domain/finance_entities.dart';
@@ -66,7 +65,7 @@ class FundTransparencyBloc
         page: 1,
       ));
       await _loadLedger(emit);
-    } on ApiException {
+    } catch (_) {
       emit(state.copyWith(status: FundStatus.failure, error: true));
     }
   }
@@ -101,7 +100,7 @@ class FundTransparencyBloc
       final ledger = await _repository.getTransactions(state.ledgerFilters);
       emit(state.copyWith(
           ledger: ledger, ledgerLoading: false, clearLedgerError: true));
-    } on ApiException {
+    } catch (_) {
       emit(state.copyWith(ledgerLoading: false, ledgerError: true));
     }
   }
@@ -124,7 +123,9 @@ class FundTransparencyBloc
       );
       final file = await saveDownload(bytes, 'fund-transparency-report.pdf');
       emit(state.copyWith(pdfDownloading: false, pdfSavedPath: file.path));
-    } on ApiException {
+    } catch (_) {
+      // Includes file-system failures from saveDownload: always release the
+      // pdfDownloading guard so the next tap can retry.
       emit(state.copyWith(pdfDownloading: false, pdfError: true));
     }
   }

@@ -1,10 +1,16 @@
+import logging
 from functools import lru_cache
 from pathlib import Path
 
 from pydantic import AliasChoices, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logger = logging.getLogger(__name__)
+
 _INSECURE_JWT_DEFAULT = "insecure-dev-secret-change-me"
+INSECURE_ADMIN_PASSWORD = "change-this-password"
+_DEV_ENVS = frozenset({"development", "dev", "local", "test", "testing"})
+_MIN_SECRET_LEN = 32
 
 
 class Settings(BaseSettings):
@@ -37,7 +43,7 @@ class Settings(BaseSettings):
 
     # Admin bootstrap
     admin_email: str = "admin@example.com"
-    admin_password: str = "change-this-password"
+    admin_password: str = INSECURE_ADMIN_PASSWORD
     admin_name: str = "Administrator"
     admin_role: str = "super_admin"
 
@@ -115,12 +121,26 @@ class Settings(BaseSettings):
     shared_data_dir: str = Field(default="data/shared", validation_alias="SHARED_DATA_DIR")
     land_map_result_cap: int = Field(default=10_000, ge=1, validation_alias="LAND_MAP_RESULT_CAP")
 
+    @property
+    def is_dev_env(self) -> bool:
+        return self.app_env.strip().lower() in _DEV_ENVS
+
     @model_validator(mode="after")
-    def _reject_insecure_secret_in_production(self) -> "Settings":
-        if self.app_env == "production" and self.jwt_secret_key == _INSECURE_JWT_DEFAULT:
+    def _reject_insecure_secret_outside_dev(self) -> "Settings":
+        # Allow-list rather than deny-list: a deployment that forgets APP_ENV
+        # (or misspells it) must not silently run with a publicly known secret.
+        if self.is_dev_env:
+            return self
+        if self.jwt_secret_key == _INSECURE_JWT_DEFAULT:
             raise ValueError(
                 "JWT secret is using the insecure default. Set SECRET_KEY to a strong "
-                "random value before running with APP_ENV=production."
+                f"random value before running with APP_ENV={self.app_env!r}."
+            )
+        if len(self.jwt_secret_key) < _MIN_SECRET_LEN:
+            logger.warning(
+                "SECRET_KEY is shorter than %d characters; HS256 tokens signed with it "
+                "can be brute-forced offline. Rotate it to a long random value.",
+                _MIN_SECRET_LEN,
             )
         return self
 

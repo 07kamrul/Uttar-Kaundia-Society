@@ -5,7 +5,7 @@ import os
 import re
 import unicodedata
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from fastapi import HTTPException, UploadFile, status
 from starlette.staticfiles import StaticFiles
@@ -178,7 +178,9 @@ async def save_upload_file(upload_file: UploadFile, subdir: str) -> str:
     await asyncio.to_thread(_write_file, target_path, contents)
     logger.info("[uploads] saved: %s", target_path)
 
-    return str(Path(subdir) / filename)
+    # Stored paths become URLs (/uploads/<path>): always use forward slashes,
+    # never the host OS separator.
+    return (PurePosixPath(subdir) / filename).as_posix()
 
 
 def _write_file(target_path: Path, contents: bytes) -> None:

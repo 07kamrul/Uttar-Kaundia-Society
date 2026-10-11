@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -47,6 +47,8 @@ export interface CountCandidate {
   nominationId: number;
   memberId: number;
   votes: number;
+  /** Present in the member-view results (admin counts carry ids only). */
+  name?: string | null;
 }
 
 export interface PostCounts {
@@ -133,13 +135,14 @@ function toElection(api: ElectionApi): Election {
   };
 }
 
-function toCounts(input: Record<string, { candidates: CountCandidateApi[]; votes_total: number }>): PostCounts[] {
+function toCounts(input: Record<string, { candidates: Array<CountCandidateApi & { name?: string | null }>; votes_total: number }>): PostCounts[] {
   return Object.entries(input ?? {}).map(([postKey, bucket]) => ({
     postKey,
     candidates: (bucket.candidates ?? []).map((c) => ({
       nominationId: c.nomination_id,
       memberId: c.member_id,
       votes: c.votes,
+      name: (c as { name?: string | null }).name ?? null,
     })),
     votesTotal: bucket.votes_total,
   }));

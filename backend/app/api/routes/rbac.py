@@ -29,6 +29,33 @@ from app.schemas.rbac import (
 router = APIRouter(prefix="/admin/rbac", tags=["rbac"])
 
 
+def _guard_user_management(
+    actor: AdminUser,
+    *,
+    target: AdminUser | None = None,
+    new_role: AdminRole | None = None,
+) -> None:
+    """Block privilege escalation by holders of manage_users.
+
+    Only a super_admin may grant the super_admin role, act on a super_admin
+    account, or change their own role/overrides.
+    """
+    if actor.role == AdminRole.SUPER_ADMIN:
+        return
+    if new_role == AdminRole.SUPER_ADMIN or (
+        target is not None and target.role == AdminRole.SUPER_ADMIN
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only a super_admin can manage super_admin accounts",
+        )
+    if target is not None and target.id == actor.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You cannot change your own role or permissions",
+        )
+
+
 @router.get("/me/permissions", response_model=list[str])
 async def my_permissions(
     admin: AdminUser = Depends(get_current_admin),
@@ -137,7 +164,7 @@ async def list_admin_users(
 async def create_admin_user(
     payload: AdminUserCreate,
     db: AsyncSession = Depends(get_db),
-    _admin: AdminUser = Depends(require_permission("manage_users")),
+    admin: AdminUser = Depends(require_permission("manage_users")),
 ) -> AdminUserOut:
     try:
         role_enum = AdminRole(payload.role)
@@ -145,6 +172,7 @@ async def create_admin_user(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown role: {payload.role}"
         )
+    _guard_user_management(admin, new_role=role_enum)
 
     email = payload.email.strip().lower()
 
@@ -188,6 +216,7 @@ async def update_admin_user_role(
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _guard_user_management(admin, target=user, new_role=role_enum)
 
     if payload.role_id is not None:
         role_result = await db.execute(select(Role).where(Role.id == payload.role_id))
@@ -245,8 +274,10 @@ async def set_user_overrides(
     admin: AdminUser = Depends(require_permission("manage_users")),
 ) -> list[PermissionOverrideOut]:
     user_result = await db.execute(select(AdminUser).where(AdminUser.id == user_id))
-    if user_result.scalar_one_or_none() is None:
+    target = user_result.scalar_one_or_none()
+    if target is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _guard_user_management(admin, target=target)
 
     perm_result = await db.execute(
         select(Permission).where(Permission.key.in_([item.permission_key for item in payload]))

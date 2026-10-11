@@ -22,6 +22,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository _repo;
 
+  static const _unknownError = ApiException(type: ApiExceptionType.unknown);
+
   Future<void> _onLogin(AuthLoginRequested e, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
     try {
@@ -30,6 +32,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthSuccess(session: result.session, mustChangePassword: result.mustChangePassword));
     } on ApiException catch (err) {
       emit(AuthFailure(error: err));
+    } catch (_) {
+      // Malformed response / secure-storage failure: never leave the UI
+      // stuck on AuthLoading.
+      emit(const AuthFailure(error: _unknownError));
     }
   }
 
@@ -40,6 +46,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthActionSucceeded());
     } on ApiException catch (err) {
       emit(AuthFailure(error: err));
+    } catch (_) {
+      // Malformed response / secure-storage failure: never leave the UI
+      // stuck on AuthLoading.
+      emit(const AuthFailure(error: _unknownError));
     }
   }
 
@@ -50,12 +60,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthActionSucceeded());
     } on ApiException catch (err) {
       emit(AuthFailure(error: err));
+    } catch (_) {
+      // Malformed response / secure-storage failure: never leave the UI
+      // stuck on AuthLoading.
+      emit(const AuthFailure(error: _unknownError));
     }
   }
 
   Future<void> _onLogout(AuthLogoutRequested e, Emitter<AuthState> emit) async {
-    await _repo.logout();
-    sl<SessionManager>().clear();
-    emit(const AuthInitial());
+    try {
+      await _repo.logout();
+    } finally {
+      // Clear the in-memory session even if wiping secure storage fails.
+      sl<SessionManager>().clear();
+      emit(const AuthInitial());
+    }
   }
 }

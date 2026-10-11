@@ -23,7 +23,16 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_created_at() -> bool:
+    columns = sa.inspect(op.get_bind()).get_columns("plot_boundary_versions")
+    return any(col["name"] == "created_at" for col in columns)
+
+
 def upgrade() -> None:
+    # c7f1a3e9d4b6 now creates the column itself, so fresh databases already
+    # have it; only databases built from the older c7f1a3e9d4b6 need it added.
+    if _has_created_at():
+        return
     op.add_column(
         "plot_boundary_versions",
         sa.Column(

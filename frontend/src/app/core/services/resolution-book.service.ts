@@ -11,7 +11,8 @@ export type RecordingType = 'video' | 'audio' | 'screenshot' | 'chat_log';
 /** Module 3: council sitting types (কার্যনির্বাহী/স্থায়ী/বার্ষিক সাধারণ সভা/জরুরি). */
 export type CouncilType = 'executive' | 'standing' | 'agm' | 'emergency';
 export type VoteMode = 'open' | 'secret';
-export type CastingVote = 'for' | 'against' | 'neutral';
+/** Stored casting votes include the explicit 'none' (pre-existing rows). */
+export type CastingVote = 'for' | 'against' | 'neutral' | 'none';
 export type VoteChoice = 'for' | 'against' | 'neutral';
 
 export interface MemberRef {

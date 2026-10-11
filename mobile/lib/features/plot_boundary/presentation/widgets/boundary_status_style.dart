@@ -14,8 +14,9 @@ class BoundaryStatusStyle {
     required BoundaryStatus status,
     required bool isMine,
   }) {
-    if (isMine)
+    if (isMine) {
       return _pair(context, const Color(0xFF1565C0), const Color(0xFF64B5F6));
+    }
     return switch (status) {
       BoundaryStatus.approved =>
         _pair(context, const Color(0xFF2E7D32), const Color(0xFF81C784)),

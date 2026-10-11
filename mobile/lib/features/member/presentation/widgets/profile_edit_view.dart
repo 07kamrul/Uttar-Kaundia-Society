@@ -137,7 +137,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
 
   Future<void> _pickPhoto() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _photoPath = picked.path);
+    if (picked != null && mounted) setState(() => _photoPath = picked.path);
   }
 
   @override
