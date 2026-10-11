@@ -114,6 +114,23 @@ async def test_types_excludes_installment_and_marks_admission_paid(
     assert types["picnic"]["additional_head_fee"] == 300
 
 
+async def test_types_lists_every_fee_type_exactly_once(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    member = await _seed_member(db_session, "alltypes@example.com")
+
+    response = await client.get(
+        "/api/member/other-fees/types", headers=_auth(member)
+    )
+
+    assert response.status_code == 200
+    keys = [row["key"] for row in response.json()]
+    assert len(keys) == len(set(keys))
+    assert {"admission", "picnic", "maintenance", "development", "donation", "extra"} <= set(keys)
+    assert "admission_fee" not in keys
+    assert "picnic_fee" not in keys
+
+
 async def test_fixed_payment_recomputes_and_ignores_client_amount(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:

@@ -113,6 +113,14 @@ export class OtherFeesComponent implements OnInit {
 
   readonly summary = computed(() => this.history()?.summary ?? null);
 
+  /** Filter options: every payable type plus any type already present in the
+   * member's history (e.g. one that is no longer payable). */
+  readonly filterTypeKeys = computed(() => {
+    const keys = new Set(this.feeTypes().map((t) => t.key));
+    Object.keys(this.summary()?.byType ?? {}).forEach((key) => keys.add(key));
+    return [...keys];
+  });
+
   readonly totalPages = computed(() =>
     this.history() ? Math.max(1, Math.ceil(this.history()!.total / PAGE_SIZE)) : 1,
   );

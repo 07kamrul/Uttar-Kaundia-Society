@@ -177,8 +177,8 @@
     <div class="history-filters">
       <select [ngModel]="filterFeeType" (ngModelChange)="filterFeeType = $event" [attr.aria-label]="'member.otherFees.filterType' | translate">
         <option value="">{{ 'member.otherFees.filterAll' | translate }}</option>
-        @for (type of feeTypes(); track type.key) {
-          <option [value]="type.key">{{ feeTypeLabel(type.key) }}</option>
+        @for (key of filterTypeKeys(); track key) {
+          <option [value]="key">{{ feeTypeLabel(key) }}</option>
         }
       </select>
       <app-date-picker [value]="filterFrom" (valueChange)="filterFrom = $event" [max]="filterTo" [clearable]="true"></app-date-picker>

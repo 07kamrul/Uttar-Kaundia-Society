@@ -13,6 +13,20 @@ class MemberStatus(str, enum.Enum):
     REJECTED = "rejected"
 
 
+# Member class (গঠনতন্ত্র সদস্য শ্রেণি). NULL = not yet classified (legacy rows).
+MEMBER_CLASS_FOUNDER = "founder"
+MEMBER_CLASS_GENERAL = "general"
+MEMBER_CLASS_HONORARY_ASSOCIATE = "honorary_associate"
+MEMBER_CLASSES = (MEMBER_CLASS_FOUNDER, MEMBER_CLASS_GENERAL, MEMBER_CLASS_HONORARY_ASSOCIATE)
+
+# Governance status is a *record*, not an auth gate: a suspended member keeps
+# their land-info access (get_current_member never checks it) while the
+# suspension is visible to governance modules.
+GOVERNANCE_STATUS_ACTIVE = "active"
+GOVERNANCE_STATUS_SUSPENDED = "suspended"
+GOVERNANCE_STATUSES = (GOVERNANCE_STATUS_ACTIVE, GOVERNANCE_STATUS_SUSPENDED)
+
+
 class Member(Base):
     __tablename__ = "members"
     # Admin lists sort by `created_at DESC` (optionally filtered by `status`);

@@ -23,7 +23,12 @@ from app.services.fee_calculation import (
     calculate_picnic_fee,
     resolve_picnic_rates,
 )
-from app.services.fee_catalog import CALC_FIXED, CALC_VARIABLE, CATEGORY_OTHER
+from app.services.fee_catalog import (
+    CALC_FIXED,
+    CALC_VARIABLE,
+    CATEGORY_OTHER,
+    PAYMENT_TYPE_ALIASES,
+)
 
 SETTING_PREFIX = "fee_"
 SETTING_SUFFIX = "_amount"
@@ -33,7 +38,12 @@ INSTALLMENT_FEE_TYPE = "installment"
 # Code-defined types offered even when no rate version exists (the member
 # then enters the amount themselves). Everything else is discovered from
 # active `fee_<key>_amount` settings, so committee-added types need no code.
-ALWAYS_VARIABLE_TYPES = ("donation", "extra")
+ALWAYS_VARIABLE_TYPES = ("donation", "extra", "maintenance", "development")
+
+# Catalog keys that are hard-coded below under a different key (admission_fee
+# -> admission, picnic_fee -> picnic); skipped so the dropdown never lists
+# them twice.
+HARD_CODED_ALIAS_KEYS = frozenset(PAYMENT_TYPE_ALIASES)
 
 HISTORY_DEFAULT_PAGE_SIZE = 20
 HISTORY_MAX_PAGE_SIZE = 100
@@ -129,7 +139,11 @@ async def resolve_other_fee_types(
         select(FeeType).where(FeeType.is_active.is_(True), FeeType.fee_category == CATEGORY_OTHER)
     )
     for fee_type in catalog.scalars():
-        if fee_type.key in types or fee_type.calculation_type not in (CALC_FIXED, CALC_VARIABLE):
+        if (
+            fee_type.key in types
+            or fee_type.key in HARD_CODED_ALIAS_KEYS
+            or fee_type.calculation_type not in (CALC_FIXED, CALC_VARIABLE)
+        ):
             continue
         if fee_type.calculation_type == CALC_VARIABLE:
             types[fee_type.key] = {
