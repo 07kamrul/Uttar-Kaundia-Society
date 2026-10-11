@@ -4,16 +4,16 @@
 
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
-- Status: DONE
-- Current session ID: SESSION-20261011-1821-claude
-- Current agent: claude
-- Current task / user prompt: Implement global smart loader plan
-- Last completed step: Phase 3-5: global-loader component, wiring, i18n, SKIP_LOADER opt-outs; 378 tests + build pass
-- NEXT step: none (awaiting next user prompt)
-- Files touched so far: frontend/src/app/core/services/loader.service*.ts, frontend/src/app/core/interceptors/loader*.ts, frontend/src/app/shared/loader/*, app.ts, app.config.ts, media-token.service.ts, registration.service.ts, public/i18n/*
-- Uncommitted / half-finished work: none
-- Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-11 18:42
+- Status: IN_PROGRESS
+- Current session ID: SESSION-20261011-1733-zcode
+- Current agent: zcode
+- Current task / user prompt: Make the 3 screenshot pages (emergency-safety, profile correction-request, funds/fund-addition) UI+functionality smart, professional, user friendly, fully responsive on any device
+- Last completed step: All 3-page code done + vitest/i18n-parity/build verified on my work. Visual QA round 2 in flight: IAB fullPage capture was broken (tiles at scroll 0), replaced with manual scroll+tiles+PIL stitch; 6 faithful captures at /tmp/qa2/*.png sent to 2 visual-judge agents. Login workaround: demo member passwords kept being reset by parallel agents; used admin API reset -> immediate login -> localStorage token injection (krmf_* keys), finally on member 2 (01711000002)
+- NEXT step: Collect 2 judge verdicts -> fix any real fails -> fresh vitest + ng build on final tree (also carries parallel sessions' work: 8 gov pages, infra rules, global loader) -> commit -> ledger END
+- Files touched so far: AI_SESSIONS.md, frontend/src/styles.scss, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/fund-transparency/{fund-transparency.component.html,scss,ts}, frontend/public/i18n/{bn,en}.json
+- Uncommitted / half-finished work: whole tree uncommitted (this session's 3 pages + parallel: 8 governance pages, infra rules, global loader)
+- Blockers / decisions pending: judge verdicts pending
+- Last updated (UTC): 2026-10-11 19:03
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`

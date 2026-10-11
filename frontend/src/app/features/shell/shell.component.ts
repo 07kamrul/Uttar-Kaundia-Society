@@ -411,7 +411,9 @@ export class ShellComponent implements OnInit {
   ) {
     // The sectioned sidebar is taller than the viewport, so the highlighted
     // link for a lower page (পিটিশন, কল্যাণ তহবিল, …) can sit scrolled out of
-    // sight. Keep it visible after every navigation.
+    // sight. Keep it visible after every navigation — scrolling only the
+    // sidebar's own container; scrollIntoView() would also scroll the page
+    // body and leave the page hero clipped under the topbar.
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -419,10 +421,17 @@ export class ShellComponent implements OnInit {
       )
       .subscribe(() => {
         requestAnimationFrame(() => {
-          document
-            .querySelector('.sidebar')
-            ?.querySelector<HTMLElement>('.sidebar-link.active')
-            ?.scrollIntoView({ block: 'nearest' });
+          const sidebar = document.querySelector<HTMLElement>('.sidebar');
+          const active = sidebar?.querySelector<HTMLElement>('.sidebar-link.active');
+          if (!sidebar || !active) return;
+          const sidebarRect = sidebar.getBoundingClientRect();
+          const linkRect = active.getBoundingClientRect();
+          const target =
+            sidebar.scrollTop +
+            (linkRect.top - sidebarRect.top) -
+            sidebar.clientHeight / 2 +
+            linkRect.height / 2;
+          sidebar.scrollTo({ top: Math.max(0, target) });
         });
       });
   }
