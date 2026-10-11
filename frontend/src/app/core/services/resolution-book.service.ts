@@ -8,11 +8,21 @@ export type MeetingStatus = 'scheduled' | 'completed' | 'cancelled';
 export type ResolutionStatus = 'pending' | 'in_progress' | 'done';
 export type AttendanceStatus = 'present' | 'absent';
 export type RecordingType = 'video' | 'audio' | 'screenshot' | 'chat_log';
+/** Module 3: council sitting types (কার্যনির্বাহী/স্থায়ী/বার্ষিক সাধারণ সভা/জরুরি). */
+export type CouncilType = 'executive' | 'standing' | 'agm' | 'emergency';
+export type VoteMode = 'open' | 'secret';
+export type CastingVote = 'for' | 'against' | 'neutral';
+export type VoteChoice = 'for' | 'against' | 'neutral';
 
 export interface MemberRef {
   id: number;
   fullName: string;
   memberId: string | null;
+}
+
+export interface OpenChoice {
+  member: MemberRef;
+  choice: VoteChoice;
 }
 
 export interface Resolution {
@@ -27,6 +37,12 @@ export interface Resolution {
   task: string | null;
   dueDate: string | null;
   status: ResolutionStatus;
+  /** Module 3 vote mode: null = plain recorded tally (pre-constitution rows). */
+  voteMode: VoteMode | null;
+  castingVote: CastingVote | null;
+  castingNote: string | null;
+  /** Per-member attribution exists ONLY for open votes. */
+  openChoices: OpenChoice[] | null;
   updatedAt: string | null;
 }
 
@@ -54,6 +70,12 @@ export interface MeetingListItem {
   chairperson: string;
   nextMeetingDate: string | null;
   status: MeetingStatus;
+  councilType: CouncilType;
+  noticePublishedAt: string | null;
+  scheduledStartAt: string | null;
+  quorumPresent: number | null;
+  quorumRequired: number | null;
+  quorumAcknowledged: boolean;
   resolutionCount: number;
   attendancePresent: number;
   attendanceTotal: number;
@@ -64,6 +86,7 @@ export interface MeetingDetail extends MeetingListItem {
   agenda: string;
   summary: string | null;
   createdBy: string | null;
+  castingVoteUsed: boolean;
   updatedAt: string | null;
   resolutions: Resolution[];
   attendance: AttendanceEntry[];
@@ -107,6 +130,9 @@ export interface ResolutionInput {
   task?: string | null;
   dueDate?: string | null;
   status?: ResolutionStatus;
+  voteMode?: VoteMode | null;
+  castingVote?: CastingVote | null;
+  castingNote?: string | null;
 }
 
 export interface MeetingCreateInput {
@@ -120,6 +146,9 @@ export interface MeetingCreateInput {
   summary?: string | null;
   nextMeetingDate?: string | null;
   status?: MeetingStatus;
+  councilType?: CouncilType;
+  scheduledStartAt?: string | null;
+  acknowledgeNoQuorum?: boolean;
   resolutions: ResolutionInput[];
   attendance: AttendanceInput[];
   notify?: boolean;
@@ -145,6 +174,10 @@ interface ResolutionApi {
   task: string | null;
   due_date: string | null;
   status: ResolutionStatus;
+  vote_mode: VoteMode | null;
+  casting_vote: CastingVote | null;
+  casting_note: string | null;
+  open_choices: Array<{ member: MemberRefApi; choice: VoteChoice }> | null;
   updated_at: string | null;
 }
 
@@ -172,6 +205,12 @@ interface MeetingListItemApi {
   chairperson: string;
   next_meeting_date: string | null;
   status: MeetingStatus;
+  council_type: CouncilType;
+  notice_published_at: string | null;
+  scheduled_start_at: string | null;
+  quorum_present: number | null;
+  quorum_required: number | null;
+  quorum_acknowledged: boolean;
   resolution_count: number;
   attendance_present: number;
   attendance_total: number;
@@ -182,6 +221,7 @@ interface MeetingDetailApi extends MeetingListItemApi {
   agenda: string;
   summary: string | null;
   created_by: string | null;
+  casting_vote_used: boolean;
   updated_at: string | null;
   resolutions: ResolutionApi[];
   attendance: AttendanceApi[];
@@ -223,6 +263,15 @@ function toResolution(api: ResolutionApi): Resolution {
     task: api.task,
     dueDate: api.due_date,
     status: api.status,
+    voteMode: api.vote_mode ?? null,
+    castingVote: api.casting_vote ?? null,
+    castingNote: api.casting_note ?? null,
+    openChoices: api.open_choices
+      ? api.open_choices.map((choice) => ({
+          member: toMemberRef(choice.member)!,
+          choice: choice.choice,
+        }))
+      : null,
     updatedAt: api.updated_at,
   };
 }
@@ -237,6 +286,12 @@ function toMeetingListItem(api: MeetingListItemApi): MeetingListItem {
     chairperson: api.chairperson,
     nextMeetingDate: api.next_meeting_date,
     status: api.status,
+    councilType: api.council_type ?? 'executive',
+    noticePublishedAt: api.notice_published_at ?? null,
+    scheduledStartAt: api.scheduled_start_at ?? null,
+    quorumPresent: api.quorum_present ?? null,
+    quorumRequired: api.quorum_required ?? null,
+    quorumAcknowledged: api.quorum_acknowledged ?? false,
     resolutionCount: api.resolution_count,
     attendancePresent: api.attendance_present,
     attendanceTotal: api.attendance_total,
@@ -250,6 +305,7 @@ function toMeetingDetail(api: MeetingDetailApi): MeetingDetail {
     agenda: api.agenda,
     summary: api.summary,
     createdBy: api.created_by,
+    castingVoteUsed: api.casting_vote_used ?? false,
     updatedAt: api.updated_at,
     resolutions: api.resolutions.map(toResolution),
     attendance: api.attendance.map((entry) => ({
@@ -296,6 +352,20 @@ export function formatRbTime(hhmm: string | null): string {
 
 export function meetingTypeLabel(type: MeetingType, lang: string): string {
   return lang === 'bn' ? (type === 'online' ? 'অনলাইন' : 'অফলাইন') : (type === 'online' ? 'Online' : 'Offline');
+}
+
+/** Council sitting label - i18n keys live under rb.councilType.*; these
+ * helpers are for code-driven contexts (page titles, aria labels). */
+export function councilTypeLabel(type: CouncilType, lang: string): string {
+  if (lang === 'bn') {
+    return { executive: 'কার্যনির্বাহী', standing: 'স্থায়ী', agm: 'বার্ষিক সাধারণ সভা', emergency: 'জরুরি' }[type];
+  }
+  return { executive: 'Executive', standing: 'Standing', agm: 'AGM', emergency: 'Emergency' }[type];
+}
+
+export function voteModeLabel(mode: VoteMode | null, lang: string): string {
+  if (!mode) return lang === 'bn' ? 'সাধারণ' : 'Plain';
+  return lang === 'bn' ? (mode === 'open' ? 'প্রকাশ্য' : 'গোপন') : mode === 'open' ? 'Open' : 'Secret';
 }
 
 export function meetingStatusLabel(status: MeetingStatus, lang: string): string {
@@ -409,6 +479,9 @@ export class ResolutionBookService {
         summary: input.summary || null,
         next_meeting_date: input.nextMeetingDate || null,
         status: input.status ?? 'completed',
+        council_type: input.councilType ?? 'executive',
+        scheduled_start_at: input.scheduledStartAt || null,
+        acknowledge_no_quorum: input.acknowledgeNoQuorum ?? false,
         resolutions: input.resolutions.map((r) => ({
           decision: r.decision,
           vote_for: r.voteFor,
@@ -418,6 +491,9 @@ export class ResolutionBookService {
           task: r.task || null,
           due_date: r.dueDate || null,
           status: r.status ?? 'pending',
+          vote_mode: r.voteMode ?? null,
+          casting_vote: r.castingVote ?? null,
+          casting_note: r.castingNote || null,
         })),
         attendance: input.attendance.map((a) => ({ member_id: a.memberId, status: a.status })),
         notify: input.notify ?? true,
@@ -456,16 +532,54 @@ export class ResolutionBookService {
 
   updateResolution(
     id: number,
-    changes: Partial<Pick<ResolutionInput, 'status' | 'task' | 'dueDate' | 'assignedToMemberId'>>,
+    changes: Partial<
+      Pick<
+        ResolutionInput,
+        'status' | 'task' | 'dueDate' | 'assignedToMemberId' | 'voteMode' | 'castingVote' | 'castingNote'
+      >
+    >,
   ): Observable<Resolution> {
     const body: Record<string, unknown> = {};
     if (changes.status !== undefined) body['status'] = changes.status;
     if (changes.task !== undefined) body['task'] = changes.task || null;
     if (changes.dueDate !== undefined) body['due_date'] = changes.dueDate || null;
     if (changes.assignedToMemberId !== undefined) body['assigned_to_member_id'] = changes.assignedToMemberId || null;
+    if (changes.voteMode !== undefined) body['vote_mode'] = changes.voteMode;
+    if (changes.castingVote !== undefined) body['casting_vote'] = changes.castingVote;
+    if (changes.castingNote !== undefined) body['casting_note'] = changes.castingNote || null;
     return this.http
       .put<{ resolution: ResolutionApi }>(`${this.base}/resolution-book/resolutions/${id}`, body)
       .pipe(map((api) => toResolution(api.resolution)));
+  }
+
+  /** Module 3: publish the sitting notice. AGM needs >= 15 days, emergency
+   * >= 3 days before scheduled_start_at; a short notice needs override=true
+   * (audited). 409 detail is surfaced in Bangla by the caller. */
+  publishNotice(meetingId: number, override: boolean): Observable<MeetingDetail> {
+    return this.http
+      .post<MeetingDetailApi>(`${this.base}/resolution-book/meetings/${meetingId}/publish-notice`, {
+        override,
+      })
+      .pipe(map(toMeetingDetail));
+  }
+
+  /** Module 3: explicitly complete a sitting - records quorum, 409 below
+   * quorum unless acknowledged. */
+  completeMeeting(meetingId: number, acknowledgeNoQuorum: boolean): Observable<MeetingDetail> {
+    return this.http
+      .post<MeetingDetailApi>(`${this.base}/resolution-book/meetings/${meetingId}/complete`, {
+        acknowledge_no_quorum: acknowledgeNoQuorum,
+      })
+      .pipe(map(toMeetingDetail));
+  }
+
+  /** Module 3: per-member attribution for OPEN votes only (secret = 409). */
+  recordOpenChoices(resolutionId: number, entries: Array<{ memberId: number; choice: VoteChoice }>): Observable<MeetingDetail> {
+    return this.http
+      .post<MeetingDetailApi>(`${this.base}/resolution-book/resolutions/${resolutionId}/choices`, {
+        entries: entries.map((e) => ({ member_id: e.memberId, choice: e.choice })),
+      })
+      .pipe(map(toMeetingDetail));
   }
 
   uploadRecording(meetingId: number, file: File): Observable<Recording> {

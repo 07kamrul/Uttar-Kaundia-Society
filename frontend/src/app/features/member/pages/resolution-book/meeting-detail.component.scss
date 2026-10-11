@@ -288,3 +288,69 @@
     flex-wrap: wrap;
   }
 }
+
+/* Module 3: quorum + notice + vote-mode controls */
+
+.rb-quorum-box,
+.rb-notice-box {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: var(--radius-md, 10px);
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.rb-warn-box {
+  border: 1px solid var(--gold, #a9791e);
+  background: rgba(169, 121, 30, 0.1);
+  color: var(--gray-700, #47564a);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.88rem;
+}
+
+.rb-notify {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  color: var(--gray-700, #47564a);
+  cursor: pointer;
+}
+
+.rb-resolution-modes {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.rb-mode-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--gray-600, #5b6b5f);
+}
+
+.rb-casting-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gray-600, #5b6b5f);
+  overflow-wrap: anywhere;
+}
+
+.rb-open-choices {
+  margin-top: 0.4rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rb-open-choice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}

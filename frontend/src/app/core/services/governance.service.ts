@@ -163,6 +163,31 @@ export interface MyDocument {
   url: string;
 }
 
+export interface CouncilPost {
+  key: string;
+  bn: string;
+  en: string;
+  council: string;
+}
+
+export interface GovernanceConstants {
+  notice_periods: {
+    agm_notice_days: number;
+    emergency_meeting_notice_days: number;
+    appeal_window_days: number;
+    petition_response_days: number;
+    complaint_ack_working_days: number;
+    complaint_update_working_days: number;
+    membership_sla_working_days: number;
+  };
+  council_size: number;
+  quorum: Record<string, number>;
+  council_posts: CouncilPost[];
+  income_sources: Array<{ key: string; bn: string; en: string; requires_justification: boolean }>;
+  foreign_funding_blocked: boolean;
+  weekend_days: number[];
+}
+
 /**
  * Governance modules 1 & 5 (সদস্য আবেদন ও আপিল / অভিযোগ ব্যবস্থা).
  * All SLA numbers come from the backend - see GET /api/governance/constants.
@@ -171,6 +196,12 @@ export interface MyDocument {
 export class GovernanceService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
+
+  // --- shared constants -------------------------------------------------
+  /** The 11 council posts + notice periods + quorum - never hardcode these. */
+  constants(): Observable<GovernanceConstants> {
+    return this.http.get<GovernanceConstants>(`${this.base}/governance/constants`);
+  }
 
   // --- complaints: constants ------------------------------------------
   complaintConstants(): Observable<ComplaintConstants> {

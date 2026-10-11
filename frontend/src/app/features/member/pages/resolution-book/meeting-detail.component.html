@@ -8,6 +8,7 @@
         <h1 class="page-title">{{ m.meetingNo }}</h1>
         <p class="page-subtitle">
           {{ date(m.date) }}@if (m.time) { · {{ m.time }}} · {{ typeLabel(m.meetingType) }} ·
+          {{ 'rb.councilType.' + m.councilType | translate }} ·
           {{ 'rb.detail.chair' | translate }}: {{ m.chairperson }}
         </p>
       }
@@ -81,7 +82,89 @@
             <span class="rb-stat-label">{{ 'rb.detail.status' | translate }}</span>
             <span class="status-pill" [class]="'status-pill status-' + m.status">{{ statusLabel(m.status) }}</span>
           </div>
+          <div>
+            <span class="rb-stat-label">{{ 'rb.form.councilType' | translate }}</span>
+            <strong>{{ 'rb.councilType.' + m.councilType | translate }}</strong>
+          </div>
+          @if (m.scheduledStartAt) {
+            <div>
+              <span class="rb-stat-label">{{ 'rb.form.scheduledStart' | translate }}</span>
+              <strong>{{ dateTime(m.scheduledStartAt) }}</strong>
+            </div>
+          }
+          <div>
+            <span class="rb-stat-label">{{ 'rb.detail.noticePublished' | translate }}</span>
+            <strong>{{ m.noticePublishedAt ? dateTime(m.noticePublishedAt) : ('rb.detail.notSet' | translate) }}</strong>
+          </div>
         </div>
+
+        <!-- Module 3: কোরাম -->
+        <div class="rb-quorum-box">
+          <h2 class="rb-section-title">{{ 'rb.detail.quorumTitle' | translate }}</h2>
+          @if (m.quorumPresent != null) {
+            <p class="rb-text">
+              {{ 'rb.detail.quorumRecorded' | translate: { present: digits(m.quorumPresent), required: digits(m.quorumRequired ?? 0) } }}
+              @if (m.quorumAcknowledged) {
+                <span class="ds-tag ds-tag-amber">{{ 'rb.detail.quorumAcknowledged' | translate }}</span>
+              }
+            </p>
+          } @else {
+            <p class="rb-text">
+              {{ 'rb.detail.quorumCurrent' | translate: { present: digits(m.attendancePresent), required: digits(quorumRequired() ?? 0) } }}
+            </p>
+            @if (belowQuorum()) {
+              <div class="rb-warn-box" role="alert">{{ 'rb.detail.belowQuorum' | translate }}</div>
+            }
+          }
+          @if (canManageMeetings()) {
+            @if (m.status === 'scheduled') {
+              @if (belowQuorum()) {
+                <label class="rb-notify">
+                  <input
+                    type="checkbox"
+                    [checked]="completeAcknowledge()"
+                    (change)="completeAcknowledge.set($any($event.target).checked)"
+                  />
+                  {{ 'rb.detail.acknowledgeNoQuorum' | translate }}
+                </label>
+              }
+              <button type="button" class="btn btn-primary btn-sm" [disabled]="completeBusy()" (click)="completeMeeting()">
+                @if (completeBusy()) { <span class="spinner"></span> }
+                {{ 'rb.detail.completeMeeting' | translate }}
+              </button>
+            }
+            @if (completeError()) {
+              <div class="error-box" role="alert"><p style="margin: 0">{{ completeError() }}</p></div>
+            }
+          }
+        </div>
+
+        <!-- Module 3: নোটিশ প্রকাশ -->
+        @if (canManageMeetings()) {
+          <div class="rb-notice-box">
+            <h2 class="rb-section-title">{{ 'rb.detail.noticeTitle' | translate }}</h2>
+            <p class="rb-text">{{ 'rb.detail.noticeRule' | translate }}</p>
+            @if (noticeError()) {
+              <div class="error-box" role="alert"><p style="margin: 0">{{ noticeError() }}</p></div>
+            }
+            @if (overrideOffered()) {
+              <label class="rb-notify">
+                <input
+                  type="checkbox"
+                  [checked]="noticeOverride()"
+                  (change)="noticeOverride.set($any($event.target).checked)"
+                />
+                {{ 'rb.detail.noticeOverride' | translate }}
+              </label>
+              <p class="rb-warn-box" role="alert">{{ 'rb.detail.overrideAuditWarning' | translate }}</p>
+            }
+            <button type="button" class="btn btn-secondary btn-sm" [disabled]="noticeBusy()" (click)="publishNotice()">
+              @if (noticeBusy()) { <span class="spinner"></span> }
+              {{ 'rb.detail.publishNotice' | translate }}
+            </button>
+          </div>
+        }
+
         @if (m.createdBy) {
           <p class="rb-edited">
             {{ 'rb.detail.createdBy' | translate: { name: m.createdBy } }}
@@ -154,6 +237,65 @@
               }
             </div>
             <p class="rb-text">{{ resolution.decision }}</p>
+
+            <!-- Module 3: ভোটের ধরন ও casting vote -->
+            @if (canRecordVotes() || canManageMeetings()) {
+              <div class="rb-resolution-modes">
+                <label class="rb-mode-label">
+                  {{ 'rb.form.voteMode' | translate }}
+                  <select
+                    class="rb-select rb-select-sm"
+                    [disabled]="statusSaving() === resolution.id || !canManageMeetings()"
+                    [value]="resolution.voteMode ?? ''"
+                    (change)="setResolutionVoteMode(resolution, $any($event.target).value || null)"
+                    [attr.aria-label]="'rb.form.voteMode' | translate"
+                  >
+                    <option value="">{{ 'rb.voteMode.plain' | translate }}</option>
+                    <option value="open">{{ 'rb.voteMode.open' | translate }}</option>
+                    <option value="secret">{{ 'rb.voteMode.secret' | translate }}</option>
+                  </select>
+                </label>
+                @if (isTied(resolution)) {
+                  <label class="rb-mode-label">
+                    {{ 'rb.form.castingVote' | translate }}
+                    <select
+                      class="rb-select rb-select-sm"
+                      [disabled]="statusSaving() === resolution.id || !canManageMeetings()"
+                      [value]="resolution.castingVote ?? ''"
+                      (change)="setCastingVote(resolution, $any($event.target).value)"
+                      [attr.aria-label]="'rb.form.castingVote' | translate"
+                    >
+                      <option value="">{{ 'rb.castingVote.none' | translate }}</option>
+                      <option value="for">{{ 'rb.castingVote.for' | translate }}</option>
+                      <option value="against">{{ 'rb.castingVote.against' | translate }}</option>
+                      <option value="neutral">{{ 'rb.castingVote.neutral' | translate }}</option>
+                    </select>
+                  </label>
+                  @if (resolution.castingVote && resolution.castingVote !== 'none') {
+                    <span class="ds-tag ds-tag-blue">{{ 'rb.detail.castingVoteRecorded' | translate }}</span>
+                  }
+                }
+              </div>
+              @if (resolution.castingNote) {
+                <p class="rb-casting-note">{{ resolution.castingNote }}</p>
+              }
+            }
+            <!-- প্রকাশ্য ভোটের সদস্যভিত্তিক ফলাফল -->
+            @if (resolution.openChoices; as choices) {
+              <div class="rb-open-choices">
+                <span class="rb-stat-label">{{ 'rb.detail.openChoices' | translate }}</span>
+                <div class="rb-open-choice-list">
+                  @for (choice of choices; track choice.member.id) {
+                    <span class="ds-tag" [class.ds-tag-green]="choice.choice === 'for'" [class.ds-tag-amber]="choice.choice === 'against'" [class.ds-tag-blue]="choice.choice === 'neutral'">
+                      {{ choice.member.fullName }}: {{ 'rb.choice.' + choice.choice | translate }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+            @if (resolutionActionError()[resolution.id]; as actionError) {
+              <div class="error-box" role="alert"><p style="margin: 0">{{ actionError }}</p></div>
+            }
 
             <div
               class="rb-vote-bar"

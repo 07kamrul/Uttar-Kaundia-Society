@@ -739,6 +739,51 @@ async def election_for_member(
                 candidates.append({"member_id": cand["member_id"], "name": name, "votes": cand["votes"]})
             results.append({"post_key": post_key, "candidates": candidates, "votes_total": bucket["votes_total"]})
 
+    # Approved candidate roster (names + ids only - never vote counts) so a
+    # voter can actually fill the ballot once the nomination window closes.
+    candidates_roster = None
+    if election.status in (
+        ELECTION_STATUS_NOMINATIONS_CLOSED,
+        ELECTION_STATUS_VOTING,
+        ELECTION_STATUS_TABULATED,
+        ELECTION_STATUS_CONFIRMED,
+    ):
+        approved = (
+            (
+                await db.execute(
+                    select(Nomination)
+                    .where(
+                        Nomination.election_id == election.id,
+                        Nomination.status == NOMINATION_STATUS_APPROVED,
+                    )
+                    .order_by(Nomination.post_key, Nomination.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        roster_names = dict(
+            (
+                await db.execute(
+                    select(Member.id, Member.full_name).where(
+                        Member.id.in_({n.member_id for n in approved})
+                    )
+                )
+            ).all()
+        )
+        roster: dict[str, list] = {}
+        for nomination in approved:
+            roster.setdefault(nomination.post_key, []).append(
+                {
+                    "nomination_id": nomination.id,
+                    "member_id": nomination.member_id,
+                    "name": roster_names.get(nomination.member_id),
+                }
+            )
+        candidates_roster = [
+            {"post_key": post_key, "candidates": cands} for post_key, cands in roster.items()
+        ]
+
     return {
         **election_to_dict(election),
         "today": today,
@@ -746,6 +791,7 @@ async def election_for_member(
         "eligibility_source": eligibility_source,
         "my_nominations": my_nominations,
         "voted_posts": my_votes,  # post keys only - never ballot content
+        "candidates": candidates_roster,
         "results": results,
     }
 

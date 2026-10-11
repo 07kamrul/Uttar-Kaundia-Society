@@ -108,6 +108,58 @@
             </select>
           </div>
         </div>
+
+        <!-- Module 3: council sitting type + scheduled start -->
+        <div class="rb-field-grid">
+          <div class="rb-field">
+            <span class="rb-label">{{ 'rb.form.councilType' | translate }}</span>
+            <select
+              class="rb-select"
+              [value]="councilType()"
+              (change)="councilType.set($any($event.target).value)"
+              [attr.aria-label]="'rb.form.councilType' | translate"
+            >
+              <option value="executive">{{ 'rb.councilType.executive' | translate }}</option>
+              <option value="standing">{{ 'rb.councilType.standing' | translate }}</option>
+              <option value="agm">{{ 'rb.councilType.agm' | translate }}</option>
+              <option value="emergency">{{ 'rb.councilType.emergency' | translate }}</option>
+            </select>
+            @if (noticeInfoText()) {
+              <span class="rb-hint">{{ noticeInfoText() | translate }}</span>
+            }
+          </div>
+          <div class="rb-field">
+            <span class="rb-label">{{ 'rb.form.scheduledStart' | translate }}</span>
+            <div class="rb-field-grid">
+              <app-date-picker
+                [value]="scheduledStartDate()"
+                (valueChange)="scheduledStartDate.set($event)"
+              />
+              <app-time-picker
+                [value]="scheduledStartTime()"
+                (valueChange)="scheduledStartTime.set($event)"
+              />
+            </div>
+            <span class="rb-hint">{{ 'rb.form.scheduledStartHint' | translate }}</span>
+          </div>
+        </div>
+
+        <!-- Module 3: quorum acknowledgement for completed sittings -->
+        @if (status() === 'completed' && showQuorumAcknowledge()) {
+          <div class="rb-warn-box" role="alert">
+            <p style="margin: 0 0 0.35rem">
+              {{ (belowQuorum() ? 'rb.form.quorumShortfall' : 'rb.form.quorumRejected') | translate }}
+            </p>
+            <label class="rb-notify">
+              <input
+                type="checkbox"
+                [checked]="acknowledgeNoQuorum()"
+                (change)="acknowledgeNoQuorum.set($any($event.target).checked)"
+              />
+              {{ 'rb.form.acknowledgeNoQuorum' | translate }}
+            </label>
+          </div>
+        }
       </section>
 
       <!-- এজেন্ডা ও সারসংক্ষেপ -->
@@ -252,6 +304,46 @@
                   (input)="updateResolution($index, { voteNeutral: toInt($any($event.target).value) })"
                 />
               </div>
+            </div>
+            <div class="rb-field-grid">
+              <div class="rb-field">
+                <span class="rb-label">{{ 'rb.form.voteMode' | translate }}</span>
+                <select
+                  class="rb-select"
+                  [value]="row.voteMode ?? ''"
+                  (change)="updateResolution($index, { voteMode: $any($event.target).value || null })"
+                  [attr.aria-label]="'rb.form.voteMode' | translate"
+                >
+                  <option value="">{{ 'rb.voteMode.plain' | translate }}</option>
+                  <option value="open">{{ 'rb.voteMode.open' | translate }}</option>
+                  <option value="secret">{{ 'rb.voteMode.secret' | translate }}</option>
+                </select>
+              </div>
+              @if (isTied(row)) {
+                <div class="rb-field">
+                  <span class="rb-label">{{ 'rb.form.castingVote' | translate }}</span>
+                  <select
+                    class="rb-select"
+                    [value]="row.castingVote ?? ''"
+                    (change)="updateResolution($index, { castingVote: $any($event.target).value || null })"
+                    [attr.aria-label]="'rb.form.castingVote' | translate"
+                  >
+                    <option value="">{{ 'rb.castingVote.none' | translate }}</option>
+                    <option value="for">{{ 'rb.castingVote.for' | translate }}</option>
+                    <option value="against">{{ 'rb.castingVote.against' | translate }}</option>
+                    <option value="neutral">{{ 'rb.castingVote.neutral' | translate }}</option>
+                  </select>
+                  <span class="rb-hint">{{ 'rb.form.castingVoteHint' | translate }}</span>
+                  <input
+                    type="text"
+                    class="rb-input"
+                    [placeholder]="'rb.form.castingNote' | translate"
+                    maxlength="1000"
+                    [value]="row.castingNote"
+                    (input)="updateResolution($index, { castingNote: $any($event.target).value })"
+                  />
+                </div>
+              }
             </div>
             <div class="rb-field-grid">
               <div class="rb-field">

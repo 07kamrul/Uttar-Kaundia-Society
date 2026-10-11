@@ -8,13 +8,17 @@ import { TimePickerComponent } from '../../../../shared/time-picker/time-picker.
 import { MemberPickerComponent, type MemberPickerOption } from '../../../../shared/member-picker/member-picker.component';
 import { AdminService } from '../../../../core/services/admin.service';
 import { LanguageService } from '../../../../core/services/language.service';
+import { GovernanceService, type GovernanceConstants } from '../../../../core/services/governance.service';
 import {
   ResolutionBookService,
   localizeDigits,
   type AttendanceStatus,
+  type CastingVote,
+  type CouncilType,
   type MeetingDetail,
   type MeetingType,
   type ResolutionStatus,
+  type VoteMode,
 } from '../../../../core/services/resolution-book.service';
 
 const DRAFT_KEY = 'ukams_resolution_book_draft';
@@ -28,6 +32,10 @@ interface ResolutionRow {
   task: string;
   dueDate: string;
   status: ResolutionStatus;
+  /** Module 3: null = plain tally; 'open'/'secret' select the ballot mode. */
+  voteMode: VoteMode | null;
+  castingVote: CastingVote | null;
+  castingNote: string;
 }
 
 interface QueuedFile {
@@ -37,7 +45,32 @@ interface QueuedFile {
 }
 
 function emptyResolution(): ResolutionRow {
-  return { decision: '', voteFor: 0, voteAgainst: 0, voteNeutral: 0, assignedTo: [], task: '', dueDate: '', status: 'pending' };
+  return {
+    decision: '',
+    voteFor: 0,
+    voteAgainst: 0,
+    voteNeutral: 0,
+    assignedTo: [],
+    task: '',
+    dueDate: '',
+    status: 'pending',
+    voteMode: null,
+    castingVote: null,
+    castingNote: '',
+  };
+}
+
+/** Split a stored ISO datetime (e.g. "2026-10-08T20:30" or with Z/offset)
+ * into local date ("yyyy-MM-dd") and time ("HH:mm") picker parts. */
+function splitLocalDateTime(iso: string | null): { date: string; time: string } | null {
+  if (!iso) return null;
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return {
+    date: `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`,
+    time: `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`,
+  };
 }
 
 @Component({
@@ -62,12 +95,14 @@ export class MeetingFormComponent implements OnInit {
   private readonly service = inject(ResolutionBookService);
   private readonly adminService = inject(AdminService);
   private readonly language = inject(LanguageService);
+  private readonly governance = inject(GovernanceService);
 
   readonly editId = signal<number | null>(null);
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
   readonly memberOptions = signal<MemberPickerOption[]>([]);
+  readonly constants = signal<GovernanceConstants | null>(null);
 
   // Form state
   readonly meetingNo = signal('');
@@ -81,6 +116,12 @@ export class MeetingFormComponent implements OnInit {
   readonly summary = signal('');
   readonly nextMeetingDate = signal('');
   readonly status = signal<'scheduled' | 'completed' | 'cancelled'>('completed');
+  // Module 3: council sitting + scheduled start + quorum acknowledgement.
+  readonly councilType = signal<CouncilType>('executive');
+  readonly scheduledStartDate = signal('');
+  readonly scheduledStartTime = signal('');
+  readonly acknowledgeNoQuorum = signal(false);
+  readonly quorumRejected = signal(false);
   readonly attendanceIds = signal<number[]>([]);
   readonly attendanceStatus = signal<Record<number, AttendanceStatus>>({});
   readonly resolutions = signal<ResolutionRow[]>([emptyResolution()]);
@@ -101,6 +142,32 @@ export class MeetingFormComponent implements OnInit {
       (row) => row.voteFor + row.voteAgainst + row.voteNeutral > this.presentCount(),
     ),
   );
+
+  /** Display quorum: 6 of 11 for executive/standing/emergency; the AGM floor
+   * depends on the eligible-member count and is computed server-side. */
+  readonly quorumRequiredDisplay = computed<number | null>(() => {
+    const constants = this.constants();
+    if (!constants) return null;
+    if (this.councilType() === 'agm') return null;
+    const quorum = constants.quorum ?? {};
+    return quorum['executive'] ?? Math.floor((constants.council_size || 11) / 2) + 1;
+  });
+
+  readonly belowQuorum = computed(() => {
+    if (this.status() !== 'completed') return false;
+    const required = this.quorumRequiredDisplay();
+    return required !== null && this.presentCount() < required;
+  });
+
+  readonly showQuorumAcknowledge = computed(() => this.belowQuorum() || this.quorumRejected());
+
+  readonly noticeInfoText = computed(() => {
+    const constants = this.constants();
+    if (!constants) return '';
+    if (this.councilType() === 'agm') return 'rb.form.noticeAgm';
+    if (this.councilType() === 'emergency') return 'rb.form.noticeEmergency';
+    return '';
+  });
 
   readonly formValid = computed(
     () =>
@@ -125,6 +192,9 @@ export class MeetingFormComponent implements OnInit {
         summary: this.summary(),
         nextMeetingDate: this.nextMeetingDate(),
         status: this.status(),
+        councilType: this.councilType(),
+        scheduledStartDate: this.scheduledStartDate(),
+        scheduledStartTime: this.scheduledStartTime(),
         attendanceIds: this.attendanceIds(),
         attendanceStatus: this.attendanceStatus(),
         resolutions: this.resolutions(),
@@ -138,6 +208,10 @@ export class MeetingFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.governance.constants().subscribe({
+      next: (constants) => this.constants.set(constants),
+      error: () => this.constants.set(null),
+    });
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loadMembers();
     if (Number.isFinite(id) && id > 0) {
@@ -186,6 +260,8 @@ export class MeetingFormComponent implements OnInit {
         this.summary.set(meeting.summary ?? '');
         this.nextMeetingDate.set(meeting.nextMeetingDate ?? '');
         this.status.set(meeting.status);
+        this.councilType.set(meeting.councilType ?? 'executive');
+        this.applyScheduledStart(meeting.scheduledStartAt);
         this.loading.set(false);
       },
       error: () => {
@@ -210,6 +286,9 @@ export class MeetingFormComponent implements OnInit {
         summary: string;
         nextMeetingDate: string;
         status: 'scheduled' | 'completed' | 'cancelled';
+        councilType: CouncilType;
+        scheduledStartDate: string;
+        scheduledStartTime: string;
         attendanceIds: number[];
         attendanceStatus: Record<number, AttendanceStatus>;
         resolutions: ResolutionRow[];
@@ -226,9 +305,17 @@ export class MeetingFormComponent implements OnInit {
       this.summary.set(draft.summary ?? '');
       this.nextMeetingDate.set(draft.nextMeetingDate ?? '');
       this.status.set(draft.status ?? 'completed');
+      this.councilType.set(draft.councilType ?? 'executive');
+      this.scheduledStartDate.set(draft.scheduledStartDate ?? '');
+      this.scheduledStartTime.set(draft.scheduledStartTime ?? '');
       this.attendanceIds.set(draft.attendanceIds ?? []);
       this.attendanceStatus.set(draft.attendanceStatus ?? {});
-      this.resolutions.set(draft.resolutions?.length ? draft.resolutions : [emptyResolution()]);
+      this.resolutions.set(
+        (draft.resolutions?.length ? draft.resolutions : [emptyResolution()]).map((row) => ({
+          ...emptyResolution(),
+          ...row,
+        })),
+      );
     } catch {
       // Corrupt draft - start clean.
     }
@@ -322,24 +409,39 @@ export class MeetingFormComponent implements OnInit {
 
   // ----- submit -----
 
+  /** Combined scheduled_start_at ISO (local, no timezone suffix - the API
+   * stores it as given). Empty when the date part is missing. */
+  private scheduledStartIso(): string | null {
+    const datePart = this.scheduledStartDate();
+    if (!datePart) return null;
+    return `${datePart}T${this.scheduledStartTime() || '00:00'}`;
+  }
+
   submit(): void {
     if (!this.formValid() || this.saving()) return;
     this.saving.set(true);
     this.error.set('');
 
     if (this.editId() !== null) {
+      const scheduled = this.scheduledStartIso();
+      const changes: Record<string, unknown> = {
+        date: this.date(),
+        time: this.time() || null,
+        meeting_type: this.meetingType(),
+        chairperson: this.chairperson(),
+        chairperson_member_id: this.chairpersonId()[0] ?? null,
+        agenda: this.agenda(),
+        summary: this.summary() || null,
+        next_meeting_date: this.nextMeetingDate() || null,
+        status: this.status(),
+        council_type: this.councilType(),
+      };
+      // Only touch scheduled_start_at when a value exists - an unconditional
+      // null would wipe an existing schedule on unrelated edits.
+      if (scheduled) changes['scheduled_start_at'] = scheduled;
+      if (this.showQuorumAcknowledge()) changes['acknowledge_no_quorum'] = this.acknowledgeNoQuorum();
       this.service
-        .updateMeeting(this.editId()!, {
-          date: this.date(),
-          time: this.time() || null,
-          meeting_type: this.meetingType(),
-          chairperson: this.chairperson(),
-          chairperson_member_id: this.chairpersonId()[0] ?? null,
-          agenda: this.agenda(),
-          summary: this.summary() || null,
-          next_meeting_date: this.nextMeetingDate() || null,
-          status: this.status(),
-        })
+        .updateMeeting(this.editId()!, changes)
         .subscribe({
           next: () => {
             this.discardDraft();
@@ -366,6 +468,9 @@ export class MeetingFormComponent implements OnInit {
         summary: this.summary() || null,
         nextMeetingDate: this.nextMeetingDate() || null,
         status: this.status(),
+        councilType: this.councilType(),
+        scheduledStartAt: this.scheduledStartIso(),
+        acknowledgeNoQuorum: this.acknowledgeNoQuorum(),
         attendance,
         resolutions: this.resolutions().map((row) => ({
           decision: row.decision,
@@ -376,6 +481,9 @@ export class MeetingFormComponent implements OnInit {
           task: row.task || null,
           dueDate: row.dueDate || null,
           status: row.status,
+          voteMode: row.voteMode,
+          castingVote: row.castingVote,
+          castingNote: row.castingNote || null,
         })),
         notify: this.notify(),
       })
@@ -417,6 +525,12 @@ export class MeetingFormComponent implements OnInit {
 
   private fail(err: { error?: { detail?: string }; status?: number }): void {
     this.saving.set(false);
+    if (err.status === 409 && err.error?.detail?.includes('কোরাম')) {
+      // Below-quorum completion: surface the warning + acknowledgement checkbox.
+      this.quorumRejected.set(true);
+      this.error.set(err.error.detail);
+      return;
+    }
     if (err.status === 409) {
       this.error.set('rb.form.duplicateNo');
     } else if (err.status === 422) {
@@ -424,6 +538,18 @@ export class MeetingFormComponent implements OnInit {
     } else {
       this.error.set(err.error?.detail ?? 'rb.form.submitError');
     }
+  }
+
+  /** A tied recorded vote (for == against > 0) needs a casting vote. */
+  isTied(row: ResolutionRow): boolean {
+    return row.voteFor === row.voteAgainst && row.voteFor > 0;
+  }
+
+  /** Split a stored ISO datetime into local date/time picker parts. */
+  private applyScheduledStart(iso: string | null): void {
+    const parts = splitLocalDateTime(iso);
+    this.scheduledStartDate.set(parts?.date ?? '');
+    this.scheduledStartTime.set(parts?.time ?? '');
   }
 
   // ----- view helpers -----

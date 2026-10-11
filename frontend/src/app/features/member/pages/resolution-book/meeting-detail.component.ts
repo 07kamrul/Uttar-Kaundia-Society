@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { GovernanceService } from '../../../../core/services/governance.service';
 import {
   ResolutionBookService,
   attendanceStatusLabel,
@@ -17,7 +18,9 @@ import {
   resolutionStatusLabel,
   type MeetingDetail,
   type Recording,
+  type Resolution,
   type ResolutionStatus,
+  type VoteMode,
 } from '../../../../core/services/resolution-book.service';
 
 const OBJECT_URL_REVOKE_MS = 1000;
@@ -49,6 +52,7 @@ export class MeetingDetailComponent implements OnInit {
   private readonly service = inject(ResolutionBookService);
   private readonly language = inject(LanguageService);
   readonly auth = inject(AuthService);
+  private readonly governance = inject(GovernanceService);
 
   readonly meetingId = signal<number | null>(null);
   readonly meeting = signal<MeetingDetail | null>(null);
@@ -62,11 +66,50 @@ export class MeetingDetailComponent implements OnInit {
   readonly uploadError = signal('');
   readonly tabs = TABS;
 
+  // Module 3: notice publishing / quorum completion / vote mode controls.
+  readonly noticeBusy = signal(false);
+  readonly noticeError = signal('');
+  readonly noticeOverride = signal(false);
+  readonly overrideOffered = signal(false);
+  readonly completeBusy = signal(false);
+  readonly completeError = signal('');
+  readonly completeAcknowledge = signal(false);
+  readonly resolutionActionError = signal<Record<number, string>>({});
+  readonly quorumRequiredFallback = signal<number | null>(null);
+
   readonly lang = this.language.lang;
   readonly canManage = computed(() => this.auth.hasPermission('manage_resolution_book'));
+  readonly canManageMeetings = computed(() => this.auth.hasPermission('meeting.manage'));
+  readonly canRecordVotes = computed(() => this.auth.hasPermission('vote_record.manage'));
   readonly attendancePercent = computed(() => this.meeting()?.attendancePercent ?? 0);
 
+  /** Display quorum floor for the current sitting (server records the exact
+   * number on completion; until then we show the constitutional 6-of-11). */
+  readonly quorumRequired = computed<number | null>(() => {
+    const meeting = this.meeting();
+    if (!meeting) return null;
+    if (meeting.quorumRequired != null) return meeting.quorumRequired;
+    if (meeting.councilType === 'agm') return null;
+    return this.quorumRequiredFallback();
+  });
+
+  readonly belowQuorum = computed(() => {
+    const meeting = this.meeting();
+    const required = this.quorumRequired();
+    if (!meeting || required === null) return false;
+    return meeting.attendancePresent < required;
+  });
+
   ngOnInit(): void {
+    this.governance.constants().subscribe({
+      next: (constants) => {
+        const quorum = constants.quorum ?? {};
+        this.quorumRequiredFallback.set(
+          quorum['executive'] ?? Math.floor((constants.council_size || 11) / 2) + 1,
+        );
+      },
+      error: () => this.quorumRequiredFallback.set(null),
+    });
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isFinite(id) || id <= 0) {
       this.router.navigate(['/resolution-book']);
@@ -103,6 +146,20 @@ export class MeetingDetailComponent implements OnInit {
 
   date(iso: string | null): string {
     return formatRbDate(iso, this.lang());
+  }
+
+  /** Local date+time label for stored ISO datetimes (notice/schedule). */
+  dateTime(iso: string | null): string {
+    if (!iso) return '';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return iso;
+    return parsed.toLocaleString(this.lang() === 'bn' ? 'bn-BD' : 'en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   typeLabel(type: MeetingDetail['meetingType']): string {
@@ -150,17 +207,112 @@ export class MeetingDetailComponent implements OnInit {
     this.statusSaving.set(resolutionId);
     this.service.updateResolution(resolutionId, { status }).subscribe({
       next: (updated) => {
-        const current = this.meeting();
-        if (current) {
-          this.meeting.set({
-            ...current,
-            resolutions: current.resolutions.map((r) => (r.id === updated.id ? updated : r)),
-          });
-        }
+        this.patchResolution(updated);
         this.statusSaving.set(null);
       },
-      error: () => this.statusSaving.set(null),
+      error: (err) => {
+        this.statusSaving.set(null);
+        this.setResolutionError(resolutionId, err?.error?.detail || 'rb.detail.actionError');
+      },
     });
+  }
+
+  /** Module 3: switch a resolution's ballot mode (open/secret/plain). */
+  setResolutionVoteMode(resolution: Resolution, mode: VoteMode | null): void {
+    this.statusSaving.set(resolution.id);
+    this.service.updateResolution(resolution.id, { voteMode: mode }).subscribe({
+      next: (updated) => {
+        this.patchResolution(updated);
+        this.statusSaving.set(null);
+        this.clearResolutionError(resolution.id);
+      },
+      error: (err) => {
+        this.statusSaving.set(null);
+        this.setResolutionError(resolution.id, err?.error?.detail || 'rb.detail.actionError');
+      },
+    });
+  }
+
+  /** Module 3: the chair's casting vote on a tied recorded vote. */
+  setCastingVote(resolution: Resolution, castingVote: string): void {
+    this.statusSaving.set(resolution.id);
+    const value = castingVote === '' ? null : (castingVote as 'for' | 'against' | 'neutral');
+    this.service.updateResolution(resolution.id, { castingVote: value }).subscribe({
+      next: (updated) => {
+        this.patchResolution(updated);
+        this.statusSaving.set(null);
+        this.clearResolutionError(resolution.id);
+      },
+      error: (err) => {
+        this.statusSaving.set(null);
+        this.setResolutionError(resolution.id, err?.error?.detail || 'rb.detail.actionError');
+      },
+    });
+  }
+
+  /** Module 3: publish the sitting notice (override forces a short notice). */
+  publishNotice(): void {
+    const id = this.meetingId();
+    if (id === null || this.noticeBusy()) return;
+    this.noticeBusy.set(true);
+    this.noticeError.set('');
+    this.service.publishNotice(id, this.noticeOverride()).subscribe({
+      next: (meeting) => {
+        this.meeting.set(meeting);
+        this.noticeBusy.set(false);
+        this.noticeOverride.set(false);
+        this.overrideOffered.set(false);
+      },
+      error: (err) => {
+        this.noticeBusy.set(false);
+        this.noticeError.set(err?.error?.detail || 'rb.detail.actionError');
+        if (err?.status === 409) this.overrideOffered.set(true);
+      },
+    });
+  }
+
+  /** Module 3: complete a scheduled sitting, recording quorum. */
+  completeMeeting(): void {
+    const id = this.meetingId();
+    if (id === null || this.completeBusy()) return;
+    this.completeBusy.set(true);
+    this.completeError.set('');
+    this.service.completeMeeting(id, this.completeAcknowledge()).subscribe({
+      next: (meeting) => {
+        this.meeting.set(meeting);
+        this.completeBusy.set(false);
+        this.completeAcknowledge.set(false);
+      },
+      error: (err) => {
+        this.completeBusy.set(false);
+        this.completeError.set(err?.error?.detail || 'rb.detail.actionError');
+        if (err?.status === 409) this.completeAcknowledge.set(false);
+      },
+    });
+  }
+
+  private patchResolution(updated: Resolution): void {
+    const current = this.meeting();
+    if (current) {
+      this.meeting.set({
+        ...current,
+        resolutions: current.resolutions.map((r) => (r.id === updated.id ? updated : r)),
+      });
+    }
+  }
+
+  private setResolutionError(resolutionId: number, message: string): void {
+    this.resolutionActionError.set({ ...this.resolutionActionError(), [resolutionId]: message });
+  }
+
+  private clearResolutionError(resolutionId: number): void {
+    const next = { ...this.resolutionActionError() };
+    delete next[resolutionId];
+    this.resolutionActionError.set(next);
+  }
+
+  isTied(resolution: Resolution): boolean {
+    return resolution.voteFor === resolution.voteAgainst && resolution.voteFor > 0;
   }
 
   onFileSelected(event: Event): void {
