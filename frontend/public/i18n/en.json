@@ -1358,7 +1358,7 @@
         "messageSuffix": "'s login password will be reset, and the new password will be emailed to the member's registered email address.",
         "confirmLabel": "Reset & Email",
         "successMessage": "Password reset successfully. A new password has been emailed to {{name}}'s registered email address.",
-        "successNoEmail": "Password reset successfully, but the email could not be sent. Please share the new password with the member directly."
+        "successNoEmail": "Password reset successfully, but the email could not be sent. Please share this temporary password with the member directly: {{password}}"
       },
       "errors": {
         "loadFailed": "Could not load member list.",

@@ -177,12 +177,31 @@ def _ensure_pending(payment: InstallmentPayment) -> None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This payment has already been reviewed.")
 
 
-def approve_payment(payment: InstallmentPayment, admin_id: int) -> None:
-    """Mark the payment approved and its installments PAID. Caller commits."""
+async def approve_payment(db: AsyncSession, payment: InstallmentPayment, admin_id: int) -> None:
+    """Mark the payment approved and its installments PAID. Caller commits.
+
+    Linked installments are re-read under a row lock: if any was marked paid
+    by other means since the member reported this payment, approving would
+    overwrite its paid_at and double-count it, so refuse with 409.
+    """
     _ensure_pending(payment)
+    ids = [i.id for i in payment.installments]
+    locked = (
+        await db.execute(
+            select(Installment)
+            .where(Installment.id.in_(ids))
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    ).scalars().all()
+    if len(locked) != len(ids) or any(i.status != InstallmentStatus.DUE for i in locked):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Some months in this payment are no longer due; reject it instead.",
+        )
     now = datetime.now(timezone.utc)
     paid_at = datetime(payment.paid_on.year, payment.paid_on.month, payment.paid_on.day, tzinfo=timezone.utc)
-    for installment in payment.installments:
+    for installment in locked:
         installment.status = InstallmentStatus.PAID
         installment.paid_at = paid_at
     payment.status = PAYMENT_STATUS_APPROVED

@@ -6,10 +6,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.security import ADMIN_ROLES, decode_token, normalize_token_role
+from app.core.security import ADMIN_ROLES, decode_token, normalize_token_role, token_version_matches
 from app.db.session import get_db
 from app.models.admin import AdminUser
-from app.models.member import Member
+from app.models.credential import MemberCredential
+from app.models.member import GOVERNANCE_STATUS_SUSPENDED, Member, MemberStatus
 from app.models.property import Property
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -35,6 +36,30 @@ def _subject_id(payload: dict) -> int:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
 
+_REVOKED = "Session has been revoked. Please sign in again."
+
+
+def _ensure_admin_version(payload: dict, admin: AdminUser) -> None:
+    if not token_version_matches(payload, admin.token_version):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_REVOKED)
+
+
+async def _member_token_is_current(db: AsyncSession, payload: dict, member_id: int) -> bool:
+    """A member's revocation counter lives on their credential. Members without
+    a credential (never issued a login) can only hold the implicit version 0."""
+    version = (
+        await db.execute(
+            select(MemberCredential.token_version).where(MemberCredential.member_id == member_id)
+        )
+    ).scalar_one_or_none()
+    return token_version_matches(payload, version or 0)
+
+
+async def _ensure_member_version(db: AsyncSession, payload: dict, member_id: int) -> None:
+    if not await _member_token_is_current(db, payload, member_id):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_REVOKED)
+
+
 async def get_current_admin(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
@@ -46,6 +71,7 @@ async def get_current_admin(
     admin = result.scalar_one_or_none()
     if admin is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin not found")
+    _ensure_admin_version(payload, admin)
     return admin
 
 
@@ -72,6 +98,7 @@ async def _resolve_member(
     member = result.scalar_one_or_none()
     if member is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Member not found")
+    await _ensure_member_version(db, payload, member.id)
     return member
 
 
@@ -100,7 +127,10 @@ async def get_current_member_optional(
     except (KeyError, TypeError, ValueError):
         return None
     result = await db.execute(select(Member).where(Member.id == subject))
-    return result.scalar_one_or_none()
+    member = result.scalar_one_or_none()
+    if member is None or not await _member_token_is_current(db, payload, member.id):
+        return None
+    return member
 
 
 async def get_current_member_detail(
@@ -110,6 +140,25 @@ async def get_current_member_detail(
     """Authenticates and returns the member with properties/nominees loaded,
     for endpoints whose response is the full detail graph."""
     return await _resolve_member(credentials, db, eager=True)
+
+
+async def get_current_member_in_good_standing(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Member:
+    """Opt-in stricter gate: approved and not governance-suspended.
+
+    Deliberately NOT applied by get_current_member: profile self-edits requeue
+    approved members to PENDING, rejected members must still see their
+    rejection reason, and suspended members need their session to respond to
+    notices and file appeals. Use this only on privileges (e.g. voting,
+    petitions) that a suspended or unapproved member must not exercise."""
+    member = await _resolve_member(credentials, db, eager=False)
+    if member.status != MemberStatus.APPROVED:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Membership is not approved")
+    if member.governance_status == GOVERNANCE_STATUS_SUSPENDED:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Membership is suspended")
+    return member
 
 
 @dataclass(frozen=True)
@@ -143,6 +192,7 @@ async def get_account_actor(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=UNLINKED_MEMBER_MESSAGE,
             )
+        await _ensure_member_version(db, payload, member.id)
         return AccountActor(role=role, member=member, admin=None)
 
     if role in ADMIN_ROLES:
@@ -150,6 +200,7 @@ async def get_account_actor(
         admin = result.scalar_one_or_none()
         if admin is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin not found")
+        _ensure_admin_version(payload, admin)
         return AccountActor(role=role, member=None, admin=admin)
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access not allowed for this account type")

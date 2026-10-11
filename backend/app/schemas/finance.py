@@ -25,6 +25,16 @@ class FinanceTransactionBase(BaseModel):
     linked_payment_type: str | None = Field(default=None, max_length=24)
     linked_payment_id: int | None = None
 
+    # Module 4 — income-source policy: which constitutional source an income
+    # row belongs to, the mandatory justification for 'other_income', and the
+    # foreign-funding block (a government approval reference is required).
+    # The key set is validated in the route (409 with the allowed list), not
+    # by a schema pattern, so unknown sources surface as policy conflicts.
+    income_source: str | None = Field(default=None, max_length=32)
+    income_justification: str | None = Field(default=None, max_length=2000)
+    is_foreign_funding: bool = False
+    government_approval_ref: str | None = Field(default=None, max_length=128)
+
     @model_validator(mode="after")
     def _payment_link_only_on_income(self) -> "FinanceTransactionBase":
         if self.linked_payment_type is not None or self.linked_payment_id is not None:
@@ -32,6 +42,15 @@ class FinanceTransactionBase(BaseModel):
                 raise ValueError("A payment link is only valid on income transactions.")
             if not self.linked_payment_type or self.linked_payment_id is None:
                 raise ValueError("A payment link needs both a type and an id.")
+        return self
+
+    @model_validator(mode="after")
+    def _income_source_only_on_income(self) -> "FinanceTransactionBase":
+        if self.type != "income":
+            if self.income_source is not None or self.income_justification is not None:
+                raise ValueError("An income source is only valid on income transactions.")
+            if self.is_foreign_funding or self.government_approval_ref:
+                raise ValueError("Foreign-funding details are only valid on income transactions.")
         return self
 
 
@@ -52,6 +71,10 @@ class FinanceTransactionUpdate(BaseModel):
     internal_notes: str | None = Field(default=None, max_length=2000)
     linked_payment_type: str | None = Field(default=None, max_length=24)
     linked_payment_id: int | None = None
+    income_source: str | None = Field(default=None, max_length=32)
+    income_justification: str | None = Field(default=None, max_length=2000)
+    is_foreign_funding: bool | None = None
+    government_approval_ref: str | None = Field(default=None, max_length=128)
 
     @model_validator(mode="after")
     def _payment_link_consistent(self) -> "FinanceTransactionUpdate":
@@ -80,6 +103,12 @@ class FinanceTransactionOut(BaseModel):
     approved_at: datetime | None = None
     reversal_of_id: int | None
     created_at: datetime
+    # Module 4: income-source policy is public — members audit where money
+    # comes from and whether foreign funding has a government approval.
+    income_source: str | None = None
+    income_justification: str | None = None
+    is_foreign_funding: bool = False
+    government_approval_ref: str | None = None
 
     @field_serializer("amount")
     def _serialize_amount(self, value: Decimal) -> str:
@@ -97,6 +126,10 @@ class FinanceTransactionAdminOut(FinanceTransactionOut):
     created_by_name: str | None = None
     is_active: bool
     updated_at: datetime
+    second_approved_by: int | None = None
+    second_approved_by_name: str | None = None
+    second_approved_at: datetime | None = None
+    requires_secondary: bool = False
 
 
 class FinanceLedgerOut(BaseModel):

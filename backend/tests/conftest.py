@@ -28,6 +28,16 @@ def _clear_permission_cache():
     invalidate_permission_cache()
 
 
+@pytest.fixture(autouse=True)
+def _reset_auth_rate_limits():
+    """Auth limiters are process-wide; tests reuse the same identifiers."""
+    from app.api.routes.auth import login_failure_limiter, reset_request_limiter
+
+    login_failure_limiter.reset()
+    reset_request_limiter.reset()
+    yield
+
+
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     engine = create_async_engine(

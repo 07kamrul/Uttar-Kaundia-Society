@@ -75,7 +75,13 @@ from app.services.finance import (
     resolve_period,
 )
 from app.services.finance_pdf import FinanceReportData, build_finance_report_pdf
+from app.services.governance import (
+    DEFAULT_EXPENSE_TWO_PERSON_THRESHOLD,
+    EXPENSE_TWO_PERSON_THRESHOLD_KEY,
+    INCOME_SOURCES,
+)
 from app.services.storage import save_upload_file
+from app.models.fee_settings import FeeSetting
 
 router = APIRouter(tags=["finance"])
 
@@ -160,11 +166,65 @@ async def _load_txn(
     return txn
 
 
+async def _expense_two_person_threshold(db: AsyncSession) -> Decimal:
+    """The active versioned FeeSetting value, or the governance default when
+    the committee has never configured one."""
+    row = (
+        await db.execute(
+            select(FeeSetting)
+            .where(
+                FeeSetting.key == EXPENSE_TWO_PERSON_THRESHOLD_KEY,
+                FeeSetting.status == 1,
+            )
+            .order_by(FeeSetting.start_date.desc(), FeeSetting.id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if row is not None:
+        return Decimal(str(row.value))
+    return Decimal(str(DEFAULT_EXPENSE_TWO_PERSON_THRESHOLD))
+
+
+def _validate_income_policy(
+    *,
+    txn_type: str,
+    income_source: str | None,
+    income_justification: str | None,
+    is_foreign_funding: bool,
+    government_approval_ref: str | None,
+) -> None:
+    """Module 4 income-source policy, enforced on create AND update:
+    - income_source must be one of governance.INCOME_SOURCES (409 otherwise);
+    - 'other_income' requires a written justification;
+    - foreign funding requires a non-empty government approval reference
+      (a ref without the foreign flag is fine - e.g. correcting the flag)."""
+    if txn_type != FINANCE_TYPE_INCOME:
+        return
+    if income_source is not None and income_source not in {s["key"] for s in INCOME_SOURCES}:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Unknown income source '{income_source}'. "
+            f"Allowed: {', '.join(s['key'] for s in INCOME_SOURCES)}.",
+        )
+    if income_source == "other_income" and not (income_justification or "").strip():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="অন্যান্য আয়ের উৎসের জন্য যুক্তি (justification) আবশ্যক।",
+        )
+    if is_foreign_funding and not (government_approval_ref or "").strip():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="বিদেশি অর্থায়ন সরকার অনুমোদন ছাড়া গ্রহণযোগ্য নয়",
+        )
+
+
 def _txn_out(txn: FinancialTransaction, *, admin: bool) -> FinanceTransactionOut | FinanceTransactionAdminOut:
     if admin:
         out = FinanceTransactionAdminOut.model_validate(txn)
         if txn.creator is not None:
             out.created_by_name = txn.creator.name
+        if txn.second_approver is not None:
+            out.second_approved_by_name = txn.second_approver.name
     else:
         out = FinanceTransactionOut.model_validate(txn)
     if txn.category is not None:
@@ -514,6 +574,13 @@ async def create_finance_transaction(
 ) -> FinanceTransactionAdminOut:
     await _require_category_of_type(db, payload.category_id, payload.type)
     await _assert_payment_link(db, payload.linked_payment_type, payload.linked_payment_id)
+    _validate_income_policy(
+        txn_type=payload.type,
+        income_source=payload.income_source,
+        income_justification=payload.income_justification,
+        is_foreign_funding=payload.is_foreign_funding,
+        government_approval_ref=payload.government_approval_ref,
+    )
     txn = FinancialTransaction(
         txn_date=payload.txn_date,
         type=payload.type,
@@ -526,6 +593,10 @@ async def create_finance_transaction(
         linked_payment_id=payload.linked_payment_id,
         status=payload.status,
         created_by=admin.id,
+        income_source=payload.income_source,
+        income_justification=payload.income_justification,
+        is_foreign_funding=payload.is_foreign_funding,
+        government_approval_ref=payload.government_approval_ref,
     )
     db.add(txn)
     await db.flush()
@@ -596,6 +667,24 @@ async def update_finance_transaction(
             await _assign_reference(db, txn.txn_date, changes["reference_no"])
         else:
             changes["reference_no"] = await next_reference_no(db, txn.txn_date)
+
+    # Module 4: the income policy is validated against the MERGED row so a
+    # partial update (e.g. flipping is_foreign_funding alone) cannot slip an
+    # invalid combination past the create-time checks.
+    _validate_income_policy(
+        txn_type=new_type,
+        income_source=changes.get("income_source", txn.income_source),
+        income_justification=changes.get("income_justification", txn.income_justification),
+        is_foreign_funding=bool(changes.get("is_foreign_funding", txn.is_foreign_funding)),
+        government_approval_ref=changes.get("government_approval_ref", txn.government_approval_ref),
+    )
+    # Income-source fields are meaningless on an expense row.
+    if new_type == FINANCE_TYPE_EXPENSE:
+        for field in ("income_source", "income_justification", "government_approval_ref"):
+            if field in changes:
+                changes[field] = None
+        if "is_foreign_funding" in changes:
+            changes["is_foreign_funding"] = False
 
     before = {field: getattr(txn, field) for field in changes}
     for field, value in changes.items():
@@ -719,9 +808,42 @@ async def approve_finance_transaction(
             detail="Two-person control: you cannot approve a transaction you created. "
             "Another committee member must approve it.",
         )
+    if txn.type == FINANCE_TYPE_EXPENSE and not (txn.attachment_url or "").strip():
+        # Receipt/ভাউচার mandatory: no expense leaves the fund without its paper.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="ব্যয় অনুমোদনের আগে রসিদ/ভাউচার সংযুক্ত করা আবশ্যক।",
+        )
+    # Two-person approval on large expenses: the first approval only flips
+    # requires_secondary; a fund.approve_secondary holder who is NOT the first
+    # approver completes it via /secondary-approve.
+    if (
+        txn.type == FINANCE_TYPE_EXPENSE
+        and txn.amount > await _expense_two_person_threshold(db)
+        and txn.second_approved_by is None
+    ):
+        txn.status = FINANCE_STATUS_PENDING
+        txn.approved_by = admin.id
+        txn.approved_at = datetime.now(timezone.utc)
+        txn.requires_secondary = True
+        txn.rejection_reason = None
+        record_audit(
+            db,
+            actor_admin_id=admin.id,
+            action="finance_transaction.approve",
+            entity_type="financial_transaction",
+            entity_id=str(txn.id),
+            detail=f"first approval recorded ৳{txn.amount}; "
+            f"awaiting second approval (> threshold)",
+        )
+        await db.commit()
+        await db.refresh(txn)
+        return _txn_out(txn, admin=True)
+
     txn.status = FINANCE_STATUS_APPROVED
     txn.approved_by = admin.id
     txn.approved_at = datetime.now(timezone.utc)
+    txn.requires_secondary = False
     txn.rejection_reason = None
     await _maybe_publish_threshold_notice(db, admin, txn)
     record_audit(
@@ -731,6 +853,69 @@ async def approve_finance_transaction(
         entity_type="financial_transaction",
         entity_id=str(txn.id),
         detail=f"approved ৳{txn.amount}",
+    )
+    await db.commit()
+    await db.refresh(txn)
+    invalidate_summary_cache()
+    return _txn_out(txn, admin=True)
+
+
+@router.post(
+    "/admin/finance/transactions/{txn_id}/secondary-approve",
+    response_model=FinanceTransactionAdminOut,
+)
+async def secondary_approve_finance_transaction(
+    txn_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(require_permission("fund.approve_secondary")),
+) -> FinanceTransactionAdminOut:
+    """Second signature on a large expense. The second approver must differ
+    from the first, and the receipt/ভাউচার must still be present."""
+    txn = await _load_txn(db, txn_id)
+    if txn.status == FINANCE_STATUS_APPROVED and not txn.requires_secondary:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This transaction is already fully approved.",
+        )
+    if txn.status not in (FINANCE_STATUS_DRAFT, FINANCE_STATUS_PENDING):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot approve a transaction in status '{txn.status}'.",
+        )
+    if txn.type != FINANCE_TYPE_EXPENSE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Secondary approval only applies to expense transactions.",
+        )
+    if not (txn.attachment_url or "").strip():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="ব্যয় অনুমোদনের আগে রসিদ/ভাউচার সংযুক্ত করা আবশ্যক।",
+        )
+    if txn.approved_by is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="First approval is missing; approve the transaction normally first.",
+        )
+    if txn.approved_by == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Two-person approval: the first approver cannot also sign as the "
+            "second approver. Another fund.approve_secondary holder must sign.",
+        )
+    txn.status = FINANCE_STATUS_APPROVED
+    txn.second_approved_by = admin.id
+    txn.second_approved_at = datetime.now(timezone.utc)
+    txn.requires_secondary = False
+    txn.rejection_reason = None
+    await _maybe_publish_threshold_notice(db, admin, txn)
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="finance_transaction.secondary_approve",
+        entity_type="financial_transaction",
+        entity_id=str(txn.id),
+        detail=f"second approval recorded ৳{txn.amount} (first by admin #{txn.approved_by})",
     )
     await db.commit()
     await db.refresh(txn)
@@ -755,6 +940,9 @@ async def reject_finance_transaction(
     txn.rejection_reason = payload.reason
     txn.approved_by = None
     txn.approved_at = None
+    txn.requires_secondary = False
+    txn.second_approved_by = None
+    txn.second_approved_at = None
     record_audit(
         db,
         actor_admin_id=admin.id,

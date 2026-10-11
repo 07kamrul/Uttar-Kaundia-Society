@@ -109,12 +109,12 @@ export class MembersListComponent implements OnInit {
     if (!this.resetTarget) return;
     this.resetting = true;
     this.adminService.resetMemberPassword(this.resetTarget.id).subscribe({
-      next: ({ email_sent }) => {
+      next: ({ email_sent, temporary_password }) => {
         this.success = this.translate.instant(
           email_sent
             ? 'admin.membersList.resetModal.successMessage'
             : 'admin.membersList.resetModal.successNoEmail',
-          { name: this.resetTarget?.fullName },
+          { name: this.resetTarget?.fullName, password: temporary_password ?? '' },
         );
         this.resetTarget = null;
         this.resetting = false;

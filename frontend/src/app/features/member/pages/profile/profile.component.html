@@ -507,7 +507,7 @@
                 class="preview-media"
                 (error)="onPreviewImageError()"
               />
-            } @else {
+            } @else if (previewFrameUrl) {
               <iframe [src]="previewFrameUrl" class="preview-frame" [title]="previewTitle"></iframe>
             }
           </div>

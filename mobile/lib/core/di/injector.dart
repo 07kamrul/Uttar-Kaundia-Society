@@ -7,6 +7,7 @@ import '../network/api_client.dart';
 import '../storage/app_preferences.dart';
 import '../storage/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../network/media_token.dart';
 
 final sl = GetIt.instance;
 
@@ -34,6 +35,7 @@ Future<void> configureDependencies() async {
       onUnauthorized: () {
         sl<SessionManager>().clear();
         sl<TokenStorage>().clear();
+        MediaTokenStore.clear();
         routerNotifier.notifyUnauthorized();
       },
     ),

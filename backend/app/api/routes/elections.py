@@ -12,6 +12,7 @@ from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -37,6 +38,8 @@ from app.models.committee_election import (
     NOMINATION_STATUS_REJECTED,
     NOMINATION_STATUSES,
     TERM_YEARS,
+    default_term_end,
+    post_seats,
     CommitteeTerm,
     Election,
     ElectionComplaint,
@@ -51,6 +54,7 @@ from app.models.member import (
     Member,
     MemberStatus,
 )
+from app.api.routes.committee_registry import supersede_current_term
 from app.services.audit import record_audit
 from app.services.election_pdf import ResultRow, ResultSheetData, bn_date, bn_digits, build_result_sheet_pdf
 from app.services.governance import COUNCIL_POSTS, POST_KEYS, is_election_eligible
@@ -138,10 +142,13 @@ def member_snapshot(member: Member) -> dict:
     }
 
 
-async def load_election(db: AsyncSession, election_id: int) -> Election:
-    election = (
-        await db.execute(select(Election).where(Election.id == election_id))
-    ).scalar_one_or_none()
+async def load_election(db: AsyncSession, election_id: int, *, for_update: bool = False) -> Election:
+    """Load an election; `for_update` row-locks it (SELECT ... FOR UPDATE) so a
+    status check + transition cannot race a concurrent request."""
+    query = select(Election).where(Election.id == election_id)
+    if for_update:
+        query = query.with_for_update()
+    election = (await db.execute(query)).scalar_one_or_none()
     if election is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Election not found.")
     return election
@@ -238,6 +245,50 @@ def _ensure_transition(election: Election, expected: str) -> None:
         )
 
 
+def select_winners(post_key: str, candidates: list[dict]) -> tuple[list[dict], int]:
+    """Top-N plurality winners for a post with N seats (see post_seats).
+
+    A candidate needs at least one vote (an unopposed candidate with zero
+    votes is not elected). A tie straddling a seat cutoff leaves that seat -
+    and any seat after it - unfilled (resolve via re-election), consistent
+    with the single-seat tie rule. Returns (winners, skipped_seats)."""
+    seats = post_seats(post_key)
+    ranked = sorted((c for c in candidates if c["votes"] > 0), key=lambda c: c["votes"], reverse=True)
+    winners: list[dict] = []
+    for seat in range(min(seats, len(ranked))):
+        votes = ranked[seat]["votes"]
+        last_tied = max(i for i, c in enumerate(ranked) if c["votes"] == votes)
+        if last_tied >= seats:
+            break  # tie crosses the seat cutoff
+        winners.append(ranked[seat])
+    return winners, seats - len(winners)
+
+
+async def _member_names(db: AsyncSession, member_ids) -> dict[int, str]:
+    """One IN query for many member names (avoids N+1)."""
+    ids = set(member_ids)
+    if not ids:
+        return {}
+    rows = await db.execute(select(Member.id, Member.full_name).where(Member.id.in_(ids)))
+    return dict(rows.all())
+
+
+def _confirmation_notice_body(filled_posts: int, skipped_posts: int) -> str:
+    """Notice text worded from the actual outcome, not assumed winners."""
+    if filled_posts:
+        body = (
+            f"আনুষ্ঠানিকভাবে ফলাফল নিশ্চিত করা হয়েছে; {bn_digits(filled_posts)}টি পদের বিজয়ী "
+            "কমিটি রেজিস্ট্রিতে যুক্ত হয়েছেন।"
+        )
+    else:
+        body = "আনুষ্ঠানিকভাবে ফলাফল নিশ্চিত করা হয়েছে; কোনো পদে বিজয়ী নির্ধারিত হয়নি (০টি পদ পূরণ)।"
+    if skipped_posts:
+        body += (
+            f" {bn_digits(skipped_posts)}টি পদ সমতা বা ভোটশূন্যতার কারণে অপূরিত; পুনর্নির্বাচন প্রয়োজন।"
+        )
+    return body
+
+
 def _window_open(start: date, end: date, today: date) -> bool:
     return start <= today <= end
 
@@ -318,7 +369,7 @@ async def close_nominations(
 ) -> dict:
     """Closing nominations FREEZES the voter snapshot from currently-eligible
     members; from here on, eligibility follows the snapshot, not live state."""
-    election = await load_election(db, election_id)
+    election = await load_election(db, election_id, for_update=True)
     _ensure_transition(election, ELECTION_STATUS_NOMINATIONS_OPEN)
     eligible_members = (
         (
@@ -447,40 +498,50 @@ async def confirm_results(
     """Formal confirmation: the plurality winner of each contested post gets a
     new CommitteeTerm in the registry; a public notice is published; the whole
     action is audited."""
-    election = await load_election(db, election_id)
+    election = await load_election(db, election_id, for_update=True)
     _ensure_transition(election, ELECTION_STATUS_TABULATED)
     counts = await _counts(db, election.id)
     created_terms: list[str] = []
+    filled_posts = 0
+    skipped: list[str] = []
     for post_key, bucket in counts.items():
-        if not bucket["candidates"]:
-            continue
-        top = max(bucket["candidates"], key=lambda c: c["votes"])
-        leaders = [c for c in bucket["candidates"] if c["votes"] == top["votes"]]
-        if len(leaders) != 1:
-            continue  # tie: no automatic winner; resolve via re-election
-        term = CommitteeTerm(
-            post_key=post_key,
-            member_id=top["member_id"],
-            term_start=_today(),
-            term_end=_today().replace(year=_today().year + TERM_YEARS),
-            created_by=admin.id,
-        )
-        db.add(term)
-        await db.flush()
-        created_terms.append(f"{post_key}: member {top['member_id']} ({top['votes']} votes)")
+        winners, skipped_seats = select_winners(post_key, bucket["candidates"])
+        if skipped_seats:
+            # tie at the cutoff or no votes: no automatic winner; re-election
+            skipped.append(f"{post_key} ({skipped_seats} seat(s))")
+        if winners:
+            filled_posts += 1
+        batch_ids: list[int] = []
+        for winner in winners:
+            term = CommitteeTerm(
+                post_key=post_key,
+                member_id=winner["member_id"],
+                term_start=_today(),
+                term_end=default_term_end(_today()),
+                created_by=admin.id,
+            )
+            db.add(term)
+            await db.flush()
+            replaced = await supersede_current_term(db, post_key, term, exclude_ids=tuple(batch_ids))
+            batch_ids.append(term.id)
+            created_terms.append(
+                f"{post_key}: member {winner['member_id']} ({winner['votes']} votes)"
+                + (f", replaces term {replaced.id}" if replaced is not None else "")
+            )
     election.status = ELECTION_STATUS_CONFIRMED
     election.confirmed_at = _now()
     record_audit(
         db, actor_admin_id=admin.id, action="election.confirmed",
         entity_type="election", entity_id=str(election.id),
         detail=f"{election.title}: confirmed; registry terms written: "
-        + ("; ".join(created_terms) if created_terms else "none (all ties?)"),
+        + ("; ".join(created_terms) if created_terms else "none")
+        + (f"; unfilled (tie/no votes): {', '.join(skipped)}" if skipped else ""),
     )
     await publish_resolution_book_notice(
         db,
         admin,
         title=f"🗳️ নির্বাচনের ফলাফল নিশ্চিত: {election.title}",
-        body="আনুষ্ঠানিকভাবে ফলাফল নিশ্চিত করা হয়েছে; বিজয়ীরা কমিটি রেজিস্ট্রিতে যুক্ত হয়েছেন।",
+        body=_confirmation_notice_body(filled_posts, len(skipped)),
     )
     await db.commit()
     await db.refresh(election)
@@ -586,6 +647,7 @@ async def result_sheet_pdf(
             "Result sheet is available only after tabulation.",
         )
     counts = await _counts(db, election.id)
+    names = await _member_names(db, (c["member_id"] for b in counts.values() for c in b["candidates"]))
     rows: list[ResultRow] = []
     for post in COUNCIL_POSTS:
         bucket = counts.get(post["key"])
@@ -593,19 +655,17 @@ async def result_sheet_pdf(
             continue
         top_votes = max(c["votes"] for c in bucket["candidates"])
         leaders = [c for c in bucket["candidates"] if c["votes"] == top_votes]
-        candidates = []
-        for cand in bucket["candidates"]:
-            name = (
-                await db.execute(select(Member.full_name).where(Member.id == cand["member_id"]))
-            ).scalar_one()
-            candidates.append(
-                {
-                    "name": name,
-                    "votes": cand["votes"],
-                    "winner": election.status == ELECTION_STATUS_CONFIRMED and len(leaders) == 1
-                    and cand["votes"] == top_votes,
-                }
-            )
+        winners, _ = select_winners(post["key"], bucket["candidates"])
+        winner_ids = {w["nomination_id"] for w in winners}
+        candidates = [
+            {
+                "name": names.get(cand["member_id"]),
+                "votes": cand["votes"],
+                "winner": election.status == ELECTION_STATUS_CONFIRMED
+                and cand["nomination_id"] in winner_ids,
+            }
+            for cand in bucket["candidates"]
+        ]
         rows.append(
             ResultRow(
                 post_key=post["key"],
@@ -654,6 +714,12 @@ async def decide_complaint(
     ).scalar_one_or_none()
     if complaint is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Complaint not found.")
+    if complaint.status != COMPLAINT_STATUS_SUBMITTED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"অভিযোগটি ইতিমধ্যে নিষ্পত্তি হয়েছে ({complaint.status}). "
+            "Complaint has already been decided.",
+        )
     complaint.status = payload.status
     complaint.resolution = payload.resolution.strip()
     complaint.decided_at = _now()
@@ -729,14 +795,13 @@ async def election_for_member(
     results = None
     if election.status in (ELECTION_STATUS_TABULATED, ELECTION_STATUS_CONFIRMED):
         counts = await _counts(db, election.id)
+        names = await _member_names(db, (c["member_id"] for b in counts.values() for c in b["candidates"]))
         results = []
         for post_key, bucket in counts.items():
-            candidates = []
-            for cand in bucket["candidates"]:
-                name = (
-                    await db.execute(select(Member.full_name).where(Member.id == cand["member_id"]))
-                ).scalar_one()
-                candidates.append({"member_id": cand["member_id"], "name": name, "votes": cand["votes"]})
+            candidates = [
+                {"member_id": c["member_id"], "name": names.get(c["member_id"]), "votes": c["votes"]}
+                for c in bucket["candidates"]
+            ]
             results.append({"post_key": post_key, "candidates": candidates, "votes_total": bucket["votes_total"]})
 
     # Approved candidate roster (names + ids only - never vote counts) so a
@@ -929,7 +994,7 @@ async def cast_vote(
     db.add(vote)
     try:
         await db.flush()
-    except Exception:
+    except IntegrityError:
         # The unique constraint is the last line of defence against a
         # double ballot (e.g. two tabs racing).
         await db.rollback()

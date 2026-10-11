@@ -1,9 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { MemberService } from './member.service';
+import { MemberService, type SessionTokens } from './member.service';
+import { MediaTokenService } from './media-token.service';
 
 export type UserRole = 'super_admin' | 'executive_committee' | 'administrator' | 'member';
 
@@ -90,6 +91,8 @@ export class AuthService {
 
   readonly isAuthenticated = signal<boolean>(!!this.accessToken());
 
+  private readonly mediaToken = inject(MediaTokenService);
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -134,7 +137,11 @@ export class AuthService {
   login(identifier: string, password: string): Observable<TokenResponse> {
     return this.http
       .post<TokenResponse>(`${environment.apiBaseUrl}/login`, { identifier, password })
-      .pipe(tap((res) => this.storeSession(res, res.role)));
+      .pipe(
+        tap((res) => this.storeSession(res, res.role)),
+        // File URLs are built from the media token; have it before any page renders.
+        switchMap((res) => this.mediaToken.start().pipe(map(() => res))),
+      );
   }
 
   requestPasswordReset(identifier: string): Observable<void> {
@@ -171,6 +178,7 @@ export class AuthService {
 
   logout(): void {
     this.memberService.clearProfileCache();
+    this.mediaToken.clear();
     this.accessToken.set(null);
     this.refreshTokenValue.set(null);
     this.roleValue.set(null);
@@ -184,8 +192,17 @@ export class AuthService {
     this.mustChangePasswordValue.set(false);
   }
 
-  /** Called after the user successfully sets a new password, unlocking the app. */
-  markPasswordChanged(): void {
+  /**
+   * Called after the user successfully sets a new password, unlocking the app.
+   * The backend revoked the old tokens, so adopt the fresh pair it returned.
+   */
+  markPasswordChanged(tokens?: SessionTokens): void {
+    if (tokens) {
+      this.accessToken.set(tokens.access_token);
+      this.refreshTokenValue.set(tokens.refresh_token);
+      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refresh_token);
+    }
     this.mustChangePasswordValue.set(false);
     localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
   }

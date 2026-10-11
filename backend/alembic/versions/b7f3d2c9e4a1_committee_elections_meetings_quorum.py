@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("member_id", sa.Integer(), sa.ForeignKey("members.id", ondelete="SET NULL"), nullable=True),
         sa.Column("term_start", sa.Date(), nullable=False),
         sa.Column("term_end", sa.Date(), nullable=False),
-        sa.Column("is_caretaker", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("is_caretaker", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("replaced_by_term_id", sa.Integer(), sa.ForeignKey("committee_terms.id", ondelete="SET NULL"), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("created_by", sa.Integer(), sa.ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True),
@@ -172,10 +172,10 @@ def upgrade() -> None:
     op.add_column("meetings", sa.Column("quorum_present", sa.Integer(), nullable=True))
     op.add_column("meetings", sa.Column("quorum_required", sa.Integer(), nullable=True))
     op.add_column(
-        "meetings", sa.Column("quorum_acknowledged", sa.Boolean(), nullable=False, server_default=sa.text("0"))
+        "meetings", sa.Column("quorum_acknowledged", sa.Boolean(), nullable=False, server_default=sa.false())
     )
     op.add_column(
-        "meetings", sa.Column("casting_vote_used", sa.Boolean(), nullable=False, server_default=sa.text("0"))
+        "meetings", sa.Column("casting_vote_used", sa.Boolean(), nullable=False, server_default=sa.false())
     )
 
     op.add_column("resolutions", sa.Column("vote_mode", sa.String(8), nullable=True))

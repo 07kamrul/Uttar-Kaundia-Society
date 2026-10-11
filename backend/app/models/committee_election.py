@@ -68,6 +68,22 @@ COMPLAINT_STATUSES = (COMPLAINT_STATUS_SUBMITTED, COMPLAINT_STATUS_RESOLVED, COM
 # Default term length per the constitution: 3 years.
 TERM_YEARS = 3
 
+# Seats per council post; posts not listed have a single seat.
+DEFAULT_POST_SEATS = 1
+POST_SEATS: dict[str, int] = {"executive_member": 2}
+
+
+def post_seats(post_key: str) -> int:
+    return POST_SEATS.get(post_key, DEFAULT_POST_SEATS)
+
+
+def default_term_end(term_start: date) -> date:
+    """term_start + TERM_YEARS; a Feb 29 start clamps to Feb 28 instead of raising."""
+    try:
+        return term_start.replace(year=term_start.year + TERM_YEARS)
+    except ValueError:
+        return term_start.replace(year=term_start.year + TERM_YEARS, day=28)
+
 
 class CommitteeTerm(Base):
     """One holder's tenure of one council post in the committee registry."""

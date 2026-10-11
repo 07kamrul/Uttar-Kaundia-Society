@@ -798,11 +798,14 @@ async def reset_member_password(
             detail="This member has no login yet. Reset is available after approval.",
         )
 
-    # Fixed shared temporary password for admin-initiated resets; the member
-    # is forced to change it on first sign-in via must_change_password below.
-    temp_password = "UKAMKS123"
+    # Random per reset: a shared fixed password would let anyone who knows it
+    # take over a freshly reset account before its owner signs in. The member
+    # must still change it on first sign-in (must_change_password).
+    temp_password = generate_temp_password()
     credential.password_hash = await hash_password_async(temp_password)
     credential.must_change_password = True
+    # Revoke any session signed in with the old password.
+    credential.token_version += 1
     record_audit(
         db,
         actor_admin_id=admin.id,
@@ -834,7 +837,11 @@ async def reset_member_password(
             "contact the association office.</p>"
         ),
     )
-    return ResetPasswordResponse(member_id=member.member_id, email_sent=email_sent)
+    return ResetPasswordResponse(
+        member_id=member.member_id,
+        email_sent=email_sent,
+        temporary_password=None if email_sent else temp_password,
+    )
 
 
 @router.patch("/installments/{installment_id}", response_model=InstallmentOut)

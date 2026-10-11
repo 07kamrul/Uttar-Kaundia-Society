@@ -200,6 +200,8 @@ class ResolutionUpdate(BaseModel):
 
 class AttendanceBulkIn(BaseModel):
     entries: list[AttendanceEntryIn] = Field(min_length=1, max_length=2000)
+    # Completed meetings recompute quorum; a new shortfall needs this flag.
+    acknowledge_no_quorum: bool = False
 
     @model_validator(mode="after")
     def _unique_members(self) -> "AttendanceBulkIn":

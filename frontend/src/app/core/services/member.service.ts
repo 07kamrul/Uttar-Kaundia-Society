@@ -376,6 +376,11 @@ export interface MemberProfileUpdatePayload {
   showInNeighbourDirectory?: boolean;
 }
 
+export interface SessionTokens {
+  access_token: string;
+  refresh_token: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MemberService {
   private base = `${environment.apiBaseUrl}/member`;
@@ -383,8 +388,9 @@ export class MemberService {
 
   constructor(private http: HttpClient) {}
 
-  changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/change-password`, {
+  /** The backend revokes every earlier token on success and returns a fresh pair. */
+  changePassword(currentPassword: string, newPassword: string): Observable<SessionTokens> {
+    return this.http.post<SessionTokens>(`${this.base}/change-password`, {
       current_password: currentPassword,
       new_password: newPassword,
     });

@@ -24,7 +24,13 @@ from app.core.deps import (
     get_current_member,
     get_current_member_detail,
 )
-from app.core.security import ADMIN_ROLES, hash_password_async, verify_password_async
+from app.core.security import (
+    ADMIN_ROLES,
+    create_access_token,
+    create_refresh_token,
+    hash_password_async,
+    verify_password_async,
+)
 from app.db.session import get_db
 from app.models.credential import MemberCredential
 from app.models.installment import Installment
@@ -40,7 +46,7 @@ from app.schemas.property_request import (
     PropertyRequestOut,
     PropertyRequestPayload,
 )
-from app.schemas.auth import ChangePasswordRequest, validate_new_password
+from app.schemas.auth import ChangePasswordRequest, ChangePasswordResponse, validate_new_password
 from app.schemas.installment import InstallmentOut
 from app.schemas.member import MemberDetail, MemberProfileUpdate
 from app.schemas.picnic_payment import PicnicPaymentIn, PicnicPaymentOut
@@ -272,12 +278,12 @@ async def upload_my_photo(
     return member
 
 
-@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/change-password", response_model=ChangePasswordResponse)
 async def change_password(
     payload: ChangePasswordRequest,
     member: Member = Depends(get_current_member),
     db: AsyncSession = Depends(get_db),
-) -> None:
+) -> ChangePasswordResponse:
     result = await db.execute(
         select(MemberCredential).where(MemberCredential.member_id == member.id)
     )
@@ -301,7 +307,15 @@ async def change_password(
 
     credential.password_hash = await hash_password_async(payload.new_password)
     credential.must_change_password = False
+    # Revokes every outstanding token (e.g. a stolen session), including the
+    # one used for this call - so hand the caller a fresh pair to stay signed in.
+    credential.token_version += 1
     await db.commit()
+    version = credential.token_version
+    return ChangePasswordResponse(
+        access_token=create_access_token(str(member.id), "member", version),
+        refresh_token=create_refresh_token(str(member.id), "member", version),
+    )
 
 # --- Property change requests ----------------------------------------------
 # Members never write to `properties` directly once approved; every add,

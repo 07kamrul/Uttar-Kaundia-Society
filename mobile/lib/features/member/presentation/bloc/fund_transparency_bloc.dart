@@ -29,6 +29,10 @@ class FundTransparencyBloc
 
   final FinanceRepository _repository;
 
+  /// Monotonic ledger request id: only the latest request may write state, so
+  /// a slow stale response cannot overwrite newer filters/page results.
+  int _ledgerRequestSeq = 0;
+
   /// Loads the summary, then chains the ledger with the summary's date bounds
   /// (mirrors Angular loadLedgerWithPeriodDates).
   Future<void> _onPeriodApplied(
@@ -95,12 +99,15 @@ class FundTransparencyBloc
   }
 
   Future<void> _loadLedger(Emitter<FundTransparencyState> emit) async {
+    final requestId = ++_ledgerRequestSeq;
     emit(state.copyWith(ledgerLoading: true, clearLedgerError: true));
     try {
       final ledger = await _repository.getTransactions(state.ledgerFilters);
+      if (requestId != _ledgerRequestSeq) return;
       emit(state.copyWith(
           ledger: ledger, ledgerLoading: false, clearLedgerError: true));
     } catch (_) {
+      if (requestId != _ledgerRequestSeq) return;
       emit(state.copyWith(ledgerLoading: false, ledgerError: true));
     }
   }

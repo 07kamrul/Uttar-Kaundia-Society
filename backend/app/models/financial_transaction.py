@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, Numeric, SmallInteger, String, func, text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Index, Integer, Numeric, SmallInteger, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -98,3 +98,18 @@ class FinancialTransaction(Base):
     category = relationship("ConfigListItem", lazy="joined")
     creator = relationship("AdminUser", foreign_keys=[created_by], lazy="joined")
     approver = relationship("AdminUser", foreign_keys=[approved_by], lazy="joined")
+
+    # Module 4 — two-person approval on large expenses: the second signature
+    # (fund.approve_secondary holder, not the first approver).
+    second_approved_by: Mapped[int | None] = mapped_column(
+        ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True
+    )
+    second_approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    requires_secondary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    second_approver = relationship("AdminUser", foreign_keys=[second_approved_by], lazy="joined")
+
+    # Module 4 — income-source policy on the ledger row.
+    income_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    income_justification: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_foreign_funding: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    government_approval_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)

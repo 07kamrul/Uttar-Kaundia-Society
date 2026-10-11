@@ -43,6 +43,9 @@ from app.models.membership_appeal import (
     MembershipAppeal,
 )
 from app.models.complaint import Complaint, DataCorrectionRequest
+from app.models.fund_controls import BankSignatory, AuditReport, WelfareFundRequest
+from app.models.amendment import ConstitutionVersion, AmendmentProposal
+from app.models.registers import SocietyAsset, WelfareActivity
 from app.models.plot_boundary import (
     BoundaryDispute,
     ReviewStatus,
@@ -107,4 +110,11 @@ __all__ = [
     "ChangeType",
     "PlotBoundary",
     "PlotBoundaryVersion",
+    "BankSignatory",
+    "AuditReport",
+    "WelfareFundRequest",
+    "ConstitutionVersion",
+    "AmendmentProposal",
+    "SocietyAsset",
+    "WelfareActivity",
 ]

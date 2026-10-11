@@ -69,7 +69,13 @@ def generate_temp_password(length: int = 10) -> str:
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
-def _create_token(subject: str, role: TokenRole, expires_delta: timedelta, token_type: str) -> str:
+def _create_token(
+    subject: str,
+    role: TokenRole,
+    expires_delta: timedelta,
+    token_type: str,
+    version: int | None = None,
+) -> str:
     now = datetime.now(timezone.utc)
     payload: dict[str, Any] = {
         "sub": subject,
@@ -78,19 +84,30 @@ def _create_token(subject: str, role: TokenRole, expires_delta: timedelta, token
         "iat": now,
         "exp": now + expires_delta,
     }
+    if version is not None:
+        # Matched against the account's token_version on every request;
+        # bumping the column (password reset/change) revokes older tokens.
+        payload["ver"] = version
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def create_access_token(subject: str, role: TokenRole) -> str:
+def create_access_token(subject: str, role: TokenRole, version: int = 0) -> str:
     return _create_token(
-        subject, role, timedelta(minutes=settings.access_token_expire_minutes), "access"
+        subject, role, timedelta(minutes=settings.access_token_expire_minutes), "access", version
     )
 
 
-def create_refresh_token(subject: str, role: TokenRole) -> str:
+def create_refresh_token(subject: str, role: TokenRole, version: int = 0) -> str:
     return _create_token(
-        subject, role, timedelta(days=settings.refresh_token_expire_days), "refresh"
+        subject, role, timedelta(days=settings.refresh_token_expire_days), "refresh", version
     )
+
+
+def token_version_matches(payload: dict[str, Any], current_version: int) -> bool:
+    """Tokens minted before versioning carry no `ver`; treat them as 0 so they
+    stay valid until expiry unless the account has since been revoked."""
+    claimed = payload.get("ver", 0)
+    return isinstance(claimed, int) and not isinstance(claimed, bool) and claimed == current_version
 
 
 def decode_token(token: str) -> dict[str, Any] | None:
@@ -98,3 +115,20 @@ def decode_token(token: str) -> dict[str, Any] | None:
         return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     except JWTError:
         return None
+
+
+# Media tokens ride in /uploads URLs (?t=...), where <img>/<a> cannot send an
+# Authorization header. They are short-lived and typed "media", so a URL that
+# leaks into logs or history can neither call the API nor outlive the window.
+MEDIA_TOKEN_EXPIRE_MINUTES = 30
+
+
+def create_media_token(subject: str, role: TokenRole) -> str:
+    return _create_token(subject, role, timedelta(minutes=MEDIA_TOKEN_EXPIRE_MINUTES), "media")
+
+
+def decode_media_token(token: str) -> dict[str, Any] | None:
+    payload = decode_token(token)
+    if payload is None or payload.get("type") != "media":
+        return None
+    return payload

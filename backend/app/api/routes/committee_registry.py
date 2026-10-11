@@ -26,6 +26,7 @@ from app.models.committee_election import (
     TERM_STATUS_EXPIRED,
     TERM_STATUS_VACANT,
     TERM_YEARS,
+    default_term_end,
     VACANCY_STATUS_ACKNOWLEDGED,
     VACANCY_STATUS_DECIDED,
     VACANCY_STATUS_INVESTIGATION,
@@ -111,6 +112,51 @@ async def _member_brief(db: AsyncSession, member_id: int | None) -> dict | None:
     if row is None:
         return None
     return {"id": row[0], "full_name": row[1], "member_id": row[2]}
+
+
+async def _member_briefs(db: AsyncSession, member_ids) -> dict[int, dict]:
+    """Batch variant of _member_brief: one IN query for many members."""
+    ids = {m for m in member_ids if m is not None}
+    if not ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(Member.id, Member.full_name, Member.member_id).where(Member.id.in_(ids))
+        )
+    ).all()
+    return {r[0]: {"id": r[0], "full_name": r[1], "member_id": r[2]} for r in rows}
+
+
+async def supersede_current_term(
+    db: AsyncSession,
+    post_key: str,
+    new_term: CommitteeTerm,
+    *,
+    exclude_ids: tuple[int, ...] = (),
+) -> CommitteeTerm | None:
+    """Mark the post's latest not-yet-replaced term as replaced by `new_term`
+    (which must already be flushed). `exclude_ids` keeps sibling terms created
+    in the same batch (multi-seat posts) from superseding each other.
+    Shared by create_term and election confirmation. Returns the superseded
+    term, if any."""
+    current = (
+        (
+            await db.execute(
+                select(CommitteeTerm)
+                .where(
+                    CommitteeTerm.post_key == post_key,
+                    CommitteeTerm.replaced_by_term_id.is_(None),
+                    CommitteeTerm.id.not_in((new_term.id, *exclude_ids)),
+                )
+                .order_by(CommitteeTerm.term_start.desc(), CommitteeTerm.id.desc())
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if current is not None:
+        current.replaced_by_term_id = new_term.id
+    return current
 
 
 def term_to_dict(term: CommitteeTerm, today: date | None = None) -> dict:
@@ -224,13 +270,17 @@ async def registry_overview(
         .all()
     )
 
+    briefs = await _member_briefs(
+        db,
+        [t.member_id for t in latest_by_post.values()] + [v.member_id for v in vacancies],
+    )
     posts = []
     for post in COUNCIL_POSTS:
         term = latest_by_post.get(post["key"])
         holder = None
         post_status = TERM_STATUS_VACANT
         if term is not None and term.member_id is not None:
-            holder = await _member_brief(db, term.member_id)
+            holder = briefs.get(term.member_id)
             post_status = term.computed_status(today)
         expired = post_status == TERM_STATUS_EXPIRED
         posts.append(
@@ -248,7 +298,7 @@ async def registry_overview(
             }
         )
 
-    vacancy_items = [vacancy_to_dict(v, await _member_brief(db, v.member_id)) for v in vacancies]
+    vacancy_items = [vacancy_to_dict(v, briefs.get(v.member_id)) for v in vacancies]
     return {"posts": posts, "open_vacancies": vacancy_items, "today": today}
 
 
@@ -325,23 +375,8 @@ async def create_term(
     ).scalar_one_or_none()
     if member is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found.")
-    term_end = payload.term_end or payload.term_start.replace(year=payload.term_start.year + TERM_YEARS)
+    term_end = payload.term_end or default_term_end(payload.term_start)
 
-    # If the post currently has an active holder, that term is superseded.
-    current = (
-        (
-            await db.execute(
-                select(CommitteeTerm)
-                .where(
-                    CommitteeTerm.post_key == payload.post_key,
-                    CommitteeTerm.replaced_by_term_id.is_(None),
-                )
-                .order_by(CommitteeTerm.term_start.desc(), CommitteeTerm.id.desc())
-            )
-        )
-        .scalars()
-        .first()
-    )
     term = CommitteeTerm(
         post_key=payload.post_key,
         member_id=payload.member_id,
@@ -353,8 +388,8 @@ async def create_term(
     )
     db.add(term)
     await db.flush()
-    if current is not None:
-        current.replaced_by_term_id = term.id
+    # If the post currently has an active holder, that term is superseded.
+    current = await supersede_current_term(db, payload.post_key, term)
     record_audit(
         db,
         actor_admin_id=admin.id,

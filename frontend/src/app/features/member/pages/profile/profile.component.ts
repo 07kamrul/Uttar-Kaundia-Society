@@ -1,3 +1,4 @@
+import { isSafePreviewUrl } from '../../../../shared/utils/safe-preview-url';
 import {
   Component,
   OnInit,
@@ -316,12 +317,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   /* ---------- property document preview ---------- */
 
   /** Sanitized URL for embedding non-image previews (e.g. PDF) in an iframe. */
-  get previewFrameUrl(): SafeResourceUrl {
+  get previewFrameUrl(): SafeResourceUrl | null {
     if (this.sanitizedFrameUrlFor !== this.previewUrl) {
       this.sanitizedFrameUrlFor = this.previewUrl;
-      this.sanitizedFrameUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl ?? '');
+      this.sanitizedFrameUrl = isSafePreviewUrl(this.previewUrl)
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl as string)
+        : null;
     }
-    return this.sanitizedFrameUrl as SafeResourceUrl;
+    return this.sanitizedFrameUrl;
   }
 
   openDocPreview(doc: MemberPropertyDoc): void {

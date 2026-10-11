@@ -10,6 +10,12 @@ class TokenStorage {
 
   static const _accessKey = 'krmf_access_token';
   static const _refreshKey = 'krmf_refresh_token';
+  static const _sessionKey = 'krmf_session_meta';
+
+  /// JSON snapshot of login-time session metadata (permissions,
+  /// must_change_password) used to rebuild the session on cold start.
+  Future<String?> readSessionMeta() => _storage.read(key: _sessionKey);
+  Future<void> writeSessionMeta(String json) => _storage.write(key: _sessionKey, value: json);
 
   Future<String?> readAccess() => _storage.read(key: _accessKey);
   Future<String?> readRefresh() => _storage.read(key: _refreshKey);
@@ -26,5 +32,6 @@ class TokenStorage {
   Future<void> clear() async {
     await _storage.delete(key: _accessKey);
     await _storage.delete(key: _refreshKey);
+    await _storage.delete(key: _sessionKey);
   }
 }

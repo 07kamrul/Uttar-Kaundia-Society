@@ -6,6 +6,7 @@ Committee edits inside the window are normal edits; past the window only an
 admin may change a record and the audit row marks it as a logged correction.
 """
 import asyncio
+import math
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -13,7 +14,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -398,23 +399,24 @@ async def _apply_resolutions(
     if resolutions:
         await _resolve_members_exist(db, {r.assigned_to_member_id for r in resolutions if r.assigned_to_member_id})
     for index, payload in enumerate(resolutions, start=1):
-        db.add(
-            Resolution(
-                meeting_id=meeting.id,
-                resolution_no=index,
-                decision=payload.decision,
-                vote_for=payload.vote_for,
-                vote_against=payload.vote_against,
-                vote_neutral=payload.vote_neutral,
-                assigned_to_member_id=payload.assigned_to_member_id,
-                task=payload.task,
-                due_date=payload.due_date,
-                status=payload.status,
-                vote_mode=payload.vote_mode,
-                casting_vote=payload.casting_vote,
-                casting_note=payload.casting_note,
-            )
+        resolution = Resolution(
+            meeting_id=meeting.id,
+            resolution_no=index,
+            decision=payload.decision,
+            vote_for=payload.vote_for,
+            vote_against=payload.vote_against,
+            vote_neutral=payload.vote_neutral,
+            assigned_to_member_id=payload.assigned_to_member_id,
+            task=payload.task,
+            due_date=payload.due_date,
+            status=payload.status,
+            vote_mode=payload.vote_mode,
+            casting_vote=payload.casting_vote,
+            casting_note=payload.casting_note,
         )
+        # Same tie rule as add/update: the atomic create path must not bypass it.
+        _require_casting_vote_on_tie(resolution)
+        db.add(resolution)
     await db.flush()
 
 
@@ -455,9 +457,26 @@ async def _enforce_quorum(
     if present is None:
         present = present_count(meeting)
     required = quorum_required_for(meeting, await count_eligible_members(db))
+    previous_ack = meeting.quorum_acknowledged
+    previous_present = meeting.quorum_present
+    previous_required = meeting.quorum_required
     meeting.quorum_present = present
     meeting.quorum_required = required
-    if present >= required or meeting.quorum_acknowledged:
+    if present >= required:
+        # Quorum met (e.g. attendance corrected): no shortfall left to flag.
+        # The earlier acknowledgement stays in the audit log.
+        meeting.quorum_acknowledged = False
+        return
+    # An acknowledgement covers the specific shortfall it was given for. It
+    # still applies if the sitting is no worse (present not lower, required
+    # not higher); a bigger shortfall needs a fresh acknowledgement.
+    if (
+        previous_ack
+        and previous_present is not None
+        and previous_required is not None
+        and present >= previous_present
+        and required <= previous_required
+    ):
         return
     if not acknowledge:
         raise HTTPException(
@@ -576,6 +595,32 @@ async def create_meeting(
     return MeetingDetailOut(**meeting_detail_dict(meeting, created_by_name=admin_name))
 
 
+def _as_utc(value: datetime | None) -> datetime | None:
+    # SQLite returns naive datetimes; stored values are UTC.
+    if value is None or value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=timezone.utc)
+
+
+def _reject_schedule_change_after_notice(meeting: Meeting, payload: MeetingUpdate, sent: set[str]) -> None:
+    """Once the sitting notice is public, its schedule and council type (which
+    decides the notice period) are frozen: changing them would silently
+    invalidate the published notice."""
+    changed = []
+    if "scheduled_start_at" in sent and _as_utc(payload.scheduled_start_at) != _as_utc(meeting.scheduled_start_at):
+        changed.append("scheduled_start_at")
+    if "council_type" in sent and payload.council_type != meeting.council_type:
+        changed.append("council_type")
+    if changed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "নোটিশ প্রকাশের পর সভার সময় বা ধরন পরিবর্তন করা যায় না। "
+                f"Notice already published - {', '.join(changed)} cannot be changed."
+            ),
+        )
+
+
 @router.put("/resolution-book/meetings/{meeting_id}", response_model=MeetingDetailOut)
 async def update_meeting(
     meeting_id: int,
@@ -586,6 +631,8 @@ async def update_meeting(
     meeting = await load_meeting(db, meeting_id)
     post_cutoff = await edit_cutoff_exceeded(meeting)
     sent = payload.model_fields_set
+    if meeting.notice_published_at is not None:
+        _reject_schedule_change_after_notice(meeting, payload, sent)
     changes: list[str] = []
     for field in (
         "date",
@@ -650,6 +697,10 @@ async def bulk_attendance(
     # Attendance shrinks the vote ceiling: existing tallies are re-validated.
     for resolution in meeting.resolutions:
         validate_votes(present, resolution.vote_for, resolution.vote_against, resolution.vote_neutral)
+    # Completed sittings keep quorum_present/required in sync with attendance.
+    await _enforce_quorum(
+        db, meeting, acknowledge=payload.acknowledge_no_quorum, admin=admin, present=present
+    )
     record_audit(
         db,
         actor_admin_id=admin.id,
@@ -677,7 +728,13 @@ async def add_resolution(
     validate_votes(present_count(meeting), payload.vote_for, payload.vote_against, payload.vote_neutral)
     if payload.assigned_to_member_id:
         await _resolve_members_exist(db, {payload.assigned_to_member_id})
-    next_no = max((r.resolution_no for r in meeting.resolutions), default=0) + 1
+    # Lock the meeting row so concurrent adds serialise on the next number
+    # (unique index ix_resolutions_meeting_no); no-op on SQLite.
+    await db.execute(select(Meeting.id).where(Meeting.id == meeting.id).with_for_update())
+    current_max = (
+        await db.execute(select(func.max(Resolution.resolution_no)).where(Resolution.meeting_id == meeting.id))
+    ).scalar_one()
+    next_no = (current_max or 0) + 1
     resolution = Resolution(
         meeting_id=meeting.id,
         resolution_no=next_no,
@@ -855,6 +912,9 @@ async def publish_meeting_notice(
     publishing too late is rejected with 409 unless override=true (audited as
     an override)."""
     meeting = await load_meeting(db, meeting_id)
+    if meeting.notice_published_at is not None:
+        # Idempotent: already published -> no second public notice / audit row.
+        return MeetingDetailOut(**meeting_detail_dict(meeting))
     if not meeting.scheduled_start_at:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -869,15 +929,16 @@ async def publish_meeting_notice(
         scheduled = scheduled.replace(tzinfo=timezone.utc)
     override_used = False
     if required_days is not None:
-        days_notice = (scheduled - now).total_seconds() / 86400
+        # Floor to one decimal so 14.6 days never displays as "15 < 15".
+        days_notice = math.floor((scheduled - now).total_seconds() / 8640) / 10
         if days_notice < required_days:
             if not payload.override:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=(
-                        f"নোটিশের সময় অপর্যাপ্ত: প্রয়োজন {required_days} দিন, আছে {days_notice:.0f} দিন। "
+                        f"নোটিশের সময় অপর্যাপ্ত: প্রয়োজন {required_days} দিন, আছে {days_notice:.1f} দিন। "
                         f"প্রয়োজনে override=true ব্যবহার করুন (নথিভুক্ত হবে)। "
-                        f"Notice period too short ({days_notice:.0f} days < {required_days}); "
+                        f"Notice period too short ({days_notice:.1f} days < {required_days}); "
                         "pass override=true to force (audited)."
                     ),
                 )
@@ -892,7 +953,7 @@ async def publish_meeting_notice(
         detail=(
             f"{meeting.meeting_no} ({meeting.council_type}): notice published "
             f"{required_days or 0}-day rule"
-            + (f" OVERRIDE ({days_notice:.0f} days)" if override_used else "")
+            + (f" OVERRIDE ({days_notice:.1f} days)" if override_used else "")
         ),
     )
     label = meeting.scheduled_start_at.astimezone(_DHAKA).strftime("%d-%m-%Y %H:%M")

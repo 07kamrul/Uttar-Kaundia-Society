@@ -74,11 +74,13 @@ MeetingDetail meetingDetailFromApi(Map<dynamic, dynamic> api) {
         resolutionFromApi(r as Map<dynamic, dynamic>),
     ],
     attendance: [
+      // Skip malformed rows (missing member) instead of crashing the page.
       for (final a in (api['attendance'] as List<dynamic>? ?? const []))
-        AttendanceEntry(
-          member: _memberRef((a as Map<dynamic, dynamic>)['member'] as Map<dynamic, dynamic>)!,
-          status: AttendanceStatusX.fromName(_s(a['status'])),
-        ),
+        if (a is Map<dynamic, dynamic> && a['member'] is Map<dynamic, dynamic>)
+          AttendanceEntry(
+            member: _memberRef(a['member'] as Map<dynamic, dynamic>)!,
+            status: AttendanceStatusX.fromName(_s(a['status'])),
+          ),
     ],
     recordings: [
       for (final r in (api['recordings'] as List<dynamic>? ?? const []))

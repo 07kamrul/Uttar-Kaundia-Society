@@ -3,15 +3,29 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/auth/session.dart';
+import '../../../core/di/injector.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/storage/token_storage.dart';
 import '../domain/member_entities.dart';
 
 /// Repository for GET/PATCH /member/me etc. Mappers mirror member.service.ts
 /// ApiModel -> app model field-for-field; ids become String client-side.
 class MemberRepository {
-  MemberRepository({required ApiClient apiClient}) : _api = apiClient;
+  MemberRepository({
+    required ApiClient apiClient,
+    TokenStorage? tokenStorage,
+    SessionManager? sessionManager,
+  })  : _api = apiClient,
+        _tokenStorage = tokenStorage,
+        _sessionManager = sessionManager;
 
   final ApiClient _api;
+  final TokenStorage? _tokenStorage;
+  final SessionManager? _sessionManager;
+
+  TokenStorage get _tokens => _tokenStorage ?? sl<TokenStorage>();
+  SessionManager get _sessions => _sessionManager ?? sl<SessionManager>();
 
   Future<MemberProfile> getProfile() async {
     final data = await _api.getUri('/member/me') as Map<dynamic, dynamic>;
@@ -39,10 +53,22 @@ class MemberRepository {
     required String currentPassword,
     required String newPassword,
   }) async {
-    await _api.post('/member/change-password', {
+    final data = await _api.post('/member/change-password', {
       'current_password': currentPassword,
       'new_password': newPassword,
-    });
+    }) as Map<String, dynamic>;
+    // The backend revoked every earlier token; adopt the fresh pair so this
+    // session stays signed in.
+    final access = data['access_token'] as String;
+    await _tokens.write(access: access, refresh: data['refresh_token'] as String?);
+    final session = _sessions.session;
+    if (session != null) {
+      _sessions.set(Session(
+        accessToken: access,
+        role: session.role,
+        permissions: session.permissions,
+      ));
+    }
   }
 
   Future<List<MemberPropertyRequest>> getPropertyRequests() async {

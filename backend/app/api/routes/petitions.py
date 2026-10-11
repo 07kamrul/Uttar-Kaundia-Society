@@ -9,9 +9,10 @@ audited; members see their own petitions' progress, admins see all.
 import math
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_member
@@ -39,6 +40,10 @@ from app.services.audit import record_audit
 from app.services.governance import PETITION_RESPONSE_DAYS, add_working_days, sla_status
 
 router = APIRouter(tags=["petitions"])
+
+PETITION_NO_RETRIES = 3
+LIST_DEFAULT_LIMIT = 100
+LIST_MAX_LIMIT = 500
 
 
 def _now() -> datetime:
@@ -95,35 +100,48 @@ def petition_to_dict(petition: SpecialSessionPetition, signer_names: dict[int, s
     }
 
 
-async def _signer_names(db: AsyncSession, petition: SpecialSessionPetition) -> dict[int, str]:
-    ids = [s["member_id"] for s in (petition.signatures or [])]
+async def _signer_names_for(db: AsyncSession, petitions) -> dict[int, str]:
+    """One query for the signer names of every given petition (avoids N+1)."""
+    ids = {s["member_id"] for p in petitions for s in (p.signatures or [])}
     if not ids:
         return {}
     rows = await db.execute(select(Member.id, Member.full_name).where(Member.id.in_(ids)))
     return dict(rows.all())
 
 
-async def _load_petition(db: AsyncSession, petition_id: int) -> SpecialSessionPetition:
-    petition = (
-        await db.execute(
-            select(SpecialSessionPetition).where(SpecialSessionPetition.id == petition_id)
-        )
-    ).scalar_one_or_none()
+async def _signer_names(db: AsyncSession, petition: SpecialSessionPetition) -> dict[int, str]:
+    return await _signer_names_for(db, [petition])
+
+
+async def _load_petition(
+    db: AsyncSession, petition_id: int, *, for_update: bool = False
+) -> SpecialSessionPetition:
+    stmt = select(SpecialSessionPetition).where(SpecialSessionPetition.id == petition_id)
+    if for_update:
+        # Signatures are a read-modify-write JSON list: lock the row so two
+        # concurrent signers cannot both append to the same stale copy.
+        stmt = stmt.with_for_update()
+    petition = (await db.execute(stmt)).scalar_one_or_none()
     if petition is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Petition not found.")
     return petition
 
 
 async def _next_petition_no(db: AsyncSession) -> str:
+    """Max existing numeric suffix for this year + 1 (count+1 collides after deletions)."""
     year = _today().year
-    count = (
+    prefix = f"PET-{year}-"
+    numbers = (
         await db.execute(
-            select(func.count())
-            .select_from(SpecialSessionPetition)
-            .where(SpecialSessionPetition.petition_no.like(f"PET-{year}-%"))
+            select(SpecialSessionPetition.petition_no).where(
+                SpecialSessionPetition.petition_no.like(f"{prefix}%")
+            )
         )
-    ).scalar_one()
-    return f"PET-{year}-{count + 1:03d}"
+    ).scalars()
+    highest = max(
+        (int(n[len(prefix):]) for n in numbers if n[len(prefix):].isdigit()), default=0
+    )
+    return f"{prefix}{highest + 1:03d}"
 
 
 @router.post("/petitions", status_code=status.HTTP_201_CREATED)
@@ -151,13 +169,34 @@ async def create_petition(
         )
     ).scalar_one()
     required = required_signature_count(eligible_total)
+    member_id = member.id
+    # Two concurrent filers can compute the same number; the unique constraint
+    # rejects the loser, which simply retries with a fresh number.
+    for attempt in range(PETITION_NO_RETRIES):
+        try:
+            petition = await _insert_petition(db, payload, member_id, required)
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == PETITION_NO_RETRIES - 1:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Could not allocate a petition number; please retry.",
+                ) from None
+    await db.refresh(petition)
+    return petition_to_dict(petition, await _signer_names(db, petition))
+
+
+async def _insert_petition(
+    db: AsyncSession, payload: PetitionCreate, member_id: int, required: int
+) -> SpecialSessionPetition:
     now_iso = _now().isoformat()
     petition = SpecialSessionPetition(
         petition_no=await _next_petition_no(db),
         title=payload.title.strip(),
         justification=payload.justification.strip(),
-        submitted_by_member_id=member.id,
-        signatures=[{"member_id": member.id, "signed_at": now_iso}],
+        submitted_by_member_id=member_id,
+        signatures=[{"member_id": member_id, "signed_at": now_iso}],
         signature_count=1,
         required_count=required,
         status=PETITION_STATUS_SUBMITTED,
@@ -175,8 +214,7 @@ async def create_petition(
         detail=f"{petition.petition_no}: {petition.title} (needs {required} signatures)",
     )
     await db.commit()
-    await db.refresh(petition)
-    return petition_to_dict(petition, await _signer_names(db, petition))
+    return petition
 
 
 @router.post("/petitions/{petition_id}/sign")
@@ -187,7 +225,7 @@ async def sign_petition(
 ) -> dict:
     from app.services.governance import is_election_eligible
 
-    petition = await _load_petition(db, petition_id)
+    petition = await _load_petition(db, petition_id, for_update=True)
     if petition.status not in (PETITION_STATUS_SUBMITTED, PETITION_STATUS_UNDER_REVIEW):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -237,10 +275,8 @@ async def my_petitions(
         .scalars()
         .all()
     )
-    return {
-        "items": [petition_to_dict(p, await _signer_names(db, p)) for p in petitions],
-        "today": _today(),
-    }
+    names = await _signer_names_for(db, petitions)
+    return {"items": [petition_to_dict(p, names) for p in petitions], "today": _today()}
 
 
 @router.get("/petitions/{petition_id}")
@@ -263,17 +299,19 @@ async def petition_progress(
 @router.get("/petitions")
 async def list_petitions(
     petition_status: str | None = None,
+    limit: int = Query(LIST_DEFAULT_LIMIT, ge=1, le=LIST_MAX_LIMIT),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     _admin: AdminUser = Depends(require_permission("petition.manage")),
 ) -> dict:
-    query = select(SpecialSessionPetition).order_by(SpecialSessionPetition.created_at.desc())
+    query = select(SpecialSessionPetition).order_by(
+        SpecialSessionPetition.created_at.desc(), SpecialSessionPetition.id.desc()
+    )
     if petition_status:
         query = query.where(SpecialSessionPetition.status == petition_status)
-    petitions = (await db.execute(query)).scalars().all()
-    return {
-        "items": [petition_to_dict(p, await _signer_names(db, p)) for p in petitions],
-        "today": _today(),
-    }
+    petitions = (await db.execute(query.limit(limit).offset(offset))).scalars().all()
+    names = await _signer_names_for(db, petitions)
+    return {"items": [petition_to_dict(p, names) for p in petitions], "today": _today()}
 
 
 @router.post("/petitions/{petition_id}/respond")
@@ -316,8 +354,12 @@ async def reject_petition(
     admin: AdminUser = Depends(require_permission("petition.manage")),
 ) -> dict:
     petition = await _load_petition(db, petition_id)
-    if petition.status == PETITION_STATUS_REJECTED:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already rejected.")
+    if petition.status not in (PETITION_STATUS_SUBMITTED, PETITION_STATUS_UNDER_REVIEW):
+        # An answered/scheduled petition must not have its response overwritten.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Petition is already {petition.status}; it can no longer be rejected.",
+        )
     petition.status = PETITION_STATUS_REJECTED
     petition.committee_response = payload.reason.strip()
     petition.responded_at = _now()

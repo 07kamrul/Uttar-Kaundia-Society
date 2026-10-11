@@ -188,7 +188,7 @@ async def admin_approve_installment_payment(
     admin=Depends(require_permission("manage_finance")),
 ) -> InstallmentPaymentAdminOut:
     payment = await _load_payment(db, payment_id)
-    payments.approve_payment(payment, admin.id)
+    await payments.approve_payment(db, payment, admin.id)
     record_audit(
         db,
         actor_admin_id=admin.id,

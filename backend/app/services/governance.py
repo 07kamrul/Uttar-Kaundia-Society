@@ -6,6 +6,7 @@ amendments, funds) must import their SLA/quorum numbers from here instead of
 hardcoding them in module code or in the frontend.
 """
 
+import math
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 
@@ -65,6 +66,123 @@ INCOME_SOURCES: tuple[dict, ...] = (
 )
 
 FOREIGN_FUNDING_KEY = "foreign_funding"  # never in INCOME_SOURCES; needs gov approval ref
+
+# --- Module 4 — তহবিল নিয়ন্ত্রণ (fund controls) ------------------------------
+#
+# The two-person expense threshold is a *versioned* FeeSetting (key below) so
+# the committee can tune it without a code change; when no version exists the
+# constitution-level default applies. The frontend always reads the resolved
+# value from GET /api/admin/fund-controls/settings.
+EXPENSE_TWO_PERSON_THRESHOLD_KEY = "expense_two_person_threshold"
+DEFAULT_EXPENSE_TWO_PERSON_THRESHOLD = 50000
+
+WELFARE_REQUEST_TYPES: tuple[dict, ...] = (
+    {"key": "medical", "bn": "চিকিৎসা", "en": "Medical"},
+    {"key": "emergency", "bn": "জরুরি", "en": "Emergency"},
+    {"key": "education", "bn": "শিক্ষা", "en": "Education"},
+    {"key": "other", "bn": "অন্যান্য", "en": "Other"},
+)
+WELFARE_REQUEST_TYPE_KEYS: frozenset[str] = frozenset(t["key"] for t in WELFARE_REQUEST_TYPES)
+
+WELFARE_REQUEST_STATUSES: tuple[str, ...] = (
+    "submitted",       # জমা দেওয়া হয়েছে
+    "under_review",    # পর্যালোচনাধীন
+    "approved",        # অনুমোদিত
+    "rejected",        # প্রত্যাখ্যাত
+    "disbursed",       # পরিশোধিত
+)
+# A request blocks a member from opening another one while it is still live.
+WELFARE_OPEN_STATUSES: frozenset[str] = frozenset(("submitted", "under_review"))
+
+ASSET_CONDITIONS: tuple[dict, ...] = (
+    {"key": "good", "bn": "ভালো", "en": "Good"},
+    {"key": "fair", "bn": "মোটামুটি", "en": "Fair"},
+    {"key": "poor", "bn": "নষ্টপ্রায়", "en": "Poor"},
+    {"key": "lost", "bn": "হারানো", "en": "Lost"},
+)
+ASSET_CONDITION_KEYS: frozenset[str] = frozenset(c["key"] for c in ASSET_CONDITIONS)
+
+WELFARE_ACTIVITY_TYPES: tuple[dict, ...] = (
+    {"key": "training", "bn": "প্রশিক্ষণ", "en": "Training"},
+    {"key": "welfare", "bn": "কল্যাণমূলক", "en": "Welfare"},
+    {"key": "other", "bn": "অন্যান্য", "en": "Other"},
+)
+WELFARE_ACTIVITY_TYPE_KEYS: frozenset[str] = frozenset(t["key"] for t in WELFARE_ACTIVITY_TYPES)
+
+
+def fiscal_year_for(day: date) -> str:
+    """Bangladesh fiscal year label ("2025-26") for a date: the FY runs
+    July 1 - June 30, so a July-December date belongs to `<y>-<y+1>` and a
+    January-June date to `<y-1>-<y>`."""
+    start_year = day.year if day.month >= 7 else day.year - 1
+    return f"{start_year}-{(start_year + 1) % 100:02d}"
+
+
+def audit_reminder_state(today: date, *, report_exists: bool) -> dict:
+    """Annual-audit reminder for the management dashboard.
+
+    Window rules (fund-controls module): active through June (month 6, the FY
+    closing month), and on ANY later date while the fiscal year that has
+    already ended still has no report. Earlier in the FY (Jul-May) with a
+    report filed, or Jan-May with the previous FY reported, it is silent."""
+    if today.month == 6:
+        fiscal_year = fiscal_year_for(today)  # the FY closing this June 30
+        return {"fiscal_year": fiscal_year, "reminder_window_active": True}
+    # After this year's June 30 the "just ended" FY is the one that closed on
+    # it; before that (Jan-May) it is the previous one.
+    cutoff = date(today.year, 6, 30)
+    just_ended = fiscal_year_for(cutoff if today > cutoff else date(today.year - 1, 6, 30))
+    return {
+        "fiscal_year": just_ended,
+        "reminder_window_active": not report_exists,
+    }
+
+
+# --- Module 6 — গঠনতন্ত্র সংশোধনী (amendments) --------------------------------
+
+AMENDMENT_STATUSES: tuple[str, ...] = (
+    "draft",       # খসড়া (admin-created, not yet submitted)
+    "submitted",   # জমা দেওয়া হয়েছে
+    "scheduled",   # সভায় উত্থাপনের জন্য নির্ধারিত
+    "adopted",     # গৃহীত
+    "rejected",    # বাতিল
+    "withdrawn",   # প্রস্তাবক প্রত্যাহার করেছেন
+)
+MAJORITY_SIMPLE = "simple"
+MAJORITY_FOUR_FIFTHS = "four_fifths"
+MAJORITY_TYPES: tuple[str, ...] = (MAJORITY_SIMPLE, MAJORITY_FOUR_FIFTHS)
+
+# Dissolution (বিলুপ্তি) proposals may be created and voted on, but the system
+# never executes a dissolution: the recorded result only feeds the manual,
+# legally-advised process. This notice is returned wherever the restriction
+# applies (creation, adoption) so the frontend never hardcodes it.
+DISSOLUTION_NOTICE_BN = (
+    "বিলুপ্তি প্রক্রিয়া আইনগত পরামর্শে ম্যানুয়ালি সম্পন্ন হবে; "
+    "এই সিস্টেমে স্বয়ংক্রিয় বিলুপ্তি হয় না"
+)
+
+
+def simple_majority_met(votes_for: int, votes_against: int, votes_abstain: int) -> bool:
+    """গঠনতন্ত্রের সাধারণ সংখ্যাগরিষ্ঠতা: votes_for > votes_against AND
+    votes_for >= floor(total/2) + 1, where total counts every vote cast
+    (for + against + abstain)."""
+    total = votes_for + votes_against + votes_abstain
+    return votes_for > votes_against and votes_for >= total // 2 + 1
+
+
+def four_fifths_majority_met(votes_for: int, votes_against: int) -> bool:
+    """চার-পঞ্চমাংশ: votes_for >= ceil(0.8 × (for + against)). Abstentions do
+    not count towards the denominator."""
+    total = votes_for + votes_against
+    return votes_for >= math.ceil(0.8 * total)
+
+
+def majority_met(majority: str, votes_for: int, votes_against: int, votes_abstain: int) -> bool:
+    if majority == MAJORITY_FOUR_FIFTHS:
+        return four_fifths_majority_met(votes_for, votes_against)
+    if majority == MAJORITY_SIMPLE:
+        return simple_majority_met(votes_for, votes_against, votes_abstain)
+    raise ValueError(f"Unknown majority type: {majority!r}")
 
 
 # --- Working days (Bangladesh weekend: Friday + Saturday off) ---------------
@@ -185,4 +303,10 @@ def public_constants() -> dict:
         "income_sources": list(INCOME_SOURCES),
         "foreign_funding_blocked": True,
         "weekend_days": [4, 5],  # Friday, Saturday
+        # Module 4/6/7 vocabularies the frontend renders without hardcoding.
+        "expense_two_person_threshold_default": DEFAULT_EXPENSE_TWO_PERSON_THRESHOLD,
+        "welfare_request_types": list(WELFARE_REQUEST_TYPES),
+        "asset_conditions": list(ASSET_CONDITIONS),
+        "welfare_activity_types": list(WELFARE_ACTIVITY_TYPES),
+        "dissolution_notice_bn": DISSOLUTION_NOTICE_BN,
     }

@@ -236,3 +236,87 @@ async def test_manage_users_endpoints_reject_users_without_permission(
     ):
         response = await client.request(method, path, headers=headers)
         assert response.status_code == 403, (method, path, response.status_code)
+
+
+async def _user_manager(db_session) -> AdminUser:
+    """A non-super admin granted manage_users through an override."""
+    manager = AdminUser(
+        email="manager@example.com",
+        password_hash=hash_password("adminpass123"),
+        name="Manager",
+        role=AdminRole.ADMINISTRATOR,
+    )
+    perm = Permission(key="manage_users", resource="users", action="manage", description=None)
+    db_session.add_all([manager, perm])
+    await db_session.commit()
+    db_session.add(UserPermissionOverride(user_id=manager.id, permission_id=perm.id, granted=True))
+    await db_session.commit()
+    await db_session.refresh(manager)
+    return manager
+
+
+async def test_user_manager_cannot_create_super_admin(client: AsyncClient, db_session) -> None:
+    await _user_manager(db_session)
+    headers = await _login(client, "manager@example.com")
+
+    response = await client.post(
+        "/api/admin/rbac/users",
+        headers=headers,
+        json={"name": "Evil", "email": "evil@example.com", "password": "adminpass123",
+              "role": "super_admin", "role_id": None},
+    )
+
+    assert response.status_code == 403
+
+
+async def test_user_manager_cannot_demote_super_admin(client: AsyncClient, db_session) -> None:
+    root = await _super_admin(db_session)
+    await _user_manager(db_session)
+    headers = await _login(client, "manager@example.com")
+
+    response = await client.patch(
+        f"/api/admin/rbac/users/{root.id}/role",
+        headers=headers,
+        json={"role": "administrator", "role_id": None},
+    )
+
+    assert response.status_code == 403
+    await db_session.refresh(root)
+    assert root.role == AdminRole.SUPER_ADMIN
+
+
+async def test_user_manager_cannot_change_own_role_or_overrides(
+    client: AsyncClient, db_session
+) -> None:
+    manager = await _user_manager(db_session)
+    headers = await _login(client, "manager@example.com")
+
+    role = await client.patch(
+        f"/api/admin/rbac/users/{manager.id}/role",
+        headers=headers,
+        json={"role": "administrator", "role_id": None},
+    )
+    overrides = await client.put(
+        f"/api/admin/rbac/users/{manager.id}/overrides",
+        headers=headers,
+        json=[{"permission_key": "manage_users", "granted": True}],
+    )
+
+    assert role.status_code == 403
+    assert overrides.status_code == 403
+
+
+async def test_user_manager_can_still_manage_regular_admins(
+    client: AsyncClient, db_session
+) -> None:
+    await _user_manager(db_session)
+    headers = await _login(client, "manager@example.com")
+
+    response = await client.post(
+        "/api/admin/rbac/users",
+        headers=headers,
+        json={"name": "Clerk", "email": "clerk2@example.com", "password": "adminpass123",
+              "role": "administrator", "role_id": None},
+    )
+
+    assert response.status_code == 201

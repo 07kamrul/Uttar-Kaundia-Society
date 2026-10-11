@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kaundia_app/core/auth/session.dart';
+import 'package:kaundia_app/core/di/injector.dart';
 import 'package:kaundia_app/core/network/api_client.dart';
+import 'package:kaundia_app/core/storage/token_storage.dart';
 import 'package:kaundia_app/features/member/data/member_repository.dart';
 import 'package:kaundia_app/features/member/data/payment_repository.dart';
 import 'package:kaundia_app/features/member/domain/member_entities.dart';
@@ -124,15 +127,27 @@ void main() {
       expect(body['payment_method'], 'Cash');
     });
 
-    test('changePassword posts snake_case payload', () async {
-      when(() => api.post('/member/change-password', any()))
-          .thenAnswer((_) async => null);
+    test('changePassword posts snake_case payload and adopts fresh tokens', () async {
+      final tokens = _MockTokenStorage();
+      final sessions = SessionManager()
+        ..set(const Session(accessToken: 'old-token', role: 'member', permissions: {'p'}));
+      final repo = MemberRepository(apiClient: api, tokenStorage: tokens, sessionManager: sessions);
+      when(() => tokens.write(access: any(named: 'access'), refresh: any(named: 'refresh')))
+          .thenAnswer((_) async {});
+      when(() => api.post('/member/change-password', any())).thenAnswer(
+        (_) async => <String, dynamic>{'access_token': 'new-a', 'refresh_token': 'new-r'},
+      );
+
       await repo.changePassword(currentPassword: 'old', newPassword: 'new');
+
       final body =
           verify(() => api.post('/member/change-password', captureAny()))
               .captured
               .single as Map<String, dynamic>;
       expect(body, {'current_password': 'old', 'new_password': 'new'});
+      verify(() => tokens.write(access: 'new-a', refresh: 'new-r')).called(1);
+      expect(sessions.session!.accessToken, 'new-a');
+      expect(sessions.session!.permissions, {'p'});
     });
   });
 
@@ -204,3 +219,5 @@ void main() {
     });
   });
 }
+
+class _MockTokenStorage extends Mock implements TokenStorage {}

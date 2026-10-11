@@ -69,3 +69,17 @@ async def test_rejected_upload_leaves_no_member_row(
     await _post_submission(client, _files("evil.exe", b"...", "application/octet-stream"))
     count = await db_session.scalar(select(func.count()).select_from(Member))
     assert count == 0
+
+
+async def test_submission_rejects_too_many_document_files(client) -> None:
+    from app.api.routes.submissions import MAX_SUBMISSION_DOC_FILES
+
+    files = [
+        ("doc_files", (f"d{i}.pdf", b"%PDF-1.4", "application/pdf"))
+        for i in range(MAX_SUBMISSION_DOC_FILES + 1)
+    ]
+
+    response = await client.post("/api/submissions", data={"payload": "{}"}, files=files)
+
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "TOO_MANY_FILES"

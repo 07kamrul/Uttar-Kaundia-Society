@@ -1,3 +1,5 @@
+import '../network/media_token.dart';
+
 /// Build-time configuration, supplied via --dart-define (no secrets in code).
 class AppConfig {
   const AppConfig._();
@@ -6,6 +8,20 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: 'http://localhost:8000/api',
   );
+
+  /// Throws when a release build would talk to an insecure or local API.
+  /// Called from main() only when kReleaseMode; [url] is injectable for tests.
+  static void assertReleaseSafe({String url = apiBaseUrl}) {
+    final uri = Uri.tryParse(url);
+    final host = uri?.host.toLowerCase() ?? '';
+    const localHosts = {'localhost', '127.0.0.1', '0.0.0.0', '10.0.2.2', '::1'};
+    if (uri == null || uri.scheme != 'https' || localHosts.contains(host)) {
+      throw StateError(
+        'Release build misconfigured: API_BASE_URL must be an https, non-localhost '
+        'URL (got "$url"). Pass --dart-define=API_BASE_URL=https://<host>/api.',
+      );
+    }
+  }
 
   /// Flavor: dev | prod. Drives logging verbosity etc.
   static const String flavor = String.fromEnvironment('APP_FLAVOR', defaultValue: 'dev');
@@ -23,7 +39,10 @@ class AppConfig {
         .split('/')
         .map((seg) => seg.isEmpty ? seg : Uri.encodeComponent(seg))
         .join('/');
-    return '$uploadsBaseUrl$encoded';
+    // /uploads is private: the backend requires the short-lived media token.
+    final token = MediaTokenStore.current;
+    final query = token == null ? '' : '?t=${Uri.encodeQueryComponent(token)}';
+    return '$uploadsBaseUrl$encoded$query';
   }
   /// Street basemap tiles (default: OpenStreetMap). Supply via --dart-define
   /// in production to respect the tile provider's usage policy.

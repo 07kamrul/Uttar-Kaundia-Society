@@ -5,9 +5,9 @@ integration.
 The router, the PDF export and the tests all read the same payload builders
 here, so the exported minutes can never drift from the live data.
 """
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -43,6 +43,9 @@ from app.services.governance import (
 # correction (same audit-preserving philosophy as the finance module).
 EDIT_WINDOW_HOURS = 72
 
+# Same fixed offset the routers use (_DHAKA); Bangladesh has no DST.
+DHAKA_TZ = timezone(timedelta(hours=6), name="Asia/Dhaka")
+
 NOTICE_TITLE_TEXT_MAX = 120
 NOTICE_BODY_TEXT_MAX = 400
 
@@ -52,18 +55,19 @@ def meeting_no_prefix(year: int) -> str:
 
 
 async def next_meeting_no(db: AsyncSession, for_date: date) -> str:
-    """Auto-suggest the next free "SVA-YYYY-NNN" for the given meeting year."""
+    """Auto-suggest the next "SVA-YYYY-NNN": highest numeric suffix already used
+    for that year's prefix + 1 (a count would collide after deletes or when
+    numbers were entered manually)."""
     prefix = meeting_no_prefix(for_date.year)
-    year_start = date(for_date.year, 1, 1)
-    year_end = date(for_date.year + 1, 1, 1)
-    count = (
-        await db.execute(
-            select(func.count())
-            .select_from(Meeting)
-            .where(Meeting.date >= year_start, Meeting.date < year_end)
-        )
-    ).scalar_one()
-    return f"{prefix}{count + 1:03d}"
+    rows = await db.execute(
+        select(Meeting.meeting_no).where(func.lower(Meeting.meeting_no).like(f"{prefix.lower()}%"))
+    )
+    highest = 0
+    for (meeting_no,) in rows.all():
+        suffix = meeting_no[len(prefix):]
+        if suffix.isdigit():
+            highest = max(highest, int(suffix))
+    return f"{prefix}{highest + 1:03d}"
 
 
 async def meeting_no_taken(db: AsyncSession, meeting_no: str, exclude_id: int | None = None) -> bool:
@@ -74,13 +78,18 @@ async def meeting_no_taken(db: AsyncSession, meeting_no: str, exclude_id: int | 
     return existing.first() is not None
 
 
+def edit_cutoff_exceeded_at(meeting: Meeting, now: datetime) -> bool:
+    """The window runs from end-of-day of the meeting date in Asia/Dhaka (the
+    organisation's local day), not UTC."""
+    if meeting.status != MEETING_STATUS_COMPLETED:
+        return False
+    cutoff = datetime.combine(meeting.date, time(23, 59, 59), tzinfo=DHAKA_TZ)
+    return (now - cutoff).total_seconds() / 3600 > EDIT_WINDOW_HOURS
+
+
 async def edit_cutoff_exceeded(meeting: Meeting) -> bool:
     """Committee edits are allowed only within the window after the meeting."""
-    if meeting.status == MEETING_STATUS_COMPLETED:
-        cutoff = datetime.combine(meeting.date, time(23, 59, 59))
-        hours = (datetime.now(timezone.utc) - cutoff.replace(tzinfo=timezone.utc)).total_seconds() / 3600
-        return hours > EDIT_WINDOW_HOURS
-    return False
+    return edit_cutoff_exceeded_at(meeting, datetime.now(timezone.utc))
 
 
 async def uploader_names_for(db: AsyncSession, meeting: Meeting) -> dict[int, str]:
@@ -378,29 +387,35 @@ async def build_dashboard(db: AsyncSession) -> dict:
         )
     ).scalar_one()
 
+    # Per-meeting attendance percentages via one grouped query (no ORM load).
+    attendance_rows = (
+        await db.execute(
+            select(
+                func.count(MeetingAttendance.id),
+                func.sum(case((MeetingAttendance.status == ATTENDANCE_PRESENT, 1), else_=0)),
+            ).group_by(MeetingAttendance.meeting_id)
+        )
+    ).all()
+    percents = [round((present or 0) * 100 / total_rows) for total_rows, present in attendance_rows if total_rows]
+    avg = round(sum(percents) / len(percents)) if percents else 0
+
+    upcoming = (await db.execute(select(func.max(Meeting.next_meeting_date)))).scalar_one()
+    open_actions = (
+        await db.execute(
+            select(func.count())
+            .select_from(Resolution)
+            .where(Resolution.status.in_((RESOLUTION_STATUS_PENDING, RESOLUTION_STATUS_IN_PROGRESS)))
+        )
+    ).scalar_one()
+
     meetings = (
         await db.execute(
             select(Meeting)
-            .options(
-                selectinload(Meeting.resolutions),
-                selectinload(Meeting.attendance),
-            )
+            .options(selectinload(Meeting.resolutions), selectinload(Meeting.attendance))
             .order_by(Meeting.date.desc(), Meeting.id.desc())
+            .limit(10)
         )
     ).scalars().unique().all()
-
-    percents = [attendance_stats(m)[2] for m in meetings if m.attendance]
-    avg = round(sum(percents) / len(percents)) if percents else 0
-
-    upcoming = max(
-        (m.next_meeting_date for m in meetings if m.next_meeting_date), default=None
-    )
-    open_actions = sum(
-        1
-        for m in meetings
-        for r in m.resolutions
-        if r.status in (RESOLUTION_STATUS_PENDING, RESOLUTION_STATUS_IN_PROGRESS)
-    )
 
     return {
         "total_meetings": total,
@@ -408,7 +423,7 @@ async def build_dashboard(db: AsyncSession) -> dict:
         "average_attendance_percent": avg,
         "open_action_items": open_actions,
         "upcoming_meeting_date": upcoming,
-        "recent_meetings": [meeting_list_dict(m) for m in meetings[:10]],
+        "recent_meetings": [meeting_list_dict(m) for m in meetings],
     }
 
 

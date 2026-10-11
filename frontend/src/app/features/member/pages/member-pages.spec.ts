@@ -66,7 +66,7 @@ describe('MemberInstallmentsComponent', () => {
     return fixture;
   }
 
-  it('sorts installments chronologically and remembers the year', () => {
+  it('sorts installments newest first and defaults the year filter to all', () => {
     const fixture = create();
     http
       .expectOne((r) => r.url.endsWith('/member/installments'))
@@ -75,9 +75,9 @@ describe('MemberInstallmentsComponent', () => {
 
     const component = fixture.componentInstance;
     expect(component.installments.map((i) => `${i.year}-${i.month}`)).toEqual([
-      '2025-12',
-      '2026-1',
       '2026-3',
+      '2026-1',
+      '2025-12',
     ]);
     expect(component.selectedYear).toBe('all');
     expect(component.loading).toBe(false);

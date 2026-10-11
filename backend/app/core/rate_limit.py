@@ -4,6 +4,8 @@ import time
 from collections import deque
 from collections.abc import Callable, Hashable
 
+_SWEEP_THRESHOLD = 10_000
+
 
 class SlidingWindowRateLimiter:
     """Allows at most `max_requests` hits per key within any `window_seconds` span.
@@ -30,11 +32,41 @@ class SlidingWindowRateLimiter:
     def check(self, key: Hashable) -> float | None:
         """Record a hit for `key` and return None; or, when `key` is already at
         its limit, record nothing and return the seconds until a retry succeeds."""
+        retry_after = self.retry_after(key)
+        if retry_after is not None:
+            return retry_after
+        self.record(key)
+        return None
+
+    def retry_after(self, key: Hashable) -> float | None:
+        """Seconds until `key` may try again, or None if it is under the limit.
+        Records nothing - pair with `record()` to count only some outcomes
+        (e.g. failed logins)."""
         now = self._clock()
+        hits = self._live_hits(key, now)
+        if len(hits) >= self._max_requests:
+            return hits[0] + self._window_seconds - now
+        return None
+
+    def record(self, key: Hashable) -> None:
+        now = self._clock()
+        self._live_hits(key, now).append(now)
+        self._sweep(now)
+
+    def reset(self) -> None:
+        self._hits.clear()
+
+    def _live_hits(self, key: Hashable, now: float) -> deque[float]:
         hits = self._hits.setdefault(key, deque())
         while hits and hits[0] <= now - self._window_seconds:
             hits.popleft()
-        if len(hits) >= self._max_requests:
-            return hits[0] + self._window_seconds - now
-        hits.append(now)
-        return None
+        return hits
+
+    def _sweep(self, now: float) -> None:
+        # Keys are attacker-controlled (identifiers, IPs): drop idle ones so
+        # the table cannot grow without bound.
+        if len(self._hits) <= _SWEEP_THRESHOLD:
+            return
+        cutoff = now - self._window_seconds
+        for key in [k for k, hits in self._hits.items() if not hits or hits[-1] <= cutoff]:
+            del self._hits[key]

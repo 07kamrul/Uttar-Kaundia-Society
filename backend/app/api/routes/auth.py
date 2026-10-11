@@ -1,3 +1,5 @@
+import html
+import math
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -5,9 +7,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.rate_limit import SlidingWindowRateLimiter
 from app.core.permissions import ROLE_DEFAULT_PERMISSIONS, get_effective_permissions
+from app.core.deps import AccountActor, get_account_actor
 from app.core.security import (
+    MEDIA_TOKEN_EXPIRE_MINUTES,
     create_access_token,
+    create_media_token,
     create_refresh_token,
     hash_password_async,
     verify_password_async,
@@ -18,6 +24,7 @@ from app.models.credential import MemberCredential
 from app.models.member import Member
 from app.models.password_reset import PasswordResetToken
 from app.schemas.auth import (
+    MediaTokenResponse,
     AdminLoginRequest,
     ForgotPasswordRequest,
     LoginRequest,
@@ -32,14 +39,44 @@ from app.services.email import send_email
 
 router = APIRouter(tags=["auth"])
 
+# Brute-force / credential-stuffing guard, keyed by the submitted identifier
+# (not IP: behind the reverse proxy every client shares one address). Only
+# failed attempts count, so a user who logs in correctly is never throttled.
+LOGIN_MAX_FAILURES = 10
+LOGIN_FAILURE_WINDOW_SECONDS = 15 * 60
+login_failure_limiter = SlidingWindowRateLimiter(LOGIN_MAX_FAILURES, LOGIN_FAILURE_WINDOW_SECONDS)
+
+# Stops /forgot-password being used to flood a victim's inbox.
+RESET_REQUESTS_PER_HOUR = 3
+reset_request_limiter = SlidingWindowRateLimiter(RESET_REQUESTS_PER_HOUR, 60 * 60)
+
+
+def _too_many_requests(retry_after: float) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail="Too many attempts. Please try again later.",
+        headers={"Retry-After": str(max(1, math.ceil(retry_after)))},
+    )
+
+
+def _ensure_login_allowed(identifier: str) -> None:
+    retry_after = login_failure_limiter.retry_after(identifier)
+    if retry_after is not None:
+        raise _too_many_requests(retry_after)
+
+
+def _invalid_credentials(identifier: str) -> HTTPException:
+    login_failure_limiter.record(identifier)
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
 MEMBER_PERMISSIONS = sorted(ROLE_DEFAULT_PERMISSIONS["member"])
 
 
 async def _admin_token_response(db: AsyncSession, admin: AdminUser) -> TokenResponse:
     permissions = sorted(await get_effective_permissions(db, admin))
     return TokenResponse(
-        access_token=create_access_token(str(admin.id), admin.role.value),
-        refresh_token=create_refresh_token(str(admin.id), admin.role.value),
+        access_token=create_access_token(str(admin.id), admin.role.value, admin.token_version),
+        refresh_token=create_refresh_token(str(admin.id), admin.role.value, admin.token_version),
         role=admin.role.value,
         permissions=permissions,
     )
@@ -48,6 +85,7 @@ async def _admin_token_response(db: AsyncSession, admin: AdminUser) -> TokenResp
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     identifier = payload.identifier.strip().lower()
+    _ensure_login_allowed(identifier)
 
     admin_result = await db.execute(select(AdminUser).where(AdminUser.email == identifier))
     admin = admin_result.scalar_one_or_none()
@@ -60,23 +98,26 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> To
     credential = credential_result.scalar_one_or_none()
     if credential is not None and await verify_password_async(payload.password, credential.password_hash):
         return TokenResponse(
-            access_token=create_access_token(str(credential.member_id), "member"),
-            refresh_token=create_refresh_token(str(credential.member_id), "member"),
+            access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
+            refresh_token=create_refresh_token(
+                str(credential.member_id), "member", credential.token_version
+            ),
             must_change_password=credential.must_change_password,
             role="member",
             permissions=MEMBER_PERMISSIONS,
         )
 
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    raise _invalid_credentials(identifier)
 
 
 @router.post("/admin/login", response_model=TokenResponse)
 async def admin_login(payload: AdminLoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     email = payload.email.strip().lower()
+    _ensure_login_allowed(email)
     result = await db.execute(select(AdminUser).where(AdminUser.email == email))
     admin = result.scalar_one_or_none()
     if admin is None or not await verify_password_async(payload.password, admin.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise _invalid_credentials(email)
 
     return await _admin_token_response(db, admin)
 
@@ -84,16 +125,17 @@ async def admin_login(payload: AdminLoginRequest, db: AsyncSession = Depends(get
 @router.post("/member/login", response_model=TokenResponse)
 async def member_login(payload: MemberLoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     username = payload.username.strip().lower()
+    _ensure_login_allowed(username)
     result = await db.execute(
         select(MemberCredential).where(MemberCredential.username == username)
     )
     credential = result.scalar_one_or_none()
     if credential is None or not await verify_password_async(payload.password, credential.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise _invalid_credentials(username)
 
     return TokenResponse(
-        access_token=create_access_token(str(credential.member_id), "member"),
-        refresh_token=create_refresh_token(str(credential.member_id), "member"),
+        access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
+        refresh_token=create_refresh_token(str(credential.member_id), "member", credential.token_version),
         must_change_password=credential.must_change_password,
         role="member",
         permissions=MEMBER_PERMISSIONS,
@@ -147,7 +189,7 @@ async def _issue_reset_token(
 
 def _reset_email_body(identifier: str, reset_url: str) -> str:
     return (
-        f"<p>Dear {identifier},</p>"
+        f"<p>Dear {html.escape(identifier)},</p>"
         "<p>We received a request to reset your account password.</p>"
         f'<p><a href="{reset_url}">{reset_url}</a></p>'
         f"<p>This link is valid for {RESET_TOKEN_TTL_MINUTES} minutes and can be "
@@ -156,6 +198,16 @@ def _reset_email_body(identifier: str, reset_url: str) -> str:
         "<hr/>"
         '<p style="color:#6b7280;font-size:12px">This is an automated message '
         "from the উত্তর কাউন্দিয়া আবাসন মালিক কল্যাণ সোসাইটি member registry.</p>"
+    )
+
+
+@router.get("/media-token", response_model=MediaTokenResponse)
+async def media_token(actor: AccountActor = Depends(get_account_actor)) -> MediaTokenResponse:
+    """Issue a short-lived token for loading /uploads files in <img>/<a> tags."""
+    account_id = actor.member.id if actor.member is not None else actor.admin.id
+    return MediaTokenResponse(
+        media_token=create_media_token(str(account_id), actor.role),
+        expires_in=MEDIA_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
@@ -170,6 +222,9 @@ async def forgot_password(
     """
     identifier = payload.identifier.strip().lower()
     if not identifier:
+        return ResetPasswordOK()
+    if reset_request_limiter.check(identifier) is not None:
+        # Same silent OK as an unknown identifier: no mail, nothing revealed.
         return ResetPasswordOK()
 
     admin = (
@@ -255,6 +310,7 @@ async def reset_password(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Account not found"
             )
         admin.password_hash = await hash_password_async(payload.new_password)
+        admin.token_version += 1  # revoke every token issued before the reset
         record_audit(
             db,
             actor_admin_id=None,
@@ -275,6 +331,7 @@ async def reset_password(
             )
         credential.password_hash = await hash_password_async(payload.new_password)
         credential.must_change_password = False
+        credential.token_version += 1  # revoke every token issued before the reset
         record_audit(
             db,
             actor_admin_id=None,

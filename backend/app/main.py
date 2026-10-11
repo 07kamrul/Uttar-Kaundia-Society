@@ -14,6 +14,7 @@ from app.services.plot_boundary import ValidationIssue
 
 from app.api.routes import (
     admin,
+    amendments,
     auth,
     committee_registry,
     elections,
@@ -22,6 +23,7 @@ from app.api.routes import (
     shared_data,
     fee_payments,
     fee_types,
+    fund_controls,
     other_fees,
     finance,
     governance,
@@ -36,6 +38,7 @@ from app.api.routes import (
     plot_map,
     public,
     rbac,
+    registers,
     resolution_book,
     roadmap,
     society_costs,
@@ -170,6 +173,9 @@ app.include_router(governance.router, prefix=api_router_prefix)
 app.include_router(committee_registry.router, prefix=api_router_prefix)
 app.include_router(elections.router, prefix=api_router_prefix)
 app.include_router(petitions.router, prefix=api_router_prefix)
+app.include_router(fund_controls.router, prefix=api_router_prefix)
+app.include_router(amendments.router, prefix=api_router_prefix)
+app.include_router(registers.router, prefix=api_router_prefix)
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 

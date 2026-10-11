@@ -6,11 +6,16 @@ import re
 import unicodedata
 import uuid
 from pathlib import Path, PurePosixPath
+from urllib.parse import parse_qs
 
 from fastapi import HTTPException, UploadFile, status
+from starlette.responses import PlainTextResponse, Response
 from starlette.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from app.core.config import get_settings
+from app.core.security import decode_media_token
+from app.services.upload_access import can_access_upload
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -128,6 +133,21 @@ class UploadStaticFiles(StaticFiles):
                 "[uploads] 404 miss: requested=%r searched=%s", path, root / path
             )
         return full_path, stat_result
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        """Every file is private: require a media token (``?t=``) and check the
+        owner rules in ``upload_access`` before serving anything."""
+        token = parse_qs(scope.get("query_string", b"").decode("latin-1")).get("t", [""])[0]
+        payload = decode_media_token(token) if token else None
+        if payload is None:
+            return PlainTextResponse("Not authenticated", status_code=401)
+        if not can_access_upload(path.replace(os.sep, "/"), payload):
+            return PlainTextResponse("Forbidden", status_code=403)
+        response = await super().get_response(path, scope)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Tokenised URLs must not be cached by shared proxies.
+        response.headers["Cache-Control"] = "private, max-age=600"
+        return response
 
 
 async def _read_capped(upload_file: UploadFile) -> bytes:

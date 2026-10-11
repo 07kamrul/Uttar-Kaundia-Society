@@ -11,6 +11,7 @@ import urllib.parse
 import pytest
 from httpx import AsyncClient
 
+from app.core.security import create_media_token
 from app.services import storage
 from app.services.storage import slugify_path_segment
 from tests.test_submission_flow import _submission_payload
@@ -19,8 +20,16 @@ _JPG_BYTES = b"\xff\xd8\xff\xe0fakejpegbytes"
 _PDF_BYTES = b"%PDF-1.4\nfakepdfbytes\n%%EOF"
 
 
+# The mount requires a media token; an admin token may read every folder.
+_MEDIA_QS = "?t=" + create_media_token("1", "administrator")
+
+
 def _upload_url(relative_path: str) -> str:
-    return "/uploads/" + "/".join(urllib.parse.quote(seg) for seg in relative_path.split("/"))
+    return (
+        "/uploads/"
+        + "/".join(urllib.parse.quote(seg) for seg in relative_path.split("/"))
+        + _MEDIA_QS
+    )
 
 
 def _payload_with_doc(doc_type: str) -> dict:
@@ -80,7 +89,7 @@ async def test_missing_attachment_logs_the_absolute_path_searched(
     monkeypatch.setattr(storage.settings, "upload_dir", str(tmp_path))
 
     with caplog.at_level("WARNING", logger="app.services.storage"):
-        response = await client.get("/uploads/photos/member_9/nope.jpg")
+        response = await client.get("/uploads/photos/member_9/nope.jpg" + _MEDIA_QS)
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}

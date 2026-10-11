@@ -38,7 +38,23 @@ class TokenResponse(BaseModel):
     permissions: list[str] = []
 
 
+class MediaTokenResponse(BaseModel):
+    """Short-lived token appended as ``?t=`` to /uploads file URLs."""
+
+    media_token: str
+    expires_in: int
+
+
 MIN_PASSWORD_LENGTH = 8
+
+
+class ChangePasswordResponse(BaseModel):
+    """Fresh tokens for the caller: changing the password revokes every
+    earlier token (token_version bump), including the one used for the call."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 
 
 class ChangePasswordRequest(BaseModel):

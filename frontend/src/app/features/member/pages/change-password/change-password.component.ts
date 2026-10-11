@@ -119,10 +119,10 @@ export class ChangePasswordComponent {
     this.submitting = true;
     const { currentPassword, newPassword } = this.form.value;
     this.memberService.changePassword(currentPassword, newPassword).subscribe({
-      next: () => {
+      next: (tokens) => {
         this.submitting = false;
         this.success = true;
-        this.auth.markPasswordChanged();
+        this.auth.markPasswordChanged(tokens);
         this.form.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
         setTimeout(() => this.router.navigate(['/dashboard']), REDIRECT_DELAY_MS);
         this.cdr.markForCheck();

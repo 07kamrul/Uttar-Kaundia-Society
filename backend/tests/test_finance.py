@@ -130,6 +130,15 @@ async def _approve(client, headers, txn_id) -> dict:
     assert response.status_code == 200, response.text
     return response.json()
 
+async def _attach_receipt(client, headers, txn_id: int) -> None:
+    """Module 4: expense approvals require a receipt/ভাউচার on file."""
+    response = await client.put(
+        f"/api/admin/finance/transactions/{txn_id}/attachment",
+        files={"file": ("receipt.pdf", b"%PDF-1.4 test receipt", "application/pdf")},
+        headers=headers,
+    )
+    assert response.status_code == 200, response.text
+
 
 # ---------------------------------------------------------------------------
 # Creation, validation, reference numbers
@@ -380,6 +389,7 @@ async def _approved_txn(db_session, client, categories, *, age_days=0):
     txn = await _create(
         client, _headers(creator.id, "executive_committee"), _expense_payload(categories)
     )
+    await _attach_receipt(client, _headers(creator.id, "executive_committee"), txn["id"])
     await _approve(client, _headers(approver.id, "executive_committee"), txn["id"])
     row = (
         await db_session.execute(
@@ -499,6 +509,8 @@ async def _seed_ledger(db_session, client, categories):
     for index, payload in enumerate(rows):
         (creator, approver) = (h1, h2) if index % 2 == 0 else (h2, h1)
         txn = await _create(client, creator, payload)
+        if payload["type"] == "expense":
+            await _attach_receipt(client, creator, txn["id"])
         await _approve(client, approver, txn["id"])
         created.append(txn)
     return created

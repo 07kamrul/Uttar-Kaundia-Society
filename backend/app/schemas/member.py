@@ -185,6 +185,9 @@ class ApproveResponse(BaseModel):
 class ResetPasswordResponse(BaseModel):
     member_id: str
     email_sent: bool
+    # Only set when the email failed, so the admin can hand it over in person;
+    # never returned when the member already received it by email.
+    temporary_password: str | None = None
 
 
 class MemberAuditEntry(BaseModel):

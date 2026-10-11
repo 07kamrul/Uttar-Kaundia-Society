@@ -1,3 +1,4 @@
+import { isSafePreviewUrl } from '../../../../shared/utils/safe-preview-url';
 import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -102,14 +103,14 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   ) {}
 
   /** Sanitized URL for embedding non-image previews (e.g. PDF) in an iframe. */
-  get previewFrameUrl(): SafeResourceUrl {
+  get previewFrameUrl(): SafeResourceUrl | null {
     if (this.sanitizedFrameUrlFor !== this.previewImageUrl) {
       this.sanitizedFrameUrlFor = this.previewImageUrl;
-      this.sanitizedFrameUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-        this.previewImageUrl ?? '',
-      );
+      this.sanitizedFrameUrl = isSafePreviewUrl(this.previewImageUrl)
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewImageUrl as string)
+        : null;
     }
-    return this.sanitizedFrameUrl as SafeResourceUrl;
+    return this.sanitizedFrameUrl;
   }
 
   /** Only allow review actions once the submission has finished loading without error. */

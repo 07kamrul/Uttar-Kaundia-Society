@@ -42,7 +42,12 @@ class _KaundiaAppState extends State<KaundiaApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<SettingsBloc>(create: (_) => SettingsBloc()),
-        BlocProvider<AuthBloc>(create: (_) => AuthBloc(repository: sl<AuthRepository>())),
+        BlocProvider<AuthBloc>(create: (_) {
+          final bloc = AuthBloc(repository: sl<AuthRepository>());
+          final restored = sl<SessionManager>().session;
+          if (restored != null) bloc.add(AuthSessionRestored(restored));
+          return bloc;
+        }),
       ],
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settings) {

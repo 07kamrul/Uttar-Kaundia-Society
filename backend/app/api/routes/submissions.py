@@ -139,6 +139,9 @@ def _total_share_quantity(data: SubmissionPayload) -> Decimal:
     return total
 
 
+MAX_SUBMISSION_DOC_FILES = 40
+
+
 @router.post("/submissions", response_model=SubmissionCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_submission(
     payload: str = Form(...),
@@ -155,6 +158,16 @@ async def create_submission(
     - 'receipt_photo': optional file upload for the money receipt image.
     - 'doc_files': ordered list of files for each property's applicable_docs.
     """
+    if len(doc_files) > MAX_SUBMISSION_DOC_FILES:
+        # Anonymous endpoint: bound how much disk one request can fill.
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "success": False,
+                "code": "TOO_MANY_FILES",
+                "message": f"At most {MAX_SUBMISSION_DOC_FILES} documents per submission.",
+            },
+        )
     try:
         data = SubmissionPayload.model_validate(json.loads(payload))
     except json.JSONDecodeError as exc:

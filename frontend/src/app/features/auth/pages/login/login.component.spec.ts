@@ -78,6 +78,7 @@ describe('LoginComponent', () => {
       role: 'administrator',
       permissions: [],
     });
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
     expect(navigate).toHaveBeenCalledWith('/fee-settings');
   });
 
@@ -92,6 +93,7 @@ describe('LoginComponent', () => {
       role: 'administrator',
       permissions: [],
     });
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
     expect(navigate).toHaveBeenCalledWith(['/change-password']);
   });
 

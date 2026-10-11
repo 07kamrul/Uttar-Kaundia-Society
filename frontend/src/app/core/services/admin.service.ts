@@ -25,6 +25,7 @@ import {
   type NoticeApiModel,
 } from '../models/content.model';
 import { toPropertyRequest, type MemberPropertyRequest, type PropertyRequestStatus } from './member.service';
+import { getMediaToken } from './media-token.service';
 
 export type AttachmentKind = 'member_photo' | 'receipt_photo';
 
@@ -328,6 +329,13 @@ function toSubmissionSummary(api: SubmissionSummaryApiModel): SubmissionSummary 
   };
 }
 
+/** `temporary_password` is only present when the email could not be sent. */
+export interface ResetPasswordResult {
+  member_id: string;
+  email_sent: boolean;
+  temporary_password?: string | null;
+}
+
 /** Origin the backend serves `/uploads/*` static files from (apiBaseUrl without the `/api` suffix). */
 const uploadsOrigin = environment.apiBaseUrl.replace(/\/api\/?$/, '');
 
@@ -344,7 +352,10 @@ export function toFileUrl(relativePath: string | null): string | undefined {
     .split('/')
     .map((segment) => encodeURIComponent(segment))
     .join('/');
-  return `${uploadsOrigin}/uploads/${encoded}`;
+  // /uploads is private: the backend requires the short-lived media token.
+  const token = getMediaToken();
+  const query = token ? `?t=${encodeURIComponent(token)}` : '';
+  return `${uploadsOrigin}/uploads/${encoded}${query}`;
 }
 
 function toApplicableDoc(api: ApplicableDocApiModel): ApplicableDoc {
@@ -599,8 +610,8 @@ export class AdminService {
     return this.http.delete<void>(`${this.base}/members/${memberId}`);
   }
 
-  resetMemberPassword(memberId: string): Observable<{ member_id: string; email_sent: boolean }> {
-    return this.http.post<{ member_id: string; email_sent: boolean }>(
+  resetMemberPassword(memberId: string): Observable<ResetPasswordResult> {
+    return this.http.post<ResetPasswordResult>(
       `${this.base}/members/${memberId}/reset-password`,
       {},
     );

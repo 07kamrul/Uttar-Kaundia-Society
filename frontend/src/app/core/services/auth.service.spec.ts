@@ -5,6 +5,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
+import { getMediaToken } from './media-token.service';
 import { MemberService } from './member.service';
 import { environment } from '../../../environments/environment';
 
@@ -62,6 +63,7 @@ describe('AuthService', () => {
     http
       .expectOne((r) => r.url.endsWith('/login'))
       .flush(TOKEN_RESPONSE);
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
 
     expect(done).toBe(true);
     expect(auth.isAuthenticated()).toBe(true);
@@ -70,11 +72,13 @@ describe('AuthService', () => {
     expect(auth.hasPermission('member.view_all')).toBe(true);
     expect(auth.hasAnyPermission(['member.view_all', 'nope'])).toBe(true);
     expect(localStorage.getItem('krmf_access_token')).toBe('access-1');
+    expect(getMediaToken()).toBe('m');
   });
 
   it('logout clears every stored field and permission', () => {
     auth.login('admin@example.com', 'pw').subscribe();
     http.expectOne((r) => r.url.endsWith('/login')).flush(TOKEN_RESPONSE);
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
 
     auth.logout();
 
@@ -84,11 +88,13 @@ describe('AuthService', () => {
     expect(auth.permissions).toEqual([]);
     expect(localStorage.getItem('krmf_access_token')).toBeNull();
     expect(localStorage.getItem('krmf_permissions')).toBeNull();
+    expect(getMediaToken()).toBeNull();
   });
 
   it('handleUnauthorized logs out and routes to /login', () => {
     auth.login('admin@example.com', 'pw').subscribe();
     http.expectOne((r) => r.url.endsWith('/login')).flush(TOKEN_RESPONSE);
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
     expect(auth.isAuthenticated()).toBe(true);
 
     auth.handleUnauthorized();
@@ -115,6 +121,7 @@ describe('AuthService', () => {
       role: 'member',
       permissions: ['profile.view_own'],
     });
+    http.expectOne((r) => r.url.endsWith('/media-token')).flush({ media_token: 'm', expires_in: 1800 });
     expect(auth.canPayAsMember()).toBe(true);
   });
 });

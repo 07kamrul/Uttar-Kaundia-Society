@@ -55,7 +55,7 @@ async def test_change_password_succeeds_with_valid_input(
         json={"current_password": CURRENT_PASSWORD, "new_password": "brandnew99"},
         headers=member_headers,
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     relogin = await client.post(
         "/api/member/login", json={"username": "kam-0001", "password": "brandnew99"}

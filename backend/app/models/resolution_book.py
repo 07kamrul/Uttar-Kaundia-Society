@@ -1,7 +1,7 @@
 import math
 from datetime import date, datetime, time as dt_time
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text, Time, func
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Index, Integer, String, Text, Time, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -115,10 +115,10 @@ class Meeting(Base):
     quorum_present: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quorum_required: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quorum_acknowledged: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0"
+        Boolean, nullable=False, default=False, server_default=false()
     )
     casting_vote_used: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, server_default="0"
+        Boolean, nullable=False, default=False, server_default=false()
     )
 
     resolutions = relationship("Resolution", back_populates="meeting", lazy="selectin")
