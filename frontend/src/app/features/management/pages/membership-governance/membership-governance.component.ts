@@ -212,7 +212,7 @@ type Tab = 'waivers' | 'actions' | 'appeals' | 'corrections' | 'arrears';
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
       .tab-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; }
+      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
       .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .field-row { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
     `,

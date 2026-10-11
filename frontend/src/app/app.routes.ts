@@ -370,8 +370,10 @@ export const routes: Routes = [
             // The standalone Picnic Payments screen was folded into the
             // unified Fee Payments list; old links land there with the
             // picnic fee-type filter preselected so nothing 404s.
+            // (redirectTo cannot carry canActivate — Angular rejects that
+            // combination at bootstrap, NG04014. The target route carries
+            // the same member.view_all guard.)
             path: 'picnic-payments',
-            canActivate: [permissionGuard(['member.view_all'])],
             redirectTo: () => '/fees-management?feeType=picnic',
           },
           {

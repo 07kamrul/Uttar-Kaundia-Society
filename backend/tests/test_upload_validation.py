@@ -5,7 +5,7 @@ slug mapping are covered in test_upload_serving.py.)"""
 import json
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, Response
 
 from app.services import storage
 from tests.test_submission_flow import _submission_payload
@@ -20,7 +20,7 @@ def _files(name: str, content: bytes, mime: str) -> list[tuple[str, tuple[str, b
     ]
 
 
-async def _post_submission(client: AsyncClient, files) -> AsyncClient.response:
+async def _post_submission(client: AsyncClient, files) -> Response:
     payload = _submission_payload()
     payload["properties"][0]["applicable_docs"] = [{"doc_type": "খাজনা/কর রশিদ"}]
     return await client.post(

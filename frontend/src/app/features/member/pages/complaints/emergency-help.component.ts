@@ -32,7 +32,7 @@ import { ComplaintConstants, GovernanceService } from '../../../../core/services
         <h2>{{ 'emergency.stepsTitle' | translate }}</h2>
         <ol class="steps">
           @for (step of steps; track $index) {
-            <li>{{ step }}</li>
+            <li>{{ step | translate }}</li>
           }
         </ol>
       </section>

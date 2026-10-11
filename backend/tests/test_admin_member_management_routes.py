@@ -9,6 +9,7 @@ from httpx import AsyncClient
 from sqlalchemy import select, text
 
 from app.core.security import hash_password
+from app.models.admin import AdminUser
 from app.models.credential import MemberCredential
 from app.models.installment import Installment, InstallmentStatus
 from app.models.member import Member, MemberStatus

@@ -2990,6 +2990,12 @@
       "resolved": "Resolved",
       "closed": "Closed",
       "all": "All"
+    },
+    "sla": {
+      "on_track": "On track",
+      "due_soon": "Due soon",
+      "overdue": "Overdue",
+      "met": "Met"
     }
   },
   "myData": {
@@ -3078,7 +3084,8 @@
       "met": "Met"
     },
     "loadError": "Failed to load the committee registry.",
-    "actionError": "The action failed. Please try again."
+    "actionError": "The action failed. Please try again.",
+    "vacant": "Vacant"
   },
   "elections": {
     "admin": {
@@ -3284,7 +3291,9 @@
       "validFrom": "Valid from",
       "validTo": "Valid to (optional)",
       "memberRequired": "Please select a member.",
-      "deactivateReason": "Reason for deactivating:"
+      "deactivateReason": "Reason for deactivating:",
+      "branch": "Branch",
+      "accountName": "Account name"
     }
   },
   "welfareFund": {
@@ -3333,7 +3342,8 @@
     "reasonRequired": "A decision reason is required.",
     "amountRequired": "Enter the approved amount.",
     "noReasonYet": "Not decided yet.",
-    "requestedReason": "Reason on the application"
+    "requestedReason": "Reason on the application",
+    "adminTitle": "Welfare fund review"
   },
   "auditReports": {
     "uploadTitle": "Upload audit report",

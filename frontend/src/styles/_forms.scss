@@ -150,6 +150,53 @@ textarea {
   resize: vertical;
 }
 
+/* File inputs keep the native picker, but two portability problems are
+   handled here: (1) without explicit colors the OS dark-mode widget chrome
+   is invisible on our surfaces, and (2) some embedded-Chromium builds (the
+   ZCode in-app browser) render the native picker button with no label text
+   at all. So the whole control is drawn as a dashed picker box whose
+   ::file-selector-button is a fixed icon button — the affordance never
+   depends on browser widget chrome, and in normal browsers the chosen
+   file name still shows beside the icon. */
+input[type='file'] {
+  display: block;
+  width: 100%;
+  min-height: var(--field-height);
+  border: 1px dashed var(--field-border-hover);
+  border-radius: var(--field-radius);
+  padding: var(--field-padding-y) var(--field-padding-x);
+  background: var(--field-bg);
+  color: var(--field-text);
+  font-size: var(--field-font-size);
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--field-border-focus);
+  }
+
+  &::file-selector-button {
+    width: 2.5rem;
+    min-height: 1.75rem;
+    margin-inline-end: var(--field-padding-x);
+    border: 1px solid var(--field-border);
+    border-radius: var(--field-radius);
+    background-color: var(--surface-2);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2347564a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1.1rem;
+    color: transparent;
+    font-size: 0;
+    cursor: pointer;
+    transition: border-color 0.15s;
+
+    &:hover {
+      border-color: var(--field-border-focus);
+    }
+  }
+}
+
 /* Compact variant for tables, pagination and inline edits. Same colors. */
 .field-sm {
   width: auto;

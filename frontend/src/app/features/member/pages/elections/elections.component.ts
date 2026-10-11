@@ -232,7 +232,7 @@ interface VotePick {
       .page-title { display: flex; align-items: center; gap: 0.5rem; }
       .me-section-title { display: flex; align-items: center; gap: 0.45rem; font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
       .me-election-row { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; }
+      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
       .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .me-eligibility { border-inline-start: 4px solid var(--emerald-600, #2e5138); }
       .me-eligibility.me-ineligible { border-inline-start-color: #b45309; }

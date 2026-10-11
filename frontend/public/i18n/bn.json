@@ -2990,6 +2990,12 @@
       "resolved": "নিষ্পত্তি",
       "closed": "বন্ধ",
       "all": "সব"
+    },
+    "sla": {
+      "on_track": "সময় আছে",
+      "due_soon": "শিগগির শেষ হবে",
+      "overdue": "সময় শেষ",
+      "met": "সময়মতো"
     }
   },
   "myData": {
@@ -3078,7 +3084,8 @@
       "met": "সম্পন্ন"
     },
     "loadError": "কমিটি রেজিস্ট্রি লোড করা যায়নি।",
-    "actionError": "কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।"
+    "actionError": "কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।",
+    "vacant": "শূন্যপদ"
   },
   "elections": {
     "admin": {
@@ -3284,7 +3291,9 @@
       "validFrom": "মেয়াদ শুরু",
       "validTo": "মেয়াদ শেষ (ঐচ্ছিক)",
       "memberRequired": "একজন সদস্য নির্বাচন করুন।",
-      "deactivateReason": "নিষ্ক্রিয় করার কারণ লিখুন:"
+      "deactivateReason": "নিষ্ক্রিয় করার কারণ লিখুন:",
+      "branch": "শাখা",
+      "accountName": "হিসাবের নাম"
     }
   },
   "welfareFund": {
@@ -3333,7 +3342,8 @@
     "reasonRequired": "সিদ্ধান্তের কারণ লেখা আবশ্যক।",
     "amountRequired": "অনুমোদিত পরিমাণ লিখুন।",
     "noReasonYet": "এখনো সিদ্ধান্ত হয়নি।",
-    "requestedReason": "আবেদনের কারণ"
+    "requestedReason": "আবেদনের কারণ",
+    "adminTitle": "কল্যাণ তহবিলের আবেদন পর্যালোচনা"
   },
   "auditReports": {
     "uploadTitle": "অডিট রিপোর্ট আপলোড",

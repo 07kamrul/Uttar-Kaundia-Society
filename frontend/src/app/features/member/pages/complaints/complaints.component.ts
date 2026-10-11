@@ -89,10 +89,10 @@ function saveBlob(blob: Blob, filename: string): void {
                       <span class="ds-tag" [attr.data-tone]="statusTone(complaint.status)">{{ 'complaintsModule.statuses.' + complaint.status | translate }}</span>
                     </td>
                     <td [attr.data-label]="'complaintsModule.slaAck' | translate">
-                      <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_ack)">{{ slaLabel(complaint.sla_ack) }}</span>
+                      <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_ack)">{{ ('complaintsAdmin.sla.' + complaint.sla_ack.state | translate) + ' (' + complaint.sla_ack.days_remaining + ')' }}</span>
                     </td>
                     <td [attr.data-label]="'complaintsModule.slaUpdate' | translate">
-                      <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_update)">{{ slaLabel(complaint.sla_update) }}</span>
+                      <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_update)">{{ ('complaintsAdmin.sla.' + complaint.sla_update.state | translate) + ' (' + complaint.sla_update.days_remaining + ')' }}</span>
                     </td>
                   </tr>
                   @if (openId() === complaint.id) {
@@ -206,9 +206,5 @@ export class ComplaintsComponent implements OnInit {
     if (sla.state === 'overdue') return 'bad';
     if (sla.state === 'due_soon') return 'warn';
     return 'neutral';
-  }
-
-  slaLabel(sla: SlaInfo): string {
-    return `${sla.state} (${sla.days_remaining})`;
   }
 }

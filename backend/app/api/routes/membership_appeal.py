@@ -1086,16 +1086,34 @@ async def list_applications(
             )
         query = query.where(MembershipApplication.status == status_filter)
     rows = (await db.execute(query)).scalars().all()
-    names = await _actor_names(db, {a.reviewed_by_admin_id for a in rows})
-    return [
-        _application_out(
-            application,
-            _application_timeline(
-                application, names
-            ),
-        )
-        for application in rows
-    ]
+    # _application_timeline reads `application.audit_rows`, which the detail
+    # loader assigns ad-hoc (see _application_detail). Batch-load the same
+    # audit rows for the whole list so the queue endpoint does not 500 and
+    # does not regress to a per-row query.
+    audit_by_application: dict[int, list[AuditLog]] = {}
+    if rows:
+        audit_rows = (
+            await db.execute(
+                select(AuditLog)
+                .where(
+                    AuditLog.entity_type == "membership_application",
+                    AuditLog.entity_id.in_([str(a.id) for a in rows]),
+                )
+                .order_by(AuditLog.created_at)
+            )
+        ).scalars().all()
+        for row in audit_rows:
+            audit_by_application.setdefault(int(row.entity_id), []).append(row)
+    names = await _actor_names(
+        db,
+        {a.reviewed_by_admin_id for a in rows}
+        | {r.actor_admin_id for rs in audit_by_application.values() for r in rs},
+    )
+    out: list[ApplicationOut] = []
+    for application in rows:
+        application.audit_rows = audit_by_application.get(application.id, [])  # type: ignore[attr-defined]
+        out.append(_application_out(application, _application_timeline(application, names)))
+    return out
 
 
 @router.get("/admin/membership-applications/{application_id}", response_model=ApplicationOut)

@@ -227,8 +227,8 @@ function saveBlob(blob: Blob, filename: string): void {
             <div class="field">
               <label for="waiverType">{{ 'membershipGov.waivers.type' | translate }}</label>
               <select id="waiverType" name="waiverType" [(ngModel)]="waiverType" required>
-                <option value="waiver">{{ 'membershipGov.waivers.typeWaiver' | translate }}</option>
-                <option value="installment">{{ 'membershipGov.waivers.typeInstallment' | translate }}</option>
+                <option value="waiver">{{ 'membershipGov.waivers.typewaiver' | translate }}</option>
+                <option value="installment">{{ 'membershipGov.waivers.typeinstallment' | translate }}</option>
               </select>
             </div>
             <div class="field">
@@ -315,7 +315,7 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
       .tab-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.5rem 0.9rem; border-radius: 999px; cursor: pointer; }
+      .tab { border: none; background: transparent; padding: 0.5rem 0.9rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
       .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .field-row { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
       .timeline { margin: 0.25rem 0 0 1.1rem; padding: 0; }

@@ -64,7 +64,7 @@ function saveBlob(blob: Blob, filename: string): void {
                     <span class="ds-tag" [attr.data-tone]="statusTone(app.status)">{{ 'membershipGov.statuses.' + app.status | translate }}</span>
                   </td>
                   <td [attr.data-label]="'membershipReview.sla' | translate">
-                    <span class="ds-badge" [attr.data-tone]="slaTone(app.sla)">{{ app.sla.state }} ({{ app.sla.days_remaining }})</span>
+                    <span class="ds-badge" [attr.data-tone]="slaTone(app.sla)">{{ ('complaintsAdmin.sla.' + app.sla.state | translate) + ' (' + app.sla.days_remaining + ')' }}</span>
                   </td>
                   <td [attr.data-label]="'common.actions' | translate">
                     <button type="button" class="btn-secondary" (click)="toggleDetail(app.id)">{{ 'membershipReview.details' | translate }}</button>
@@ -116,7 +116,7 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
       .filters { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; }
+      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
       .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .detail-row td { background: var(--surface-2, #f3efe3); }
       .action-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }

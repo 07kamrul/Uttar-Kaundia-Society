@@ -204,6 +204,37 @@ async def test_start_review_approve_sets_member_class_general(
     assert approved["member_id"] == member.id
     assert approved["status"] == "approved"
 
+
+async def test_admin_application_queue_lists_with_timeline(
+    client: AsyncClient,
+    member_headers: dict[str, str],
+    headers: dict[str, str],
+) -> None:
+    """Regression: the admin queue endpoint 500'd as soon as one application
+    existed, because the list loader never assigned `application.audit_rows`
+    (the detail loader's ad-hoc attribute that _application_timeline reads)."""
+    created = await client.post(
+        "/api/member/membership-applications",
+        json={
+            "full_name": "Queue Listing",
+            "father_name": "F",
+            "mother_name": "M",
+            "mobile": "01700000013",
+            "email": "queue@example.com",
+            "ownership_type": "owner",
+            "consent": True,
+        },
+        headers=member_headers,
+    )
+    assert created.status_code in (200, 201), created.text
+
+    listed = await client.get("/api/admin/membership-applications", headers=headers)
+    assert listed.status_code == 200, listed.text
+    rows = listed.json()
+    match = [row for row in rows if row["full_name"] == "Queue Listing"]
+    assert len(match) == 1
+    assert match[0]["timeline"][0]["event"] == "submitted"
+
 async def test_approve_without_linked_member_creates_member(
     client: AsyncClient, headers: dict[str, str], db_session: AsyncSession, admin_id: int
 ) -> None:

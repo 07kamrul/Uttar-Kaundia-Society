@@ -51,10 +51,10 @@ function saveBlob(blob: Blob, filename: string): void {
                     <span class="ds-tag" [attr.data-tone]="statusTone(complaint.status)">{{ 'complaintsModule.statuses.' + complaint.status | translate }}</span>
                   </td>
                   <td [attr.data-label]="'complaintsModule.slaAck' | translate">
-                    <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_ack)">{{ slaLabel(complaint.sla_ack) }}</span>
+                    <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_ack)">{{ ('complaintsAdmin.sla.' + complaint.sla_ack.state | translate) + ' (' + complaint.sla_ack.days_remaining + ')' }}</span>
                   </td>
                   <td [attr.data-label]="'complaintsModule.slaUpdate' | translate">
-                    <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_update)">{{ slaLabel(complaint.sla_update) }}</span>
+                    <span class="ds-badge" [attr.data-tone]="slaTone(complaint.sla_update)">{{ ('complaintsAdmin.sla.' + complaint.sla_update.state | translate) + ' (' + complaint.sla_update.days_remaining + ')' }}</span>
                   </td>
                   <td [attr.data-label]="'common.actions' | translate">
                     @if (!complaint.acknowledged_at) {
@@ -106,7 +106,7 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
       .filters { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; }
+      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
       .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .detail-row td { background: var(--surface-2, #f3efe3); }
       .timeline { margin-left: 1.1rem; }
@@ -199,9 +199,5 @@ export class ComplaintsAdminComponent implements OnInit {
     if (sla.state === 'overdue') return 'bad';
     if (sla.state === 'due_soon') return 'warn';
     return 'neutral';
-  }
-
-  slaLabel(sla: SlaInfo): string {
-    return `${sla.state} (${sla.days_remaining})`;
   }
 }
