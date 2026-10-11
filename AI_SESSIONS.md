@@ -5,15 +5,15 @@
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
 - Status: DONE
-- Current session ID: SESSION-20261011-1808-claude
+- Current session ID: SESSION-20261011-1821-claude
 - Current agent: claude
-- Current task / user prompt: Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook
-- Last completed step: Phase 1-2 done: docs/AI_RULES.md master + sync_rules.sh/.ps1; synced 8 tool files
+- Current task / user prompt: Implement global smart loader plan
+- Last completed step: Phase 3-5: global-loader component, wiring, i18n, SKIP_LOADER opt-outs; 378 tests + build pass
 - NEXT step: none (awaiting next user prompt)
-- Files touched so far: docs/AI_RULES.md, scripts/ai/sync_rules.*, AGENTS.md, .zcode/RULES.md, .github/copilot-instructions.md, .cursor/rules/ai-rules.mdc, GEMINI.md, .windsurfrules, .clinerules, CONVENTIONS.md
+- Files touched so far: frontend/src/app/core/services/loader.service*.ts, frontend/src/app/core/interceptors/loader*.ts, frontend/src/app/shared/loader/*, app.ts, app.config.ts, media-token.service.ts, registration.service.ts, public/i18n/*
 - Uncommitted / half-finished work: none
 - Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-11 18:16
+- Last updated (UTC): 2026-10-11 18:42
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
@@ -22,6 +22,7 @@
 - [ ] Make member governance pages UI+functionality smart, professional, user friendly, fully responsive | sessions: `SESSION-20261011-1728-zcode`
 - [x] Make the 3 screenshot pages (emergency-safety, profile correction-request, funds/fund-addition) UI+functionality smart, professional, user friendly, fully responsive on any device | sessions: `SESSION-20261011-1804-claude`
 - [x] Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook | sessions: `SESSION-20261011-1808-claude`
+- [x] Implement global smart loader plan | sessions: `SESSION-20261011-1821-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -155,6 +156,24 @@
 - Summary of work done: Cross-AI rules: master docs/AI_RULES.md synced by scripts/ai/sync_rules.sh/.ps1 into AGENTS.md, .zcode/RULES.md, Copilot, Cursor, Gemini, Windsurf, Cline, Aider files; CLAUDE.md imports AGENTS.md; opencode.json and .codex/config.toml locks; ignore files; Claude ask-rules and extended block-infra hook; .githooks/pre-commit guard. Verified with scratchpad test suite.
 - Files created/modified/deleted: docs/AI_RULES.md, scripts/ai/sync_rules.*, AGENTS.md, .zcode/RULES.md, .github/copilot-instructions.md, .cursor/rules/ai-rules.mdc, GEMINI.md, .windsurfrules, .clinerules, CONVENTIONS.md, .zcodeignore, CLAUDE.md, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, frontend/public/i18n/keys.tsv, frontend/src/app/features/member/pages/amendments/amendments.component.ts, frontend/src/app/features/member/pages/complaints/complaints.component.ts, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.html, frontend/src/app/features/member/pages/dashboard/member-dashboard.component.ts, frontend/src/app/features/member/pages/elections/elections.component.ts, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.html, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.scss, frontend/src/app/features/member/pages/fund-transparency/fund-transparency.component.ts, frontend/src/app/features/member/pages/membership/membership.component.ts, frontend/src/app/features/member/pages/petitions/petitions.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.ts
 - Remaining work (exact): User must enable the git hooks folder once (see .githooks/pre-commit header); AI is not allowed to change git hook config. Commit new files when ready.
+- Notes for the next agent: none
+
+### [SESSION-20261011-1821-claude] START
+- Agent: claude
+- Model: claude-opus-5-5
+- Started (UTC): 2026-10-11 18:21
+- User prompt: Implement global smart loader plan
+- Resumed from: none
+- Plan: service, interceptor, component, wiring, opt-outs, verify
+#### CHECKPOINTS
+- [18:30] Phase 1-2: LoaderService + loader interceptor + context tokens, 13 tests green -> frontend/src/app/core/services/loader.service*.ts, frontend/src/app/core/interceptors/loader*.ts -> Phase 3: create shared/loader/global-loader.component (bar + overlay), then wire app.ts/app.config.ts, i18n, SKIP_LOADER on media-token + subscription-quote
+- [18:42] Phase 3-5: global-loader component, wiring, i18n, SKIP_LOADER opt-outs; 378 tests + build pass -> frontend/src/app/shared/loader/*, app.ts, app.config.ts, media-token.service.ts, registration.service.ts, public/i18n/* -> Manual visual QA in browser (bar on GET, overlay on POST, mobile 360px, dark theme), then commit when user asks
+### END
+- Ended (UTC): 2026-10-11 18:42
+- End reason: COMPLETED
+- Summary of work done: Global smart loader: LoaderService (debounced show/min-visible/slow flag), loaderInterceptor + SKIP_LOADER/LOADER_MODE tokens, app-global-loader (top bar for reads/route loads, blocking overlay for writes), i18n bn/en, opt-outs on media-token + subscription-quote. 378 tests pass, build OK.
+- Files created/modified/deleted: frontend/src/app/core/services/loader.service*.ts, frontend/src/app/core/interceptors/loader*.ts, frontend/src/app/shared/loader/*, app.ts, app.config.ts, media-token.service.ts, registration.service.ts, public/i18n/*, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, frontend/public/i18n/keys.tsv, frontend/src/app/app.config.ts, frontend/src/app/app.ts, frontend/src/app/core/services/media-token.service.ts, frontend/src/app/core/services/registration.service.ts, frontend/src/app/core/interceptors/loader-context.ts, frontend/src/app/core/interceptors/loader.interceptor.spec.ts, frontend/src/app/core/interceptors/loader.interceptor.ts, frontend/src/app/core/services/loader.service.spec.ts, frontend/src/app/core/services/loader.service.ts, frontend/src/app/shared/loader/
+- Remaining work (exact): Manual browser QA on slow network; initial bundle 510.88kB vs 500kB budget warning (pre-existing or loader-related, unverified); commit when user asks
 - Notes for the next agent: none
 
 ## ARCHIVE

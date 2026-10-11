@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SKIP_LOADER } from '../interceptors/loader-context';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -48,6 +49,8 @@ export class RegistrationService {
       .post<SubscriptionQuoteApiResponse>(
         `${environment.apiBaseUrl}/public/registration/subscription-quote`,
         { land_size_decimal: landSizeDecimal },
+        // Live quote re-fetched as the user types — a blocking overlay would interrupt input.
+        { context: new HttpContext().set(SKIP_LOADER, true) },
       )
       .pipe(
         map((res) => ({

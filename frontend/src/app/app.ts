@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
+import { GlobalLoaderComponent } from './shared/loader/global-loader.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet />',
+  imports: [RouterOutlet, GlobalLoaderComponent],
+  template: '<app-global-loader /><router-outlet />',
 })
 export class App {
   // Injected (not just typed) so the theme is applied to <html> on every

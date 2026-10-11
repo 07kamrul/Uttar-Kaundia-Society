@@ -1,5 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService, MEMBER_PAYMENT_ROLES, type UserRole } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -406,7 +408,24 @@ export class ShellComponent implements OnInit {
     public lang: LanguageService,
     private memberService: MemberService,
     private router: Router,
-  ) {}
+  ) {
+    // The sectioned sidebar is taller than the viewport, so the highlighted
+    // link for a lower page (পিটিশন, কল্যাণ তহবিল, …) can sit scrolled out of
+    // sight. Keep it visible after every navigation.
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        requestAnimationFrame(() => {
+          document
+            .querySelector('.sidebar')
+            ?.querySelector<HTMLElement>('.sidebar-link.active')
+            ?.scrollIntoView({ block: 'nearest' });
+        });
+      });
+  }
 
   ngOnInit(): void {
     // Not a permission check: /api/member/me only exists for actual Member-role

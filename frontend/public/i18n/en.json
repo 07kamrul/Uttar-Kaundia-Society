@@ -193,6 +193,8 @@
     "switchToEnglish": "Switch to English",
     "switchToBangla": "বাংলায় দেখুন",
     "loading": "Loading...",
+    "processing": "Processing, please wait…",
+    "stillWorking": "Still working — this is taking longer than usual…",
     "select": "Select",
     "close": "Close",
     "months": {

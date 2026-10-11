@@ -1,0 +1,33 @@
+@if (isBarVisible()) {
+  <div
+    class="gl-bar"
+    role="progressbar"
+    aria-busy="true"
+    [attr.aria-label]="'common.loading' | translate"
+  >
+    <span class="gl-bar__track"></span>
+  </div>
+}
+
+@if (isOverlayVisible()) {
+  <div
+    #overlay
+    class="gl-overlay"
+    role="alertdialog"
+    aria-modal="true"
+    aria-busy="true"
+    tabindex="-1"
+    (keydown)="trapFocus($event)"
+  >
+    <div class="gl-card" role="status" aria-live="polite">
+      <span class="gl-spinner" aria-hidden="true">
+        <span class="gl-spinner__ring"></span>
+        <span class="gl-spinner__dot"></span>
+      </span>
+      <p class="gl-message">
+        {{ (isSlow() ? 'common.stillWorking' : 'common.processing') | translate }}
+      </p>
+      <span class="gl-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+  </div>
+}

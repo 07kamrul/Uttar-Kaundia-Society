@@ -1,5 +1,6 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { SKIP_LOADER } from '../interceptors/loader-context';
 import { Observable, Subscription, catchError, map, of, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -49,7 +50,10 @@ export class MediaTokenService {
   }
 
   private fetch(): Observable<void> {
-    return this.http.get<MediaTokenResponse>(`${environment.apiBaseUrl}/media-token`).pipe(
+    return this.http.get<MediaTokenResponse>(`${environment.apiBaseUrl}/media-token`, {
+      // Background refresh every few minutes — never show the global loader for it.
+      context: new HttpContext().set(SKIP_LOADER, true),
+    }).pipe(
       map((res) => {
         currentMediaToken = res.media_token;
       }),
