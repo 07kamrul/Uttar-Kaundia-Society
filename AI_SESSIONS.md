@@ -5,19 +5,20 @@
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
 - Status: DONE
-- Current session ID: SESSION-20261011-1253-zcode
-- Current agent: zcode
-- Current task / user prompt: Execute EXECUTE-GOVERNANCE-VERIFICATION.md — governance modules final re-verification, integration sweeps, visual QA, report
-- Last completed step: All judge findings fixed: P0 NG04014, admin-queue 500 (+regression test), SLA labels ×3 pages, emergency steps, tab contrast ×5 components, file-input webview quirk; backend 637/1 (known CORS only), vitest 362/0; re-captures done, final re-judge running
+- Current session ID: SESSION-20261011-1718-claude
+- Current agent: claude
+- Current task / user prompt: Fix Dokploy build: target stage runtime not found in backend/Dockerfile
+- Last completed step: none
 - NEXT step: none (awaiting next user prompt)
-- Files touched so far: frontend/src/app/app.routes.ts, frontend/src/app/features/member/pages/membership/membership.component.ts, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, backend/tests/test_admin_member_management_routes.py, backend/tests/test_registration_installment.py, backend/tests/test_upload_validation.py, docs/governance-alignment-report.md, frontend/src/styles/_forms.scss, frontend/src/app/features/management/pages/membership-review/membership-review.component.ts, frontend/src/app/features/management/pages/complaints-admin/complaints-admin.component.ts, frontend/src/app/features/member/pages/complaints/complaints.component.ts, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/{member/pages/elections, member/pages/membership, management/pages/membership-review, management/pages/membership-governance}/*.component.ts
+- Files touched so far: none
 - Uncommitted / half-finished work: none
 - Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-11 17:06
+- Last updated (UTC): 2026-10-11 17:18
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
 - [x] Execute EXECUTE-GOVERNANCE-VERIFICATION.md — governance modules final re-verification, integration sweeps, visual QA, report | sessions: `SESSION-20261011-1253-zcode`
+- [x] Fix Dokploy build: target stage runtime not found in backend/Dockerfile | sessions: `SESSION-20261011-1718-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -75,6 +76,22 @@
 - Files created/modified/deleted: frontend/src/app/app.routes.ts, frontend/src/app/features/member/pages/membership/membership.component.ts, frontend/public/i18n/bn.json, frontend/public/i18n/en.json, backend/tests/test_admin_member_management_routes.py, backend/tests/test_registration_installment.py, backend/tests/test_upload_validation.py, docs/governance-alignment-report.md, frontend/src/styles/_forms.scss, frontend/src/app/features/management/pages/membership-review/membership-review.component.ts, frontend/src/app/features/management/pages/complaints-admin/complaints-admin.component.ts, frontend/src/app/features/member/pages/complaints/complaints.component.ts, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/{member/pages/elections, member/pages/membership, management/pages/membership-review, management/pages/membership-governance}/*.component.ts, backend/dev.db-shm.pre-gov-verify.bak, backend/dev.db-wal.pre-gov-verify.bak, backend/dev.db.pre-gov-verify.bak
 - Remaining work (exact): none — task complete
 - Notes for the next agent: P0 found: NG04014 route misconfig blanked the app (redirectTo+canActivate). Dev servers left running: uvicorn :8000, ng serve :9091. dev.db reseeded (backup: backend/dev.db.pre-gov-verify.bak). Demo logins: admin@example.com / member 01711000001. QA screenshots in /tmp/qa/. Do not commit dev.db* backups.
+
+### [SESSION-20261011-1718-claude] START
+- Agent: claude
+- Model: claude-sonnet-5-5
+- Started (UTC): 2026-10-11 17:18
+- User prompt: Fix Dokploy build: target stage runtime not found in backend/Dockerfile
+- Resumed from: none
+- Plan: see CHECKPOINTS
+#### CHECKPOINTS
+### END
+- Ended (UTC): 2026-10-11 17:18
+- End reason: COMPLETED
+- Summary of work done: Named the backend Dockerfile stage 'runtime' so Dokploy build target resolves
+- Files created/modified/deleted: backend/Dockerfile, backend/dev.db-shm.pre-gov-verify.bak, backend/dev.db-wal.pre-gov-verify.bak, backend/dev.db.pre-gov-verify.bak
+- Remaining work (exact): none
+- Notes for the next agent: none
 
 ## ARCHIVE
 <!-- Sessions older than the last 10 move here, condensed to 3-5 lines each. -->
