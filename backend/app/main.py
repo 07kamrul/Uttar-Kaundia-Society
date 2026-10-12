@@ -16,6 +16,7 @@ from app.api.routes import (
     admin,
     amendments,
     auth,
+    cache_admin,
     committee_registry,
     elections,
     petitions,
@@ -183,6 +184,7 @@ app.include_router(petitions.router, prefix=api_router_prefix)
 app.include_router(fund_controls.router, prefix=api_router_prefix)
 app.include_router(amendments.router, prefix=api_router_prefix)
 app.include_router(registers.router, prefix=api_router_prefix)
+app.include_router(cache_admin.router, prefix=api_router_prefix)
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 
