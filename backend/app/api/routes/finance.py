@@ -14,6 +14,7 @@ from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.cache import CACHE_STATUS_HEADER
 from app.core.config import get_settings
 from app.core.deps import AccountActor, get_account_actor
 from app.core.permissions import is_super_admin, require_permission
@@ -69,6 +70,7 @@ from app.services.finance import (
     balance_all_time,
     format_taka,
     get_summary,
+    get_summary_with_status,
     invalidate_summary_cache,
     next_reference_no,
     period_label,
@@ -332,6 +334,7 @@ async def _ledger_totals(db: AsyncSession, conditions: list) -> FinanceTotalsOut
 
 @router.get("/member/finance/summary", response_model=FinanceSummaryOut)
 async def member_finance_summary(
+    response: Response,
     period: str = Query(default=PERIOD_MONTH),
     date_from: date | None = Query(default=None),
     date_to: date | None = Query(default=None),
@@ -341,7 +344,8 @@ async def member_finance_summary(
     if period not in PERIOD_TYPES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown period.")
     _assert_custom_period(period, date_from, date_to)
-    payload = await get_summary(db, period, date_from, date_to)
+    payload, hit = await get_summary_with_status(db, period, date_from, date_to)
+    response.headers[CACHE_STATUS_HEADER] = "HIT" if hit else "MISS"
     return FinanceSummaryOut(**payload)
 
 

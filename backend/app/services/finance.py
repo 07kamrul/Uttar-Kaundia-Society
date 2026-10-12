@@ -6,7 +6,6 @@ final string cast in the schemas. Period summaries are cached in-process
 the hero card and charts stay fast as the ledger grows.
 """
 import calendar
-import time
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
@@ -14,6 +13,7 @@ from decimal import Decimal
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import CacheName, get_or_load, invalidate_finance, make_key
 from app.models.config_list_item import ConfigListItem
 from app.models.financial_transaction import (
     FINANCE_STATUS_APPROVED,
@@ -37,16 +37,12 @@ BN_MONTHS = (
     "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
 )
 
-_SUMMARY_CACHE_TTL_SECONDS = 60.0
-_summary_cache: dict[str, tuple[float, dict]] = {}
-_summary_generation = 0
-
 
 def invalidate_summary_cache() -> None:
-    """Drop cached period summaries after any finance write."""
-    global _summary_generation
-    _summary_generation += 1
-    _summary_cache.clear()
+    """Drop cached period summaries after any finance write. Committed writes
+    to financial_transactions / config_list_items also clear them via
+    TABLE_DEPENDENCIES in app/core/cache.py."""
+    invalidate_finance()
 
 
 def format_taka(value: Decimal | int | float | str) -> str:
@@ -345,15 +341,26 @@ async def get_summary(
     date_to: date | None = None,
 ) -> dict:
     """Cached build_summary: the hero card and both charts come from one
-    payload, so one cache entry serves the whole dashboard."""
-    key = f"{period_type}|{date_from}|{date_to}|{_summary_generation}"
-    cached = _summary_cache.get(key)
-    now = time.monotonic()
-    if cached is not None and now - cached[0] < _SUMMARY_CACHE_TTL_SECONDS:
-        return cached[1]
-    payload = await build_summary(db, period_type, date_from, date_to)
-    _summary_cache[key] = (now, payload)
+    payload, so one cache entry serves the whole dashboard. Society-wide
+    approved totals only - identical for every viewer. Today's date is in the
+    key because relative periods ("this month") resolve against it."""
+    payload, _ = await get_summary_with_status(db, period_type, date_from, date_to)
     return payload
+
+
+async def get_summary_with_status(
+    db: AsyncSession,
+    period_type: str,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> tuple[dict, bool]:
+    """``get_summary`` plus whether it was a cache hit (for ``X-Cache``)."""
+    key = make_key("summary", period_type, date_from, date_to, date.today())
+    return await get_or_load(
+        CacheName.FINANCE_SUMMARY,
+        key,
+        lambda: build_summary(db, period_type, date_from, date_to),
+    )
 
 
 async def next_reference_no(db: AsyncSession, txn_date: date) -> str:

@@ -61,7 +61,7 @@ TABLE_DEPENDENCIES: dict[str, tuple[CacheName, ...]] = {
     "user_permission_overrides": (CacheName.PERMISSIONS,),
     "notices": (CacheName.PUBLIC_LISTS,),
     "events": (CacheName.PUBLIC_LISTS,),
-    "config_list_items": (CacheName.PUBLIC_LISTS,),
+    "config_list_items": (CacheName.PUBLIC_LISTS, CacheName.FINANCE_SUMMARY),
     "members": (CacheName.PUBLIC_LISTS,),
     "roadmap_items": (CacheName.PUBLIC_LISTS,),
     "roadmap_timeframes": (CacheName.PUBLIC_LISTS,),
