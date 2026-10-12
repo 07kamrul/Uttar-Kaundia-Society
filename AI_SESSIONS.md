@@ -5,15 +5,15 @@
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
 - Status: DONE
-- Current session ID: SESSION-20261012-0613-claude
+- Current session ID: SESSION-20261012-1015-claude
 - Current agent: claude
-- Current task / user prompt: Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first)
-- Last completed step: Phase 1-2: section-loader component+spec, global skeleton/tab/table/checkbox CSS, governance per-tab loading, review+committee wired; build+378 tests OK
-- NEXT step: none (awaiting next user prompt)
-- Files touched so far: frontend/src/styles.scss, frontend/src/app/shared/section-loader/*, management/pages/{membership-governance, membership-review, committee-registry}
-- Uncommitted / half-finished work: none
-- Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-12 06:18
+- Current task / user prompt: Service Standards page: loader must show until data loads (user: "image 1 loaded the data but the loader not work, it should be work the loader until the image 2 data load")
+- Last completed step: Fixed service-standard.component.ts: skeleton held >= LoaderService.MIN_VISIBLE_MS (400ms) so fast responses cannot skip the loader; added error-box + retry (sibling pattern); 5 new spec tests; full suite 387 pass; ng build OK; code review APPROVE (3 LOW, 1 applied)
+- NEXT step: none (awaiting next user prompt; changes uncommitted — commit when user asks)
+- Files touched so far: frontend/src/app/features/member/pages/service-standard/{service-standard.component.ts, service-standard.component.spec.ts (new)}
+- Uncommitted / half-finished work: the two service-standard files above are modified/untracked and not committed
+- Blockers / decisions pending: optional follow-up: extract the min-visible hold into a shared helper and roll out to sibling pages (petitions/roadmap/neighbours etc. still clear loading synchronously); if user still sees no loader on prod, redeploy (Dokploy) — loader commits are recent (77d6fbd, e878e96)
+- Last updated (UTC): 2026-10-12 10:22
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
@@ -220,3 +220,21 @@
 
 ## ARCHIVE
 <!-- Sessions older than the last 10 move here, condensed to 3-5 lines each. -->
+
+### [SESSION-20261012-1015-claude] START
+- Agent: claude
+- Model: glm-5.3
+- Started (UTC): 2026-10-12 10:15
+- User prompt (verbatim or tight summary): "image 1 loaded the data but the loader not work, it should be work the loader untill the image 2 data load. implement this" (Service Standards member page; img1=skeleton state, img2=loaded cards)
+- Resumed from: none
+- Plan: systematic-debugging: reproduce locally -> root cause -> fix -> test -> verify
+#### CHECKPOINTS
+- [10:35] Root cause found: page = member Service Standards. Code swaps skeleton<->data correctly, but (a) an instant/quick API response clears `loading` synchronously so the skeleton can flash <1 frame (user sees "loader not work"), and (b) on error the page drops to empty grid with no retry (siblings got retry in e878e96, this page was skipped). Deployed build may also lag commits. Fix: min-visible skeleton (reuse LoaderService.MIN_VISIBLE_MS=400) + error/retry per sibling pattern. TDD: failing spec first -> AI_SESSIONS.md, service-standard.component.ts, new service-standard.component.spec.ts -> Run spec (expect RED on min-visible + retry tests)
+- [10:22] TDD complete: spec RED (3 failing) -> implemented settleLoading() min-visible hold (LoaderService.MIN_VISIBLE_MS) + loadFailed/retry in service-standard.component.ts -> spec GREEN (5/5, incl. boundary pin at MIN-1ms) -> full suite 387/387, ng build OK (pre-existing 512kB budget warning) -> code-reviewer agent verdict APPROVE (3 LOW: boundary pin applied; TestBed dedup + sibling rollout noted as optional) -> AI_SESSIONS.md, frontend/src/app/features/member/pages/service-standard/{service-standard.component.ts,service-standard.component.spec.ts}
+### END
+- Ended (UTC): 2026-10-12 10:22
+- End reason: COMPLETED
+- Summary of work done: Service Standards loader now provably works until data loads: skeleton shows from mount, held min 400ms even on instant responses (root cause: loading was cleared synchronously so fast API responses skipped the skeleton paint), plus error state with Retry (page was skipped in e878e96). Verified: 5 new vitest tests, 387 total pass, build OK, review APPROVE.
+- Files created/modified/deleted: modified frontend/src/app/features/member/pages/service-standard/service-standard.component.ts; created frontend/src/app/features/member/pages/service-standard/service-standard.component.spec.ts; AI_SESSIONS.md
+- Remaining work (exact): commit when user asks; optional: shared min-visible helper rollout to sibling member pages; local browser QA not possible (local backend SQLite errors WinError 121 + no member accounts in local dev.db)
+- Notes for the next agent (gotchas, conventions, commands to run): backend venv is backend/venv (system python lacks uvicorn); local backend currently 500s on all routes (OSError WinError 121 semaphore timeout - environmental, do not chase for frontend work); screenshots for this task live at e:/tmp/ss1.png (skeleton) and e:/tmp/ss2.png (loaded)

@@ -3,6 +3,7 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
+import { LoaderService } from '../../../../core/services/loader.service';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
 import { GovernanceService, ServiceStandard } from '../../../../core/services/governance.service';
 
@@ -23,6 +24,13 @@ import { GovernanceService, ServiceStandard } from '../../../../core/services/go
 
       @if (loading()) {
         <div class="card"><app-section-loader variant="cards" [count]="4" /></div>
+      } @else if (loadFailed()) {
+        <div class="error-box" role="alert">
+          <p style="margin: 0 0 0.75rem">{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary retry-btn" (click)="load()">
+            {{ 'common.retry' | translate }}
+          </button>
+        </div>
       } @else {
         <div class="ss-grid">
           @for (standard of standards(); track standard.key) {
@@ -79,6 +87,8 @@ import { GovernanceService, ServiceStandard } from '../../../../core/services/go
   `,
   styles: [
     `
+      .retry-btn { flex-wrap: wrap; }
+      @media (max-width: 640px) { .retry-btn { width: 100%; } }
       .ss-page { display: grid; gap: 0; }
       .ss-grid {
         display: grid;
@@ -133,16 +143,41 @@ export class ServiceStandardComponent implements OnInit {
   readonly standards = signal<ServiceStandard[]>([]);
   readonly antiRetaliation = signal('');
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
+
+  private loadStartedAt = 0;
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.loadFailed.set(false);
+    this.loadStartedAt = performance.now();
     this.governance.serviceStandard().subscribe({
       next: (data) => {
         this.standards.set(data.standards);
         this.antiRetaliation.set(data.anti_retaliation_notice);
-        this.loading.set(false);
+        this.settleLoading();
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loadFailed.set(true);
+        this.settleLoading();
+      },
     });
+  }
+
+  /**
+   * The skeleton must stay visible until the data (or the error box) replaces
+   * it — a fast response otherwise clears `loading` before the browser ever
+   * paints the loading state, so the page seems to skip its loader. Hold it
+   * for the same minimum time the global loader lingers.
+   */
+  private settleLoading(): void {
+    const elapsed = performance.now() - this.loadStartedAt;
+    const remaining = Math.max(0, LoaderService.MIN_VISIBLE_MS - elapsed);
+    setTimeout(() => this.loading.set(false), remaining);
   }
 
   livePct(live: NonNullable<ServiceStandard['live']>): number {
