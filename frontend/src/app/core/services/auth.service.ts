@@ -5,6 +5,7 @@ import { Observable, map, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MemberService, type SessionTokens } from './member.service';
 import { MediaTokenService } from './media-token.service';
+import { clearHttpCache } from '../interceptors/cache.interceptor';
 
 export type UserRole = 'super_admin' | 'executive_committee' | 'administrator' | 'member';
 
@@ -177,6 +178,7 @@ export class AuthService {
   }
 
   logout(): void {
+    clearHttpCache();
     this.memberService.clearProfileCache();
     this.mediaToken.clear();
     this.accessToken.set(null);

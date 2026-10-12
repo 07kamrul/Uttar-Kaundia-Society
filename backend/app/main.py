@@ -45,6 +45,7 @@ from app.api.routes import (
     submissions,
 )
 from app.core.config import get_settings
+from app.core.timing import TimingMiddleware, install_query_listeners
 from app.db.session import engine
 from app.services.storage import UploadStaticFiles, check_upload_root
 
@@ -137,6 +138,12 @@ app.add_middleware(
 # compute, and Starlette only offloads bodies >=128 KiB to a worker thread -
 # everything smaller is compressed inline on the event loop.
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=6)
+
+# Outermost: times the whole stack and adds a Server-Timing header (db / app
+# split plus query count) so slow endpoints and N+1 patterns are visible in
+# DevTools and in the server log without any extra tooling.
+app.add_middleware(TimingMiddleware)
+install_query_listeners(engine.sync_engine)
 
 
 @app.exception_handler(ValidationIssue)

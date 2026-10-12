@@ -1,10 +1,18 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
+import { vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
-import { SelectivePreloadingStrategy } from './selective-preloading.strategy';
+import {
+  MAX_CONCURRENT_PRELOADS,
+  PRELOAD_IDLE,
+  SelectivePreloadingStrategy,
+} from './selective-preloading.strategy';
 
 describe('SelectivePreloadingStrategy', () => {
-  function strategy(permissions: string[]): SelectivePreloadingStrategy {
+  function strategy(
+    permissions: string[],
+    idle: Observable<void> = of(undefined),
+  ): SelectivePreloadingStrategy {
     TestBed.configureTestingModule({
       providers: [
         {
@@ -13,6 +21,7 @@ describe('SelectivePreloadingStrategy', () => {
             hasAnyPermission: (keys: string[]) => keys.some((k) => permissions.includes(k)),
           },
         },
+        { provide: PRELOAD_IDLE, useValue: idle },
       ],
     });
     return TestBed.inject(SelectivePreloadingStrategy);
@@ -51,5 +60,69 @@ describe('SelectivePreloadingStrategy', () => {
     const result = preload(strategy([]), { requiredPermissions: ['manage_roles'] });
     expect(result.called).toBe(false);
     expect(result.value).toBeNull();
+  });
+
+  it('never preloads routes flagged preload: false (heavy chunks load on first visit)', () => {
+    const result = preload(strategy(['x']), { preload: false });
+    expect(result.called).toBe(false);
+    expect(result.value).toBeNull();
+  });
+
+  it('starts the chunk fetch only after the browser is idle', () => {
+    const idle = new Subject<void>();
+    const s = strategy([], idle);
+    const fn = vi.fn(() => of('chunk'));
+
+    s.preload({ path: 'x' } as never, fn).subscribe();
+    expect(fn).not.toHaveBeenCalled();
+
+    idle.next();
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs at most MAX_CONCURRENT_PRELOADS chunk fetches at a time and drains the queue', () => {
+    const s = strategy([]);
+    const downloads = Array.from({ length: MAX_CONCURRENT_PRELOADS + 2 }, () => new Subject<string>());
+    const started: number[] = [];
+
+    downloads.forEach((download, index) =>
+      s
+        .preload({ path: `r${index}` } as never, () => {
+          started.push(index);
+          return download;
+        })
+        .subscribe(),
+    );
+
+    expect(started).toEqual([0, 1]);
+
+    downloads[0].next('a');
+    downloads[0].complete();
+    expect(started).toEqual([0, 1, 2]);
+
+    downloads[1].next('b');
+    downloads[1].complete();
+    expect(started).toEqual([0, 1, 2, 3]);
+  });
+
+  it('frees its slot when a chunk fetch fails so the queue keeps moving', () => {
+    const s = strategy([]);
+    const failing = new Subject<string>();
+    const started: string[] = [];
+    const run = (name: string, source: Observable<string>) =>
+      s
+        .preload({ path: name } as never, () => {
+          started.push(name);
+          return source;
+        })
+        .subscribe({ error: () => undefined });
+
+    run('a', failing);
+    run('b', new Subject<string>());
+    run('c', of('ok'));
+    expect(started).toEqual(['a', 'b']);
+
+    failing.error(new Error('offline'));
+    expect(started).toEqual(['a', 'b', 'c']);
   });
 });

@@ -85,7 +85,14 @@ async def _resolve_member(
     if normalize_token_role(payload.get("role")) != "member":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Member access required")
 
-    query = select(Member).where(Member.id == _subject_id(payload))
+    # The credential's token_version rides along on the same row (LEFT JOIN), so
+    # authenticating costs one round-trip instead of two - each is a network hop
+    # to the remote Postgres on every member request.
+    query = (
+        select(Member, MemberCredential.token_version)
+        .outerjoin(MemberCredential, MemberCredential.member_id == Member.id)
+        .where(Member.id == _subject_id(payload))
+    )
     if eager:
         # One round-trip set instead of the auth lookup + a second full-row
         # re-select of the same member (the profile route used to do both).
@@ -94,11 +101,13 @@ async def _resolve_member(
             selectinload(Member.properties).selectinload(Property.applicable_docs),
             selectinload(Member.nominees),
         )
-    result = await db.execute(query)
-    member = result.scalar_one_or_none()
-    if member is None:
+    row = (await db.execute(query)).first()
+    if row is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Member not found")
-    await _ensure_member_version(db, payload, member.id)
+    member, token_version = row
+    # No credential row (never issued a login) can only hold the implicit version 0.
+    if not token_version_matches(payload, token_version or 0):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_REVOKED)
     return member
 
 

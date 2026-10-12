@@ -12,6 +12,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { routes } from './app.routes';
 import { firstValueFrom } from 'rxjs';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { cacheInterceptor } from './core/interceptors/cache.interceptor';
 import { loaderInterceptor } from './core/interceptors/loader.interceptor';
 import { AuthService } from './core/services/auth.service';
 import { MediaTokenService } from './core/services/media-token.service';
@@ -30,7 +31,9 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
-    provideHttpClient(withInterceptors([authInterceptor, loaderInterceptor])),
+    // Order matters: auth adds the token the cache keys on, and cache hits return
+    // before the loader interceptor so instant responses never flash a loader.
+    provideHttpClient(withInterceptors([authInterceptor, cacheInterceptor, loaderInterceptor])),
     // A restored session needs its /uploads media token before pages map file URLs.
     provideAppInitializer(() => {
       if (!inject(AuthService).token) return;

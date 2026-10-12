@@ -5,15 +5,15 @@
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
 - Status: DONE
-- Current session ID: SESSION-20261012-1015-claude
+- Current session ID: SESSION-20261012-0935-claude
 - Current agent: claude
-- Current task / user prompt: Service Standards page: loader must show until data loads (user: "image 1 loaded the data but the loader not work, it should be work the loader until the image 2 data load")
-- Last completed step: Fixed service-standard.component.ts: skeleton held >= LoaderService.MIN_VISIBLE_MS (400ms) so fast responses cannot skip the loader; added error-box + retry (sibling pattern); 5 new spec tests; full suite 387 pass; ng build OK; code review APPROVE (3 LOW, 1 applied)
-- NEXT step: none (awaiting next user prompt; changes uncommitted — commit when user asks)
-- Files touched so far: frontend/src/app/features/member/pages/service-standard/{service-standard.component.ts, service-standard.component.spec.ts (new)}
-- Uncommitted / half-finished work: the two service-standard files above are modified/untracked and not committed
-- Blockers / decisions pending: optional follow-up: extract the min-visible hold into a shared helper and roll out to sibling pages (petitions/roadmap/neighbours etc. still clear loading synchronously); if user still sees no loader on prod, redeploy (Dokploy) — loader commits are recent (77d6fbd, e878e96)
-- Last updated (UTC): 2026-10-12 10:22
+- Current task / user prompt: /ecc:plan optimize whole project loading/fetching speed; show loader if >1s; smooth UX (PLAN ONLY, awaiting approval)
+- Last completed step: Phase 2+3 done: idle/concurrency-limited preloading (+preload:false on 2 Leaflet routes, spec 7 pass), public/serve.json cache headers, member auth 1 query (deps.py) + tests/test_member_auth_queries.py 4 pass. Deferred: default list limits + dashboard limit (would break badge count / client-side filtering without pagination UI), pool_pre_ping (needs prod timings)
+- NEXT step: none (awaiting next user prompt)
+- Files touched so far: AI_SESSIONS.md, backend/app/core/timing.py backend/app/main.py backend/tests/test_timing.py AI_SESSIONS.md, frontend/src/app/core/interceptors/cache*.ts frontend/src/app/app.config.ts frontend/src/app/core/services/auth.service.ts frontend/src/app/features/member/pages/service-standard/*, backend/app/core/deps.py backend/tests/test_member_auth_queries.py frontend/src/app/core/routing/* frontend/src/app/app.routes.ts frontend/public/serve.json
+- Uncommitted / half-finished work: none
+- Blockers / decisions pending: none
+- Last updated (UTC): 2026-10-12 10:12
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
@@ -25,6 +25,7 @@
 - [x] Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook | sessions: `SESSION-20261011-1808-claude`
 - [x] Implement global smart loader plan | sessions: `SESSION-20261011-1821-claude`
 - [x] Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first) | sessions: `SESSION-20261012-0545-claude`, `SESSION-20261012-0613-claude`
+- [x] /ecc:plan optimize whole project loading/fetching speed; show loader if >1s; smooth UX (PLAN ONLY, awaiting approval) | sessions: `SESSION-20261012-0935-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -217,6 +218,27 @@
 - Files created/modified/deleted: frontend/src/styles.scss, frontend/src/app/shared/section-loader/*, management/pages/{membership-governance, membership-review, committee-registry}, frontend/src/app/features/management/pages/submission-detail/submission-detail.component.html, frontend/src/app/features/management/pages/submission-detail/submission-detail.component.ts
 - Remaining work (exact): Optional: Retry on failed load for member complaints/petitions/welfare-fund/amendments and fund-controls; browser visual QA at 360/768/1440; initial bundle 512kB vs 500kB budget (pre-existing overage); changes uncommitted
 - Notes for the next agent: none
+
+### [SESSION-20261012-0935-claude] START
+- Agent: claude
+- Model: claude-opus-5-5
+- Started (UTC): 2026-10-12 09:35
+- User prompt: /ecc:plan optimize whole project loading/fetching speed; show loader if >1s; smooth UX (PLAN ONLY, awaiting approval)
+- Resumed from: none
+- Plan: ground plan in codebase -> present plan -> wait for confirmation
+#### CHECKPOINTS
+- [09:38] Codebase surveyed; performance plan drafted and presented (no code changed) -> AI_SESSIONS.md -> Await user approval of plan; on approval start Phase 0 (backend timing middleware + query counter)
+- [09:39] User approved full plan (phases 0-4, run continuously) -> AI_SESSIONS.md -> Phase 0: add timing middleware (Server-Timing + slow log + query counter) in backend/app/core, wire in main.py, tests
+- [09:51] Phase 0 done: backend/app/core/timing.py (Server-Timing + slow log + query counter), wired in main.py, tests/test_timing.py 7 pass; full pytest running in bg -> backend/app/core/timing.py backend/app/main.py backend/tests/test_timing.py AI_SESSIONS.md -> Phase 1: frontend cacheInterceptor (GET dedupe + TTL + stale-while-revalidate, invalidate on writes/logout) + spec; register in app.config.ts
+- [09:55] Phase 1 done: cache.interceptor(+context,+spec 14 tests) registered in app.config (auth>cache>loader), clearHttpCache on logout; removed 400ms hold in service-standard (+spec updated). Backend full pytest: only pre-existing failure test_resolution_status_update_audited_and_noticed (fails on original main.py too) -> frontend/src/app/core/interceptors/cache*.ts frontend/src/app/app.config.ts frontend/src/app/core/services/auth.service.ts frontend/src/app/features/member/pages/service-standard/* -> Phase 2: selective preloading after idle; frontend serve.json cache headers; admin dashboard limited submissions fetch; then run full vitest
+- [10:00] Phase 2+3 done: idle/concurrency-limited preloading (+preload:false on 2 Leaflet routes, spec 7 pass), public/serve.json cache headers, member auth 1 query (deps.py) + tests/test_member_auth_queries.py 4 pass. Deferred: default list limits + dashboard limit (would break badge count / client-side filtering without pagination UI), pool_pre_ping (needs prod timings) -> backend/app/core/deps.py backend/tests/test_member_auth_queries.py frontend/src/app/core/routing/* frontend/src/app/app.routes.ts frontend/public/serve.json -> Phase 4: full pytest (bg, no -x), full vitest, ng build, code review, final ledger END
+### END
+- Ended (UTC): 2026-10-12 10:12
+- End reason: COMPLETED
+- Summary of work done: Perf work phases 0-4: Server-Timing middleware + query counter; frontend HTTP cache interceptor (dedupe, 60s TTL, invalidate on writes/logout); idle+concurrency-limited preloading, Leaflet routes not preloaded; serve.json cache headers; member auth 1 query; removed 400ms hold in service-standard. Tests: vitest 404 pass, ng build OK, pytest 647 pass / 2 pre-existing failures (resolution audit, CORS). Review APPROVE, MEDIUM/LOW fixes applied.
+- Files created/modified/deleted: AI_SESSIONS.md, backend/app/core/timing.py backend/app/main.py backend/tests/test_timing.py AI_SESSIONS.md, frontend/src/app/core/interceptors/cache*.ts frontend/src/app/app.config.ts frontend/src/app/core/services/auth.service.ts frontend/src/app/features/member/pages/service-standard/*, backend/app/core/deps.py backend/tests/test_member_auth_queries.py frontend/src/app/core/routing/* frontend/src/app/app.routes.ts frontend/public/serve.json, backend/app/core/deps.py, backend/app/main.py, frontend/src/app/app.config.ts, frontend/src/app/app.routes.ts, frontend/src/app/core/routing/selective-preloading.strategy.spec.ts, frontend/src/app/core/routing/selective-preloading.strategy.ts, frontend/src/app/core/services/auth.service.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.spec.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.ts, backend/app/core/timing.py, backend/tests/test_member_auth_queries.py, backend/tests/test_timing.py, frontend/public/serve.json, frontend/src/app/core/interceptors/cache-context.ts, frontend/src/app/core/interceptors/cache.interceptor.spec.ts, frontend/src/app/core/interceptors/cache.interceptor.ts
+- Remaining work (exact): Deferred: default list limits/pagination, admin dashboard limit, pool_pre_ping review (need prod Server-Timing numbers); NO_CACHE token unused so far; all changes uncommitted
+- Notes for the next agent: run: ng serve + check DevTools Server-Timing
 
 ## ARCHIVE
 <!-- Sessions older than the last 10 move here, condensed to 3-5 lines each. -->

@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
-import { LoaderService } from '../../../../core/services/loader.service';
 import { GovernanceService } from '../../../../core/services/governance.service';
 import { ServiceStandardComponent } from './service-standard.component';
 
@@ -48,7 +47,6 @@ describe('ServiceStandardComponent', () => {
   it('hides the skeleton and renders the cards once data arrives', () => {
     const { fixture, el } = setup();
 
-    vi.advanceTimersByTime(LoaderService.MIN_VISIBLE_MS);
     fixture.detectChanges();
 
     expect(el.querySelector('app-section-loader')).toBeNull();
@@ -56,21 +54,13 @@ describe('ServiceStandardComponent', () => {
     expect(fixture.componentInstance.antiRetaliation()).toBe('notice text');
   });
 
-  it('keeps the skeleton for the minimum display time when the response is instant', () => {
+  it('shows the data immediately when the response is instant (no artificial hold)', () => {
     const { fixture, el } = setup();
 
-    // of() already emitted synchronously — data is here, but the skeleton must
-    // still be visible so a fast response cannot skip the loading state.
-    expect(fixture.componentInstance.loading()).toBe(true);
-    expect(el.querySelector('app-section-loader')).not.toBeNull();
-
-    vi.advanceTimersByTime(LoaderService.MIN_VISIBLE_MS - 1);
-    expect(fixture.componentInstance.loading()).toBe(true);
-
-    vi.advanceTimersByTime(1);
+    // of() emitted synchronously (like a cache hit): no timer may delay the page.
+    expect(fixture.componentInstance.loading()).toBe(false);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.loading()).toBe(false);
     expect(el.querySelector('app-section-loader')).toBeNull();
     expect(el.querySelectorAll('.ss-card').length).toBe(2);
   });
@@ -78,7 +68,6 @@ describe('ServiceStandardComponent', () => {
   it('shows an error box with a retry button when loading fails', () => {
     const { fixture, el } = setup(throwError(() => new Error('boom')));
 
-    vi.advanceTimersByTime(LoaderService.MIN_VISIBLE_MS);
     fixture.detectChanges();
 
     expect(el.querySelector('.error-box')).not.toBeNull();
@@ -100,7 +89,6 @@ describe('ServiceStandardComponent', () => {
     });
     const fixture = TestBed.createComponent(ServiceStandardComponent);
     fixture.detectChanges();
-    vi.advanceTimersByTime(LoaderService.MIN_VISIBLE_MS);
     fixture.detectChanges();
 
     const retry = fixture.nativeElement.querySelector('.retry-btn') as HTMLButtonElement;
@@ -108,10 +96,8 @@ describe('ServiceStandardComponent', () => {
     fixture.detectChanges();
 
     expect(serviceStandard).toHaveBeenCalledTimes(2);
-    // Skeleton is back while the retry is in flight.
-    expect(fixture.componentInstance.loading()).toBe(true);
+    expect(fixture.componentInstance.loadFailed()).toBe(false);
 
-    vi.advanceTimersByTime(LoaderService.MIN_VISIBLE_MS);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.ss-card').length).toBe(2);
   });

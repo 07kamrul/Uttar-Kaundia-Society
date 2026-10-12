@@ -3,7 +3,6 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
-import { LoaderService } from '../../../../core/services/loader.service';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
 import { GovernanceService, ServiceStandard } from '../../../../core/services/governance.service';
 
@@ -145,8 +144,6 @@ export class ServiceStandardComponent implements OnInit {
   readonly loading = signal(true);
   readonly loadFailed = signal(false);
 
-  private loadStartedAt = 0;
-
   ngOnInit(): void {
     this.load();
   }
@@ -154,7 +151,6 @@ export class ServiceStandardComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.loadFailed.set(false);
-    this.loadStartedAt = performance.now();
     this.governance.serviceStandard().subscribe({
       next: (data) => {
         this.standards.set(data.standards);
@@ -169,15 +165,12 @@ export class ServiceStandardComponent implements OnInit {
   }
 
   /**
-   * The skeleton must stay visible until the data (or the error box) replaces
-   * it — a fast response otherwise clears `loading` before the browser ever
-   * paints the loading state, so the page seems to skip its loader. Hold it
-   * for the same minimum time the global loader lingers.
+   * Data replaces the skeleton the moment it arrives. No artificial hold: a
+   * fast (or cached) response should show the page instantly, and the global
+   * loader already covers genuinely slow requests.
    */
   private settleLoading(): void {
-    const elapsed = performance.now() - this.loadStartedAt;
-    const remaining = Math.max(0, LoaderService.MIN_VISIBLE_MS - elapsed);
-    setTimeout(() => this.loading.set(false), remaining);
+    this.loading.set(false);
   }
 
   livePct(live: NonNullable<ServiceStandard['live']>): number {

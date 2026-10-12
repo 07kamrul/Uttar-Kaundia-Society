@@ -161,6 +161,8 @@ export const routes: Routes = [
           },
           {
             path: 'plot-map',
+            // Leaflet chunk (~480 kB): fetched on first visit, never preloaded.
+            data: { preload: false },
             canActivate: [permissionGuard(['boundary.view'])],
             loadComponent: () =>
               import('./features/member/pages/plot-map/plot-map.component').then(
@@ -418,6 +420,7 @@ export const routes: Routes = [
           },
           {
             path: 'plot-boundaries',
+            data: { preload: false },
             canActivate: [permissionGuard(['boundary.review'])],
             loadComponent: () =>
               import(
