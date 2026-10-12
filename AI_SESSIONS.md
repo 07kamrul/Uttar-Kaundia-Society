@@ -4,16 +4,16 @@
 
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
-- Status: DONE
-- Current session ID: SESSION-20261012-0935-claude
+- Status: INTERRUPTED
+- Current session ID: SESSION-20261012-1016-claude
 - Current agent: claude
-- Current task / user prompt: /ecc:plan optimize whole project loading/fetching speed; show loader if >1s; smooth UX (PLAN ONLY, awaiting approval)
-- Last completed step: Phase 2+3 done: idle/concurrency-limited preloading (+preload:false on 2 Leaflet routes, spec 7 pass), public/serve.json cache headers, member auth 1 query (deps.py) + tests/test_member_auth_queries.py 4 pass. Deferred: default list limits + dashboard limit (would break badge count / client-side filtering without pagination UI), pool_pre_ping (needs prod timings)
-- NEXT step: none (awaiting next user prompt)
-- Files touched so far: AI_SESSIONS.md, backend/app/core/timing.py backend/app/main.py backend/tests/test_timing.py AI_SESSIONS.md, frontend/src/app/core/interceptors/cache*.ts frontend/src/app/app.config.ts frontend/src/app/core/services/auth.service.ts frontend/src/app/features/member/pages/service-standard/*, backend/app/core/deps.py backend/tests/test_member_auth_queries.py frontend/src/app/core/routing/* frontend/src/app/app.routes.ts frontend/public/serve.json
+- Current task / user prompt: Implement cachetools in backend; Step 0 = measure/inspect deployment + profile candidates, report before coding
+- Last completed step: Step 0 done: deploy = 1 uvicorn worker (compose --workers 1, Dockerfile default), 768m limit; profiled 15 endpoints on in-memory SQLite (harness in session scratchpad, no repo changes). Report delivered, awaiting user decisions
+- NEXT step: Await user decisions, then implement backend/app/core/cache.py registry (single-flight get_or_set, TTL/LRU named caches, CACHE_ENABLED), wire approved caches with after-commit invalidation, admin stats/clear endpoints, tests, benchmark
+- Files touched so far: AI_SESSIONS.md
 - Uncommitted / half-finished work: none
 - Blockers / decisions pending: none
-- Last updated (UTC): 2026-10-12 10:12
+- Last updated (UTC): 2026-10-12 10:32
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
@@ -26,6 +26,7 @@
 - [x] Implement global smart loader plan | sessions: `SESSION-20261011-1821-claude`
 - [x] Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first) | sessions: `SESSION-20261012-0545-claude`, `SESSION-20261012-0613-claude`
 - [x] /ecc:plan optimize whole project loading/fetching speed; show loader if >1s; smooth UX (PLAN ONLY, awaiting approval) | sessions: `SESSION-20261012-0935-claude`
+- [ ] Implement cachetools in backend; Step 0 = measure/inspect deployment + profile candidates, report before coding | sessions: `SESSION-20261012-1016-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -239,6 +240,23 @@
 - Files created/modified/deleted: AI_SESSIONS.md, backend/app/core/timing.py backend/app/main.py backend/tests/test_timing.py AI_SESSIONS.md, frontend/src/app/core/interceptors/cache*.ts frontend/src/app/app.config.ts frontend/src/app/core/services/auth.service.ts frontend/src/app/features/member/pages/service-standard/*, backend/app/core/deps.py backend/tests/test_member_auth_queries.py frontend/src/app/core/routing/* frontend/src/app/app.routes.ts frontend/public/serve.json, backend/app/core/deps.py, backend/app/main.py, frontend/src/app/app.config.ts, frontend/src/app/app.routes.ts, frontend/src/app/core/routing/selective-preloading.strategy.spec.ts, frontend/src/app/core/routing/selective-preloading.strategy.ts, frontend/src/app/core/services/auth.service.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.spec.ts, frontend/src/app/features/member/pages/service-standard/service-standard.component.ts, backend/app/core/timing.py, backend/tests/test_member_auth_queries.py, backend/tests/test_timing.py, frontend/public/serve.json, frontend/src/app/core/interceptors/cache-context.ts, frontend/src/app/core/interceptors/cache.interceptor.spec.ts, frontend/src/app/core/interceptors/cache.interceptor.ts
 - Remaining work (exact): Deferred: default list limits/pagination, admin dashboard limit, pool_pre_ping review (need prod Server-Timing numbers); NO_CACHE token unused so far; all changes uncommitted
 - Notes for the next agent: run: ng serve + check DevTools Server-Timing
+
+### [SESSION-20261012-1016-claude] START
+- Agent: claude
+- Model: claude-opus-5-5
+- Started (UTC): 2026-10-12 10:16
+- User prompt: Implement cachetools in backend; Step 0 = measure/inspect deployment + profile candidates, report before coding
+- Resumed from: none
+- Plan: Step0 inspect deploy shape + profile -> report -> await approval -> implement app/core/cache.py + wiring + tests + benchmark
+#### CHECKPOINTS
+- [10:31] Step 0 done: deploy = 1 uvicorn worker (compose --workers 1, Dockerfile default), 768m limit; profiled 15 endpoints on in-memory SQLite (harness in session scratchpad, no repo changes). Report delivered, awaiting user decisions -> AI_SESSIONS.md -> Await user answers on scope (public caches? RBAC cache default? plot-map N+1 fix vs cache? land per-feature bytes) then implement backend/app/core/cache.py + wiring + tests
+### END
+- Ended (UTC): 2026-10-12 10:32
+- End reason: HANDOFF
+- Summary of work done: Step 0 of cachetools task: deployment inspected (1 worker), 15 candidate endpoints profiled (p50/p95/query count) on in-memory SQLite; report given to user. No repo code changed.
+- Files created/modified/deleted: AI_SESSIONS.md
+- Remaining work (exact): Await user decisions, then implement backend/app/core/cache.py registry (single-flight get_or_set, TTL/LRU named caches, CACHE_ENABLED), wire approved caches with after-commit invalidation, admin stats/clear endpoints, tests, benchmark
+- Notes for the next agent: Profiling harness: session scratchpad test_perf_profile.py, run from backend/ in PowerShell: python -m pytest -c pytest.ini -o asyncio_mode=auto -p tests.conftest <file> -s. Existing RBAC cache lives in app/core/permissions.py (60s TTL, default on).
 
 ## ARCHIVE
 <!-- Sessions older than the last 10 move here, condensed to 3-5 lines each. -->
