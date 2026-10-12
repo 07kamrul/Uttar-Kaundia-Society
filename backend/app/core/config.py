@@ -121,6 +121,21 @@ class Settings(BaseSettings):
     shared_data_dir: str = Field(default="data/shared", validation_alias="SHARED_DATA_DIR")
     land_map_result_cap: int = Field(default=10_000, ge=1, validation_alias="LAND_MAP_RESULT_CAP")
 
+    # In-process read caches (app/core/cache.py). Per-process memory: the
+    # deployment runs ONE uvicorn worker, so invalidation is consistent. If
+    # workers/replicas are ever added, keep these TTLs short (they bound the
+    # cross-worker staleness) and move to a shared cache. CACHE_ENABLED=false
+    # bypasses every cache instantly.
+    cache_enabled: bool = Field(default=True, validation_alias="CACHE_ENABLED")
+    cache_permissions_ttl: float = Field(default=60, gt=0, validation_alias="CACHE_PERMISSIONS_TTL")
+    cache_permissions_maxsize: int = Field(default=1024, ge=1, validation_alias="CACHE_PERMISSIONS_MAXSIZE")
+    cache_public_lists_ttl: float = Field(default=60, gt=0, validation_alias="CACHE_PUBLIC_LISTS_TTL")
+    cache_public_lists_maxsize: int = Field(default=128, ge=1, validation_alias="CACHE_PUBLIC_LISTS_MAXSIZE")
+    cache_fee_rates_ttl: float = Field(default=60, gt=0, validation_alias="CACHE_FEE_RATES_TTL")
+    cache_fee_rates_maxsize: int = Field(default=256, ge=1, validation_alias="CACHE_FEE_RATES_MAXSIZE")
+    cache_finance_summary_ttl: float = Field(default=60, gt=0, validation_alias="CACHE_FINANCE_SUMMARY_TTL")
+    cache_finance_summary_maxsize: int = Field(default=256, ge=1, validation_alias="CACHE_FINANCE_SUMMARY_MAXSIZE")
+
     @property
     def is_dev_env(self) -> bool:
         return self.app_env.strip().lower() in _DEV_ENVS

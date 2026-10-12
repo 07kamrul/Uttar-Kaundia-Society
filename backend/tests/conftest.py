@@ -8,6 +8,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
+from app.core.cache import clear_all
 from app.core.permissions import invalidate_permission_cache
 from app.db.base import Base
 from app.db.session import get_db
@@ -26,6 +27,14 @@ def _clear_permission_cache():
     invalidate_permission_cache()
     yield
     invalidate_permission_cache()
+
+
+@pytest.fixture(autouse=True)
+def _clear_read_caches():
+    """Read caches are process-wide; every test builds a fresh database."""
+    clear_all(reason="test isolation")
+    yield
+    clear_all(reason="test isolation")
 
 
 @pytest.fixture(autouse=True)
