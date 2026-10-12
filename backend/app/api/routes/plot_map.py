@@ -108,6 +108,30 @@ async def _load_version(db: AsyncSession, version_id: int | None) -> PlotBoundar
     return await db.get(PlotBoundaryVersion, version_id)
 
 
+async def _load_map_rows(
+    db: AsyncSession, rows: list[PlotBoundary], member: Member | None
+) -> tuple[dict[int, PlotBoundaryVersion], dict[int, Property]]:
+    """Versions and properties for every map row in two IN queries; the loop
+    used to issue up to three single-row lookups per boundary (N+1)."""
+    version_ids = {row.live_version_id for row in rows if row.live_version_id is not None}
+    if member is not None:
+        version_ids |= {
+            row.pending_version_id
+            for row in rows
+            if row.member_id == member.id and row.pending_version_id is not None
+        }
+    property_ids = {row.property_id for row in rows if row.property_id is not None}
+    versions: dict[int, PlotBoundaryVersion] = {}
+    properties: dict[int, Property] = {}
+    if version_ids:
+        found = await db.execute(select(PlotBoundaryVersion).where(PlotBoundaryVersion.id.in_(version_ids)))
+        versions = {version.id: version for version in found.scalars()}
+    if property_ids:
+        found = await db.execute(select(Property).where(Property.id.in_(property_ids)))
+        properties = {prop.id: prop for prop in found.scalars()}
+    return versions, properties
+
+
 @router.get("/plot-map", response_model=PlotMapOut)
 async def get_plot_map(
     bbox: str = Query(..., description="minLng,minLat,maxLng,maxLat"),
@@ -139,11 +163,12 @@ async def get_plot_map(
         )
     result = await db.execute(query.limit(cap + 1))
     rows = list(result.scalars().all())
+    versions, properties = await _load_map_rows(db, rows, member)
 
     features: list[MapFeatureOut] = []
     for boundary in rows:
         is_mine = member is not None and boundary.member_id == member.id
-        pending = await _load_version(db, boundary.pending_version_id if is_mine else None)
+        pending = versions.get(boundary.pending_version_id) if is_mine else None
         if boundary.live_version_id is None:
             # No live shape: only the owner sees their pending/rejected one.
             if not (is_mine and pending is not None
@@ -152,13 +177,13 @@ async def get_plot_map(
             geometry, review_status = pending.geom, pending.review_status
             live = None
         else:
-            live = await _load_version(db, boundary.live_version_id)
+            live = versions[boundary.live_version_id]
             geometry, review_status = live.geom, live.review_status
         if not _in_viewport(geometry, viewport):
             continue
         if len(features) >= cap:
             break
-        property_row = await db.get(Property, boundary.property_id)
+        property_row = properties.get(boundary.property_id)
         features.append(
             MapFeatureOut(
                 boundary_id=boundary.id,
