@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
@@ -110,54 +110,101 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       </section>
 
       @if (formOpen) {
-        <div class="modal-backdrop" (click)="formOpen = false">
-          <div class="modal-card" (click)="$event.stopPropagation()">
-            <h3>{{ editing ? ('assetRegister.editTitle' | translate) : ('assetRegister.addTitle' | translate) }}</h3>
-            <form (ngSubmit)="save()">
-              <div class="field">
-                <label for="ar-name">{{ 'assetRegister.name' | translate }}</label>
-                <input id="ar-name" class="field-control" name="name" [(ngModel)]="formName" required />
+        <div class="modal-backdrop ar-backdrop" (click)="closeForm()">
+          <div class="ar-modal" role="dialog" aria-modal="true" aria-labelledby="ar-modal-title"
+               (click)="$event.stopPropagation()">
+            <header class="ar-modal-head">
+              <div class="ar-modal-icon" aria-hidden="true">
+                <app-icon name="inbox" [size]="20" />
               </div>
-              <div class="field">
-                <label for="ar-category">{{ 'assetRegister.category' | translate }}</label>
-                <input id="ar-category" class="field-control" name="category" [(ngModel)]="formCategory" required />
+              <div class="ar-modal-heading">
+                <h3 id="ar-modal-title">
+                  {{ editing ? ('assetRegister.editTitle' | translate) : ('assetRegister.addTitle' | translate) }}
+                </h3>
+                <p>{{ 'assetRegister.formSubtitle' | translate }}</p>
               </div>
-              <div class="field">
-                <label for="ar-date">{{ 'assetRegister.acquired' | translate }}</label>
-                <app-date-picker id="ar-date" name="acquisitionDate" [(ngModel)]="formDate" required></app-date-picker>
+              <button type="button" class="ar-modal-close" (click)="closeForm()"
+                      [attr.aria-label]="'common.close' | translate">
+                <app-icon name="close" [size]="18" />
+              </button>
+            </header>
+
+            <form (ngSubmit)="save()" class="ar-modal-body">
+              <div class="ar-grid">
+                <div class="field ar-span-2">
+                  <label for="ar-name">{{ 'assetRegister.name' | translate }}<span class="required" aria-hidden="true">*</span></label>
+                  <input id="ar-name" class="field-control" name="name" [(ngModel)]="formName" required autofocus
+                         [placeholder]="'assetRegister.namePh' | translate" />
+                </div>
+
+                <div class="field">
+                  <label for="ar-category">{{ 'assetRegister.category' | translate }}<span class="required" aria-hidden="true">*</span></label>
+                  <input id="ar-category" class="field-control" name="category" [(ngModel)]="formCategory" required
+                         [placeholder]="'assetRegister.categoryPh' | translate" />
+                </div>
+
+                <div class="field">
+                  <span class="ar-group-label" id="ar-condition-label">{{ 'assetRegister.condition' | translate }}</span>
+                  <div class="ar-conditions" role="radiogroup" aria-labelledby="ar-condition-label">
+                    @for (condition of conditions; track condition) {
+                      <button type="button" class="ar-condition" role="radio"
+                              [class.active]="formCondition === condition"
+                              [attr.aria-checked]="formCondition === condition"
+                              (click)="formCondition = condition">
+                        {{ 'assetRegister.conditions.' + condition | translate }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="ar-date">{{ 'assetRegister.acquired' | translate }}</label>
+                  <app-date-picker inputId="ar-date" name="acquisitionDate" [(ngModel)]="formDate"></app-date-picker>
+                </div>
+
+                <div class="field">
+                  <label for="ar-value">{{ 'assetRegister.value' | translate }}<span class="required" aria-hidden="true">*</span></label>
+                  <div class="ar-amount">
+                    <span class="ar-amount-currency" aria-hidden="true">৳</span>
+                    <input id="ar-value" type="number" min="0" step="0.01" inputmode="decimal" name="value"
+                           [(ngModel)]="formValue" required />
+                  </div>
+                </div>
+
+                <div class="field ar-span-2">
+                  <label for="ar-location">{{ 'assetRegister.location' | translate }}</label>
+                  <input id="ar-location" class="field-control" name="location" [(ngModel)]="formLocation"
+                         [placeholder]="'assetRegister.locationPh' | translate" />
+                </div>
+
+                <div class="field ar-span-2">
+                  <label for="ar-description">{{ 'assetRegister.description' | translate }}</label>
+                  <textarea id="ar-description" class="field-control" rows="3" name="description" [(ngModel)]="formDescription"
+                            [placeholder]="'assetRegister.descriptionPh' | translate"></textarea>
+                </div>
               </div>
-              <div class="field">
-                <label for="ar-value">{{ 'assetRegister.value' | translate }}</label>
-                <input id="ar-value" class="field-control" type="number" min="0" step="0.01"
-                       name="value" [(ngModel)]="formValue" required />
-              </div>
-              <div class="field">
-                <label for="ar-condition">{{ 'assetRegister.condition' | translate }}</label>
-                <select id="ar-condition" class="field-control" name="condition" [(ngModel)]="formCondition">
-                  @for (condition of conditions; track condition) {
-                    <option [value]="condition">{{ 'assetRegister.conditions.' + condition | translate }}</option>
-                  }
-                </select>
-              </div>
-              <div class="field">
-                <label for="ar-location">{{ 'assetRegister.location' | translate }}</label>
-                <input id="ar-location" class="field-control" name="location" [(ngModel)]="formLocation" />
-              </div>
-              <div class="field">
-                <label for="ar-description">{{ 'assetRegister.description' | translate }}</label>
-                <textarea id="ar-description" class="field-control" rows="2" name="description" [(ngModel)]="formDescription"></textarea>
-              </div>
+
+              <p class="field-hint">{{ 'assetRegister.requiredHint' | translate }}</p>
+
               @if (formError) {
-                <p class="field-error">{{ formError }}</p>
+                <p class="ar-form-error" role="alert">
+                  <app-icon name="alert" [size]="16" /> {{ formError }}
+                </p>
               }
-              <div class="ar-actions">
-                <button type="submit" class="btn btn-primary" [disabled]="busy">
-                  {{ 'common.save' | translate }}
-                </button>
-                <button type="button" class="btn btn-secondary" (click)="formOpen = false">
+
+              <footer class="ar-modal-foot">
+                <button type="button" class="btn btn-secondary" (click)="closeForm()">
                   {{ 'common.cancel' | translate }}
                 </button>
-              </div>
+                <button type="submit" class="btn btn-primary" [disabled]="busy">
+                  @if (busy) {
+                    <span class="spinner" aria-hidden="true"></span>
+                  } @else {
+                    <app-icon name="check" [size]="16" aria-hidden="true" />
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+              </footer>
             </form>
           </div>
         </div>
@@ -172,17 +219,181 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       .am-toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
       .am-toolbar .field-control { max-width: 280px; }
       .row-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-      .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); display: grid; place-items: center; padding: 1rem; z-index: 60; }
-      .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); max-height: 85vh; overflow: auto; }
-      .ar-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
-      .ar-actions .btn, .header-actions .btn { min-height: 40px; }
-      .modal-card { box-sizing: border-box; }
+      .header-actions .btn { min-height: 40px; }
+      .error-box { color: var(--red-600, #9c3a2c); }
+
+      /* ---------- Add/Edit asset modal ---------- */
+      .ar-backdrop { z-index: 60; }
+      .ar-modal {
+        background: var(--modal-surface, var(--surface, #fff));
+        border-radius: 1rem;
+        width: min(640px, 100%);
+        max-height: 88vh;
+        max-height: 88dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 24px 64px -16px rgb(0 0 0 / 35%);
+        box-sizing: border-box;
+      }
+      .ar-modal-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid var(--gray-200);
+      }
+      .ar-modal-icon {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        background: var(--emerald-50);
+        color: var(--emerald-800);
+      }
+      .ar-modal-heading { flex: 1; min-width: 0; }
+      .ar-modal-heading h3 { margin: 0; font-size: 1.15rem; line-height: 1.3; }
+      .ar-modal-heading p { margin: 0.15rem 0 0; font-size: 0.85rem; color: var(--gray-600); }
+      .ar-modal-close {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: none;
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--gray-600);
+        cursor: pointer;
+      }
+      .ar-modal-close:hover { background: var(--gray-100); color: var(--gray-800); }
+
+      .ar-modal-body { padding: 1.1rem 1.25rem 1.25rem; overflow-y: auto; }
+      .ar-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem 1rem;
+        align-items: start;
+      }
+      .ar-span-2 { grid-column: span 2; }
+      .ar-grid .field { margin-bottom: 0; }
+      .ar-group-label { font-size: 0.875rem; font-weight: 500; color: var(--gray-700); }
+
+      /* Condition: touch-friendly segmented picker instead of a select */
+      .ar-conditions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem;
+        margin-top: 0.25rem;
+      }
+      .ar-condition {
+        min-height: 2.5rem;
+        padding: 0.4rem 0.5rem;
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 0.55rem;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+      }
+      .ar-condition:hover { border-color: var(--emerald-600); }
+      .ar-condition.active {
+        background: var(--emerald-50);
+        border-color: var(--emerald-700);
+        color: var(--emerald-900);
+        box-shadow: inset 0 0 0 1px var(--emerald-700);
+      }
+
+      /* Value input with ৳ prefix; native number spinner hidden */
+      .ar-amount {
+        display: flex;
+        align-items: stretch;
+        border: 1px solid var(--field-border, var(--gray-300));
+        border-radius: var(--field-radius, 0.5rem);
+        background: var(--field-bg, #fff);
+        overflow: hidden;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      .ar-amount:focus-within {
+        border-color: var(--field-border-focus, var(--emerald-700));
+        box-shadow: var(--field-focus-ring, none);
+      }
+      .ar-amount-currency {
+        display: grid;
+        place-items: center;
+        padding: 0 0.7rem;
+        font-weight: 700;
+        color: var(--gray-600);
+        background: var(--gray-50);
+        border-right: 1px solid var(--gray-200);
+      }
+      .ar-amount input[type='number'] {
+        flex: 1;
+        min-width: 0;
+        width: 100%;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+      }
+      .ar-amount input[type='number']:focus { outline: none; box-shadow: none; }
+      .ar-amount input[type='number']::-webkit-outer-spin-button,
+      .ar-amount input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      .ar-amount input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+
+      .ar-required-hint { margin: 0.9rem 0 0; }
+      .ar-form-error {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.9rem 0 0;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0.5rem;
+        background: rgb(220 38 38 / 8%);
+        color: var(--red-600);
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .ar-modal-foot {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        margin-top: 1.1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gray-200);
+        background: var(--modal-surface, var(--surface, #fff));
+      }
+      .ar-modal-foot .btn { min-height: 2.5rem; }
+
       @media (max-width: 640px) {
         .am-toolbar .field-control { max-width: none; width: 100%; }
-        .header-actions, .header-actions .btn, .ar-actions .btn { width: 100%; justify-content: center; }
-        .ar-actions .btn { flex: 1 1 100%; }
+        .header-actions, .header-actions .btn { width: 100%; justify-content: center; }
       }
-      .error-box { color: var(--red-600, #9c3a2c); }
+      @media (max-width: 560px) {
+        .ar-grid { grid-template-columns: 1fr; }
+        .ar-span-2 { grid-column: auto; }
+        .ar-modal-foot { flex-direction: row-reverse; }
+        .ar-modal-foot .btn { flex: 1; }
+      }
+      /* Bottom-sheet feel on phones */
+      @media (max-width: 480px) {
+        .ar-backdrop { align-items: flex-end; padding: 0; }
+        .ar-modal {
+          width: 100%;
+          max-height: 92vh;
+          max-height: 92dvh;
+          border-radius: 1.125rem 1.125rem 0 0;
+        }
+        .ar-modal-head { padding: 1rem; }
+        .ar-modal-body { padding: 1rem; }
+      }
     `,
   ],
 })
@@ -251,6 +462,15 @@ export class AssetRegisterComponent implements OnInit {
     this.formDescription = asset?.description ?? '';
     this.formError = '';
     this.formOpen = true;
+  }
+
+  closeForm(): void {
+    this.formOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.formOpen) this.closeForm();
   }
 
   save(): void {

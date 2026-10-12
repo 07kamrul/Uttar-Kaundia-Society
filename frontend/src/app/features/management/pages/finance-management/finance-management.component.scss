@@ -10,10 +10,20 @@
   align-items: center;
 }
 
+/* Long labels like "Publish report notice" must wrap as a whole button,
+   never grow a second/third line inside the button. */
+.header-actions .btn {
+  white-space: nowrap;
+}
+
 .notice-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+.notice-actions select {
+  height: 2.5rem;
 }
 
 .notice-done {
@@ -34,6 +44,19 @@
   text-align: left;
   cursor: pointer;
   font: inherit;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.overview-stat:hover {
+  border-color: var(--emerald-800);
+  box-shadow: var(--shadow-md);
+}
+
+.overview-grid .stat-card-value {
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-card.negative,
@@ -42,7 +65,7 @@
 }
 
 .recent-card {
-  grid-column: span 2;
+  grid-column: 1 / -1;
   padding: 1rem 1.25rem;
   min-width: 0;
 }
@@ -60,7 +83,6 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
 }
 
 .recent-list li {
@@ -69,6 +91,13 @@
   gap: 0.6rem;
   font-size: 0.85rem;
   min-width: 0;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed var(--gray-200);
+}
+
+.recent-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .recent-desc {
@@ -89,13 +118,6 @@
 .filter-card {
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
-}
-
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .filter-chips {
@@ -126,22 +148,27 @@
   color: var(--emerald-800);
 }
 
+/* One tidy grid under the chips: every control the same height and width,
+   search wider, dates paired, reset last. */
 .filter-fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.6rem;
   align-items: center;
-  flex: 1;
+  margin-top: 0.85rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--gray-200);
 }
 
 .filter-fields select,
 .filter-fields input {
-  height: 2.25rem;
-  max-width: 12rem;
+  height: 2.5rem;
+  max-width: none;
+  width: 100%;
 }
 
-.filter-fields input {
-  min-width: 10rem;
+.search-field {
+  grid-column: span 2;
 }
 
 .date-range-row {
@@ -149,16 +176,32 @@
   gap: 0.5rem;
 }
 
+.date-range-row app-date-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-reset {
+  justify-self: start;
+}
+
 /* Ledger */
 .ledger-totals {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  padding: 0.75rem 1.1rem;
-  margin-bottom: 0.75rem;
-  background: var(--surface-2);
-  border-radius: var(--radius-md);
+  gap: 0.5rem;
+  padding: 0 0 0.9rem;
   font-size: 0.875rem;
+}
+
+.ledger-totals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
 }
 
 .ledger-totals strong {
@@ -167,6 +210,7 @@
 
 .ledger-totals .muted {
   color: var(--gray-500);
+  border-style: dashed;
 }
 
 .amount-col {
@@ -307,15 +351,27 @@
   gap: 0.5rem;
 }
 
-/* Form modal */
-.form-grid {
+/* Form modal — structure from shared .dlg-* primitives. */
+.fin-dlg {
+  --dlg-width: 46rem;
+}
+
+.fin-action-dlg {
+  --dlg-width: 30rem;
+}
+
+.fin-action-icon-danger {
+  background: var(--red-50);
+  color: var(--red-600);
+}
+
+.fin-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin: 1rem 0;
 }
 
-.form-grid-full {
+.fin-field-full {
   grid-column: 1 / -1;
 }
 
@@ -332,7 +388,7 @@
 
 .type-toggle-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 1rem;
   border-radius: var(--radius-md);
   border: 2px solid var(--gray-200);
   background: var(--surface);
@@ -357,15 +413,32 @@
   color: var(--red-600);
 }
 
+/* Amount input with ৳ prefix + live preview beside it. */
 .amount-input-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.amount-input-row input {
+.amount-field {
+  position: relative;
   flex: 1;
   min-width: 0;
+}
+
+.amount-prefix {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.amount-field input {
+  width: 100%;
+  padding-left: 2rem;
 }
 
 .amount-live-preview {
@@ -373,6 +446,67 @@
   color: var(--emerald-700);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+/* Add-a-category row under the picker. */
+.cat-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+  color: var(--gray-500);
+}
+
+.cat-add-row input {
+  flex: 1;
+  min-width: 0;
+  height: 2.25rem;
+}
+
+/* Attachment presented as a dropzone-style target. */
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px dashed var(--gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+  color: var(--gray-600);
+  font-size: 0.88rem;
+
+  &:hover {
+    border-color: var(--emerald-700);
+    color: var(--gray-800);
+  }
+
+  input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+.file-drop-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.file-drop-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Searchable category picker */
@@ -415,14 +549,6 @@
 .cat-empty {
   color: var(--gray-500);
   cursor: default;
-}
-
-.cat-add-row {
-  margin-top: 0.4rem;
-}
-
-.cat-add-row input {
-  height: 2.25rem;
 }
 
 .attachment-preview {
@@ -521,25 +647,49 @@
 }
 
 @media (max-width: 640px) {
-  .form-grid {
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  .notice-actions {
+    width: 100%;
+  }
+
+  .notice-actions select {
+    flex: 1;
+  }
+
+  .fin-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .recent-card {
-    grid-column: span 1;
+  .filter-fields {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .filter-fields select,
-  .filter-fields input {
-    max-width: none;
-    flex: 1 1 8rem;
+  .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .filter-reset {
+    grid-column: 1 / -1;
+    justify-self: stretch;
   }
 
   .date-range-row {
-    flex-direction: column;
+    grid-column: 1 / -1;
   }
 
   .row-actions {
     justify-content: flex-start;
+  }
+
+  .ledger-totals span {
+    flex: 1 1 auto;
+    justify-content: space-between;
   }
 }

@@ -1495,6 +1495,7 @@
       "newFee": {
         "button": "+ New Fee Type",
         "title": "New Fee Type",
+        "subtitle": "Define how the fee is calculated and grouped.",
         "labelBn": "Label (Bangla)",
         "labelEn": "Label (English)",
         "key": "Key",
@@ -1926,6 +1927,7 @@
       "subtitle": "Record every society expense, optionally split it among members",
       "create": "New Cost",
       "createTitle": "Record a society cost",
+      "formSubtitle": "Record the expense details; attach a receipt if available.",
       "editTitle": "Edit cost",
       "edit": "Edit",
       "exportCsv": "Export CSV",
@@ -2025,6 +2027,7 @@
       "subtitle": "Record, edit and approve fund transactions",
       "create": "New transaction",
       "createTitle": "Add a transaction",
+      "formSubtitle": "The transaction enters the ledger after approval.",
       "editTitle": "Edit transaction",
       "notice": {
         "period": "Report period",
@@ -2091,6 +2094,9 @@
       },
       "form": {
         "type": "Type",
+        "sectionDetails": "Transaction details",
+        "sectionDocs": "Reference & attachment",
+        "sectionIncome": "Income classification",
         "date": "Date",
         "amount": "Amount",
         "category": "Category",
@@ -2941,6 +2947,7 @@
   },
   "membershipGovernance": {
     "title": "Membership Governance",
+    "subtitle": "Waivers, suspension, appeals, data corrections and arrears — every member-governance duty in one place.",
     "member": "Member",
     "memberId": "Member ID",
     "approve": "Approve",
@@ -2953,11 +2960,17 @@
       "arrears": "Arrears"
     },
     "waivers": {
-      "title": "Waiver / installment requests"
+      "title": "Waiver / installment requests",
+      "sub": "Review members' waiver and installment requests and decide.",
+      "monthsShort": "months"
     },
     "actions": {
       "title": "Suspension / termination workflow",
       "issueNotice": "Issue written notice",
+      "noticeSub": "The first step of suspension/termination — send the member a written notice.",
+      "noticeSuccess": "Notice sent successfully.",
+      "listSub": "Cases moving from written notice to final decision.",
+      "suspendConfirm": "Confirm suspension for this member? Once the decision takes effect, the member can file an appeal.",
       "reason": "Reason",
       "sendNotice": "Send notice",
       "confirmSuspend": "Confirm suspension",
@@ -2967,12 +2980,15 @@
     },
     "appeals": {
       "title": "Appeals",
+      "sub": "Assign a reviewer to each appeal and track decision status.",
+      "filedAt": "Filed on",
       "reviewerRule": "Rule: the original decision-maker cannot review the appeal (also enforced server-side).",
       "reviewerId": "Reviewer ID",
       "assign": "Assign"
     },
     "corrections": {
       "title": "Data correction requests",
+      "sub": "Verify members' data-correction requests, then apply or reject.",
       "field": "Field",
       "pending": "Pending",
       "applied": "Applied",
@@ -2981,10 +2997,14 @@
     },
     "arrears": {
       "title": "Subscription arrears",
+      "sub": "Members' current subscription payment status and totals.",
       "months": "Months",
       "expected": "Expected",
       "paid": "Paid",
-      "due": "Due"
+      "due": "Due",
+      "totalExpected": "Total expected",
+      "totalPaid": "Total paid",
+      "totalDue": "Total due"
     },
     "empty": {
       "waivers": "No requests.",
@@ -2996,6 +3016,9 @@
   },
   "complaintsAdmin": {
     "title": "Complaints Admin",
+    "subtitle": "Receive, assign and resolve member complaints — with SLA deadlines.",
+    "total": "Total",
+    "overdueNotice": "{{count}} complaint(s) past the SLA deadline — action needed.",
     "assignee": "Assignee",
     "assigneeId": "Assignee ID (not the accused)",
     "assign": "Assign",
@@ -3007,6 +3030,11 @@
     "close": "Close",
     "downloadEvidence": "Download evidence",
     "empty": "No complaints in this list.",
+    "detailsTitle": "Complaint details & actions",
+    "meta": {
+      "submitted": "Submitted",
+      "acknowledged": "Acknowledged"
+    },
     "filters": {
       "submitted": "New",
       "acknowledged": "Acknowledged",
@@ -3075,6 +3103,8 @@
     "caretaker": "Caretaker term (routine work only)",
     "notes": "Notes (optional)",
     "vacanciesTitle": "Vacancies, resignations and removals",
+    "vacanciesSubtitle": "Resignation and removal cases with response deadlines, member replies and final decisions.",
+    "caseCount": "{{n}} case(s)",
     "vacancyType": "Type",
     "vacancyTypes": {
       "resignation": "Resignation",
@@ -3116,6 +3146,12 @@
     "admin": {
       "title": "Election management",
       "subtitle": "Schedules, nominations, voting and results.",
+      "createSub": "Set the election title and schedule the nomination and voting windows.",
+      "created": "Election created successfully.",
+      "titlePlaceholder": "e.g. 2026 Council Election",
+      "processLabel": "Election stages",
+      "leading": "Leading",
+      "listSub": "{{count}} election(s) in total",
       "createTitle": "New election",
       "electionTitle": "Election title",
       "windowOrderHint": "Keep the order: nomination end <= voting start <= voting end.",
@@ -3391,6 +3427,9 @@
     "memberTitle": "Annual audit summaries",
     "memberHint": "Summaries of published audit reports appear here.",
     "memberEmpty": "No audit summary has been published yet.",
+    "memberEmptyHint": "Summaries and files will appear here once the committee publishes an annual audit.",
+    "memberCount": "{{count}} report(s)",
+    "noFile": "No file attached",
     "loadError": "Could not load audit reports.",
     "downloadError": "Could not download the file.",
     "reminderTitle": "Audit reminder: FY {{fy}}",
@@ -3489,7 +3528,13 @@
       "lost": "Lost"
     },
     "deactivateReason": "Reason for removing from the register:",
-    "loadError": "Could not load assets."
+    "loadError": "Could not load assets.",
+    "formSubtitle": "Fill in the asset details below.",
+    "requiredHint": "Fields marked * are required",
+    "namePh": "e.g. Community centre projector",
+    "categoryPh": "e.g. Furniture, Electronics",
+    "locationPh": "e.g. Community centre, 2nd floor",
+    "descriptionPh": "Purchase details, serial number…"
   },
   "welfareActivities": {
     "title": "Welfare Activities",
@@ -3497,6 +3542,7 @@
     "downloadPdf": "List (PDF)",
     "add": "Add activity",
     "addTitle": "Add activity",
+    "formHint": "Activity details appear in the welfare records.",
     "editTitle": "Edit activity",
     "allTypes": "All types",
     "type": "Type",

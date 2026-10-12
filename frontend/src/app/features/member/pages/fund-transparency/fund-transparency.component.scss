@@ -687,46 +687,230 @@
   }
 }
 
-// Module 4: published audit summaries.
-.audit-empty {
+// Module 4: published audit summaries — section head + responsive card grid.
+.audit-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+}
+
+.audit-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 0.65rem;
+  background: var(--emerald-50);
+  color: var(--emerald-700);
+}
+
+.audit-section-heading {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.audit-section-heading .breakdown-title {
+  margin: 0.1rem 0 0.15rem;
+}
+
+.audit-section-heading .field-hint {
+  margin: 0;
+}
+
+.audit-count-chip {
+  align-self: center;
+  flex-shrink: 0;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  background: var(--emerald-50);
+  border: 1px solid color-mix(in srgb, var(--emerald-600) 25%, transparent);
+  color: var(--emerald-800);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Auto-fill grid: 3-up on wide desktops, 2-up on tablets, single column on
+   phones — no media-query magic needed. */
+.audit-grid {
   display: grid;
-  justify-items: center;
-  gap: 0.25rem;
-  padding: 1.25rem;
-  text-align: center;
-  border: 1px dashed var(--gray-200);
-  border-radius: 0.7rem;
-  color: var(--gray-500);
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
 }
 
-.audit-empty .empty-title {
-  margin: 0.35rem 0 0;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--gray-500);
+.audit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md, 0.65rem);
+  background: color-mix(in srgb, var(--emerald-50) 16%, var(--surface));
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.audit-summary {
-  display: grid;
-  gap: 0.45rem;
-  justify-items: start;
-  padding: 0.85rem 0;
-  border-top: 1px solid var(--gray-200, #e5e7eb);
+.audit-card:hover {
+  border-color: color-mix(in srgb, var(--emerald-600) 35%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
-.audit-summary:first-of-type {
-  border-top: 0;
+.audit-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
 }
 
-.audit-summary-head {
+.audit-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  border-radius: 0.6rem;
+  background: var(--emerald-800);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgba(31, 61, 42, 0.55);
+}
+
+.audit-card-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.audit-card-title h3 {
+  margin: 0;
+  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--emerald-900);
+}
+
+.audit-card-date {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+
+.audit-card-head .ds-tag {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
 .audit-summary-text {
+  flex: 1;
   margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.75;
+  color: var(--gray-700);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.audit-summary-none {
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.audit-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding-top: 0.7rem;
+  margin-top: auto;
+  border-top: 1px dashed var(--gray-200);
+}
+
+.audit-file-name {
+  min-width: 0;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  color: var(--gray-500);
+}
+
+.audit-no-file {
+  font-size: 0.78rem;
+  color: var(--gray-500);
+}
+
+/* Inline alert used for load failure (with retry) and download failure. */
+.audit-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--red-600) 30%, transparent);
+  border-radius: var(--radius-sm, 0.5rem);
+  background: color-mix(in srgb, var(--red-600) 7%, var(--surface));
+}
+
+.audit-alert app-icon {
+  flex-shrink: 0;
+  color: var(--red-600);
+}
+
+.audit-alert p {
+  flex: 1;
+  min-width: 10rem;
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+/* Skeleton cards mirror the real card shape so the swap does not jump. */
+.audit-card-skeleton {
+  gap: 0.8rem;
+}
+
+.skeleton-square {
+  border-radius: 0.6rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .audit-section-head {
+    align-items: flex-start;
+  }
+
+  .audit-count-chip {
+    align-self: flex-start;
+    margin-left: 3.25rem;
+  }
+
+  .audit-card {
+    padding: 0.9rem;
+  }
+
+  .audit-card-head {
+    flex-wrap: wrap;
+  }
+
+  .audit-card-head .ds-tag {
+    order: 3;
+  }
+
+  .audit-card-title {
+    flex: 1 1 calc(100% - 3rem);
+  }
+
+  .audit-file-name {
+    max-width: 100%;
+  }
 }

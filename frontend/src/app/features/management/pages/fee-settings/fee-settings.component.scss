@@ -188,61 +188,19 @@
 }
 
 // ---- New / edit fee type dialog -------------------------------------------------
-
-.fee-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: rgba(26, 42, 32, 0.55);
-  backdrop-filter: blur(2px);
-}
+// Structure (header/body/footer/backdrop, mobile sheet) comes from the shared
+// .dlg-* primitives in styles.scss; only the form pieces live here.
 
 .fee-dialog {
-  display: flex;
-  flex-direction: column;
-  width: min(40rem, 100%);
-  max-height: min(90vh, 100%);
-  background: var(--modal-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  --dlg-width: 42rem;
 }
 
-.fee-dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--gray-200);
-
-  h2 {
-    margin: 0;
-    font-size: 1.05rem;
-  }
+.fee-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.fee-dialog-body {
-  padding: 1.25rem;
-  overflow-y: auto;
-}
-
-.fee-dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--gray-200);
-}
-
-.field-error {
-  margin: 0.3rem 0 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--red-600);
+.fee-field-full {
+  grid-column: 1 / -1;
 }
 
 .calc-type-options {
@@ -254,7 +212,8 @@
 .calc-type-option {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  min-height: 2.75rem;
   padding: 0.55rem 0.7rem;
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-sm);
@@ -274,47 +233,38 @@
   }
 }
 
+// Recurring / pay-once sit in their own quiet row so they no longer float
+// mid-grid.
 .fee-flags {
+  grid-column: 1 / -1;
   display: flex;
-  gap: 1.25rem;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
 }
 
 .fee-flag {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   cursor: pointer;
+  font-weight: 600;
 
   input {
     accent-color: var(--gold);
-    width: 1rem;
-    height: 1rem;
+    width: 1.05rem;
+    height: 1.05rem;
   }
 }
 
 // ---- Responsive ------------------------------------------------------------------
 
-// Full-screen sheet for the dialog on small screens.
 @media (max-width: 640px) {
-  .fee-dialog-backdrop {
-    padding: 0;
-    align-items: stretch;
-  }
-
-  .fee-dialog {
-    width: 100%;
-    max-height: 100%;
-    border-radius: 0;
-  }
-
-  .fee-dialog-actions {
-    gap: 0.5rem;
-
-    .btn {
-      flex: 1;
-      min-height: 2.5rem;
-    }
+  .fee-form-grid {
+    grid-template-columns: 1fr;
   }
 
   .calc-type-options {

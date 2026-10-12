@@ -76,21 +76,106 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin: 1rem 0;
+  margin: 0;
 }
 
-.form-grid-full {
+.form-grid-full,
+.sc-field-full {
   grid-column: 1 / -1;
+}
+
+.sc-dlg {
+  --dlg-width: 44rem;
+}
+
+.sc-form-body {
+  gap: 1.1rem;
+}
+
+/* Amount input with a ৳ prefix that reads as part of the field. */
+.amount-field {
+  position: relative;
+}
+
+.amount-prefix {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  color: var(--gray-500);
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.amount-field input {
+  padding-left: 2rem;
+  width: 100%;
+}
+
+/* Add-a-category row under the category select. */
+.cat-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  color: var(--gray-500);
+}
+
+.cat-add-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Receipt upload presented as a dropzone-style target. */
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px dashed var(--gray-300);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+  color: var(--gray-600);
+  font-size: 0.88rem;
+
+  &:hover {
+    border-color: var(--emerald-700);
+    color: var(--gray-800);
+  }
+
+  input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
+
+.file-drop-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.file-drop-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .field-error {
   margin: 0.25rem 0 0;
   font-size: 0.8125rem;
   color: var(--red-600);
-}
-
-.inline-add-input {
-  max-width: 10rem;
 }
 
 .receipt-preview {
@@ -173,14 +258,6 @@
   .toggle-option {
     flex: 1 1 auto;
     min-height: 2.5rem;
-  }
-
-  .inline-add-input {
-    max-width: 7rem;
-  }
-
-  .manual-row input {
-    max-width: 6rem;
   }
 
   .header-actions {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["docs/AI_RULES.md", "AI_SESSIONS.md"],
+  "instructions": ["docs/AI_RULES.md"],
   "permission": {
     "read": {
       "*": "allow",

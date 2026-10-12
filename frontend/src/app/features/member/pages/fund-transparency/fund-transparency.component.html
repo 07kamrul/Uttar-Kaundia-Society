@@ -592,41 +592,101 @@
   </section>
 
   <!-- বার্ষিক অডিট সারসংক্ষেপ: published audit summaries (Module 4) -->
-  <section class="card">
-    <h2 class="breakdown-title">{{ 'auditReports.memberTitle' | translate }}</h2>
-    <p class="field-hint">{{ 'auditReports.memberHint' | translate }}</p>
+  <section class="card card-pad audit-section" aria-labelledby="auditSectionTitle">
+    <div class="audit-section-head">
+      <span class="audit-section-icon"><app-icon name="shield" [size]="20" /></span>
+      <div class="audit-section-heading">
+        <h2 id="auditSectionTitle" class="breakdown-title">
+          {{ 'auditReports.memberTitle' | translate }}
+        </h2>
+        <p class="field-hint">{{ 'auditReports.memberHint' | translate }}</p>
+      </div>
+      @if (!auditLoading && !auditError && auditReports.length) {
+        <span class="audit-count-chip">{{ auditCountLabel(auditReports.length) }}</span>
+      }
+    </div>
+
     @if (auditLoading) {
-      <div class="skeleton-line" style="height: 64px"></div>
+      <div class="audit-grid" aria-hidden="true">
+        @for (i of [1, 2]; track i) {
+          <div class="audit-card audit-card-skeleton">
+            <div class="audit-card-head">
+              <div class="skeleton-line skeleton-square" style="width: 2.4rem; height: 2.4rem"></div>
+              <div class="skeleton-line" style="height: 1.1rem; width: 55%"></div>
+            </div>
+            <div class="skeleton-line" style="height: 0.85rem; width: 92%"></div>
+            <div class="skeleton-line" style="height: 0.85rem; width: 78%"></div>
+            <div class="skeleton-line" style="height: 2rem; width: 45%"></div>
+          </div>
+        }
+      </div>
     } @else if (auditError) {
-      <div class="card card-pad error-card" role="alert">
+      <div class="audit-alert" role="alert">
+        <app-icon name="alert" [size]="18" />
         <p>{{ auditError }}</p>
         <button type="button" class="btn btn-secondary btn-sm" (click)="loadAuditReports()">
           {{ 'common.retry' | translate }}
         </button>
       </div>
     } @else if (auditReports.length === 0) {
-      <div class="audit-empty">
-        <span class="empty-state-icon"><app-icon name="doc" [size]="22" /></span>
+      <div class="gov-empty">
+        <span class="gov-empty-icon"><app-icon name="doc" [size]="26" /></span>
         <p class="empty-title">{{ 'auditReports.memberEmpty' | translate }}</p>
+        <p class="empty-hint">{{ 'auditReports.memberEmptyHint' | translate }}</p>
       </div>
     } @else {
-      @for (report of auditReports; track report.id) {
-        <article class="audit-summary">
-          <div class="audit-summary-head">
-            <strong>{{ 'auditReports.fyLabel' | translate: { fy: report.fiscalYear } }}</strong>
-            <span class="ds-tag ds-tag-green">{{ 'auditReports.published' | translate }}</span>
-            <span class="ds-tag">{{ report.reportDate }}</span>
-          </div>
-          @if (report.summaryText) {
-            <p class="audit-summary-text">{{ report.summaryText }}</p>
-          }
-          @if (report.hasFile) {
-            <button type="button" class="btn btn-secondary btn-sm" (click)="downloadAuditReport(report)">
-              {{ 'auditReports.download' | translate }}
-            </button>
-          }
-        </article>
+      @if (auditDownloadError) {
+        <div class="audit-alert" role="alert">
+          <app-icon name="alert" [size]="18" />
+          <p>{{ auditDownloadError }}</p>
+        </div>
       }
+      <div class="audit-grid">
+        @for (report of sortedAuditReports; track report.id) {
+          <article class="audit-card">
+            <header class="audit-card-head">
+              <span class="audit-card-icon"><app-icon name="doc" [size]="20" /></span>
+              <div class="audit-card-title">
+                <h3>{{ 'auditReports.fyLabel' | translate: { fy: report.fiscalYear } }}</h3>
+                <p class="audit-card-date">
+                  {{ 'auditReports.reportDate' | translate }}: {{ formatDate(report.reportDate) }}
+                </p>
+              </div>
+              <span class="ds-tag ds-tag-green">
+                <app-icon name="check" [size]="12" />
+                {{ 'auditReports.published' | translate }}
+              </span>
+            </header>
+            @if (report.summaryText) {
+              <p class="audit-summary-text">{{ report.summaryText }}</p>
+            } @else {
+              <p class="audit-summary-text audit-summary-none">{{ 'auditReports.noSummary' | translate }}</p>
+            }
+            <footer class="audit-card-foot">
+              @if (report.hasFile) {
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  [disabled]="auditDownloadingId === report.id"
+                  (click)="downloadAuditReport(report)"
+                >
+                  @if (auditDownloadingId === report.id) {
+                    <span class="spinner"></span>
+                  } @else {
+                    <app-icon name="download" [size]="15" />
+                  }
+                  {{ 'auditReports.download' | translate }}
+                </button>
+                @if (report.originalName) {
+                  <span class="audit-file-name" [title]="report.originalName">{{ report.originalName }}</span>
+                }
+              } @else {
+                <span class="audit-no-file">{{ 'auditReports.noFile' | translate }}</span>
+              }
+            </footer>
+          </article>
+        }
+      </div>
     }
   </section>
 

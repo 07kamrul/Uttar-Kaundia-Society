@@ -66,6 +66,16 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
   auditReports: AuditReport[] = [];
   auditLoading = false;
   auditError = '';
+  auditDownloadingId: number | null = null;
+  auditDownloadError = '';
+
+  // Newest fiscal year first so members see the latest audit without scrolling.
+  get sortedAuditReports(): AuditReport[] {
+    return [...this.auditReports].sort((a, b) => {
+      if (a.fiscalYear !== b.fiscalYear) return a.fiscalYear < b.fiscalYear ? 1 : -1;
+      return b.id - a.id;
+    });
+  }
   readonly periodTypes: FinancePeriod[] = ['month', 'year', 'custom', 'all'];
 
   // ----- Period -----
@@ -137,6 +147,7 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
   loadAuditReports(): void {
     this.auditLoading = true;
     this.auditError = '';
+    this.auditDownloadError = '';
     this.fundControls.memberAuditReports().subscribe({
       next: (reports) => {
         this.auditReports = reports;
@@ -152,8 +163,12 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
   }
 
   downloadAuditReport(report: AuditReport): void {
+    this.auditDownloadingId = report.id;
+    this.auditDownloadError = '';
+    this.cdr.markForCheck();
     this.fundControls.downloadMemberAuditFile(report.id).subscribe({
       next: (blob) => {
+        this.auditDownloadingId = null;
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
@@ -162,12 +177,21 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
         anchor.click();
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+        this.cdr.markForCheck();
       },
       error: () => {
-        this.auditError = this.translate.instant('auditReports.downloadError');
+        this.auditDownloadingId = null;
+        // Shown inline above the cards so one failed download never hides the
+        // published summaries themselves.
+        this.auditDownloadError = this.translate.instant('auditReports.downloadError');
         this.cdr.markForCheck();
       },
     });
+  }
+
+  auditCountLabel(count: number): string {
+    const label = this.lang === 'bn' ? this.toBangla(String(count)) : String(count);
+    return this.translate.instant('auditReports.memberCount', { count: label });
   }
 
   ngOnDestroy(): void {

@@ -126,6 +126,7 @@
         </select>
         <input
           type="text"
+          class="search-field"
           [(ngModel)]="search"
           (ngModelChange)="applyFilters()"
           [placeholder]="'admin.financeManagement.filters.search' | translate"
@@ -144,7 +145,7 @@
             [clearable]="true"
           />
         </div>
-        <button type="button" class="btn btn-secondary btn-sm" (click)="resetFilters()">
+        <button type="button" class="btn btn-secondary filter-reset" (click)="resetFilters()">
           {{ 'admin.financeManagement.filters.reset' | translate }}
         </button>
       </div>
@@ -367,232 +368,255 @@
 
 <!-- Create / edit modal -->
 @if (showFormModal) {
-  <div class="modal-backdrop" (click)="closeFormModal()">
-    <div class="modal-card modal-card-wide" (click)="$event.stopPropagation()">
-      <h3 class="modal-title">
-        {{ (editing ? 'admin.financeManagement.editTitle' : 'admin.financeManagement.createTitle') | translate }}
-      </h3>
-      @if (formError) {
-        <div class="error-box"><p style="margin:0">{{ formError }}</p></div>
-      }
-
-      <!-- Type first: it is the most important field -->
-      <div class="field">
-        <label>{{ 'admin.financeManagement.form.type' | translate }} *</label>
-        <div class="type-toggle">
-          <button
-            type="button"
-            class="type-toggle-btn type-toggle-income"
-            [class.active]="formType === 'income'"
-            (click)="formType = 'income'; onTypeChange()"
-          >
-            {{ 'admin.financeManagement.type.income' | translate }}
-          </button>
-          <button
-            type="button"
-            class="type-toggle-btn type-toggle-expense"
-            [class.active]="formType === 'expense'"
-            (click)="formType = 'expense'; onTypeChange()"
-          >
-            {{ 'admin.financeManagement.type.expense' | translate }}
-          </button>
+  <div class="dlg-backdrop" (click)="closeFormModal()">
+    <div class="dlg fin-dlg" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="dlg-head">
+        <div class="dlg-heading">
+          <h3 class="dlg-title">
+            <span class="dlg-title-icon"><app-icon name="wallet" [size]="18" /></span>
+            {{ (editing ? 'admin.financeManagement.editTitle' : 'admin.financeManagement.createTitle') | translate }}
+          </h3>
+          <p class="dlg-sub">{{ 'admin.financeManagement.formSubtitle' | translate }}</p>
         </div>
+        <button type="button" class="dlg-close" (click)="closeFormModal()" [attr.aria-label]="'common.close' | translate">
+          <app-icon name="x" [size]="18" />
+        </button>
       </div>
 
-      <div class="form-grid">
-        <div class="field">
-          <label>{{ 'admin.financeManagement.form.date' | translate }} *</label>
-          <app-date-picker [value]="formDate" (valueChange)="formDate = $event" />
-          @if (formFieldErrors['txnDate']) {
-            <p class="field-error">{{ formFieldErrors['txnDate'] }}</p>
-          }
-        </div>
+      <div class="dlg-body">
+        @if (formError) {
+          <div class="dlg-error">{{ formError }}</div>
+        }
 
+        <!-- Type first: it is the most important field -->
         <div class="field">
-          <label for="finAmount">{{ 'admin.financeManagement.form.amount' | translate }} *</label>
-          <div class="amount-input-row">
-            <input id="finAmount" type="number" min="0.01" step="0.01" [(ngModel)]="formAmount" />
-            @if (amountPreview) {
-              <span class="amount-live-preview">{{ amountPreview }}</span>
-            }
+          <label>{{ 'admin.financeManagement.form.type' | translate }} *</label>
+          <div class="type-toggle" role="group" [attr.aria-label]="'admin.financeManagement.form.type' | translate">
+            <button
+              type="button"
+              class="type-toggle-btn type-toggle-income"
+              [class.active]="formType === 'income'"
+              (click)="formType = 'income'; onTypeChange()"
+            >
+              {{ 'admin.financeManagement.type.income' | translate }}
+            </button>
+            <button
+              type="button"
+              class="type-toggle-btn type-toggle-expense"
+              [class.active]="formType === 'expense'"
+              (click)="formType = 'expense'; onTypeChange()"
+            >
+              {{ 'admin.financeManagement.type.expense' | translate }}
+            </button>
           </div>
-          @if (formFieldErrors['amount']) {
-            <p class="field-error">{{ formFieldErrors['amount'] }}</p>
-          }
         </div>
 
-        <div class="field form-grid-full">
-          <label>{{ 'admin.financeManagement.form.category' | translate }} *</label>
-          <div class="cat-picker">
-            <input
-              type="text"
-              [(ngModel)]="categoryQuery"
-              (focus)="categoryDropdownOpen = true"
-              (click)="categoryDropdownOpen = true"
-              [placeholder]="'admin.financeManagement.form.categorySearch' | translate"
-            />
-            @if (categoryDropdownOpen) {
-              <ul class="cat-list">
-                @for (option of filteredCategoryOptions; track option.id) {
-                  <li (click)="selectCategory(option)">
-                    {{ option.label }}
-                    @if (formCategoryId === option.id) {
-                      <app-icon name="check" [size]="14" />
-                    }
-                  </li>
-                } @empty {
-                  <li class="cat-empty">{{ 'admin.financeManagement.form.categoryNoMatch' | translate }}</li>
-                }
-              </ul>
-            }
-          </div>
-          @if (canManageConfig) {
-            <div class="cat-add-row">
-              <input
-                type="text"
-                [placeholder]="'admin.financeManagement.form.addCategory' | translate"
-                #newCategoryInput
-                (keyup.enter)="addCategory(newCategoryInput.value); newCategoryInput.value = ''"
-              />
-            </div>
-          }
-          @if (formFieldErrors['categoryId']) {
-            <p class="field-error">{{ formFieldErrors['categoryId'] }}</p>
-          }
-        </div>
-
-        <div class="field form-grid-full">
-          <label for="finDescription">{{ 'admin.financeManagement.form.description' | translate }} *</label>
-          <textarea id="finDescription" rows="2" [(ngModel)]="formDescription"></textarea>
-          @if (formFieldErrors['description']) {
-            <p class="field-error">{{ formFieldErrors['description'] }}</p>
-          }
-        </div>
-
-        <div class="field">
-          <label for="finReference">{{ 'admin.financeManagement.form.reference' | translate }}</label>
-          <input
-            id="finReference"
-            type="text"
-            [(ngModel)]="formReference"
-            [placeholder]="'admin.financeManagement.form.referenceHint' | translate"
-          />
-          <p class="field-hint">{{ 'admin.financeManagement.form.referenceAuto' | translate }}</p>
-        </div>
-
-        <div class="field">
-          <label for="finAttachment">{{ 'admin.financeManagement.form.attachment' | translate }}</label>
-          <input id="finAttachment" type="file" accept=".jpg,.jpeg,.png,.pdf" (change)="onAttachmentSelected($event)" />
-          @if (attachmentPreviewUrl) {
-            <img [src]="attachmentPreviewUrl" alt="" class="attachment-preview" />
-          }
-        </div>
-
-        <div class="field form-grid-full">
-          <label for="finNotes">{{ 'admin.financeManagement.form.internalNotes' | translate }}</label>
-          <textarea id="finNotes" rows="2" [(ngModel)]="formInternalNotes"></textarea>
-          <p class="field-hint">{{ 'admin.financeManagement.form.internalNotesHint' | translate }}</p>
-        </div>
-      </div>
-
-      <!-- Module 4: income-source policy (which constitutional source, other-income
-           justification, foreign-funding government approval) -->
-      @if (formType === 'income') {
-        <div class="payment-link-box">
+        <p class="dlg-section-title">{{ 'admin.financeManagement.form.sectionDetails' | translate }}</p>
+        <div class="form-grid fin-form-grid">
           <div class="field">
-            <label for="fm-income-source">{{ 'admin.financeManagement.incomeSource.label' | translate }}</label>
-            <select id="fm-income-source" name="incomeSource" [(ngModel)]="formIncomeSource">
-              <option value="">{{ 'admin.financeManagement.incomeSource.unspecified' | translate }}</option>
-              @for (source of incomeSources; track source.key) {
-                <option [value]="source.key">{{ lang === 'bn' ? source.bn : source.en }}</option>
-              }
-            </select>
+            <label>{{ 'admin.financeManagement.form.date' | translate }} *</label>
+            <app-date-picker [value]="formDate" (valueChange)="formDate = $event" />
+            @if (formFieldErrors['txnDate']) {
+              <p class="field-error">{{ formFieldErrors['txnDate'] }}</p>
+            }
           </div>
-          @if (formIncomeSource === 'other_income') {
-            <div class="field">
-              <label for="fm-income-justification">{{ 'admin.financeManagement.incomeSource.justification' | translate }}</label>
-              <textarea id="fm-income-justification" class="field-control" rows="2" name="incomeJustification"
-                        [(ngModel)]="formIncomeJustification" required></textarea>
-              @if (formFieldErrors['incomeJustification']) {
-                <p class="field-error">{{ formFieldErrors['incomeJustification'] }}</p>
-              }
-            </div>
-          }
-          <label class="checkbox-label">
-            <input type="checkbox" name="formForeignFunding" [(ngModel)]="formForeignFunding" />
-            {{ 'admin.financeManagement.incomeSource.foreign' | translate }}
-          </label>
-          @if (formForeignFunding) {
-            <div class="field">
-              <label for="fm-gov-ref">{{ 'admin.financeManagement.incomeSource.govRef' | translate }}</label>
-              <input id="fm-gov-ref" class="field-control" name="govRef" [(ngModel)]="formGovRef" required />
-              @if (formFieldErrors['governmentApprovalRef']) {
-                <p class="field-error">{{ formFieldErrors['governmentApprovalRef'] }}</p>
-              }
-            </div>
-          }
-        </div>
-      }
 
-      <!-- Payment linking: avoid double-counting collections already recorded -->
-      @if (formType === 'income') {
-        <div class="payment-link-box">
-          <label class="checkbox-label">
-            <input type="checkbox" [ngModel]="paymentLinkEnabled" (ngModelChange)="togglePaymentLink()" />
-            {{ 'admin.financeManagement.paymentLink.title' | translate }}
-          </label>
-          @if (editing?.linkedPaymentType) {
-            <p class="field-hint">
-              {{
-                'admin.financeManagement.paymentLink.alreadyLinked'
-                  | translate
-                    : { source: paymentSourceLabel(editing.linkedPaymentType), id: editing.linkedPaymentId }
-              }}
-            </p>
-          }
-          @if (paymentLinkEnabled) {
-            <div class="payment-link-controls">
-              <select [(ngModel)]="paymentSourceFilter" (ngModelChange)="loadPaymentOptions()">
-                <option value="">{{ 'admin.financeManagement.paymentLink.allSources' | translate }}</option>
-                <option value="installment">{{ 'admin.financeManagement.source.installment' | translate }}</option>
-                <option value="picnic_payment">{{ 'admin.financeManagement.source.picnic_payment' | translate }}</option>
-                <option value="cost_share">{{ 'admin.financeManagement.source.cost_share' | translate }}</option>
-              </select>
+          <div class="field">
+            <label for="finAmount">{{ 'admin.financeManagement.form.amount' | translate }} *</label>
+            <div class="amount-input-row">
+              <div class="amount-field">
+                <span class="amount-prefix" aria-hidden="true">৳</span>
+                <input id="finAmount" type="number" min="0.01" step="0.01" [(ngModel)]="formAmount" />
+              </div>
+              @if (amountPreview) {
+                <span class="amount-live-preview">{{ amountPreview }}</span>
+              }
+            </div>
+            @if (formFieldErrors['amount']) {
+              <p class="field-error">{{ formFieldErrors['amount'] }}</p>
+            }
+          </div>
+
+          <div class="field fin-field-full">
+            <label>{{ 'admin.financeManagement.form.category' | translate }} *</label>
+            <div class="cat-picker">
               <input
                 type="text"
-                [(ngModel)]="paymentSearch"
-                (ngModelChange)="loadPaymentOptions()"
-                [placeholder]="'admin.financeManagement.paymentLink.searchPlaceholder' | translate"
+                [(ngModel)]="categoryQuery"
+                (focus)="categoryDropdownOpen = true"
+                (click)="categoryDropdownOpen = true"
+                [placeholder]="'admin.financeManagement.form.categorySearch' | translate"
               />
+              @if (categoryDropdownOpen) {
+                <ul class="cat-list">
+                  @for (option of filteredCategoryOptions; track option.id) {
+                    <li (click)="selectCategory(option)">
+                      {{ option.label }}
+                      @if (formCategoryId === option.id) {
+                        <app-icon name="check" [size]="14" />
+                      }
+                    </li>
+                  } @empty {
+                    <li class="cat-empty">{{ 'admin.financeManagement.form.categoryNoMatch' | translate }}</li>
+                  }
+                </ul>
+              }
             </div>
-            @if (paymentLoading) {
-              <app-section-loader variant="rows" [count]="3" />
-            } @else {
-              <ul class="payment-list">
-                @for (payment of paymentOptions; track payment.sourceType + '-' + payment.sourceId) {
-                  <li
-                    class="payment-row"
-                    [class.selected]="selectedPayment === payment"
-                    (click)="pickPayment(payment)"
-                  >
-                    <span class="payment-main">
-                      <strong>{{ payment.memberName }}</strong>
-                      <span class="muted"> · {{ payment.detail }}</span>
-                    </span>
-                    <span class="payment-meta">
-                      {{ formatDate(payment.paidOn) }} · {{ taka(payment.amount) }}
-                    </span>
-                  </li>
-                } @empty {
-                  <li class="cat-empty">{{ 'admin.financeManagement.paymentLink.empty' | translate }}</li>
-                }
-              </ul>
+            @if (canManageConfig) {
+              <div class="cat-add-row">
+                <app-icon name="plus" [size]="14" />
+                <input
+                  type="text"
+                  [placeholder]="'admin.financeManagement.form.addCategory' | translate"
+                  #newCategoryInput
+                  (keyup.enter)="addCategory(newCategoryInput.value); newCategoryInput.value = ''"
+                />
+              </div>
             }
-          }
-        </div>
-      }
+            @if (formFieldErrors['categoryId']) {
+              <p class="field-error">{{ formFieldErrors['categoryId'] }}</p>
+            }
+          </div>
 
-      <div class="modal-actions">
+          <div class="field fin-field-full">
+            <label for="finDescription">{{ 'admin.financeManagement.form.description' | translate }} *</label>
+            <textarea id="finDescription" rows="2" [(ngModel)]="formDescription"></textarea>
+            @if (formFieldErrors['description']) {
+              <p class="field-error">{{ formFieldErrors['description'] }}</p>
+            }
+          </div>
+        </div>
+
+        <p class="dlg-section-title">{{ 'admin.financeManagement.form.sectionDocs' | translate }}</p>
+        <div class="form-grid fin-form-grid">
+          <div class="field">
+            <label for="finReference">{{ 'admin.financeManagement.form.reference' | translate }}</label>
+            <input
+              id="finReference"
+              type="text"
+              [(ngModel)]="formReference"
+              [placeholder]="'admin.financeManagement.form.referenceHint' | translate"
+            />
+            <p class="field-hint">{{ 'admin.financeManagement.form.referenceAuto' | translate }}</p>
+          </div>
+
+          <div class="field">
+            <label for="finAttachment">{{ 'admin.financeManagement.form.attachment' | translate }}</label>
+            <label class="file-drop" for="finAttachment">
+              <input id="finAttachment" type="file" accept=".jpg,.jpeg,.png,.pdf" (change)="onAttachmentSelected($event)" />
+              <span class="file-drop-icon"><app-icon name="download" [size]="16" /></span>
+              <span class="file-drop-text">{{ 'admin.financeManagement.form.attachment' | translate }}</span>
+            </label>
+            @if (attachmentPreviewUrl) {
+              <img [src]="attachmentPreviewUrl" alt="" class="attachment-preview" />
+            }
+          </div>
+
+          <div class="field fin-field-full">
+            <label for="finNotes">{{ 'admin.financeManagement.form.internalNotes' | translate }}</label>
+            <textarea id="finNotes" rows="2" [(ngModel)]="formInternalNotes"></textarea>
+            <p class="field-hint">{{ 'admin.financeManagement.form.internalNotesHint' | translate }}</p>
+          </div>
+        </div>
+
+        <!-- Module 4: income-source policy (which constitutional source, other-income
+             justification, foreign-funding government approval) -->
+        @if (formType === 'income') {
+          <p class="dlg-section-title">{{ 'admin.financeManagement.form.sectionIncome' | translate }}</p>
+          <div class="payment-link-box">
+            <div class="field">
+              <label for="fm-income-source">{{ 'admin.financeManagement.incomeSource.label' | translate }}</label>
+              <select id="fm-income-source" name="incomeSource" [(ngModel)]="formIncomeSource">
+                <option value="">{{ 'admin.financeManagement.incomeSource.unspecified' | translate }}</option>
+                @for (source of incomeSources; track source.key) {
+                  <option [value]="source.key">{{ lang === 'bn' ? source.bn : source.en }}</option>
+                }
+              </select>
+            </div>
+            @if (formIncomeSource === 'other_income') {
+              <div class="field">
+                <label for="fm-income-justification">{{ 'admin.financeManagement.incomeSource.justification' | translate }}</label>
+                <textarea id="fm-income-justification" class="field-control" rows="2" name="incomeJustification"
+                          [(ngModel)]="formIncomeJustification" required></textarea>
+                @if (formFieldErrors['incomeJustification']) {
+                  <p class="field-error">{{ formFieldErrors['incomeJustification'] }}</p>
+                }
+              </div>
+            }
+            <label class="checkbox-label">
+              <input type="checkbox" name="formForeignFunding" [(ngModel)]="formForeignFunding" />
+              {{ 'admin.financeManagement.incomeSource.foreign' | translate }}
+            </label>
+            @if (formForeignFunding) {
+              <div class="field">
+                <label for="fm-gov-ref">{{ 'admin.financeManagement.incomeSource.govRef' | translate }}</label>
+                <input id="fm-gov-ref" class="field-control" name="govRef" [(ngModel)]="formGovRef" required />
+                @if (formFieldErrors['governmentApprovalRef']) {
+                  <p class="field-error">{{ formFieldErrors['governmentApprovalRef'] }}</p>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Payment linking: avoid double-counting collections already recorded -->
+          <div class="payment-link-box">
+            <label class="checkbox-label">
+              <input type="checkbox" [ngModel]="paymentLinkEnabled" (ngModelChange)="togglePaymentLink()" />
+              {{ 'admin.financeManagement.paymentLink.title' | translate }}
+            </label>
+            @if (editing?.linkedPaymentType) {
+              <p class="field-hint">
+                {{
+                  'admin.financeManagement.paymentLink.alreadyLinked'
+                    | translate
+                      : { source: paymentSourceLabel(editing.linkedPaymentType), id: editing.linkedPaymentId }
+                }}
+              </p>
+            }
+            @if (paymentLinkEnabled) {
+              <div class="payment-link-controls">
+                <select [(ngModel)]="paymentSourceFilter" (ngModelChange)="loadPaymentOptions()">
+                  <option value="">{{ 'admin.financeManagement.paymentLink.allSources' | translate }}</option>
+                  <option value="installment">{{ 'admin.financeManagement.source.installment' | translate }}</option>
+                  <option value="picnic_payment">{{ 'admin.financeManagement.source.picnic_payment' | translate }}</option>
+                  <option value="cost_share">{{ 'admin.financeManagement.source.cost_share' | translate }}</option>
+                </select>
+                <input
+                  type="text"
+                  [(ngModel)]="paymentSearch"
+                  (ngModelChange)="loadPaymentOptions()"
+                  [placeholder]="'admin.financeManagement.paymentLink.searchPlaceholder' | translate"
+                />
+              </div>
+              @if (paymentLoading) {
+                <app-section-loader variant="rows" [count]="3" />
+              } @else {
+                <ul class="payment-list">
+                  @for (payment of paymentOptions; track payment.sourceType + '-' + payment.sourceId) {
+                    <li
+                      class="payment-row"
+                      [class.selected]="selectedPayment === payment"
+                      (click)="pickPayment(payment)"
+                    >
+                      <span class="payment-main">
+                        <strong>{{ payment.memberName }}</strong>
+                        <span class="muted"> · {{ payment.detail }}</span>
+                      </span>
+                      <span class="payment-meta">
+                        {{ formatDate(payment.paidOn) }} · {{ taka(payment.amount) }}
+                      </span>
+                    </li>
+                  } @empty {
+                    <li class="cat-empty">{{ 'admin.financeManagement.paymentLink.empty' | translate }}</li>
+                  }
+                </ul>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <div class="dlg-foot">
         <button type="button" class="btn btn-secondary" (click)="closeFormModal()">
           {{ 'common.cancel' | translate }}
         </button>
@@ -614,37 +638,49 @@
 
 <!-- Approve / reject / reverse / delete modals -->
 @if (modal && actionTarget) {
-  <div class="modal-backdrop" (click)="closeAction()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <h3 class="modal-title">
-        {{ 'admin.financeManagement.modals.' + modal + '.title' | translate }}
-      </h3>
-      <p class="modal-message">
-        {{ actionTarget.description }} — {{ signedAmount(actionTarget) }}
-        @if (actionTarget.referenceNo) {
-          ({{ actionTarget.referenceNo }})
-        }
-      </p>
-      @if (modal === 'approve' && actionTarget?.type === 'expense' && !actionTarget?.attachmentUrl) {
-        <p class="field-error">{{ 'admin.financeManagement.modals.approve.receiptRequired' | translate }}</p>
-      }
-      @if (modal === 'approve') {
-        <p class="modal-message hint-text">
-          {{ 'admin.financeManagement.modals.approve.twoPerson' | translate }}
-        </p>
-      }
-      @if (actionNeedsReason) {
-        <div class="field">
-          <label for="actionReason">
-            {{ 'admin.financeManagement.modals.' + modal + '.reason' | translate }} *
-          </label>
-          <textarea id="actionReason" rows="2" [(ngModel)]="actionReason"></textarea>
+  <div class="dlg-backdrop" (click)="closeAction()">
+    <div class="dlg fin-action-dlg" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="dlg-head">
+        <div class="dlg-heading">
+          <h3 class="dlg-title">
+            <span class="dlg-title-icon" [class.fin-action-icon-danger]="modal !== 'approve'">
+              <app-icon [name]="modal === 'approve' ? 'check-circle' : 'alert'" [size]="18" />
+            </span>
+            {{ 'admin.financeManagement.modals.' + modal + '.title' | translate }}
+          </h3>
+          <p class="dlg-sub">
+            {{ actionTarget.description }} — {{ signedAmount(actionTarget) }}
+            @if (actionTarget.referenceNo) {
+              ({{ actionTarget.referenceNo }})
+            }
+          </p>
         </div>
-      }
-      @if (actionError) {
-        <div class="error-box"><p style="margin:0">{{ actionError }}</p></div>
-      }
-      <div class="modal-actions">
+        <button type="button" class="dlg-close" (click)="closeAction()" [attr.aria-label]="'common.close' | translate">
+          <app-icon name="x" [size]="18" />
+        </button>
+      </div>
+      <div class="dlg-body">
+        @if (modal === 'approve' && actionTarget?.type === 'expense' && !actionTarget?.attachmentUrl) {
+          <p class="dlg-error">{{ 'admin.financeManagement.modals.approve.receiptRequired' | translate }}</p>
+        }
+        @if (modal === 'approve') {
+          <p class="modal-message hint-text">
+            {{ 'admin.financeManagement.modals.approve.twoPerson' | translate }}
+          </p>
+        }
+        @if (actionNeedsReason) {
+          <div class="field">
+            <label for="actionReason">
+              {{ 'admin.financeManagement.modals.' + modal + '.reason' | translate }} *
+            </label>
+            <textarea id="actionReason" rows="2" [(ngModel)]="actionReason"></textarea>
+          </div>
+        }
+        @if (actionError) {
+          <div class="dlg-error">{{ actionError }}</div>
+        }
+      </div>
+      <div class="dlg-foot">
         <button type="button" class="btn btn-secondary" (click)="closeAction()">
           {{ 'common.cancel' | translate }}
         </button>

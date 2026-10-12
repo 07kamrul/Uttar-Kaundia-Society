@@ -445,6 +445,58 @@ admin.picnicPayments.subtitle	ফিল্টার ও মোট সহ সক�
 admin.picnicPayments.title	পিকনিক পরিশোধ	Picnic Payments
 admin.picnicPayments.totalCollected	মোট আদায়	Total Collected
 admin.picnicPayments.totalColumn	মোট	Total
+admin.plotBoundaries.actions.approve	অনুমোদন	Approve
+admin.plotBoundaries.actions.evidence	প্রমাণ ডাউনলোড	Evidence export
+admin.plotBoundaries.actions.reject	বাতিল	Reject
+admin.plotBoundaries.actions.versions	সংস্করণ ইতিহাস	Version history
+admin.plotBoundaries.add.drawingHint	পয়েন্ট বসাতে ম্যাপে ক্লিক/ট্যাপ করুন; আকৃতি সম্পূর্ণ করতে প্রথম পয়েন্টে ক্লিক (বা ডাবল-ক্লিক) করুন।	Click/tap the map to place points; click the first point (or double-click) to close the shape.
+admin.plotBoundaries.add.redrawHint	এই আউটলাইনটিই সীমানার সাথে সংরক্ষিত হবে - প্রতিস্থাপন করতে আবার আঁকুন।	This outline will be saved with the boundary - draw again to replace it.
+admin.plotBoundaries.disputes.dismiss	উপেক্ষা	Dismiss
+admin.plotBoundaries.disputes.dismissed	বাতিল	Dismissed
+admin.plotBoundaries.disputes.empty	এই ফিল্টারে কোনো মতবিরোধ নেই।	No disputes found for this filter.
+admin.plotBoundaries.disputes.open	খোলা	Open
+admin.plotBoundaries.disputes.overlap	চেঃ এলাকা	Overlap
+admin.plotBoundaries.disputes.resolve	মীমাংসা	Resolve
+admin.plotBoundaries.disputes.resolved	মীমাংসা হয়েছে	Resolved
+admin.plotBoundaries.disputes.subtitle	সীমানা মতবিরোধ - মীমাংসায় boundary.manage অনুমতি প্রয়োজন	Overlapping boundary disputes - resolving needs the boundary.manage permission
+admin.plotBoundaries.empty	এই ফিল্টারে কোনো সীমানা পাওয়া যায়নি।	No boundaries found for this filter.
+admin.plotBoundaries.emptyHint	অন্য কোনো অবস্থা বেছে নিন অথবা খোঁজা মুছে ফেলুন।	Try another status filter or clear the search.
+admin.plotBoundaries.errors.forbidden	এই কাজের অনুমতি আপনার নেই।	You do not have permission for this action.
+admin.plotBoundaries.errors.generic	কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।	Could not complete the action. Please try again.
+admin.plotBoundaries.errors.loadFailed	সীমানা লোড করা যায়নি।	Could not load boundaries.
+admin.plotBoundaries.errors.noteRequired	বাতিল করতে নোট দেওয়া আবশ্যক।	A note is required to reject.
+admin.plotBoundaries.list.count	{{count}} টি পাওয়া গেছে	{{count}} found
+admin.plotBoundaries.modal.noteOptional	নোট (ঐচ্ছিক)	Note (optional)
+admin.plotBoundaries.modal.noteRequired	নোট (আবশ্যক)	Note (required)
+admin.plotBoundaries.preview.backToList	তালিকায় ফিরুন	Back to list
+admin.plotBoundaries.preview.noGeometry	এই সীমানার জন্য এখনো কোনো আকৃতি আঁকা হয়নি।	No shape has been drawn for this boundary yet.
+admin.plotBoundaries.preview.placeholder	পর্যালোচনা করতে তালিকা থেকে একটি সীমানা বেছে নিন।	Pick a boundary from the list to review it here.
+admin.plotBoundaries.preview.rejectionNote	বাতিলের নোট	Rejection note
+admin.plotBoundaries.preview.title	সীমানা প্রিভিউ	Boundary preview
+admin.plotBoundaries.searchPlaceholder	দাগ নম্বর দিয়ে খুঁজুন	Search by dag number
+admin.plotBoundaries.subtitle	সদস্যদের আঁকা প্লট সীমানা পর্যালোচনা করুন	Review member-drawn plot boundaries
+admin.plotBoundaries.success.approved	সীমানা অনুমোদিত হয়েছে।	Boundary approved.
+admin.plotBoundaries.success.deleted	সীমানা মুছে ফেলা হয়েছে।	Boundary deleted.
+admin.plotBoundaries.success.rejected	সীমানা বাতিল করা হয়েছে।	Boundary rejected.
+admin.plotBoundaries.success.saved	সীমানা সংরক্ষিত হয়েছে।	Boundary saved.
+admin.plotBoundaries.table.computedArea	নির্ধারিত আয়তন	Computed area
+admin.plotBoundaries.table.dag	দাগ	Dag
+admin.plotBoundaries.table.khatian	খতিয়ান	Khatian
+admin.plotBoundaries.table.landQuantity	ঘোষিত জমি	Declared land
+admin.plotBoundaries.table.member	সদস্য	Member
+admin.plotBoundaries.table.mobile	মোবাইল	Mobile
+admin.plotBoundaries.table.property	প্রপার্টি	Property
+admin.plotBoundaries.tabs.disputes	মতবিরোধ	Disputes
+admin.plotBoundaries.tabs.queue	পর্যালোচনার তালিকা	Review queue
+admin.plotBoundaries.title	প্লট সীমানা	Plot Boundaries
+admin.plotBoundaries.versions.actor	সম্পাদক	By
+admin.plotBoundaries.versions.changeType	পরিবর্তন	Change
+admin.plotBoundaries.versions.empty	এখনো কোনো সংস্করণ নেই।	No versions recorded yet.
+admin.plotBoundaries.versions.note	নোট	Note
+admin.plotBoundaries.versions.status	অবস্থা	Status
+admin.plotBoundaries.versions.time	সময়	Time
+admin.plotBoundaries.versions.title	সংস্করণ ইতিহাস	Version history
+admin.plotBoundaries.versions.version	সংস্করণ	Version
 admin.propertyRequests.actions.add	সংযোজন	Add
 admin.propertyRequests.actions.delete	মুছে ফেলা	Delete
 admin.propertyRequests.actions.edit	সংশোধন	Edit
@@ -744,6 +796,19 @@ admin.submissionsList.tableHeaders.name	নাম	Name
 admin.submissionsList.tableHeaders.reference	রেফারেন্স	Reference
 admin.submissionsList.tableHeaders.status	স্ট্যাটাস	Status
 admin.submissionsList.title	আবেদনসমূহ	Applications
+assetRegister.addTitle	সম্পদ যোগ করুন	Add asset
+assetRegister.categoryPh	যেমন: আসবাবপত্র, ইলেকট্রনিক্স	e.g. Furniture, Electronics
+assetRegister.descriptionPh	ক্রয়ের বিবরণ, সিরিয়াল নম্বর ইত্যাদি…	Purchase details, serial number…
+assetRegister.editTitle	সম্পদ সম্পাদনা	Edit asset
+assetRegister.formSubtitle	সম্পদের সঠিক তথ্য পূরণ করুন।	Fill in the asset details below.
+assetRegister.locationPh	যেমন: কমিউনিটি সেন্টার, ২য় তলা	e.g. Community centre, 2nd floor
+assetRegister.namePh	যেমন: কমিউনিটি সেন্টারের প্রজেক্টর	e.g. Community centre projector
+assetRegister.requiredHint	* চিহ্নিত ঘর পূরণ করা আবশ্যক	Fields marked * are required
+amendments.submitSuccess	প্রস্তাব সফলভাবে জমা হয়েছে।	Proposal submitted successfully.
+amendments.withdrawConfirm	প্রত্যাহার করা হলে প্রস্তাবটি আর ফিরিয়ে আনা যাবে না। নিশ্চিত?	A withdrawn proposal cannot be restored. Withdraw it?
+auditReports.memberCount	{{count}}টি রিপোর্ট	{{count}} report(s)
+auditReports.memberEmptyHint	কমিটি বার্ষিক অডিট প্রকাশ করলে সারসংক্ষেপ ও ফাইল এখানে দেখা যাবে।	Summaries and files will appear here once the committee publishes an annual audit.
+auditReports.noFile	কোনো ফাইল সংযুক্ত নেই	No file attached
 auth.forgotPassword.backToLogin	লগইনে ফিরে যান	Back to Login
 auth.forgotPassword.errors.requestFailed	রিসেট অনুরোধ পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।	Could not send the reset request. Please try again.
 auth.forgotPassword.identifierLabel	সদস্য আইডি / ইউজারনেম / ইমেইল	Member ID / Username / Email
@@ -792,8 +857,6 @@ common.confirmModal.confirmButton	নিশ্চিত করুন	Confirm
 common.delete	মুছুন	Delete
 common.edit	সম্পাদনা	Edit
 common.loading	লোড হচ্ছে...	Loading...
-common.processing	প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন…	Processing, please wait…
-common.stillWorking	এখনও কাজ চলছে — স্বাভাবিকের চেয়ে একটু বেশি সময় লাগছে…	Still working — this is taking longer than usual…
 common.months.april	এপ্রিল	April
 common.months.august	আগস্ট	August
 common.months.december	ডিসেম্বর	December
@@ -806,11 +869,20 @@ common.months.may	মে	May
 common.months.november	নভেম্বর	November
 common.months.october	অক্টোবর	October
 common.months.september	সেপ্টেম্বর	September
+common.processing	প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন…	Processing, please wait…
 common.retry	আবার চেষ্টা করুন	Retry
 common.save	সংরক্ষণ	Save
 common.select	নির্বাচন করুন	Select
+common.stillWorking	এখনও কাজ চলছে — স্বাভাবিকের চেয়ে একটু বেশি সময় লাগছে…	Still working — this is taking longer than usual…
 common.switchToBangla	বাংলায় দেখুন	বাংলায় দেখুন
 common.switchToEnglish	Switch to English	Switch to English
+complaintsAdmin.detailsTitle	অভিযোগের বিবরণ ও কার্যক্রম	Complaint details & actions
+complaintsAdmin.meta.acknowledged	স্বীকৃতির সময়	Acknowledged
+complaintsAdmin.meta.submitted	জমার সময়	Submitted
+complaintsAdmin.overdueNotice	{{count}}টি অভিযোগে এসএলএ সময়শেষ হয়েছে — দ্রুত ব্যবস্থা নিন।	{{count}} complaint(s) past the SLA deadline — action needed.
+complaintsAdmin.subtitle	সদস্যদের অভিযোগ গ্রহণ, দায়িত্ব দেওয়া ও নিষ্পত্তি — এসএলএ সময়সীমা সহ।	Receive, assign and resolve member complaints — with SLA deadlines.
+complaintsAdmin.total	মোট	Total
+complaintsModule.new.success	অভিযোগ সফলভাবে জমা হয়েছে।	Complaint submitted successfully.
 events.backToList	সব অনুষ্ঠান	All events
 events.detail.endsAt	শেষ	Ends
 events.detail.location	স্থান	Location
@@ -900,13 +972,27 @@ member.costShares.table.paid	পরিশোধিত	Paid
 member.costShares.table.status	অবস্থা	Status
 member.costShares.title	খরচের ভাগ	Cost Shares
 member.costShares.totalOutstanding	মোট বকেয়া	Total outstanding
+member.dashboard.allClear	সব পরিশোধিত	All settled
 member.dashboard.dueMonthsLabel	বকেয়া মাস	Due Months
 member.dashboard.loadError	তথ্য লোড করা যায়নি।	Failed to load data.
 member.dashboard.memberIdLabel	সদস্য আইডি	Member ID
 member.dashboard.paidMonthsLabel	পরিশোধিত মাস	Paid Months
+member.dashboard.payNow	পরিশোধ করুন	Pay now
+member.dashboard.quickActions	সেবা কেন্দ্র	Service centre
+member.dashboard.quickActionsHint	গভর্নেন্স সেবাগুলো এক ক্লিকে	Every governance service, one tap away
 member.dashboard.recentStatusTitle	সাম্প্রতিক চাঁদার অবস্থা	Recent Subscription Status
 member.dashboard.statusDue	বকেয়া	Due
 member.dashboard.statusPaid	পরিশোধিত	Paid
+member.dashboard.subtitle	সদস্য পোর্টালে স্বাগতম — চাঁদা, সেবা ও গঠনমূলক অংশগ্রহণ এক জায়গায়।	Welcome to your member portal — dues, services and governance in one place.
+member.dashboard.tiles.complaints	অভিযোগ জমা দিন ও অগ্রগতি দেখুন	File complaints and track progress
+member.dashboard.tiles.elections	মনোনয়ন, ভোটদান ও ফলাফল	Nominations, voting and results
+member.dashboard.tiles.emergency	আপদকালীন তাৎক্ষণিক সহায়তা	Urgent help in an emergency
+member.dashboard.tiles.land	ভূমি রক্ষা আবেদন ফর্ম	Land protection complaint form
+member.dashboard.tiles.membership	আবেদন, আপিল ও ছাড়	Applications, appeals and waivers
+member.dashboard.tiles.petitions	সম্মিলিত স্বার্থের আবেদন	Collective member petitions
+member.dashboard.tiles.serviceStandard	সেবার সময়সীমা ও কর্মদক্ষতা	Service targets and performance
+member.dashboard.tiles.welfare	কল্যাণ তহবিল থেকে সহায়তা চান	Ask for welfare-fund support
+member.dashboard.viewAll	সব দেখুন	View all
 member.fundTransparency.charts.empty	গ্রাফ দেখানোর মতো পর্যাপ্ত তথ্য এখনো নেই।	Not enough data for a chart yet.
 member.fundTransparency.charts.expenseDonut	ব্যয়ের খাতভিত্তিক চিত্র	Expenses by category
 member.fundTransparency.charts.monthly	মাসিক	Monthly
@@ -1066,6 +1152,56 @@ member.picnic.taka	টাকা	Taka
 member.picnic.title	পিকনিক ফি পরিশোধ	Picnic Fee Payment
 member.picnic.total	মোট	Total
 member.picnic.totalColumn	মোট	Total
+member.plotMap.details.area	নির্ধারিত আয়তন	Computed area
+member.plotMap.details.contactHidden	যোগাযোগ গোপন	Contact hidden
+member.plotMap.details.landQuantity	ঘোষিত জমি	Declared land
+member.plotMap.details.shotangsho	শতাংশ	শতাংশ
+member.plotMap.details.title	প্লটের বিবরণ	Plot details
+member.plotMap.disclaimer	এটি সদস্য-চিহ্নিত আনুমানিক সীমানা; সরকারি জরিপ বা দলিলের বিকল্প নয়।	This is a member-marked approximate boundary; it is not a substitute for an official survey or legal documents.
+member.plotMap.draw.deleteMessage	আপনার সীমানা মুছে ফেলা হবে; পরে আবার এঁকে জমা দিলে নতুন পর্যালোচনায় যাবে। চালিয়ে যাবেন?	Your boundary will be removed and sent back for review if redrawn. Continue?
+member.plotMap.draw.deleteTitle	সীমানা মুছুন	Delete boundary
+member.plotMap.draw.edit	সম্পাদনা	Edit
+member.plotMap.draw.editTitle	আমার সীমানা সম্পাদনা	Edit my boundary
+member.plotMap.draw.errors.BOUNDARY_EXISTS	এই সম্পত্তিতে ইতিমধ্যে একটি সীমানা আছে।	This property already has a boundary.
+member.plotMap.draw.errors.INVALID_GEOMETRY	আঁকা আকৃতিটি বৈধ বহুভুজ নয়।	The drawn shape is not a valid polygon.
+member.plotMap.draw.errors.NOT_YOUR_PROPERTY	এই সম্পত্তিটি আপনার অ্যাকাউন্টের নয়।	This property does not belong to your account.
+member.plotMap.draw.errors.OUTSIDE_SOCIETY_AREA	সীমারেখার কিছু অংশ সোসাইটির সীমার বাইরে চলে গেছে।	The outline goes outside the society area.
+member.plotMap.draw.errors.SELF_INTERSECTING	সীমারেখা নিজেকে ছেদ করেছে - ছেদাংশ ঠিক করে আবার চেষ্টা করুন।	The outline crosses itself - fix the overlapping part and try again.
+member.plotMap.draw.errors.TOO_MANY_VERTICES	অনেক বেশি পয়েন্ট - সীমারেখা সরল করুন।	Too many points - simplify the outline.
+member.plotMap.draw.errors.ZERO_AREA	আঁকা আকৃতির ক্ষেত্রফল শূন্য - আরও পয়েন্ট যোগ করুন।	The drawn shape has no area - add more points.
+member.plotMap.draw.errors.generic	সীমানা সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।	Could not save the boundary. Please try again.
+member.plotMap.draw.myBoundaries	আমার সীমানাসমূহ	My boundaries
+member.plotMap.draw.noProperties	আঁকার জন্য কোনো সম্পত্তি পাওয়া যায়নি - সবগুলোতেই সীমানা আছে অথবা কোনো সম্পত্তি নিবন্ধিত নয়।	None of your properties is available for drawing - either all have boundaries already or no property is registered.
+member.plotMap.draw.open	সীমানা আঁকুন	Draw boundary
+member.plotMap.draw.pickHint	যে সম্পত্তিতে এখনো সীমানা নেই সেটি বেছে নিয়ে ম্যাপে সীমানা আঁকুন।	Choose one of your properties that has no boundary yet, then draw its outline on the map.
+member.plotMap.draw.start	ম্যাপে আঁকুন	Draw on map
+member.plotMap.draw.title	আপনার প্লটের সীমানা আঁকুন	Draw your plot boundary
+member.plotMap.legend	রংয়ের নির্দেশ	Legend
+member.plotMap.locationError	আপনার অবস্থান নির্ধারণ করা যায়নি।	Could not determine your location.
+member.plotMap.myLocation	আমার অবস্থান	My location
+member.plotMap.outsideSociety	আপনি উত্তর কাউন্দিয়া এলাকার বাইরে আছেন — পরিবর্তে সোসাইটির মানচিত্র দেখানো হচ্ছে।	You are outside the Uttar Kaundia area — showing the society map instead.
+member.plotMap.owner.loadError	মালিকের তথ্য লোড করা যায়নি।	Could not load owner details.
+member.plotMap.owner.notApproved	এই সীমানা এখনো অনুমোদিত নয়, তাই মালিকের তথ্য দেখা যাচ্ছে না।	This boundary is not approved yet, so owner details are unavailable.
+member.plotMap.owner.rateLimited	অনেক বেশি অনুরোধ - কিছুক্ষণ পর আবার চেষ্টা করুন।	Too many lookups - please wait a moment and try again.
+member.plotMap.report.error	রিপোর্ট পাঠানো যায়নি। আবার চেষ্টা করুন।	Could not send the report. Please try again.
+member.plotMap.report.note	সমস্যাটি লিখুন	Describe the problem
+member.plotMap.report.open	সমস্যা রিপোর্ট করুন	Report a problem
+member.plotMap.report.send	রিপোর্ট পাঠান	Send report
+member.plotMap.report.thanks	ধন্যবাদ - আপনার রিপোর্ট গ্রহণ করা হয়েছে।	Thank you - your report has been received.
+member.plotMap.searchPlaceholder	আরএস/সিএস দাগ নম্বর দিয়ে খুঁজুন	Search by RS/CS dag number
+member.plotMap.status.approved	অনুমোদিত	Approved
+member.plotMap.status.disputed	মতবিরোধ	Disputed
+member.plotMap.status.draft	খসড়া	Draft
+member.plotMap.status.mine	আমার	Mine
+member.plotMap.status.pending_review	পর্যালোচনার অপেক্ষায়	Pending review
+member.plotMap.status.rejected	বাতিল	Rejected
+member.plotMap.subtitle		
+member.plotMap.title	জমির সীমানা ম্যাপ	Plot Boundary Map
+member.plotMap.validation.area	আঁকা এলাকা	Drawn area
+member.plotMap.validation.areaMismatch	আঁকা এলাকা আপনার ঘোষিত জমির পরিমাণের সাথে অনেক মিলছে না।	The drawn area differs a lot from your declared land quantity.
+member.plotMap.validation.ok	সীমারেখাটি ঠিক আছে।	The outline looks valid.
+member.plotMap.validation.outsideSociety	সীমারেখার কিছু অংশ সোসাইটির সীমার বাইরে।	Part of the outline is outside the society area.
+member.plotMap.validation.selfIntersection	সীমারেখা নিজেকে ছেদ করেছে - ছেদাংশ ঠিক করুন।	The outline crosses itself - fix the highlighted overlap.
 member.profile.addressLabel	ঠিকানা	Address
 member.profile.addressTitle	ঠিকানা	Address
 member.profile.admissionFeeLabel	ভর্তি ফি	Admission Fee
@@ -1215,6 +1351,7 @@ member.roadmap.title	আমাদের পরিকল্পনা	Our Roadmap
 member.roadmap.weAreHere	আমরা এখানে	We are here
 member.roadmap.whereSummary	মোট {{total}}টি পরিকল্পনার মধ্যে {{done}}টি সম্পন্ন হয়েছে।	{{done}} of {{total}} planned items are done.
 member.roadmap.whereTitle	আমরা এখন কোথায় আছি	Where we are now
+membershipGov.apply.success	সদস্যপদের আবেদন সফলভাবে জমা হয়েছে।	Application submitted successfully.
 nav.admin	প্রশাসক	Admin
 nav.auditLog	অডিট লগ	Audit Log
 nav.changePassword	পাসওয়ার্ড পরিবর্তন	Change Password
@@ -1242,6 +1379,8 @@ nav.openMenu	মেনু খুলুন	Open menu
 nav.paymentVerifications	পেমেন্ট যাচাই	Payment Verifications
 nav.picnicPayment	পিকনিক ফি	Picnic Fee
 nav.picnicPayments	পিকনিক পরিশোধ	Picnic Payments
+nav.plotBoundaries	প্লট সীমানা	Plot Boundaries
+nav.plotMap	জমির সীমানা ম্যাপ	Plot Boundary Map
 nav.profile	প্রোফাইল	Profile
 nav.propertyRequests	সম্পত্তি সংক্রান্ত অনুরোধ	Property Requests
 nav.register	আবেদন করুন	Register
@@ -1249,6 +1388,11 @@ nav.resolutionBook	রেজোলিউশন বুক	Resolution Book
 nav.roadmap	আমাদের পরিকল্পনা	Our Roadmap
 nav.roadmapManagement	পরিকল্পনা ব্যবস্থাপনা	Roadmap Management
 nav.rolesPermissions	ভূমিকা ও অনুমতি	Roles & Permissions
+nav.section.administration	প্রশাসন	Administration
+nav.section.community	সমাজ ও এলাকা	Community
+nav.section.management	ব্যবস্থাপনা	Management
+nav.section.overview	সাধারণ	Overview
+nav.section.payments	আমার পেমেন্ট	My Payments
 nav.societyCosts	সোসাইটি খরচ	Society Costs
 nav.submissions	সাবমিশন	Submissions
 notices.backToList	সব নোটিশ	All notices
@@ -1259,6 +1403,7 @@ notices.subtitle	উত্তর কাউন্দিয়া আবাসন 
 notices.title	নোটিশ	Notices
 passwordField.hide	পাসওয়ার্ড লুকান	Hide password
 passwordField.show	পাসওয়ার্ড দেখুন	Show password
+petitions.createSuccess	পিটিশন সফলভাবে জমা হয়েছে।	Petition submitted successfully.
 rb.actions.addMeeting	নতুন সভা	New Meeting
 rb.actions.edit	সম্পাদনা	Edit
 rb.actions.pdf	পিডিএফ ডাউনলোড	Download PDF
@@ -1624,132 +1769,25 @@ registration.validation.propertyLabel	সম্পত্তি #{{number}}	Prope
 registration.validation.propertyTypeRequired	সম্পত্তির ধরন আবশ্যক	Property type is required
 registration.validation.urgentContactLabel	জরুরি যোগাযোগ	Urgent Contact
 welcome	স্বাগতম, {{name}}	Welcome, {{name}}
-nav.plotMap	জমির সীমানা ম্যাপ	Plot Boundary Map
-nav.plotBoundaries	প্লট সীমানা	Plot Boundaries
-member.plotMap.title	জমির সীমানা ম্যাপ	Plot Boundary Map
-member.plotMap.subtitle		
-member.plotMap.searchPlaceholder	আরএস/সিএস দাগ নম্বর দিয়ে খুঁজুন	Search by RS/CS dag number
-member.plotMap.myLocation	আমার অবস্থান	My location
-member.plotMap.locationError	আপনার অবস্থান নির্ধারণ করা যায়নি।	Could not determine your location.
-member.plotMap.legend	রংয়ের নির্দেশ	Legend
-member.plotMap.disclaimer	এটি সদস্য-চিহ্নিত আনুমানিক সীমানা; সরকারি জরিপ বা দলিলের বিকল্প নয়।	This is a member-marked approximate boundary; it is not a substitute for an official survey or legal documents.
-member.plotMap.status.draft	খসড়া	Draft
-member.plotMap.status.pending_review	পর্যালোচনার অপেক্ষায়	Pending review
-member.plotMap.status.approved	অনুমোদিত	Approved
-member.plotMap.status.mine	আমার	Mine
-member.plotMap.status.rejected	বাতিল	Rejected
-member.plotMap.status.disputed	মতবিরোধ	Disputed
-member.plotMap.details.title	প্লটের বিবরণ	Plot details
-member.plotMap.details.landQuantity	ঘোষিত জমি	Declared land
-member.plotMap.details.area	নির্ধারিত আয়তন	Computed area
-member.plotMap.details.shotangsho	শতাংশ	শতাংশ
-member.plotMap.details.contactHidden	যোগাযোগ গোপন	Contact hidden
-member.plotMap.owner.rateLimited	অনেক বেশি অনুরোধ - কিছুক্ষণ পর আবার চেষ্টা করুন।	Too many lookups - please wait a moment and try again.
-member.plotMap.owner.notApproved	এই সীমানা এখনো অনুমোদিত নয়, তাই মালিকের তথ্য দেখা যাচ্ছে না।	This boundary is not approved yet, so owner details are unavailable.
-member.plotMap.owner.loadError	মালিকের তথ্য লোড করা যায়নি।	Could not load owner details.
-member.plotMap.report.open	সমস্যা রিপোর্ট করুন	Report a problem
-member.plotMap.report.note	সমস্যাটি লিখুন	Describe the problem
-member.plotMap.report.send	রিপোর্ট পাঠান	Send report
-member.plotMap.report.thanks	ধন্যবাদ - আপনার রিপোর্ট গ্রহণ করা হয়েছে।	Thank you - your report has been received.
-member.plotMap.report.error	রিপোর্ট পাঠানো যায়নি। আবার চেষ্টা করুন।	Could not send the report. Please try again.
-member.plotMap.draw.open	সীমানা আঁকুন	Draw boundary
-member.plotMap.draw.title	আপনার প্লটের সীমানা আঁকুন	Draw your plot boundary
-member.plotMap.draw.editTitle	আমার সীমানা সম্পাদনা	Edit my boundary
-member.plotMap.draw.pickHint	যে সম্পত্তিতে এখনো সীমানা নেই সেটি বেছে নিয়ে ম্যাপে সীমানা আঁকুন।	Choose one of your properties that has no boundary yet, then draw its outline on the map.
-member.plotMap.draw.noProperties	আঁকার জন্য কোনো সম্পত্তি পাওয়া যায়নি - সবগুলোতেই সীমানা আছে অথবা কোনো সম্পত্তি নিবন্ধিত নয়।	None of your properties is available for drawing - either all have boundaries already or no property is registered.
-member.plotMap.draw.start	ম্যাপে আঁকুন	Draw on map
-member.plotMap.draw.myBoundaries	আমার সীমানাসমূহ	My boundaries
-member.plotMap.draw.edit	সম্পাদনা	Edit
-member.plotMap.draw.deleteTitle	সীমানা মুছুন	Delete boundary
-member.plotMap.draw.deleteMessage	আপনার সীমানা মুছে ফেলা হবে; পরে আবার এঁকে জমা দিলে নতুন পর্যালোচনায় যাবে। চালিয়ে যাবেন?	Your boundary will be removed and sent back for review if redrawn. Continue?
-member.plotMap.draw.errors.INVALID_GEOMETRY	আঁকা আকৃতিটি বৈধ বহুভুজ নয়।	The drawn shape is not a valid polygon.
-member.plotMap.draw.errors.SELF_INTERSECTING	সীমারেখা নিজেকে ছেদ করেছে - ছেদাংশ ঠিক করে আবার চেষ্টা করুন।	The outline crosses itself - fix the overlapping part and try again.
-member.plotMap.draw.errors.OUTSIDE_SOCIETY_AREA	সীমারেখার কিছু অংশ সোসাইটির সীমার বাইরে চলে গেছে।	The outline goes outside the society area.
-member.plotMap.draw.errors.ZERO_AREA	আঁকা আকৃতির ক্ষেত্রফল শূন্য - আরও পয়েন্ট যোগ করুন।	The drawn shape has no area - add more points.
-member.plotMap.draw.errors.TOO_MANY_VERTICES	অনেক বেশি পয়েন্ট - সীমারেখা সরল করুন।	Too many points - simplify the outline.
-member.plotMap.draw.errors.NOT_YOUR_PROPERTY	এই সম্পত্তিটি আপনার অ্যাকাউন্টের নয়।	This property does not belong to your account.
-member.plotMap.draw.errors.BOUNDARY_EXISTS	এই সম্পত্তিতে ইতিমধ্যে একটি সীমানা আছে।	This property already has a boundary.
-member.plotMap.draw.errors.generic	সীমানা সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।	Could not save the boundary. Please try again.
-member.plotMap.validation.selfIntersection	সীমারেখা নিজেকে ছেদ করেছে - ছেদাংশ ঠিক করুন।	The outline crosses itself - fix the highlighted overlap.
-member.plotMap.validation.outsideSociety	সীমারেখার কিছু অংশ সোসাইটির সীমার বাইরে।	Part of the outline is outside the society area.
-member.plotMap.validation.areaMismatch	আঁকা এলাকা আপনার ঘোষিত জমির পরিমাণের সাথে অনেক মিলছে না।	The drawn area differs a lot from your declared land quantity.
-member.plotMap.validation.area	আঁকা এলাকা	Drawn area
-member.plotMap.validation.ok	সীমারেখাটি ঠিক আছে।	The outline looks valid.
-admin.plotBoundaries.title	প্লট সীমানা	Plot Boundaries
-admin.plotBoundaries.subtitle	সদস্যদের আঁকা প্লট সীমানা পর্যালোচনা করুন	Review member-drawn plot boundaries
-admin.plotBoundaries.searchPlaceholder	দাগ নম্বর দিয়ে খুঁজুন	Search by dag number
-admin.plotBoundaries.empty	এই ফিল্টারে কোনো সীমানা পাওয়া যায়নি।	No boundaries found for this filter.
-admin.plotBoundaries.tabs.queue	পর্যালোচনার তালিকা	Review queue
-admin.plotBoundaries.tabs.disputes	মতবিরোধ	Disputes
-admin.plotBoundaries.table.member	সদস্য	Member
-admin.plotBoundaries.table.mobile	মোবাইল	Mobile
-admin.plotBoundaries.table.khatian	খতিয়ান	Khatian
-admin.plotBoundaries.table.dag	দাগ	Dag
-admin.plotBoundaries.table.landQuantity	ঘোষিত জমি	Declared land
-admin.plotBoundaries.table.computedArea	নির্ধারিত আয়তন	Computed area
-admin.plotBoundaries.preview.title	সীমানা প্রিভিউ	Boundary preview
-admin.plotBoundaries.actions.approve	অনুমোদন	Approve
-admin.plotBoundaries.actions.reject	বাতিল	Reject
-admin.plotBoundaries.actions.versions	সংস্করণ ইতিহাস	Version history
-admin.plotBoundaries.actions.evidence	প্রমাণ ডাউনলোড	Evidence export
-admin.plotBoundaries.modal.noteOptional	নোট (ঐচ্ছিক)	Note (optional)
-admin.plotBoundaries.modal.noteRequired	নোট (আবশ্যক)	Note (required)
-admin.plotBoundaries.errors.loadFailed	সীমানা লোড করা যায়নি।	Could not load boundaries.
-admin.plotBoundaries.errors.generic	কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।	Could not complete the action. Please try again.
-admin.plotBoundaries.errors.forbidden	এই কাজের অনুমতি আপনার নেই।	You do not have permission for this action.
-admin.plotBoundaries.errors.noteRequired	বাতিল করতে নোট দেওয়া আবশ্যক।	A note is required to reject.
-admin.plotBoundaries.versions.title	সংস্করণ ইতিহাস	Version history
-admin.plotBoundaries.versions.empty	এখনো কোনো সংস্করণ নেই।	No versions recorded yet.
-admin.plotBoundaries.versions.version	সংস্করণ	Version
-admin.plotBoundaries.versions.changeType	পরিবর্তন	Change
-admin.plotBoundaries.versions.status	অবস্থা	Status
-admin.plotBoundaries.versions.actor	সম্পাদক	By
-admin.plotBoundaries.versions.note	নোট	Note
-admin.plotBoundaries.versions.time	সময়	Time
-admin.plotBoundaries.disputes.subtitle	সীমানা মতবিরোধ - মীমাংসায় boundary.manage অনুমতি প্রয়োজন	Overlapping boundary disputes - resolving needs the boundary.manage permission
-admin.plotBoundaries.disputes.empty	এই ফিল্টারে কোনো মতবিরোধ নেই।	No disputes found for this filter.
-admin.plotBoundaries.disputes.open	খোলা	Open
-admin.plotBoundaries.disputes.resolved	মীমাংসা হয়েছে	Resolved
-admin.plotBoundaries.disputes.dismissed	বাতিল	Dismissed
-admin.plotBoundaries.disputes.overlap	চেঃ এলাকা	Overlap
-admin.plotBoundaries.disputes.resolve	মীমাংসা	Resolve
-admin.plotBoundaries.disputes.dismiss	উপেক্ষা	Dismiss
-admin.plotBoundaries.table.property	প্রপার্টি	Property
-admin.plotBoundaries.preview.rejectionNote	বাতিলের নোট	Rejection note
-admin.plotBoundaries.preview.backToList	তালিকায় ফিরুন	Back to list
-admin.plotBoundaries.preview.placeholder	পর্যালোচনা করতে তালিকা থেকে একটি সীমানা বেছে নিন।	Pick a boundary from the list to review it here.
-admin.plotBoundaries.preview.noGeometry	এই সীমানার জন্য এখনো কোনো আকৃতি আঁকা হয়নি।	No shape has been drawn for this boundary yet.
-admin.plotBoundaries.add.drawingHint	পয়েন্ট বসাতে ম্যাপে ক্লিক/ট্যাপ করুন; আকৃতি সম্পূর্ণ করতে প্রথম পয়েন্টে ক্লিক (বা ডাবল-ক্লিক) করুন।	Click/tap the map to place points; click the first point (or double-click) to close the shape.
-admin.plotBoundaries.add.redrawHint	এই আউটলাইনটিই সীমানার সাথে সংরক্ষিত হবে - প্রতিস্থাপন করতে আবার আঁকুন।	This outline will be saved with the boundary - draw again to replace it.
-admin.plotBoundaries.emptyHint	অন্য কোনো অবস্থা বেছে নিন অথবা খোঁজা মুছে ফেলুন।	Try another status filter or clear the search.
-admin.plotBoundaries.list.count	{{count}} টি পাওয়া গেছে	{{count}} found
-admin.plotBoundaries.success.approved	সীমানা অনুমোদিত হয়েছে।	Boundary approved.
-admin.plotBoundaries.success.rejected	সীমানা বাতিল করা হয়েছে।	Boundary rejected.
-admin.plotBoundaries.success.deleted	সীমানা মুছে ফেলা হয়েছে।	Boundary deleted.
-admin.plotBoundaries.success.saved	সীমানা সংরক্ষিত হয়েছে।	Boundary saved.
-member.plotMap.outsideSociety	আপনি উত্তর কাউন্দিয়া এলাকার বাইরে আছেন — পরিবর্তে সোসাইটির মানচিত্র দেখানো হচ্ছে।	You are outside the Uttar Kaundia area — showing the society map instead.
-nav.section.overview	সাধারণ	Overview
-nav.section.payments	আমার পেমেন্ট	My Payments
-nav.section.community	সমাজ ও এলাকা	Community
-nav.section.management	ব্যবস্থাপনা	Management
-nav.section.administration	প্রশাসন	Administration
-member.dashboard.subtitle	সদস্য পোর্টালে স্বাগতম — চাঁদা, সেবা ও গঠনমূলক অংশগ্রহণ এক জায়গায়।	Welcome to your member portal — dues, services and governance in one place.
-member.dashboard.quickActions	সেবা কেন্দ্র	Service centre
-member.dashboard.quickActionsHint	গভর্নেন্স সেবাগুলো এক ক্লিকে	Every governance service, one tap away
-member.dashboard.viewAll	সব দেখুন	View all
-member.dashboard.payNow	পরিশোধ করুন	Pay now
-member.dashboard.allClear	সব পরিশোধিত	All settled
-member.dashboard.tiles.complaints	অভিযোগ জমা দিন ও অগ্রগতি দেখুন	File complaints and track progress
-member.dashboard.tiles.land	ভূমি রক্ষা আবেদন ফর্ম	Land protection complaint form
-member.dashboard.tiles.emergency	আপদকালীন তাৎক্ষণিক সহায়তা	Urgent help in an emergency
-member.dashboard.tiles.elections	মনোনয়ন, ভোটদান ও ফলাফল	Nominations, voting and results
-member.dashboard.tiles.petitions	সম্মিলিত স্বার্থের আবেদন	Collective member petitions
-member.dashboard.tiles.welfare	কল্যাণ তহবিল থেকে সহায়তা চান	Ask for welfare-fund support
-member.dashboard.tiles.membership	আবেদন, আপিল ও ছাড়	Applications, appeals and waivers
-member.dashboard.tiles.serviceStandard	সেবার সময়সীমা ও কর্মদক্ষতা	Service targets and performance
-complaintsModule.new.success	অভিযোগ সফলভাবে জমা হয়েছে।	Complaint submitted successfully.
-membershipGov.apply.success	সদস্যপদের আবেদন সফলভাবে জমা হয়েছে।	Application submitted successfully.
-petitions.createSuccess	পিটিশন সফলভাবে জমা হয়েছে।	Petition submitted successfully.
 welfareFund.applySuccess	আবেদন সফলভাবে জমা হয়েছে।	Request submitted successfully.
-amendments.submitSuccess	প্রস্তাব সফলভাবে জমা হয়েছে।	Proposal submitted successfully.
-amendments.withdrawConfirm	প্রত্যাহার করা হলে প্রস্তাবটি আর ফিরিয়ে আনা যাবে না। নিশ্চিত?	A withdrawn proposal cannot be restored. Withdraw it?
+membershipGovernance.subtitle	ছাড়, সাসপেনশন, আপিল, তথ্য সংশোধন ও বকেয়া — সদস্য শাসনের সব কার্যক্রম এক জায়গায়।	Waivers, suspension, appeals, data corrections and arrears — every member-governance duty in one place.
+membershipGovernance.waivers.sub	সদস্যদের ছাড় ও কিস্তির আবেদন পর্যালোচনা করে সিদ্ধান্ত নিন।	Review members' waiver and installment requests and decide.
+membershipGovernance.waivers.monthsShort	মাস	months
+membershipGovernance.actions.noticeSub	সাসপেনশন/বহিষ্কারের প্রথম ধাপ — সদস্যকে লিখিত নোটিশ পাঠান।	The first step of suspension/termination — send the member a written notice.
+membershipGovernance.actions.noticeSuccess	নোটিশ সফলভাবে পাঠানো হয়েছে।	Notice sent successfully.
+membershipGovernance.actions.listSub	লিখিত নোটিশ থেকে চূড়ান্ত সিদ্ধান্ত পর্যন্ত প্রক্রিয়াধীন মামলার তালিকা।	Cases moving from written notice to final decision.
+membershipGovernance.actions.suspendConfirm	এই সদস্যের সাসপেনশন নিশ্চিত করতে চান? সিদ্ধান্ত কার্যকর হলে সদস্য আপিল করতে পারবেন।	Confirm suspension for this member? Once the decision takes effect, the member can file an appeal.
+membershipGovernance.appeals.sub	প্রতিটি আপিলে পর্যালোচক নির্ধারণ করুন ও সিদ্ধান্তের অবস্থা দেখুন।	Assign a reviewer to each appeal and track decision status.
+membershipGovernance.appeals.filedAt	আপিলের তারিখ	Filed on
+membershipGovernance.corrections.sub	সদস্যদের তথ্য সংশোধনের অনুরোধ যাচাই করে প্রয়োগ বা প্রত্যাখ্যান করুন।	Verify members' data-correction requests, then apply or reject.
+membershipGovernance.arrears.sub	সদস্যদের চাঁদা পরিশোধের বর্তমান অবস্থা ও মোট হিসাব।	Members' current subscription payment status and totals.
+membershipGovernance.arrears.totalExpected	মোট প্রত্যাশিত	Total expected
+membershipGovernance.arrears.totalPaid	মোট পরিশোধিত	Total paid
+membershipGovernance.arrears.totalDue	মোট বকেয়া	Total due
+admin.feeSettings.newFee.subtitle	ফি-টি কীভাবে গণনা ও গোষ্ঠীভুক্ত হবে তা নির্ধারণ করুন।	Define how the fee is calculated and grouped.
+admin.financeManagement.form.sectionDetails	লেনদেনের বিবরণ	Transaction details
+admin.financeManagement.form.sectionDocs	রেফারেন্স ও সংযুক্তি	Reference & attachment
+admin.financeManagement.form.sectionIncome	আয়ের শ্রেণিবিন্যাস	Income classification
+admin.financeManagement.formSubtitle	অনুমোদনের পর লেনদেনটি খতিয়ানে যুক্ত হবে।	The transaction enters the ledger after approval.
+admin.societyCosts.formSubtitle	খরচের বিবরণ লিখুন; সম্ভব হলে রসিদ সংযুক্ত করুন।	Record the expense details; attach a receipt if available.
+welfareActivities.formHint	কার্যক্রমের তথ্য কল্যাণমূলক রেকর্ডে দেখা যাবে।	Activity details appear in the welfare records.
