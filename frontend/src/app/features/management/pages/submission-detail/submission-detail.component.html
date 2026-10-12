@@ -6,12 +6,15 @@
   </div>
 
   @if (loading) {
-    <div class="loading-state">
-      <span class="spinner"></span> {{ 'common.loading' | translate }}
+    <div class="card" style="padding: 1.5rem">
+      <app-section-loader variant="form" [count]="6" />
     </div>
   } @else if (error) {
     <div class="error-box">
       <p style="margin: 0">{{ error }}</p>
+      <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem" (click)="load()">
+        {{ 'common.retry' | translate }}
+      </button>
     </div>
   } @else if (submission) {
     <div class="card" style="padding: 1.5rem">
@@ -288,9 +291,7 @@
             <h3 class="modal-title">{{ previewImageAlt }}</h3>
             <div class="modal-body">
               @if (previewLoading) {
-                <div class="loading-state">
-                  <span class="spinner"></span> {{ 'common.loading' | translate }}
-                </div>
+                <app-section-loader variant="rows" [count]="2" />
               } @else if (previewError) {
                 <div class="error-box" role="alert">
                   <p style="margin: 0">{{ previewError }}</p>
@@ -1047,6 +1048,7 @@
         : ''
     "
     [confirmLabel]="'admin.submissionDetail.approveModal.confirmLabel' | translate"
+    [loading]="approving"
     (confirm)="approve()"
     (cancel)="showApproveModal = false"
   ></app-confirm-modal>

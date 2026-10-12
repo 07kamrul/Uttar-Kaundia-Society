@@ -136,6 +136,7 @@ export class FundTransparencyComponent implements OnInit, OnDestroy {
 
   loadAuditReports(): void {
     this.auditLoading = true;
+    this.auditError = '';
     this.fundControls.memberAuditReports().subscribe({
       next: (reports) => {
         this.auditReports = reports;

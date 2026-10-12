@@ -24,13 +24,14 @@ import type {
   SubmissionProperty,
 } from '../../../../core/models/admin.model';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe],
+  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent],
   templateUrl: './submission-detail.component.html',
 })
 export class SubmissionDetailComponent implements OnInit, OnDestroy {
@@ -42,6 +43,7 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   showApproveModal = false;
   showRejectModal = false;
   rejecting = false;
+  approving = false;
   resending = false;
   previewImageUrl: string | null = null;
   previewImageAlt = '';
@@ -211,9 +213,17 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (!id) return;
+    if (!id) {
+      this.error = this.translate.instant('admin.submissionDetail.errors.loadFailed');
+      return;
+    }
     this.loading = true;
+    this.error = '';
     this.adminService.getSubmission(id).subscribe({
       next: (data) => {
         this.submission = data;
@@ -614,11 +624,13 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   }
 
   approve(): void {
-    if (!this.submission) return;
+    if (!this.submission || this.approving) return;
     this.actionError = '';
+    this.approving = true;
     this.adminService.approveSubmission(this.submission.id).subscribe({
       next: () => this.router.navigate(['/submissions']),
       error: () => {
+        this.approving = false;
         this.actionError = this.translate.instant('admin.submissionDetail.errors.approveFailed');
         this.showApproveModal = false;
         this.cdr.markForCheck();

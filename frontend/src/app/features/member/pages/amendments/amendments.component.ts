@@ -98,6 +98,11 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         <div class="ds-card-body">
           @if (loading()) {
             <app-section-loader variant="rows" [count]="3" />
+          } @else if (loadFailed()) {
+            <div class="error-box" role="alert">
+              <p style="margin: 0 0 0.75rem">{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary retry-btn" (click)="load()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (proposals().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="doc" [size]="22" /></span>
@@ -197,6 +202,8 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   `,
   styles: [
     `
+      .retry-btn { flex-wrap: wrap; }
+      @media (max-width: 640px) { .retry-btn { width: 100%; } }
       .page-container { display: grid; gap: 1rem; }
       .am-list { display: grid; gap: 0.85rem; }
       .am-title { font-size: 0.95rem; line-height: 1.45; overflow-wrap: anywhere; }
@@ -238,6 +245,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
 })
 export class MemberAmendmentsComponent implements OnInit {
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
   readonly formError = signal('');
@@ -286,13 +294,14 @@ export class MemberAmendmentsComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.amendments.myProposals().subscribe({
       next: (proposals) => {
         this.proposals.set(proposals);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('amendments.loadError');
+        this.loadFailed.set(true);
         this.loading.set(false);
       },
     });

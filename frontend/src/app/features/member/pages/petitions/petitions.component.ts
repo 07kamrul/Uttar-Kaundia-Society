@@ -113,6 +113,11 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         <div class="ds-card-body">
           @if (loading()) {
             <app-section-loader variant="rows" [count]="3" />
+          } @else if (loadFailed()) {
+            <div class="error-box" role="alert">
+              <p style="margin: 0 0 0.75rem">{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary retry-btn" (click)="load()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (petitions().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="doc" [size]="22" /></span>
@@ -190,6 +195,8 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   `,
   styles: [
     `
+      .retry-btn { flex-wrap: wrap; }
+      @media (max-width: 640px) { .retry-btn { width: 100%; } }
       .page-container { display: grid; gap: 1rem; }
       /* Create + sign side by side on wide screens. */
       .pt-split { display: grid; gap: 1rem; align-items: start; }
@@ -214,6 +221,7 @@ export class MemberPetitionsComponent implements OnInit {
 
   readonly lang = this.language.lang;
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly saving = signal(false);
   readonly signing = signal(false);
   readonly error = signal('');
@@ -241,13 +249,14 @@ export class MemberPetitionsComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.petitionsService.myPetitions().subscribe({
       next: (page) => {
         this.petitions.set(page.items);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('petitions.loadError');
+        this.loadFailed.set(true);
         this.loading.set(false);
       },
     });

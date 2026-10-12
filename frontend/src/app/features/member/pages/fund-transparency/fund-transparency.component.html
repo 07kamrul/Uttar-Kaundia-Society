@@ -597,6 +597,13 @@
     <p class="field-hint">{{ 'auditReports.memberHint' | translate }}</p>
     @if (auditLoading) {
       <div class="skeleton-line" style="height: 64px"></div>
+    } @else if (auditError) {
+      <div class="card card-pad error-card" role="alert">
+        <p>{{ auditError }}</p>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="loadAuditReports()">
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
     } @else if (auditReports.length === 0) {
       <div class="audit-empty">
         <span class="empty-state-icon"><app-icon name="doc" [size]="22" /></span>

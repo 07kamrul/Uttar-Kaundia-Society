@@ -114,6 +114,11 @@ function saveBlob(blob: Blob, filename: string): void {
         <div class="ds-card-body">
           @if (loading()) {
             <app-section-loader variant="rows" [count]="3" />
+          } @else if (loadFailed()) {
+            <div class="error-box" role="alert">
+              <p style="margin: 0 0 0.75rem">{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary retry-btn" (click)="load()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (complaints().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="inbox" [size]="22" /></span>
@@ -172,6 +177,8 @@ function saveBlob(blob: Blob, filename: string): void {
   `,
   styles: [
     `
+      .retry-btn { flex-wrap: wrap; }
+      @media (max-width: 640px) { .retry-btn { width: 100%; } }
       .page-container { display: grid; gap: 1rem; }
       .co-tiles {
         display: grid;
@@ -199,6 +206,7 @@ export class ComplaintsComponent implements OnInit {
   readonly constants = signal<ComplaintConstants | null>(null);
   readonly complaints = signal<Complaint[]>([]);
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly submitting = signal(false);
   readonly openId = signal<number | null>(null);
   readonly formError = signal('');
@@ -215,12 +223,16 @@ export class ComplaintsComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.governance.myComplaints().subscribe({
       next: (rows) => {
         this.complaints.set(rows);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loadFailed.set(true);
+        this.loading.set(false);
+      },
     });
   }
 

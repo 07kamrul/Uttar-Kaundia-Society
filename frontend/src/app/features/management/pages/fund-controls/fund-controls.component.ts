@@ -72,6 +72,11 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           <p class="field-hint">{{ 'fundControls.incomePolicy.hint' | translate }}</p>
           @if (settingsLoading()) {
             <app-section-loader variant="rows" [count]="4" />
+          } @else if (settingsFailed()) {
+            <div class="error-box fc-load-error" role="alert">
+              <p>{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary" (click)="loadSettings()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else {
           <ul class="fc-source-list">
             @for (source of settings()?.incomeSources ?? []; track source.key) {
@@ -99,6 +104,11 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           <p class="field-hint">{{ 'fundControls.threshold.hint' | translate }}</p>
           @if (settingsLoading()) {
             <app-section-loader variant="form" [count]="1" />
+          } @else if (settingsFailed()) {
+            <div class="error-box fc-load-error" role="alert">
+              <p>{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary" (click)="loadSettings()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (settings(); as s) {
             <p class="fc-threshold-value">
               {{ taka(s.expenseTwoPersonThreshold) }}
@@ -142,6 +152,11 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           </div>
           @if (sgLoading()) {
             <app-section-loader variant="rows" [count]="4" />
+          } @else if (sgFailed()) {
+            <div class="error-box fc-load-error" role="alert">
+              <p>{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary" (click)="loadSignatories()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (signatories().length === 0) {
             <div class="ds-empty">{{ 'fundControls.signatories.empty' | translate }}</div>
           } @else {
@@ -235,6 +250,11 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           <h2 class="fc-section-title">{{ 'auditReports.listTitle' | translate }}</h2>
           @if (reportsLoading()) {
             <app-section-loader variant="cards" [count]="2" />
+          } @else if (reportsFailed()) {
+            <div class="error-box fc-load-error" role="alert">
+              <p>{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary" (click)="loadReports()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (reports().length === 0) {
             <div class="ds-empty">{{ 'auditReports.empty' | translate }}</div>
           }
@@ -299,6 +319,11 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
           <p class="field-hint">{{ 'welfareFund.noAutoApproval' | translate }}</p>
           @if (welfareLoading()) {
             <app-section-loader variant="rows" [count]="4" />
+          } @else if (welfareFailed()) {
+            <div class="error-box fc-load-error" role="alert">
+              <p>{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary" (click)="loadWelfare()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (welfareRequests().length === 0) {
             <div class="ds-empty">{{ 'welfareFund.empty' | translate }}</div>
           } @else {
@@ -501,6 +526,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
       .fc-reminder { display: flex; gap: 0.75rem; align-items: flex-start; border-inline-start: 4px solid var(--gold, #c9a34c); }
       .fc-reminder p { margin: 0.15rem 0 0; }
       .error-box { color: var(--red-600, #9c3a2c); }
+      .fc-load-error { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+      .fc-load-error p { margin: 0; }
+      @media (max-width: 640px) { .fc-load-error .btn { width: 100%; } }
       .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); display: grid; place-items: center; padding: 1rem; z-index: 60; }
       .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); max-height: 85vh; overflow: auto; display: grid; gap: 0.5rem; }
     `,
@@ -522,6 +550,10 @@ export class FundControlsComponent implements OnInit {
   readonly sgLoading = signal(true);
   readonly reportsLoading = signal(true);
   readonly welfareLoading = signal(true);
+  readonly settingsFailed = signal(false);
+  readonly sgFailed = signal(false);
+  readonly reportsFailed = signal(false);
+  readonly welfareFailed = signal(false);
 
   readonly canFund: boolean;
   readonly canSignatory: boolean;
@@ -605,18 +637,7 @@ export class FundControlsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.fundControls.settings().subscribe({
-      next: (settings) => {
-        this.settings.set(settings);
-        this.thresholdInput = settings.expenseTwoPersonThreshold;
-        this.settingsLoading.set(false);
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.error.set(this.translate.instant('common.loadFailed'));
-        this.settingsLoading.set(false);
-      },
-    });
+    this.loadSettings();
     if (this.canAudit) {
       this.fundControls.auditReminder().subscribe({
         next: (reminder) => {
@@ -670,9 +691,29 @@ export class FundControlsComponent implements OnInit {
     });
   }
 
+  loadSettings(): void {
+    this.settingsLoading.set(true);
+    this.settingsFailed.set(false);
+    this.fundControls.settings().subscribe({
+      next: (settings) => {
+        this.settings.set(settings);
+        this.thresholdInput = settings.expenseTwoPersonThreshold;
+        this.settingsLoading.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.settingsFailed.set(true);
+        this.settingsLoading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   // ----- Signatories -----
 
   loadSignatories(): void {
+    this.sgLoading.set(true);
+    this.sgFailed.set(false);
     this.fundControls.signatories(true).subscribe({
       next: (rows) => {
         this.signatories.set(rows);
@@ -681,8 +722,9 @@ export class FundControlsComponent implements OnInit {
       },
       error: () => {
         this.signatories.set([]);
+        this.sgFailed.set(true);
         this.sgLoading.set(false);
-        this.error.set(this.translate.instant('common.loadFailed'));
+        this.cdr.markForCheck();
       },
     });
   }
@@ -777,6 +819,8 @@ export class FundControlsComponent implements OnInit {
   // ----- Audit reports -----
 
   loadReports(): void {
+    this.reportsLoading.set(true);
+    this.reportsFailed.set(false);
     this.fundControls.auditReports().subscribe({
       next: (rows) => {
         this.reports.set(rows);
@@ -785,8 +829,9 @@ export class FundControlsComponent implements OnInit {
       },
       error: () => {
         this.reports.set([]);
+        this.reportsFailed.set(true);
         this.reportsLoading.set(false);
-        this.error.set(this.translate.instant('common.loadFailed'));
+        this.cdr.markForCheck();
       },
     });
   }
@@ -868,6 +913,7 @@ export class FundControlsComponent implements OnInit {
   /** `silent` keeps the current rows visible (post-action refresh). */
   loadWelfare(silent = false): void {
     if (!silent) this.welfareLoading.set(true);
+    this.welfareFailed.set(false);
     this.fundControls
       .welfareRequests(this.welfareStatusFilter || undefined)
       .subscribe({
@@ -878,8 +924,9 @@ export class FundControlsComponent implements OnInit {
         },
         error: () => {
           this.welfareRequests.set([]);
+          this.welfareFailed.set(true);
           this.welfareLoading.set(false);
-          this.error.set(this.translate.instant('common.loadFailed'));
+          this.cdr.markForCheck();
         },
       });
   }

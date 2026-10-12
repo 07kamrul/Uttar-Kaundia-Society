@@ -100,6 +100,11 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         <div class="ds-card-body">
           @if (loading()) {
             <app-section-loader variant="rows" [count]="3" />
+          } @else if (loadFailed()) {
+            <div class="error-box" role="alert">
+              <p style="margin: 0 0 0.75rem">{{ 'common.loadFailed' | translate }}</p>
+              <button type="button" class="btn btn-secondary retry-btn" (click)="load()">{{ 'common.retry' | translate }}</button>
+            </div>
           } @else if (requests().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="coin" [size]="22" /></span>
@@ -145,6 +150,8 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   `,
   styles: [
     `
+      .retry-btn { flex-wrap: wrap; }
+      @media (max-width: 640px) { .retry-btn { width: 100%; } }
       .page-container { display: grid; gap: 1rem; }
       /* Support-type picker: tap cards instead of a bare select. */
       .wf-type-label { font-size: 0.875rem; font-weight: 500; color: var(--gray-700); margin-bottom: 0.25rem; display: block; }
@@ -234,6 +241,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
 export class WelfareFundComponent implements OnInit {
   readonly requestTypeKeys: WelfareRequestType[] = ['medical', 'emergency', 'education', 'other'];
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
   readonly formError = signal('');
@@ -290,13 +298,14 @@ export class WelfareFundComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.fundControls.myWelfareRequests().subscribe({
       next: (requests) => {
         this.requests.set(requests);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('welfareFund.loadError');
+        this.loadFailed.set(true);
         this.loading.set(false);
       },
     });
