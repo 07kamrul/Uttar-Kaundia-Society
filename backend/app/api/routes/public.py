@@ -1,9 +1,11 @@
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
+from pydantic import BaseModel
 from sqlalchemy import case, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import CacheName, cached_response, make_key
 from app.db.session import get_db
 from app.models.config_list_item import ConfigListItem
 from app.models.event import Event
@@ -19,6 +21,12 @@ from app.services.fee_calculation import calculate_monthly_subscription
 router = APIRouter(prefix="/public", tags=["public"])
 
 
+def _dump(schema: type[BaseModel], rows) -> list[dict]:
+    """Serialize ORM rows to plain JSON data; cached values must never hold
+    session-bound objects."""
+    return [schema.model_validate(row).model_dump(mode="json") for row in rows]
+
+
 def _parse_amount(value: str | None) -> float:
     if not value:
         return 0
@@ -28,8 +36,20 @@ def _parse_amount(value: str | None) -> float:
         return 0
 
 
+# Cached reads below serve public data only (no drafts, members-only rows or
+# per-user data). Committed writes to their tables clear PUBLIC_LISTS / FEE_RATES
+# (app/core/cache.py TABLE_DEPENDENCIES); the short TTL also bounds how late a
+# scheduled notice (publish_at) or an event crossing "now" shows up.
+
+
 @router.get("/stats", response_model=PublicStatsOut)
-async def get_public_stats(db: AsyncSession = Depends(get_db)) -> PublicStatsOut:
+async def get_public_stats(response: Response, db: AsyncSession = Depends(get_db)) -> dict:
+    return await cached_response(
+        response, CacheName.PUBLIC_LISTS, make_key("public_stats"), lambda: _load_public_stats(db)
+    )
+
+
+async def _load_public_stats(db: AsyncSession) -> dict:
     # Single pass over two narrow columns. The previous version ran three
     # sequential queries (two COUNTs, then a scan of every approved member's
     # subscription) to produce the same three numbers.
@@ -49,12 +69,25 @@ async def get_public_stats(db: AsyncSession = Depends(get_db)) -> PublicStatsOut
         pending_count=pending_count,
         approved_count=approved_count,
         monthly_subscription_total=monthly_subscription_total,
-    )
+    ).model_dump(mode="json")
 
 
 @router.get("/fee-settings")
-async def get_public_fee_settings(db: AsyncSession = Depends(get_db)) -> dict[str, float]:
+async def get_public_fee_settings(
+    response: Response, db: AsyncSession = Depends(get_db)
+) -> dict[str, float]:
+    # Display only: payment-time totals are recomputed from fee_settings by
+    # app/services/fee_calculation.py, which never reads this cache.
     today = date.today()
+    return await cached_response(
+        response,
+        CacheName.FEE_RATES,
+        make_key("public_fee_settings", on=today.isoformat()),
+        lambda: _load_current_fee_settings(db, today),
+    )
+
+
+async def _load_current_fee_settings(db: AsyncSession, today: date) -> dict[str, float]:
     result = await db.execute(
         select(FeeSetting.key, FeeSetting.value)
         .where(
@@ -94,14 +127,20 @@ async def get_subscription_quote(
 
 @router.get("/config-lists/{category}", response_model=list[ConfigListItemOut])
 async def get_public_config_list(
-    category: str, db: AsyncSession = Depends(get_db)
-) -> list[ConfigListItem]:
-    result = await db.execute(
-        select(ConfigListItem)
-        .where(ConfigListItem.category == category, ConfigListItem.is_active == 1)
-        .order_by(ConfigListItem.sort_order)
+    category: str, response: Response, db: AsyncSession = Depends(get_db)
+) -> list[dict]:
+    async def load() -> list[dict]:
+        result = await db.execute(
+            select(ConfigListItem)
+            .where(ConfigListItem.category == category, ConfigListItem.is_active == 1)
+            .order_by(ConfigListItem.sort_order)
+        )
+        return _dump(ConfigListItemOut, result.scalars().all())
+
+    # Category is matched case-sensitively in SQL, so it is not lowercased here.
+    return await cached_response(
+        response, CacheName.PUBLIC_LISTS, ("public_config_list", category), load
     )
-    return list(result.scalars().all())
 
 
 # No auth on either endpoint: a notice/event is public once published, unless
@@ -109,10 +148,20 @@ async def get_public_config_list(
 # (there is no member-only consumer yet; see app/models/notice.py).
 @router.get("/notices", response_model=list[NoticeOut])
 async def list_public_notices(
+    response: Response,
     limit: int | None = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
-) -> list[Notice]:
+) -> list[dict]:
+    return await cached_response(
+        response,
+        CacheName.PUBLIC_LISTS,
+        make_key("public_notices", limit=limit, offset=offset),
+        lambda: _load_public_notices(db, limit, offset),
+    )
+
+
+async def _load_public_notices(db: AsyncSession, limit: int | None, offset: int) -> list[dict]:
     now = datetime.now(timezone.utc)
     query = (
         select(Notice)
@@ -128,15 +177,25 @@ async def list_public_notices(
     if limit is not None:
         query = query.limit(limit)
     result = await db.execute(query)
-    return list(result.scalars().all())
+    return _dump(NoticeOut, result.scalars().all())
 
 
 @router.get("/events", response_model=list[EventOut])
 async def list_public_events(
+    response: Response,
     limit: int | None = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
-) -> list[Event]:
+) -> list[dict]:
+    return await cached_response(
+        response,
+        CacheName.PUBLIC_LISTS,
+        make_key("public_events", limit=limit, offset=offset),
+        lambda: _load_public_events(db, limit, offset),
+    )
+
+
+async def _load_public_events(db: AsyncSession, limit: int | None, offset: int) -> list[dict]:
     # Upcoming first (soonest first), then past (most recent first), in one
     # ORDER BY - the page splits the response into its two sections as-is.
     now = datetime.now(timezone.utc)
@@ -153,4 +212,4 @@ async def list_public_events(
     if limit is not None:
         query = query.limit(limit)
     result = await db.execute(query)
-    return list(result.scalars().all())
+    return _dump(EventOut, result.scalars().all())

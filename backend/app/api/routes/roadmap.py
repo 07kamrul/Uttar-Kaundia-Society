@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import CacheName, cached_response, make_key
 from app.core.config import get_settings
 from app.core.deps import AccountActor, get_account_actor
 from app.core.permissions import require_permission
@@ -111,10 +112,15 @@ async def _roadmap_out(db: AsyncSession) -> RoadmapOut:
 
 @router.get("/roadmap", response_model=RoadmapOut)
 async def get_roadmap(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     _actor: AccountActor = Depends(get_account_actor),
 ) -> RoadmapOut:
-    return RoadmapOut(**await build_roadmap(db))
+    # Same payload for every signed-in account; roadmap writes clear it on commit.
+    roadmap = await cached_response(
+        response, CacheName.PUBLIC_LISTS, make_key("roadmap"), lambda: build_roadmap(db)
+    )
+    return RoadmapOut(**roadmap)
 
 
 def _pdf_section(timeframe: dict) -> RoadmapPdfSection:
