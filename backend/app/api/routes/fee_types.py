@@ -59,37 +59,70 @@ def _version_keys(fee_type: FeeType) -> list[str]:
     )
 
 
+def _payment_aliases(key: str) -> set[str]:
+    return {key, *PAYMENT_TYPE_ALIASES.get(key, ())}
+
+
 async def _payment_counts(db: AsyncSession, keys: list[str]) -> dict[str, int]:
-    counts: dict[str, int] = {}
-    for key in keys:
-        aliases = (key, *PAYMENT_TYPE_ALIASES.get(key, ()))
-        total = await db.execute(
-            select(func.count(FeePayment.id)).where(FeePayment.fee_type.in_(aliases))
+    """Payments per fee type (aliases included) in one grouped query; the
+    list page used to issue one COUNT per fee type."""
+    all_aliases = set().union(*(_payment_aliases(key) for key in keys)) if keys else set()
+    if not all_aliases:
+        return {}
+    result = await db.execute(
+        select(FeePayment.fee_type, func.count(FeePayment.id))
+        .where(FeePayment.fee_type.in_(all_aliases))
+        .group_by(FeePayment.fee_type)
+    )
+    per_alias = {fee_type: int(count) for fee_type, count in result.all()}
+    return {key: sum(per_alias.get(alias, 0) for alias in _payment_aliases(key)) for key in keys}
+
+
+def _setting_keys(fee_type: FeeType) -> list[str]:
+    if fee_type.calculation_type == CALC_VARIABLE:
+        return list(variable_setting_keys(fee_type.key))
+    return list(_version_keys(fee_type))
+
+
+async def _current_versions(
+    db: AsyncSession, fee_types: list[FeeType]
+) -> dict[str, FeeTypeCurrentVersion | None]:
+    """Active rate snapshot per fee type, from a single fee_settings query
+    (previously one query per fee type)."""
+    keys_by_type = {fee_type.key: _setting_keys(fee_type) for fee_type in fee_types}
+    all_keys = {key for keys in keys_by_type.values() for key in keys}
+    newest: dict[str, FeeSetting] = {}
+    if all_keys:
+        result = await db.execute(
+            select(FeeSetting)
+            .where(FeeSetting.key.in_(all_keys), FeeSetting.status == 1)
+            .order_by(FeeSetting.start_date.desc(), FeeSetting.id.desc())
         )
-        counts[key] = int(total.scalar_one())
-    return counts
+        for row in result.scalars():
+            newest.setdefault(row.key, row)
+    return {
+        fee_type.key: _build_current_version(
+            fee_type,
+            keys_by_type[fee_type.key],
+            {key: newest[key] for key in keys_by_type[fee_type.key] if key in newest},
+        )
+        for fee_type in fee_types
+    }
 
 
 async def _current_version(
     db: AsyncSession, fee_type: FeeType
 ) -> FeeTypeCurrentVersion | None:
+    return (await _current_versions(db, [fee_type]))[fee_type.key]
+
+
+def _build_current_version(
+    fee_type: FeeType, keys: list[str], rows: dict[str, FeeSetting]
+) -> FeeTypeCurrentVersion | None:
     """The active rate snapshot for a fee type: the newest active row per
     setting key. Variable fees may legitimately have no rows yet (the member
     then enters the amount), so only None means "no version at all"."""
-    keys = _version_keys(fee_type)
-    if fee_type.calculation_type == CALC_VARIABLE:
-        keys = variable_setting_keys(fee_type.key)
-    if not keys:
-        return None
-    result = await db.execute(
-        select(FeeSetting)
-        .where(FeeSetting.key.in_(keys), FeeSetting.status == 1)
-        .order_by(FeeSetting.start_date.desc(), FeeSetting.id.desc())
-    )
-    rows: dict[str, FeeSetting] = {}
-    for row in result.scalars():
-        rows.setdefault(row.key, row)
-    if not rows:
+    if not keys or not rows:
         return None
     primary_key = keys[0]
     primary = rows.get(primary_key)
@@ -114,10 +147,11 @@ async def list_fee_types(
     )
     fee_types = list(result.scalars().all())
     counts = await _payment_counts(db, [ft.key for ft in fee_types])
+    current = await _current_versions(db, fee_types)
     out: list[FeeTypeOut] = []
     for ft in fee_types:
         item = FeeTypeOut.model_validate(ft)
-        item.current_version = await _current_version(db, ft)
+        item.current_version = current[ft.key]
         item.payment_count = counts.get(ft.key, 0)
         out.append(item)
     return out
