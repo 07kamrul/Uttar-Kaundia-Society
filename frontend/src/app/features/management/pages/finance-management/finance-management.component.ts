@@ -11,6 +11,7 @@ import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { Observable } from 'rxjs';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -55,7 +56,7 @@ const PAYMENT_SOURCE_LABELS: Record<PaymentSourceType, string> = {
   selector: 'app-finance-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent],
+  imports: [FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './finance-management.component.html',
   styleUrl: './finance-management.component.scss',
 })
@@ -77,7 +78,9 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
 
   // ----- Ledger -----
   ledger: FinanceLedgerPage | null = null;
-  loading = false;
+  loading = true;
+  overviewLoading = true;
+  private loadSeq = 0;
   error = '';
   page = 1;
   pageSize = 25;
@@ -186,8 +189,10 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
 
   // ----- Data loading -----
 
-  load(): void {
-    this.loading = true;
+  /** `silent` keeps the current rows visible (post-write refresh). */
+  load(silent = false): void {
+    const seq = ++this.loadSeq;
+    if (!silent) this.loading = true;
     this.error = '';
     this.finance
       .adminTransactions({
@@ -202,11 +207,13 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (ledger) => {
+          if (seq !== this.loadSeq) return;
           this.ledger = ledger;
           this.loading = false;
           this.cdr.markForCheck();
         },
         error: () => {
+          if (seq !== this.loadSeq) return;
           this.loading = false;
           this.error = this.translate.instant('admin.financeManagement.errors.loadFailed');
           this.cdr.markForCheck();
@@ -218,10 +225,12 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
     this.finance.overview().subscribe({
       next: (overview) => {
         this.overview = overview;
+        this.overviewLoading = false;
         this.cdr.markForCheck();
       },
       error: () => {
         this.overview = null;
+        this.overviewLoading = false;
         this.cdr.markForCheck();
       },
     });
@@ -591,7 +600,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
   private closeAfterSave(): void {
     this.saving = false;
     this.showFormModal = false;
-    this.load();
+    this.load(true);
     this.loadOverview();
     this.cdr.markForCheck();
   }
@@ -650,7 +659,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
       next: () => {
         this.actionBusy = false;
         this.closeAction();
-        this.load();
+        this.load(true);
         this.loadOverview();
       },
       error: (err) => {
@@ -667,7 +676,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
   secondaryApprove(txn: FinanceTransaction): void {
     this.finance.secondaryApproveTransaction(txn.id).subscribe({
       next: () => {
-        this.load();
+        this.load(true);
         this.loadOverview();
       },
       error: (err) => {
@@ -686,7 +695,7 @@ export class FinanceManagementComponent implements OnInit, OnDestroy {
 
   submitDraft(txn: FinanceTransaction): void {
     this.finance.submitTransaction(txn.id).subscribe({
-      next: () => this.load(),
+      next: () => this.load(true),
       error: (err) => {
         this.error =
           (typeof err?.error?.detail === 'string' && err.error.detail) ||

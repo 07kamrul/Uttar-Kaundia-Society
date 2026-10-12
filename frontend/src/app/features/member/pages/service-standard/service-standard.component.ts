@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -9,7 +10,7 @@ import { GovernanceService, ServiceStandard } from '../../../../core/services/go
   selector: 'app-service-standard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, IconComponent],
   template: `
     <div class="ss-page">
       <header class="gov-hero">
@@ -21,11 +22,7 @@ import { GovernanceService, ServiceStandard } from '../../../../core/services/go
       </header>
 
       @if (loading()) {
-        <div class="card ss-skeleton">
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row"></div>
-          <div class="skeleton-line"></div>
-        </div>
+        <div class="card"><app-section-loader variant="cards" [count]="4" /></div>
       } @else {
         <div class="ss-grid">
           @for (standard of standards(); track standard.key) {
@@ -83,7 +80,6 @@ import { GovernanceService, ServiceStandard } from '../../../../core/services/go
   styles: [
     `
       .ss-page { display: grid; gap: 0; }
-      .ss-skeleton { padding: 1.25rem; display: grid; gap: 0.75rem; }
       .ss-grid {
         display: grid;
         gap: 1rem;

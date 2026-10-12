@@ -28,7 +28,7 @@
   }
 
   @if (loading()) {
-    <div class="card rm-loading"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <div class="card"><app-section-loader variant="rows" [count]="5" /></div>
   } @else if (loadError()) {
     <div class="error-box" role="alert">
       <p style="margin:0 0 0.5rem">{{ 'member.roadmap.loadError' | translate }}</p>
@@ -197,7 +197,7 @@
             <p class="rm-muted">{{ 'admin.roadmap.archive.empty' | translate }}</p>
           }
         } @else {
-          <p class="rm-muted"><span class="spinner"></span></p>
+          <app-section-loader variant="rows" [count]="2" />
         }
       }
     </section>

@@ -6,12 +6,13 @@ import { ConfigListService } from '../../../core/services/config-list.service';
 import { ContentService } from '../../../core/services/content.service';
 import type { ConfigListItem } from '../../../core/models/admin.model';
 import type { Notice } from '../../../core/models/content.model';
+import { SectionLoaderComponent } from '../../../shared/section-loader/section-loader.component';
 
 @Component({
   selector: 'app-notices-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, DatePipe, SlicePipe],
+  imports: [SectionLoaderComponent, RouterLink, TranslatePipe, DatePipe, SlicePipe],
   templateUrl: './notices-page.component.html',
 })
 export class NoticesPageComponent implements OnInit {

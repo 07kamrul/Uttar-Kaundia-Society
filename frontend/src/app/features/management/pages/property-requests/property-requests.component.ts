@@ -11,13 +11,14 @@ import {
   type PropertyRequestStatus,
 } from '../../../../core/services/member.service';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-property-requests',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe],
+  imports: [FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
   templateUrl: './property-requests.component.html',
   styleUrl: './property-requests.component.scss',
 })
@@ -50,8 +51,8 @@ export class PropertyRequestsComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading = true;
+  load(silent = false): void {
+    if (!silent) this.loading = true;
     this.error = '';
     this.adminService.listPropertyRequests(this.statusFilter || undefined).subscribe({
       next: (data) => {
@@ -169,7 +170,7 @@ export class PropertyRequestsComponent implements OnInit {
       next: () => {
         this.approving = false;
         this.showApproveModal = false;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
         this.approving = false;
@@ -195,7 +196,7 @@ export class PropertyRequestsComponent implements OnInit {
       next: () => {
         this.cancelling = false;
         this.showCancelModal = false;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
         this.cancelling = false;

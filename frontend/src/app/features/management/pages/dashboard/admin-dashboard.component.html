@@ -35,7 +35,7 @@
         </a>
       </div>
       @if (costSummaryLoading) {
-        <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+        <app-section-loader variant="cards" [count]="2" />
       } @else if (costSummary) {
         <div class="stat-grid" style="margin-top:1rem;margin-bottom:0.5rem">
           <div class="stat-card">
@@ -74,7 +74,7 @@
     </div>
   }
 
-  @if (canManageFinance && financeOverview) {
+  @if (canManageFinance && (financeLoading || financeOverview)) {
     <div class="card" style="padding:1.25rem;margin-bottom:1.5rem">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
         <h2 style="margin:0;font-size:1.125rem">{{ 'admin.dashboard.finance.title' | translate }}</h2>
@@ -82,6 +82,9 @@
           {{ 'admin.dashboard.finance.viewAll' | translate }} <app-icon name="chevron-right" [size]="14" />
         </a>
       </div>
+      @if (financeLoading) {
+        <app-section-loader variant="cards" [count]="3" />
+      } @else if (financeOverview) {
       <div class="stat-grid" style="margin-top:1rem;margin-bottom:0.5rem">
         <div class="stat-card">
           <div class="stat-card-icon stat-icon-due">
@@ -111,13 +114,17 @@
           </div>
         </div>
       </div>
+      }
     </div>
   }
 
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <div class="card"><app-section-loader variant="rows" [count]="4" /></div>
   } @else if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    <div class="error-box">
+      <p style="margin:0 0 0.5rem">{{ error }}</p>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </div>
   } @else {
     <div class="data-table-wrap">
       <table class="data-table data-table-cards">

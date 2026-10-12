@@ -6,12 +6,13 @@ import { ConfigListService } from '../../../core/services/config-list.service';
 import { ContentService } from '../../../core/services/content.service';
 import type { ConfigListItem } from '../../../core/models/admin.model';
 import type { EventItem } from '../../../core/models/content.model';
+import { SectionLoaderComponent } from '../../../shared/section-loader/section-loader.component';
 
 @Component({
   selector: 'app-event-detail-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, DatePipe],
+  imports: [SectionLoaderComponent, RouterLink, TranslatePipe, DatePipe],
   templateUrl: './event-detail-page.component.html',
 })
 export class EventDetailPageComponent implements OnInit {

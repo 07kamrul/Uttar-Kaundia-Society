@@ -6,21 +6,21 @@
     </div>
   </div>
 
-  <div class="pv-filters" role="tablist">
+  <div class="tab-row" role="tablist">
     @for (f of filters; track f) {
-      <button type="button" role="tab" class="pv-filter" [class.active]="filter() === f" [attr.aria-selected]="filter() === f" (click)="setFilter(f)">
+      <button type="button" role="tab" class="tab" [class.active]="filter() === f" [attr.aria-selected]="filter() === f" [disabled]="loading() && filter() === f" (click)="setFilter(f)">
         {{ 'member.payDues.paymentStatus.' + f | translate }}
       </button>
     }
   </div>
 
   @if (error()) {
-    <div class="error-box" role="alert"><p style="margin:0">{{ error() }}</p></div>
+    <div class="error-box" role="alert"><p style="margin:0 0 0.5rem">{{ error() }}</p><button type="button" class="btn btn-secondary btn-sm" [disabled]="loading()" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   }
 
   @if (loading()) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
-  } @else {
+    <app-section-loader variant="cards" [count]="3" />
+  } @else if (!error()) {
     <ul class="pv-list">
       @for (p of payments(); track p.id) {
         <li class="pv-card card">

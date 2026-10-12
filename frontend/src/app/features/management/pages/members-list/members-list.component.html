@@ -3,7 +3,7 @@
     <div>
       <h1 class="page-title">
         {{ 'admin.membersList.title' | translate }}
-        @if (!loading && !error && members.length > 0) {
+        @if (!loading && !loadFailed && members.length > 0) {
           <span class="status-badge status-approved" style="margin-left: 0.5rem">{{ members.length }}</span>
         }
       </h1>
@@ -12,14 +12,17 @@
   </div>
 
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
-  } @else if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    <app-section-loader variant="rows" [count]="6" />
+  } @else if (loadFailed) {
+    <div class="error-box"><p style="margin:0 0 0.5rem">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   } @else {
+    @if (error) {
+      <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    }
     @if (success) {
       <div class="success-box"><p style="margin:0">{{ success }}</p></div>
     }
-    <div class="data-table-wrap">
+    <div class="data-table-wrap table-scroll">
       <table class="data-table data-table-cards">
         <thead>
           <tr>

@@ -4,6 +4,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import type { Installment, Member } from '../../../../core/models/admin.model';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 const MONTH_KEYS = [
@@ -26,12 +27,12 @@ const MONTH_KEYS = [
   selector: 'app-installments-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TranslatePipe],
+  imports: [IconComponent, TranslatePipe, SectionLoaderComponent],
   templateUrl: './installments-management.component.html',
 })
 export class InstallmentsManagementComponent implements OnInit {
   members: Member[] = [];
-  loadingMembers = false;
+  loadingMembers = true;
   error = '';
 
   selectedMemberId = '';
@@ -77,16 +78,19 @@ export class InstallmentsManagementComponent implements OnInit {
   }
 
   selectMember(memberId: string): void {
+    if (this.loadingInstallments && memberId === this.selectedMemberId) return;
     this.selectedMemberId = memberId;
     this.loadingInstallments = true;
     this.installments = [];
     this.adminService.getMemberInstallments(memberId).subscribe({
       next: (data) => {
+        if (this.selectedMemberId !== memberId) return;
         this.installments = data;
         this.loadingInstallments = false;
         this.cdr.markForCheck();
       },
       error: () => {
+        if (this.selectedMemberId !== memberId) return;
         this.error = this.translate.instant('admin.installments.errors.loadInstallmentsFailed');
         this.loadingInstallments = false;
         this.cdr.markForCheck();

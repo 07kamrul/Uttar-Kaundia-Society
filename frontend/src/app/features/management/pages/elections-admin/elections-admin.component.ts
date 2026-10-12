@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
@@ -29,7 +30,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-elections-admin',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, ConfirmModalComponent],
+  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, ConfirmModalComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -78,7 +79,7 @@ function saveBlob(blob: Blob, filename: string): void {
       <section class="card">
         <h2 class="ea-section-title">{{ 'elections.admin.listTitle' | translate }}</h2>
         @if (loading()) {
-          @for (i of [1, 2, 3]; track i) { <div class="skeleton-line" style="height: 40px; margin-bottom: 8px"></div> }
+          <app-section-loader variant="rows" [count]="3" />
         } @else if (elections().length === 0) {
           <div class="ds-empty">{{ 'elections.admin.empty' | translate }}</div>
         } @else {
@@ -105,7 +106,7 @@ function saveBlob(blob: Blob, filename: string): void {
                       </span>
                     </td>
                     <td [attr.data-label]="'common.actions' | translate">
-                      <button type="button" class="btn btn-secondary btn-sm" (click)="select(election.id)">
+                      <button type="button" class="btn btn-secondary btn-sm" [disabled]="detailLoading()" (click)="select(election.id)">
                         {{ 'elections.admin.manage' | translate }}
                       </button>
                     </td>
@@ -118,7 +119,9 @@ function saveBlob(blob: Blob, filename: string): void {
       </section>
 
       <!-- লাইফসাইকেল উইজার্ড -->
-      @if (detail(); as d) {
+      @if (detailLoading()) {
+        <section class="card"><app-section-loader variant="form" [count]="3" /></section>
+      } @else if (detail(); as d) {
         <section class="card">
           <div class="ea-detail-head">
             <h2 class="ea-section-title">{{ d.title }}</h2>
@@ -344,7 +347,7 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-title { display: flex; align-items: center; gap: 0.5rem; }
       .ea-section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.75rem; }
       .ea-sub-title { font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.5rem; }
-      .ea-window-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+      .ea-window-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); }
       .ea-detail-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
       .ea-detail-head .ea-section-title { margin-bottom: 0; }
       .ea-lifecycle { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0 0.25rem; }
@@ -352,6 +355,8 @@ function saveBlob(blob: Blob, filename: string): void {
       .ea-frozen-info { margin: 0.25rem 0; font-weight: 600; }
       .ea-actions { display: grid; gap: 0.35rem; }
       .ea-details { margin: 0.3rem 0 0; font-size: 0.88rem; color: var(--gray-600); overflow-wrap: anywhere; }
+      .ea-lifecycle .btn { min-height: 40px; }
+      @media (max-width: 640px) { .ea-lifecycle .btn { flex: 1 1 100%; } }
       .ea-selected { outline: 2px solid color-mix(in srgb, var(--emerald-600, #2e5138) 35%, transparent); }
     `,
   ],
@@ -365,6 +370,7 @@ export class ElectionsAdminComponent implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly busy = signal(false);
+  readonly detailLoading = signal(false);
   readonly pdfBusy = signal(false);
   readonly error = signal('');
   readonly elections = signal<Election[]>([]);
@@ -386,8 +392,8 @@ export class ElectionsAdminComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading.set(true);
+  load(silent = false): void {
+    if (!silent) this.loading.set(true);
     this.electionsService.listElections().subscribe({
       next: (page) => {
         this.elections.set(page.items);
@@ -400,9 +406,13 @@ export class ElectionsAdminComponent implements OnInit {
     });
   }
 
-  select(electionId: number): void {
+  select(electionId: number, silent = false): void {
     this.selectedId.set(electionId);
     this.busy.set(true);
+    if (!silent) {
+      this.detail.set(null);
+      this.detailLoading.set(true);
+    }
     this.electionsService.adminDetail(electionId).subscribe({
       next: (detail) => {
         this.memberNames = new Map(
@@ -412,10 +422,12 @@ export class ElectionsAdminComponent implements OnInit {
         );
         this.detail.set(detail);
         this.busy.set(false);
+        this.detailLoading.set(false);
       },
       error: () => {
         this.error.set('elections.admin.loadError');
         this.busy.set(false);
+        this.detailLoading.set(false);
       },
     });
   }
@@ -436,7 +448,7 @@ export class ElectionsAdminComponent implements OnInit {
         next: (election) => {
           this.saving.set(false);
           this.newTitle = '';
-          this.load();
+          this.load(true);
           this.select(election.id);
         },
         error: (err) => this.fail(err),
@@ -558,8 +570,8 @@ export class ElectionsAdminComponent implements OnInit {
   private refreshDetail(): void {
     this.busy.set(false);
     const id = this.selectedId();
-    if (id !== null) this.select(id);
-    this.load();
+    if (id !== null) this.select(id, true);
+    this.load(true);
   }
 
   private fail(err: { error?: { detail?: string } }): void {

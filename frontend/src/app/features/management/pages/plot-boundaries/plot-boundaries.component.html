@@ -110,14 +110,7 @@
   }
 
   @if (loading()) {
-    <div class="pb-skeletons" aria-hidden="true">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="card pb-skeleton">
-          <div class="skeleton-line skeleton-lg"></div>
-          <div class="skeleton-line"></div>
-        </div>
-      }
-    </div>
+    <app-section-loader variant="cards" [count]="3" />
   } @else if (loadErrorKey(); as key) {
     <div class="error-box" role="alert">
       <p class="error-text">{{ key | translate }}</p>
@@ -515,7 +508,7 @@
           </button>
         </div>
         @if (versionsLoading()) {
-          <div class="skeleton-line"></div>
+          <app-section-loader variant="rows" [count]="3" />
         } @else if (versions().length === 0) {
           <p class="pb-empty">{{ 'admin.plotBoundaries.versions.empty' | translate }}</p>
         } @else {

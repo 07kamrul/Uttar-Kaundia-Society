@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import {
   GovernanceService,
   MembershipApplication,
@@ -24,7 +25,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-membership-review',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent],
+  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -33,14 +34,14 @@ function saveBlob(blob: Blob, filename: string): void {
 
       <div class="filters">
         @for (option of statusFilters; track option) {
-          <button type="button" class="tab" [class.active]="filter() === option" (click)="filter.set(option); load()">
+          <button type="button" class="tab" [class.active]="filter() === option" [disabled]="loading()" (click)="filter.set(option); load()">
             {{ 'membershipReview.filters.' + option | translate }}
           </button>
         }
       </div>
 
       @if (loading()) {
-        <div class="card"><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-line"></div></div>
+        <div class="card"><app-section-loader [count]="4" /></div>
       } @else if (applications().length === 0) {
         <div class="card"><div class="ds-empty">{{ 'membershipReview.empty' | translate }}</div></div>
       } @else {
@@ -115,9 +116,6 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-container { display: grid; gap: 1rem; }
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
-      .filters { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
-      .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
       .detail-row td { background: var(--surface-2, #f3efe3); }
       .action-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
       .timeline { margin-left: 1.1rem; }

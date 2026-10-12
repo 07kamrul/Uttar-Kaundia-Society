@@ -4059,3 +4059,120 @@ a {
     transition: none;
   }
 }
+
+/* ---------- Loading skeletons (shared by <app-section-loader> and inline use) ---------- */
+.skeleton-row,
+.skeleton-block {
+  display: block;
+  height: 2.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.skeleton-line,
+.skeleton-row,
+.skeleton-block {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--gray-100, #eef1ee) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  display: block;
+  min-height: 0.9rem;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line,
+  .skeleton-row,
+  .skeleton-block {
+    animation: none;
+  }
+}
+
+/* ---------- Table/tabs/forms: responsive defaults for pages that wrap a <table> in .data-table ---------- */
+.data-table > table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table:not(.data-table-cards) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table > table td,
+.data-table > table th {
+  vertical-align: middle;
+}
+
+/* Pill tabs / filter chips used by governance & admin pages: one scrollable row. */
+.tab-row,
+.filters {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.tab-row .tab,
+.filters .tab {
+  flex-shrink: 0;
+  min-height: 2.5rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--gray-800);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab-row .tab:hover,
+.filters .tab:hover {
+  background: var(--emerald-50);
+}
+
+.tab-row .tab.active,
+.filters .tab.active {
+  background: var(--emerald-800);
+  border-color: var(--emerald-800);
+  color: #fff;
+}
+
+/* Inline checkbox + label pair (the older .checkbox-row is a flex group of items). */
+label.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.25rem 0 0.75rem;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .card form .btn,
+  .card form button[type='submit'] {
+    width: 100%;
+  }
+}
+
+/* Empty-state text inside a card needs breathing room. */
+.card > .ds-empty,
+.card .ds-empty:only-child {
+  padding: 1.25rem 1rem;
+  text-align: center;
+}

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -30,7 +31,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-membership',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, FormsModule, IconComponent],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -57,7 +58,7 @@ function saveBlob(blob: Blob, filename: string): void {
       </nav>
 
       @if (loading()) {
-        <div class="card mb-skeleton"><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-line"></div></div>
+        <div class="card"><app-section-loader variant="rows" [count]="3" /></div>
       } @else if (error()) {
         <div class="card"><p class="field-error">{{ 'common.loadFailed' | translate }}</p></div>
       }
@@ -392,7 +393,6 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-container { display: grid; gap: 1rem; }
       .mb-tab-bar { margin-bottom: 0.25rem; }
       .ds-tab app-icon { vertical-align: -3px; margin-inline-end: 0.3rem; }
-      .mb-skeleton { padding: 1.25rem; display: grid; gap: 0.75rem; }
       /* Two-column field grid on wide screens; fields keep their global look. */
       .mb-grid { display: grid; gap: 0 1.1rem; }
       @media (min-width: 768px) {
@@ -469,19 +469,24 @@ export class MembershipComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.error.set(false);
+    let remaining = 4;
+    const done = (): void => {
+      remaining -= 1;
+      if (remaining === 0) this.loading.set(false);
+    };
     this.governance.myApplications().subscribe({
       next: (rows) => {
         this.applications.set(rows);
-        this.loading.set(false);
+        done();
       },
       error: () => {
         this.error.set(true);
-        this.loading.set(false);
+        done();
       },
     });
-    this.governance.myAppeals().subscribe({ next: (rows) => this.appeals.set(rows) });
-    this.governance.myWaivers().subscribe({ next: (rows) => this.waivers.set(rows) });
-    this.governance.myActions().subscribe({ next: (rows) => this.actions.set(rows) });
+    this.governance.myAppeals().subscribe({ next: (rows) => { this.appeals.set(rows); done(); }, error: () => done() });
+    this.governance.myWaivers().subscribe({ next: (rows) => { this.waivers.set(rows); done(); }, error: () => done() });
+    this.governance.myActions().subscribe({ next: (rows) => { this.actions.set(rows); done(); }, error: () => done() });
   }
 
   onNid(event: Event): void {

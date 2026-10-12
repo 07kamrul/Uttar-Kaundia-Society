@@ -4,6 +4,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import type { Member } from '../../../../core/models/admin.model';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { MemberDetailDrawerComponent } from './member-detail-drawer/member-detail-drawer.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
@@ -12,12 +13,13 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
   selector: 'app-members-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe],
+  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent],
   templateUrl: './members-list.component.html',
 })
 export class MembersListComponent implements OnInit {
   members: Member[] = [];
-  loading = false;
+  loading = true;
+  loadFailed = false;
   error = '';
   deleteTarget: Member | null = null;
   deleting = false;
@@ -35,7 +37,13 @@ export class MembersListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
     this.loading = true;
+    this.loadFailed = false;
+    this.error = '';
     this.adminService.listMembers().subscribe({
       next: (data) => {
         this.members = data;
@@ -43,6 +51,7 @@ export class MembersListComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
+        this.loadFailed = true;
         this.error = this.translate.instant('admin.membersList.errors.loadFailed');
         this.loading = false;
         this.cdr.markForCheck();

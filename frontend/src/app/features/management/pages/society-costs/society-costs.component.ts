@@ -6,10 +6,12 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import type { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { AdminService } from '../../../../core/services/admin.service';
@@ -36,7 +38,7 @@ interface ManualAmount {
   selector: 'app-society-costs',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, DatePipe, ConfirmModalComponent, IconComponent, DatePickerComponent],
+  imports: [FormsModule, TranslatePipe, DatePipe, ConfirmModalComponent, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './society-costs.component.html',
   styleUrl: './society-costs.component.scss',
 })
@@ -45,6 +47,9 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
   loading = false;
   error = '';
   summary: SocietyCostSummary | null = null;
+  loadingSummary = false;
+  private listSub?: Subscription;
+  private summarySub?: Subscription;
 
   categories: ConfigListItem[] = [];
   readonly canManageConfig: boolean;
@@ -92,11 +97,13 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
   paymentAmount: number | null = null;
   paymentReceiptNo = '';
   paymentError = '';
+  paymentSaving = false;
 
   // Delete modal
   showDeleteModal = false;
   deleteTarget: SocietyCost | null = null;
   deleteError = '';
+  deleting = false;
 
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -116,13 +123,17 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.listSub?.unsubscribe();
+    this.summarySub?.unsubscribe();
     this.revokeReceiptPreview();
   }
 
-  load(): void {
-    this.loading = true;
+  /** `silent` keeps the current rows on screen (used after writes). */
+  load(silent = false): void {
+    if (!silent) this.loading = true;
     this.error = '';
-    this.costService
+    this.listSub?.unsubscribe();
+    this.listSub = this.costService
       .listCosts({
         categoryId: this.categoryFilter ? Number(this.categoryFilter) : undefined,
         dateFrom: this.dateFrom || undefined,
@@ -145,16 +156,20 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadSummary(): void {
-    this.costService
+  loadSummary(silent = false): void {
+    if (!silent) this.loadingSummary = true;
+    this.summarySub?.unsubscribe();
+    this.summarySub = this.costService
       .getSummary({ dateFrom: this.dateFrom || undefined, dateTo: this.dateTo || undefined })
       .subscribe({
         next: (summary) => {
           this.summary = summary;
+          this.loadingSummary = false;
           this.cdr.markForCheck();
         },
         error: () => {
           this.summary = null;
+          this.loadingSummary = false;
           this.cdr.markForCheck();
         },
       });
@@ -336,8 +351,8 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
     this.saving = false;
     this.showFormModal = false;
     this.clearReceipt();
-    this.load();
-    this.loadSummary();
+    this.load(true);
+    this.loadSummary(true);
     this.cdr.markForCheck();
   }
 
@@ -443,8 +458,8 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
       next: () => {
         this.splitSaving = false;
         this.showSplitModal = false;
-        this.load();
-        this.loadSummary();
+        this.load(true);
+        this.loadSummary(true);
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -481,7 +496,9 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
   savePayment(): void {
     const share = this.paymentShare;
     if (!share || this.paymentAmount == null || this.paymentAmount < 0) return;
+    if (this.paymentSaving) return;
     this.paymentError = '';
+    this.paymentSaving = true;
     this.costService
       .recordSharePayment(share.id, {
         amount_paid: share.amountPaid + this.paymentAmount,
@@ -489,12 +506,14 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: () => {
+          this.paymentSaving = false;
           this.showPaymentModal = false;
-          this.load();
-          this.loadSummary();
+          this.load(true);
+          this.loadSummary(true);
           this.cdr.markForCheck();
         },
         error: (err) => {
+          this.paymentSaving = false;
           this.paymentError =
             (typeof err?.error?.detail === 'string' && err.error.detail) ||
             this.translate.instant('admin.societyCosts.errors.paymentFailed');
@@ -519,15 +538,18 @@ export class SocietyCostsComponent implements OnInit, OnDestroy {
 
   confirmDelete(): void {
     const cost = this.deleteTarget;
-    if (!cost) return;
+    if (!cost || this.deleting) return;
+    this.deleting = true;
     this.costService.deleteCost(cost.id).subscribe({
       next: () => {
+        this.deleting = false;
         this.showDeleteModal = false;
-        this.load();
-        this.loadSummary();
+        this.load(true);
+        this.loadSummary(true);
         this.cdr.markForCheck();
       },
       error: (err) => {
+        this.deleting = false;
         this.deleteError =
           (typeof err?.error?.detail === 'string' && err.error.detail) ||
           this.translate.instant('admin.societyCosts.errors.deleteFailed');

@@ -4,13 +4,14 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import type { SubmissionStatus, SubmissionSummary } from '../../../../core/models/admin.model';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-submissions-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe],
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
   templateUrl: './submissions-list.component.html',
 })
 export class SubmissionsListComponent implements OnInit {

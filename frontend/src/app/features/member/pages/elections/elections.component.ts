@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
@@ -32,7 +33,7 @@ interface ResultBucket {
   selector: 'app-member-elections',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, ConfirmModalComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, FormsModule, IconComponent, ConfirmModalComponent],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -52,7 +53,7 @@ interface ResultBucket {
 
       <!-- নির্বাচন বাছাই -->
       @if (loading()) {
-        <div class="card skeleton-line skeleton-lg"></div>
+        <div class="card"><app-section-loader variant="cards" [count]="2" /></div>
       } @else if (elections().length === 0) {
         <div class="card">
           <div class="gov-empty">
@@ -67,6 +68,7 @@ interface ResultBucket {
               type="button"
               class="ds-tab"
               [class.is-active]="selectedId() === election.id"
+              [disabled]="detailLoading()"
               (click)="select(election.id)"
             >
               {{ election.title }}
@@ -79,7 +81,9 @@ interface ResultBucket {
         <div class="error-box" role="alert"><p style="margin: 0">{{ error() }}</p></div>
       }
 
-      @if (detail(); as d) {
+      @if (detailLoading()) {
+        <div class="card"><app-section-loader variant="cards" [count]="2" /></div>
+      } @else if (detail(); as d) {
         <!-- যোগ্যতা -->
         <section class="me-banner" [class.me-banner-warn]="!d.eligible">
           <span class="me-banner-icon">
@@ -436,6 +440,7 @@ export class MemberElectionsComponent implements OnInit {
 
   readonly lang = this.language.lang;
   readonly loading = signal(true);
+  readonly detailLoading = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly elections = signal<Election[]>([]);
@@ -476,9 +481,10 @@ export class MemberElectionsComponent implements OnInit {
     });
   }
 
-  select(electionId: number): void {
+  select(electionId: number, silent = false): void {
     this.selectedId.set(electionId);
     this.busy.set(true);
+    if (!silent) this.detailLoading.set(true);
     this.error.set('');
     this.votePicks = {};
     this.voteErrors.set({});
@@ -491,10 +497,12 @@ export class MemberElectionsComponent implements OnInit {
         }
         this.detail.set(detail);
         this.busy.set(false);
+        this.detailLoading.set(false);
       },
       error: (err) => {
         this.error.set(err?.error?.detail || 'elections.member.loadError');
         this.busy.set(false);
+        this.detailLoading.set(false);
       },
     });
   }
@@ -563,7 +571,7 @@ export class MemberElectionsComponent implements OnInit {
         this.busy.set(false);
         this.nominatePostKey = '';
         this.nominateStatement = '';
-        this.select(id);
+        this.select(id, true);
       },
       error: (err) => {
         this.busy.set(false);
@@ -586,7 +594,7 @@ export class MemberElectionsComponent implements OnInit {
       next: () => {
         this.busy.set(false);
         this.voteTarget.set(null);
-        this.select(id);
+        this.select(id, true);
       },
       error: (err) => {
         this.busy.set(false);

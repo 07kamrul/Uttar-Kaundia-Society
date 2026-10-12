@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import {
@@ -28,7 +29,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-complaints',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, RouterLink],
+  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, FormsModule, IconComponent, RouterLink],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -112,7 +113,7 @@ function saveBlob(blob: Blob, filename: string): void {
         </div>
         <div class="ds-card-body">
           @if (loading()) {
-            <div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-line"></div>
+            <app-section-loader variant="rows" [count]="3" />
           } @else if (complaints().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="inbox" [size]="22" /></span>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { Observable } from 'rxjs';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
@@ -55,7 +56,7 @@ export function validateRoadmapForm(form: ItemForm): string {
   selector: 'app-roadmap-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, DatePickerComponent, ConfirmModalComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, DatePickerComponent, ConfirmModalComponent, SectionLoaderComponent],
   templateUrl: './roadmap-management.component.html',
   styleUrl: './roadmap-management.component.scss',
 })

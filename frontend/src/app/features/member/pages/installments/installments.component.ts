@@ -17,6 +17,7 @@ import { PayDuesDialogComponent } from './pay-dues-dialog.component';
 import type { Installment } from '../../../../core/models/admin.model';
 import { monthNameKey } from '../../../../shared/constants/months';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 type YearFilter = 'all' | number;
 
@@ -24,7 +25,7 @@ type YearFilter = 'all' | number;
   selector: 'app-member-installments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, PayDuesDialogComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, IconComponent, PayDuesDialogComponent],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.scss',
 })

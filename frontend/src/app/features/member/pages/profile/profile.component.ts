@@ -28,6 +28,7 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneInputComponent } from '../../../../shared/phone-input/phone-input.component';
 import { isValidInternationalPhone } from '../../../../shared/phone-input/phone-number';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
   'fullName',
@@ -57,6 +58,7 @@ const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SectionLoaderComponent,
     TranslatePipe,
     FormsModule,
     DatePipe,

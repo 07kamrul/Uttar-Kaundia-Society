@@ -19,6 +19,7 @@
         class="ds-tab"
         [class.is-active]="c === selectedCategory"
         [attr.aria-selected]="c === selectedCategory"
+        [disabled]="loading"
         (click)="selectCategory(c)"
       >
         {{ 'admin.configLists.categories.' + c | translate }}
@@ -71,7 +72,11 @@
   </div>
 
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <div class="card"><app-section-loader variant="rows" [count]="5" /></div>
+  } @else if (loadFailed) {
+    <div class="card card-pad">
+      <button type="button" class="btn btn-secondary" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </div>
   } @else {
     <div class="data-table-wrap table-scroll">
       <table class="data-table">

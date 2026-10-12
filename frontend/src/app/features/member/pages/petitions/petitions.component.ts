@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -15,7 +16,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   selector: 'app-member-petitions',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, NgTemplateOutlet],
+  imports: [SectionLoaderComponent, TranslatePipe, FormsModule, IconComponent, NgTemplateOutlet],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -111,7 +112,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         </div>
         <div class="ds-card-body">
           @if (loading()) {
-            @for (i of [1, 2]; track i) { <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div> }
+            <app-section-loader variant="rows" [count]="3" />
           } @else if (petitions().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="doc" [size]="22" /></span>

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { Complaint, GovernanceService, SlaInfo } from '../../../../core/services/governance.service';
 
@@ -20,23 +21,28 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-complaints-admin',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent],
+  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
         <h1><app-icon name="inbox" /> {{ 'complaintsAdmin.title' | translate }}</h1>
       </header>
 
-      <div class="filters">
+      <div class="tab-row filters">
         @for (option of statusFilters; track option) {
-          <button type="button" class="tab" [class.active]="filter() === option" (click)="filter.set(option); load()">
+          <button type="button" class="tab" [class.active]="filter() === option" [disabled]="loading()" (click)="filter.set(option); load()">
             {{ 'complaintsAdmin.filters.' + option | translate }}
           </button>
         }
       </div>
 
       @if (loading()) {
-        <div class="card"><div class="skeleton-row"></div><div class="skeleton-row"></div><div class="skeleton-line"></div></div>
+        <div class="card"><app-section-loader variant="rows" [count]="4" /></div>
+      } @else if (loadFailed()) {
+        <div class="card"><div class="ds-empty">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn-secondary" (click)="load()">{{ 'common.retry' | translate }}</button>
+        </div></div>
       } @else if (complaints().length === 0) {
         <div class="card"><div class="ds-empty">{{ 'complaintsAdmin.empty' | translate }}</div></div>
       } @else {
@@ -105,9 +111,9 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-container { display: grid; gap: 1rem; }
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
-      .filters { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-      .tab { border: none; background: transparent; padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer; color: var(--gray-800, #1a2a20); }
-      .tab.active { background: var(--emerald-600, #2e5138); color: #fff; }
+      .field input, .field textarea { max-width: 100%; box-sizing: border-box; }
+      .detail-row td { overflow-wrap: anywhere; }
+      .data-table button { min-height: 40px; }
       .detail-row td { background: var(--surface-2, #f3efe3); }
       .timeline { margin-left: 1.1rem; }
       tr.overdue td { border-inline-start: 4px solid var(--red-600, #9c3a2c); }
@@ -121,6 +127,7 @@ export class ComplaintsAdminComponent implements OnInit {
   readonly filter = signal<string>('all');
   readonly complaints = signal<Complaint[]>([]);
   readonly loading = signal(true);
+  readonly loadFailed = signal(false);
   readonly openId = signal<number | null>(null);
   assigneeIds: Record<number, number | undefined> = {};
   notes: Record<number, string | undefined> = {};
@@ -129,14 +136,18 @@ export class ComplaintsAdminComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading.set(true);
+  load(silent = false): void {
+    if (!silent) this.loading.set(true);
+    this.loadFailed.set(false);
     this.governance.adminComplaints(this.filter() === 'all' ? undefined : this.filter()).subscribe({
       next: (rows) => {
         this.complaints.set(rows);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (!silent) this.loadFailed.set(true);
+        this.loading.set(false);
+      },
     });
   }
 
@@ -152,29 +163,29 @@ export class ComplaintsAdminComponent implements OnInit {
   }
 
   acknowledge(complaint: Complaint): void {
-    this.governance.acknowledgeComplaint(complaint.id).subscribe({ next: () => this.load() });
+    this.governance.acknowledgeComplaint(complaint.id).subscribe({ next: () => this.load(true) });
   }
 
   assign(complaint: Complaint): void {
     const adminId = this.assigneeIds[complaint.id];
     if (!adminId) return;
-    this.governance.assignComplaint(complaint.id, adminId).subscribe({ next: () => this.load() });
+    this.governance.assignComplaint(complaint.id, adminId).subscribe({ next: () => this.load(true) });
   }
 
   update(complaint: Complaint): void {
     const note = this.notes[complaint.id];
     if (!note?.trim()) return;
-    this.governance.updateComplaint(complaint.id, note).subscribe({ next: () => this.load() });
+    this.governance.updateComplaint(complaint.id, note).subscribe({ next: () => this.load(true) });
   }
 
   resolve(complaint: Complaint): void {
     const note = this.notes[complaint.id];
     if (!note?.trim()) return;
-    this.governance.resolveComplaint(complaint.id, note).subscribe({ next: () => this.load() });
+    this.governance.resolveComplaint(complaint.id, note).subscribe({ next: () => this.load(true) });
   }
 
   close(complaint: Complaint): void {
-    this.governance.closeComplaint(complaint.id).subscribe({ next: () => this.load() });
+    this.governance.closeComplaint(complaint.id).subscribe({ next: () => this.load(true) });
   }
 
   downloadLetter(complaint: Complaint): void {

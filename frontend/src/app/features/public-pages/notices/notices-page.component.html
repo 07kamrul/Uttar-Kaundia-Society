@@ -13,9 +13,7 @@
   }
 
   @if (loading) {
-    <div class="loading-state">
-      <span class="spinner"></span> {{ 'common.loading' | translate }}
-    </div>
+    <app-section-loader variant="cards" [count]="3" />
   } @else {
     <div style="display: flex; flex-direction: column; gap: 1rem">
       @for (notice of notices; track notice.id) {

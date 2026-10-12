@@ -7,10 +7,13 @@
   </div>
 
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <app-section-loader variant="cards" [count]="4" />
   } @else if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    <div class="error-box"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   } @else {
+    @if (actionError) {
+      <div class="error-box" role="alert"><p style="margin:0">{{ actionError }}</p></div>
+    }
     <!-- Role tabs -->
     <div class="role-mgmt-tabs" role="tablist">
       @for (role of roles; track role.id) {
@@ -163,9 +166,12 @@
       <p class="role-mgmt-section-subtitle">{{ 'admin.roleManagement.userOverrides.subtitle' | translate }}</p>
 
       <div class="card role-mgmt-card">
+        @if (loadingUsers) {
+          <app-section-loader variant="form" [count]="2" />
+        } @else {
         <div class="field">
           <label>{{ 'admin.roleManagement.userOverrides.userLabel' | translate }}</label>
-          <select [ngModel]="selectedUserId" (ngModelChange)="onSelectUser($event)">
+          <select [ngModel]="selectedUserId" [disabled]="loadingOverrides" (ngModelChange)="onSelectUser($event)">
             @for (user of users; track user.id) {
               <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
             }
@@ -218,7 +224,7 @@
           </button>
 
           @if (loadingOverrides) {
-            <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+            <app-section-loader variant="rows" [count]="2" />
           } @else if (overrides.length) {
             <div class="role-mgmt-override-list">
               @for (override of overrides; track override.permission_key) {
@@ -242,6 +248,7 @@
           } @else {
             <p class="field-hint role-mgmt-no-overrides">{{ 'admin.roleManagement.userOverrides.noOverrides' | translate }}</p>
           }
+        }
         }
       </div>
     </section>

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
 import {
@@ -16,7 +17,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   selector: 'app-asset-register',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <div class="page-header">
@@ -49,9 +50,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
 
       <section class="card">
         @if (loading()) {
-          @for (i of [1, 2, 3]; track i) {
-            <div class="skeleton-line" style="height: 48px; margin-bottom: 8px"></div>
-          }
+          <app-section-loader variant="rows" [count]="4" />
         } @else if (assets().length === 0) {
           <div class="ds-empty">{{ 'assetRegister.empty' | translate }}</div>
         } @else {
@@ -175,7 +174,14 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       .row-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
       .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); display: grid; place-items: center; padding: 1rem; z-index: 60; }
       .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); max-height: 85vh; overflow: auto; }
-      .ar-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+      .ar-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+      .ar-actions .btn, .header-actions .btn { min-height: 40px; }
+      .modal-card { box-sizing: border-box; }
+      @media (max-width: 640px) {
+        .am-toolbar .field-control { max-width: none; width: 100%; }
+        .header-actions, .header-actions .btn, .ar-actions .btn { width: 100%; justify-content: center; }
+        .ar-actions .btn { flex: 1 1 100%; }
+      }
       .error-box { color: var(--red-600, #9c3a2c); }
     `,
   ],

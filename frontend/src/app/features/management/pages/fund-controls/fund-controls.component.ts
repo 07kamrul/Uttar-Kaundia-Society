@@ -18,6 +18,7 @@ import {
   MemberPickerComponent,
   type MemberPickerOption,
 } from '../../../../shared/member-picker/member-picker.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 
@@ -27,7 +28,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
   selector: 'app-fund-controls',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, MemberPickerComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, MemberPickerComponent, SectionLoaderComponent],
   template: `
     <div class="fc-page">
       <div class="page-header">
@@ -55,9 +56,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
       }
 
       <!-- Section tabs -->
-      <div class="fc-tabs" role="tablist">
+      <div class="tab-row" role="tablist">
         @for (tab of visibleTabs(); track tab) {
-          <button type="button" class="filter-chip" [class.filter-chip-active]="section() === tab"
+          <button type="button" role="tab" class="tab" [class.active]="section() === tab" [attr.aria-selected]="section() === tab"
                   (click)="section.set(tab)">
             {{ 'fundControls.tabs.' + tab | translate }}
           </button>
@@ -69,6 +70,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
         <section class="card card-pad">
           <h2 class="fc-section-title">{{ 'fundControls.incomePolicy.title' | translate }}</h2>
           <p class="field-hint">{{ 'fundControls.incomePolicy.hint' | translate }}</p>
+          @if (settingsLoading()) {
+            <app-section-loader variant="rows" [count]="4" />
+          } @else {
           <ul class="fc-source-list">
             @for (source of settings()?.incomeSources ?? []; track source.key) {
               <li>
@@ -84,6 +88,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
             <p>{{ 'fundControls.incomePolicy.foreignTitle' | translate }}</p>
             <p class="field-hint">{{ 'fundControls.incomePolicy.foreignBody' | translate }}</p>
           </div>
+          }
         </section>
       }
 
@@ -92,7 +97,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
         <section class="card card-pad">
           <h2 class="fc-section-title">{{ 'fundControls.threshold.title' | translate }}</h2>
           <p class="field-hint">{{ 'fundControls.threshold.hint' | translate }}</p>
-          @if (settings(); as s) {
+          @if (settingsLoading()) {
+            <app-section-loader variant="form" [count]="1" />
+          } @else if (settings(); as s) {
             <p class="fc-threshold-value">
               {{ taka(s.expenseTwoPersonThreshold) }}
               @if (s.thresholdIsDefault) {
@@ -133,7 +140,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
               </button>
             </div>
           </div>
-          @if (signatories().length === 0) {
+          @if (sgLoading()) {
+            <app-section-loader variant="rows" [count]="4" />
+          } @else if (signatories().length === 0) {
             <div class="ds-empty">{{ 'fundControls.signatories.empty' | translate }}</div>
           } @else {
             <div class="data-table-wrap">
@@ -224,7 +233,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
 
         <section class="card card-pad">
           <h2 class="fc-section-title">{{ 'auditReports.listTitle' | translate }}</h2>
-          @if (reports().length === 0) {
+          @if (reportsLoading()) {
+            <app-section-loader variant="cards" [count]="2" />
+          } @else if (reports().length === 0) {
             <div class="ds-empty">{{ 'auditReports.empty' | translate }}</div>
           }
           @for (report of reports(); track report.id) {
@@ -278,7 +289,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
         <section class="card card-pad">
           <div class="fc-section-head">
             <h2 class="fc-section-title">{{ 'welfareFund.adminTitle' | translate }}</h2>
-            <select class="field-control" [(ngModel)]="welfareStatusFilter" (ngModelChange)="loadWelfare()">
+            <select class="field-control" [(ngModel)]="welfareStatusFilter" (ngModelChange)="loadWelfare()" [disabled]="welfareLoading()">
               <option value="">{{ 'welfareFund.status.all' | translate }}</option>
               @for (status of welfareStatuses; track status) {
                 <option [value]="status">{{ 'welfareFund.status.' + status | translate }}</option>
@@ -286,7 +297,9 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
             </select>
           </div>
           <p class="field-hint">{{ 'welfareFund.noAutoApproval' | translate }}</p>
-          @if (welfareRequests().length === 0) {
+          @if (welfareLoading()) {
+            <app-section-loader variant="rows" [count]="4" />
+          } @else if (welfareRequests().length === 0) {
             <div class="ds-empty">{{ 'welfareFund.empty' | translate }}</div>
           } @else {
             <div class="data-table-wrap">
@@ -468,7 +481,6 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
   styles: [
     `
       .fc-page { display: grid; gap: 1rem; }
-      .fc-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
       .fc-section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
       .fc-section-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
       .fc-section-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -480,7 +492,7 @@ type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfar
       .fc-threshold-value { font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
       .fc-inline-form { display: flex; align-items: end; gap: 0.75rem; flex-wrap: wrap; }
       .fc-saved { color: var(--emerald-700, #2e5138); font-weight: 600; }
-      .fc-grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; }
+      .fc-grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 0.75rem; }
       .fc-grid-form .fc-full { grid-column: 1 / -1; }
       .fc-report { border-top: 1px solid var(--gray-200, #e5e7eb); padding: 0.75rem 0; display: grid; gap: 0.5rem; }
       .fc-report-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
@@ -506,6 +518,10 @@ export class FundControlsComponent implements OnInit {
   readonly welfareRequests = signal<WelfareFundRequest[]>([]);
   readonly members = signal<MemberPickerOption[]>([]);
   readonly error = signal('');
+  readonly settingsLoading = signal(true);
+  readonly sgLoading = signal(true);
+  readonly reportsLoading = signal(true);
+  readonly welfareLoading = signal(true);
 
   readonly canFund: boolean;
   readonly canSignatory: boolean;
@@ -593,9 +609,13 @@ export class FundControlsComponent implements OnInit {
       next: (settings) => {
         this.settings.set(settings);
         this.thresholdInput = settings.expenseTwoPersonThreshold;
+        this.settingsLoading.set(false);
         this.cdr.markForCheck();
       },
-      error: () => this.error.set(this.translate.instant('common.loadFailed')),
+      error: () => {
+        this.error.set(this.translate.instant('common.loadFailed'));
+        this.settingsLoading.set(false);
+      },
     });
     if (this.canAudit) {
       this.fundControls.auditReminder().subscribe({
@@ -656,9 +676,14 @@ export class FundControlsComponent implements OnInit {
     this.fundControls.signatories(true).subscribe({
       next: (rows) => {
         this.signatories.set(rows);
+        this.sgLoading.set(false);
         this.cdr.markForCheck();
       },
-      error: () => this.signatories.set([]),
+      error: () => {
+        this.signatories.set([]);
+        this.sgLoading.set(false);
+        this.error.set(this.translate.instant('common.loadFailed'));
+      },
     });
   }
 
@@ -755,9 +780,14 @@ export class FundControlsComponent implements OnInit {
     this.fundControls.auditReports().subscribe({
       next: (rows) => {
         this.reports.set(rows);
+        this.reportsLoading.set(false);
         this.cdr.markForCheck();
       },
-      error: () => this.reports.set([]),
+      error: () => {
+        this.reports.set([]);
+        this.reportsLoading.set(false);
+        this.error.set(this.translate.instant('common.loadFailed'));
+      },
     });
   }
 
@@ -835,21 +865,28 @@ export class FundControlsComponent implements OnInit {
 
   // ----- Welfare queue -----
 
-  loadWelfare(): void {
+  /** `silent` keeps the current rows visible (post-action refresh). */
+  loadWelfare(silent = false): void {
+    if (!silent) this.welfareLoading.set(true);
     this.fundControls
       .welfareRequests(this.welfareStatusFilter || undefined)
       .subscribe({
         next: (rows) => {
           this.welfareRequests.set(rows);
+          this.welfareLoading.set(false);
           this.cdr.markForCheck();
         },
-        error: () => this.welfareRequests.set([]),
+        error: () => {
+          this.welfareRequests.set([]);
+          this.welfareLoading.set(false);
+          this.error.set(this.translate.instant('common.loadFailed'));
+        },
       });
   }
 
   startReview(row: WelfareFundRequest): void {
     this.fundControls.startWelfareReview(row.id).subscribe({
-      next: () => this.loadWelfare(),
+      next: () => this.loadWelfare(true),
       error: (err) => this.error.set(this.fail(err, 'common.saveFailed')),
     });
   }
@@ -894,7 +931,7 @@ export class FundControlsComponent implements OnInit {
         next: () => {
           this.decideBusy = false;
           this.closeDecide();
-          this.loadWelfare();
+          this.loadWelfare(true);
         },
         error: (err) => {
           this.decideBusy = false;
@@ -906,7 +943,7 @@ export class FundControlsComponent implements OnInit {
 
   disburse(row: WelfareFundRequest): void {
     this.fundControls.disburseWelfareRequest(row.id).subscribe({
-      next: () => this.loadWelfare(),
+      next: () => this.loadWelfare(true),
       error: (err) => this.error.set(this.fail(err, 'common.saveFailed')),
     });
   }

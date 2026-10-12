@@ -9,6 +9,7 @@ import { toDatetimeLocal, toIso, type Notice } from '../../../../core/models/con
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { TimePickerComponent } from '../../../../shared/time-picker/time-picker.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 const MANAGE_NOTICES = 'manage_notices';
@@ -28,6 +29,7 @@ export type StatusFilter = 'all' | 'draft' | 'published';
     DatePickerComponent,
     TimePickerComponent,
     IconComponent,
+    SectionLoaderComponent,
   ],
   templateUrl: './notices.component.html',
   styleUrl: './notices.component.scss',
@@ -35,7 +37,7 @@ export type StatusFilter = 'all' | 'draft' | 'published';
 export class NoticesComponent implements OnInit {
   notices: Notice[] = [];
   categories: ConfigListItem[] = [];
-  loading = false;
+  loading = true;
   error = '';
 
   statusFilter: StatusFilter = 'all';
@@ -80,8 +82,10 @@ export class NoticesComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading = true;
+  /** `silent` keeps the current rows visible (post-write refresh). */
+  load(silent = false): void {
+    if (!silent) this.loading = true;
+    this.error = '';
     this.adminService
       .listNotices({
         published: this.statusFilter === 'all' ? undefined : this.statusFilter === 'published',
@@ -199,7 +203,7 @@ export class NoticesComponent implements OnInit {
         this.saving = false;
         this.formOpen = false;
         this.editingId = null;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
         this.saveError =
@@ -225,7 +229,7 @@ export class NoticesComponent implements OnInit {
       .subscribe({
         next: () => {
           this.togglingId = null;
-          this.load();
+          this.load(true);
         },
         error: () => {
           this.error = this.translate.instant('admin.notices.errors.saveFailed');

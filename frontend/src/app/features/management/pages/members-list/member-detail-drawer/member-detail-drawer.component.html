@@ -20,14 +20,7 @@
 
       <div class="drawer-body">
         @if (loading) {
-          <div class="drawer-skeleton" aria-busy="true">
-            <div class="skeleton-line skeleton-lg"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line skeleton-lg"></div>
-            <div class="skeleton-line"></div>
-            <div class="skeleton-line"></div>
-          </div>
+          <app-section-loader variant="form" [count]="6" />
         } @else if (error) {
           <div class="error-box">
             <p style="margin: 0 0 0.75rem">{{ 'admin.memberDetail.loadFailed' | translate }}</p>
@@ -151,7 +144,7 @@
 
             <h4>{{ 'admin.memberDetail.sections.picnic' | translate }}</h4>
             @if (p.picnicPayments.length) {
-              <div class="data-table-wrap">
+              <div class="data-table-wrap table-scroll">
                 <table class="data-table">
                   <thead><tr>
                     <th>{{ 'admin.memberDetail.f.date' | translate }}</th>
@@ -179,7 +172,7 @@
           <section class="drawer-section">
             <h3>{{ 'admin.memberDetail.sections.installments' | translate }}</h3>
             @if (p.installments.length) {
-              <div class="data-table-wrap">
+              <div class="data-table-wrap table-scroll">
                 <table class="data-table">
                   <thead><tr>
                     <th>{{ 'admin.memberDetail.f.month' | translate }}</th>

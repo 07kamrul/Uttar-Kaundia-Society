@@ -15,6 +15,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import type { Subscription } from 'rxjs';
 import { AdminService } from '../../../../../core/services/admin.service';
 import type { MemberProfile } from '../../../../../core/models/admin.model';
+import { SectionLoaderComponent } from '../../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../../shared/icon/icon.component';
 import { monthNameKey } from '../../../../../shared/constants/months';
 
@@ -38,7 +39,7 @@ function joinAddress(a: AddressParts): string {
   selector: 'app-member-detail-drawer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslatePipe, IconComponent],
+  imports: [DatePipe, TranslatePipe, IconComponent, SectionLoaderComponent],
   templateUrl: './member-detail-drawer.component.html',
 })
 export class MemberDetailDrawerComponent implements OnChanges, OnDestroy {

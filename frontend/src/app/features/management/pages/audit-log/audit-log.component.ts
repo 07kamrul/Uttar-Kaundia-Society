@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { RbacService } from '../../../../core/services/rbac.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import type { AuditLogEntry } from '../../../../core/models/admin.model';
@@ -20,7 +21,7 @@ interface DetailPair {
   selector: 'app-audit-log',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, FormsModule, TranslatePipe, IconComponent, DatePickerComponent],
+  imports: [DatePipe, FormsModule, TranslatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './audit-log.component.html',
 })
 export class AuditLogComponent implements OnInit {
@@ -28,7 +29,7 @@ export class AuditLogComponent implements OnInit {
   readonly dateTimeFormat = DATE_TIME_FORMAT;
 
   entries: AuditLogEntry[] = [];
-  loading = false;
+  loading = true;
   error = '';
 
   /** admin id -> "Name (role)" for actor resolution. */
@@ -72,8 +73,9 @@ export class AuditLogComponent implements OnInit {
     });
   }
 
-  private load(): void {
+  load(): void {
     this.loading = true;
+    this.error = '';
     this.adminService.listAuditLog().subscribe({
       next: (rows) => {
         this.entries = rows;

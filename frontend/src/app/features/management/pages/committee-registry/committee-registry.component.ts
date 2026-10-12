@@ -7,6 +7,7 @@ import { MemberPickerComponent, type MemberPickerOption } from '../../../../shar
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { AdminService } from '../../../../core/services/admin.service';
 import { LanguageService } from '../../../../core/services/language.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import {
   CommitteeRegistryService,
   type PostHistory,
@@ -31,7 +32,7 @@ interface TermFormState {
   selector: 'app-committee-registry',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent],
+  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -53,7 +54,7 @@ interface TermFormState {
       <!-- পদভিত্তিক রেজিস্ট্রি -->
       <section class="card">
         @if (loading()) {
-          @for (i of [1, 2, 3]; track i) { <div class="skeleton-line" style="height: 44px; margin-bottom: 8px"></div> }
+          <app-section-loader [count]="6" />
         } @else {
           <div class="data-table data-table-cards">
             <table>
@@ -188,120 +189,124 @@ interface TermFormState {
       <!-- শূন্যপদ / পদত্যাগ / অপসারণ -->
       <section class="card">
         <h2 class="cr-section-title">{{ 'committeeRegistry.vacanciesTitle' | translate }}</h2>
-        @if (vacancies().length === 0) {
-          <div class="ds-empty">{{ 'committeeRegistry.empty.vacancies' | translate }}</div>
-        }
-        <div class="data-table data-table-cards">
-          <table>
-            <tbody>
-              @for (vacancy of vacancies(); track vacancy.id) {
-                <tr>
-                  <td [attr.data-label]="'committeeRegistry.post' | translate">{{ postNameByKey(vacancy.postKey) }}</td>
-                  <td [attr.data-label]="'committeeRegistry.member' | translate">{{ vacancy.member?.fullName || vacancy.memberId }}</td>
-                  <td [attr.data-label]="'committeeRegistry.vacancyType' | translate">
-                    <span class="ds-tag" [class.ds-tag-amber]="vacancy.vacancyType === 'removal'" [class.ds-tag-blue]="vacancy.vacancyType === 'resignation'">
-                      {{ 'committeeRegistry.vacancyTypes.' + vacancy.vacancyType | translate }}
-                    </span>
-                  </td>
-                  <td [attr.data-label]="'committeeRegistry.status' | translate">
-                    <span class="ds-tag" [class.ds-tag-green]="vacancy.status === 'decided'" [class.ds-tag-amber]="vacancy.status === 'investigation'" [class.ds-tag-blue]="vacancy.status === 'acknowledged'">
-                      {{ 'committeeRegistry.vacancyStatuses.' + vacancy.status | translate }}
-                    </span>
-                  </td>
-                  <td [attr.data-label]="'committeeRegistry.responseDeadline' | translate">
-                    @if (vacancy.responseDeadline) {
-                      {{ fmtDate(vacancy.responseDeadline) }}
-                      @if (vacancy.responseSla; as sla) {
-                        <span class="ds-badge" [class.ds-badge-green]="sla.state === 'met'" [class.ds-badge-blue]="sla.state === 'on_track'">
-                          {{ 'committeeRegistry.sla.' + sla.state | translate }}
-                        </span>
-                      }
-                    } @else { '—' }
-                  </td>
-                  <td [attr.data-label]="'committeeRegistry.memberResponse' | translate">
-                    @if (vacancy.memberResponse) {
-                      <span class="cr-response">{{ vacancy.memberResponse }}</span>
-                    } @else {
-                      <span class="ds-empty">—</span>
-                    }
-                  </td>
-                  <td [attr.data-label]="'common.actions' | translate" class="cr-actions">
-                    @if (vacancy.status === 'pending_acknowledgement') {
-                      <button type="button" class="btn btn-primary btn-sm" (click)="acknowledge(vacancy)">
-                        {{ 'committeeRegistry.acknowledge' | translate }}
-                      </button>
-                      <button type="button" class="btn btn-danger btn-sm" (click)="startRemoval(vacancy)">
-                        {{ 'committeeRegistry.removalNotice' | translate }}
-                      </button>
-                    }
-                    @if (vacancy.status === 'investigation' || vacancy.status === 'acknowledged') {
-                      <button type="button" class="btn btn-secondary btn-sm" (click)="toggleDecision(vacancy.id)">
-                        {{ 'committeeRegistry.decideTitle' | translate }}
-                      </button>
-                    }
-                  </td>
-                </tr>
-                @if (decisionFor(vacancy.id) === vacancy.id) {
+        @if (loading()) {
+          <app-section-loader [count]="3" />
+        } @else {
+          @if (vacancies().length === 0) {
+            <div class="ds-empty">{{ 'committeeRegistry.empty.vacancies' | translate }}</div>
+          }
+          <div class="data-table data-table-cards">
+            <table>
+              <tbody>
+                @for (vacancy of vacancies(); track vacancy.id) {
                   <tr>
-                    <td [attr.colspan]="7">
-                      <div class="cr-removal-form">
-                        <div class="field">
-                          <label for="cr-decision-note-{{ vacancy.id }}">{{ 'committeeRegistry.decisionNote' | translate }}</label>
-                          <textarea
-                            [id]="'cr-decision-note-' + vacancy.id"
-                            class="field-control"
-                            rows="2"
-                            maxlength="5000"
-                            [name]="'decisionNote-' + vacancy.id"
-                            [(ngModel)]="decisionNote"
-                          ></textarea>
-                        </div>
-                        <div class="cr-form-actions">
-                          <button type="button" class="btn btn-danger" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'removed')">
-                            {{ 'committeeRegistry.decideRemoved' | translate }}
-                          </button>
-                          <button type="button" class="btn btn-primary" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'retained')">
-                            {{ 'committeeRegistry.decideRetained' | translate }}
-                          </button>
-                        </div>
-                      </div>
+                    <td [attr.data-label]="'committeeRegistry.post' | translate">{{ postNameByKey(vacancy.postKey) }}</td>
+                    <td [attr.data-label]="'committeeRegistry.member' | translate">{{ vacancy.member?.fullName || vacancy.memberId }}</td>
+                    <td [attr.data-label]="'committeeRegistry.vacancyType' | translate">
+                      <span class="ds-tag" [class.ds-tag-amber]="vacancy.vacancyType === 'removal'" [class.ds-tag-blue]="vacancy.vacancyType === 'resignation'">
+                        {{ 'committeeRegistry.vacancyTypes.' + vacancy.vacancyType | translate }}
+                      </span>
                     </td>
-                  </tr>
-                }
-                @if (removalFor(vacancy.id) === vacancy.id) {
-                  <tr>
-                    <td [attr.colspan]="7">
-                      <div class="cr-removal-form">
-                        <div class="field">
-                          <label for="cr-investigation">{{ 'committeeRegistry.investigationNote' | translate }}</label>
-                          <textarea id="cr-investigation" class="field-control" rows="3" maxlength="5000" name="investigationNote" [(ngModel)]="investigationNote"></textarea>
-                        </div>
-                        <p class="field-hint">{{ 'committeeRegistry.removalWindowHint' | translate }}</p>
-                        <button type="button" class="btn btn-danger" [disabled]="!investigationNote.trim()" (click)="issueRemoval(vacancy)">
-                          {{ 'committeeRegistry.issueRemovalNotice' | translate }}
-                        </button>
-                      </div>
+                    <td [attr.data-label]="'committeeRegistry.status' | translate">
+                      <span class="ds-tag" [class.ds-tag-green]="vacancy.status === 'decided'" [class.ds-tag-amber]="vacancy.status === 'investigation'" [class.ds-tag-blue]="vacancy.status === 'acknowledged'">
+                        {{ 'committeeRegistry.vacancyStatuses.' + vacancy.status | translate }}
+                      </span>
                     </td>
-                  </tr>
-                }
-                @if (vacancy.investigationNote) {
-                  <tr class="cr-history-row">
-                    <td [attr.colspan]="7">
-                      <div class="cr-history">
-                        <h3>{{ 'committeeRegistry.investigationNote' | translate }}</h3>
-                        <p class="cr-note">{{ vacancy.investigationNote }}</p>
-                        @if (vacancy.decisionNote) {
-                          <h3>{{ 'committeeRegistry.decisionNote' | translate }}</h3>
-                          <p class="cr-note">{{ vacancy.decisionNote }}</p>
+                    <td [attr.data-label]="'committeeRegistry.responseDeadline' | translate">
+                      @if (vacancy.responseDeadline) {
+                        {{ fmtDate(vacancy.responseDeadline) }}
+                        @if (vacancy.responseSla; as sla) {
+                          <span class="ds-badge" [class.ds-badge-green]="sla.state === 'met'" [class.ds-badge-blue]="sla.state === 'on_track'">
+                            {{ 'committeeRegistry.sla.' + sla.state | translate }}
+                          </span>
                         }
-                      </div>
+                      } @else { '—' }
+                    </td>
+                    <td [attr.data-label]="'committeeRegistry.memberResponse' | translate">
+                      @if (vacancy.memberResponse) {
+                        <span class="cr-response">{{ vacancy.memberResponse }}</span>
+                      } @else {
+                        <span class="ds-empty">—</span>
+                      }
+                    </td>
+                    <td [attr.data-label]="'common.actions' | translate" class="cr-actions">
+                      @if (vacancy.status === 'pending_acknowledgement') {
+                        <button type="button" class="btn btn-primary btn-sm" (click)="acknowledge(vacancy)">
+                          {{ 'committeeRegistry.acknowledge' | translate }}
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" (click)="startRemoval(vacancy)">
+                          {{ 'committeeRegistry.removalNotice' | translate }}
+                        </button>
+                      }
+                      @if (vacancy.status === 'investigation' || vacancy.status === 'acknowledged') {
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="toggleDecision(vacancy.id)">
+                          {{ 'committeeRegistry.decideTitle' | translate }}
+                        </button>
+                      }
                     </td>
                   </tr>
+                  @if (decisionFor(vacancy.id) === vacancy.id) {
+                    <tr>
+                      <td [attr.colspan]="7">
+                        <div class="cr-removal-form">
+                          <div class="field">
+                            <label for="cr-decision-note-{{ vacancy.id }}">{{ 'committeeRegistry.decisionNote' | translate }}</label>
+                            <textarea
+                              [id]="'cr-decision-note-' + vacancy.id"
+                              class="field-control"
+                              rows="2"
+                              maxlength="5000"
+                              [name]="'decisionNote-' + vacancy.id"
+                              [(ngModel)]="decisionNote"
+                            ></textarea>
+                          </div>
+                          <div class="cr-form-actions">
+                            <button type="button" class="btn btn-danger" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'removed')">
+                              {{ 'committeeRegistry.decideRemoved' | translate }}
+                            </button>
+                            <button type="button" class="btn btn-primary" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'retained')">
+                              {{ 'committeeRegistry.decideRetained' | translate }}
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                  @if (removalFor(vacancy.id) === vacancy.id) {
+                    <tr>
+                      <td [attr.colspan]="7">
+                        <div class="cr-removal-form">
+                          <div class="field">
+                            <label for="cr-investigation">{{ 'committeeRegistry.investigationNote' | translate }}</label>
+                            <textarea id="cr-investigation" class="field-control" rows="3" maxlength="5000" name="investigationNote" [(ngModel)]="investigationNote"></textarea>
+                          </div>
+                          <p class="field-hint">{{ 'committeeRegistry.removalWindowHint' | translate }}</p>
+                          <button type="button" class="btn btn-danger" [disabled]="!investigationNote.trim()" (click)="issueRemoval(vacancy)">
+                            {{ 'committeeRegistry.issueRemovalNotice' | translate }}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                  @if (vacancy.investigationNote) {
+                    <tr class="cr-history-row">
+                      <td [attr.colspan]="7">
+                        <div class="cr-history">
+                          <h3>{{ 'committeeRegistry.investigationNote' | translate }}</h3>
+                          <p class="cr-note">{{ vacancy.investigationNote }}</p>
+                          @if (vacancy.decisionNote) {
+                            <h3>{{ 'committeeRegistry.decisionNote' | translate }}</h3>
+                            <p class="cr-note">{{ vacancy.decisionNote }}</p>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
                 }
-              }
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        }
       </section>
 
       <!-- পদত্যাগ নিশ্চিতকরণ -->

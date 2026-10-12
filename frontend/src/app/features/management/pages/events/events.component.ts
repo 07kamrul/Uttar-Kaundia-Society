@@ -9,6 +9,7 @@ import { toDatetimeLocal, toIso, type EventItem } from '../../../../core/models/
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { TimePickerComponent } from '../../../../shared/time-picker/time-picker.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 const MANAGE_NOTICES = 'manage_notices';
@@ -27,6 +28,7 @@ export type EventStatusFilter = 'all' | 'published' | 'draft';
     DatePickerComponent,
     TimePickerComponent,
     IconComponent,
+    SectionLoaderComponent,
   ],
   templateUrl: './events.component.html',
   styleUrl: './events.component.scss',
@@ -34,7 +36,7 @@ export type EventStatusFilter = 'all' | 'published' | 'draft';
 export class EventsComponent implements OnInit {
   events: EventItem[] = [];
   categories: ConfigListItem[] = [];
-  loading = false;
+  loading = true;
   error = '';
 
   statusFilter: EventStatusFilter = 'all';
@@ -82,8 +84,9 @@ export class EventsComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading = true;
+  load(silent = false): void {
+    if (!silent) this.loading = true;
+    this.error = '';
     this.adminService
       .listEvents({
         published: this.statusFilter === 'all' ? undefined : this.statusFilter === 'published',
@@ -208,7 +211,7 @@ export class EventsComponent implements OnInit {
         this.saving = false;
         this.formOpen = false;
         this.editingId = null;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
         this.saveError =
@@ -236,7 +239,7 @@ export class EventsComponent implements OnInit {
       .subscribe({
         next: () => {
           this.togglingId = null;
-          this.load();
+          this.load(true);
         },
         error: () => {
           this.error = this.translate.instant('admin.events.errors.saveFailed');

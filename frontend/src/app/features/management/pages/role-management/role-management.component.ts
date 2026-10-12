@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@
 import { FormsModule } from '@angular/forms';
 import { PasswordFieldComponent } from '../../../../shared/password-field/password-field.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import {
   AdminUserDef,
   PermissionDef,
@@ -19,14 +20,18 @@ interface PermissionGroup {
   selector: 'app-role-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, PasswordFieldComponent],
+  imports: [FormsModule, TranslatePipe, PasswordFieldComponent, SectionLoaderComponent],
   templateUrl: './role-management.component.html',
 })
 export class RoleManagementComponent implements OnInit {
   roles: RoleDef[] = [];
   permissions: PermissionDef[] = [];
   loading = false;
+  /** Blocking error: the initial data could not be loaded. */
   error = '';
+  /** Non-blocking error from a save/refetch; shown inline, keeps the page. */
+  actionError = '';
+  loadingUsers = false;
   savingRoleId: number | null = null;
 
   selectedRoleName = '';
@@ -71,7 +76,14 @@ export class RoleManagementComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
     this.loading = true;
+    this.loadingUsers = true;
+    this.error = '';
+    this.actionError = '';
     this.rbacService.listPermissions().subscribe({
       next: (permissions) => {
         this.permissions = permissions;
@@ -100,11 +112,15 @@ export class RoleManagementComponent implements OnInit {
       next: (users) => {
         this.users = users;
         this.selectedUserId = users[0]?.id ?? null;
-        if (this.selectedUserId) this.loadOverrides(this.selectedUserId);
+        const first = this.selectedUserId;
+        this.roleAssignDraft = users[0]?.role ?? '';
+        if (first) this.loadOverrides(first);
+        this.loadingUsers = false;
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = this.translate.instant('admin.roleManagement.errors.loadUsersFailed');
+        this.actionError = this.translate.instant('admin.roleManagement.errors.loadUsersFailed');
+        this.loadingUsers = false;
         this.cdr.markForCheck();
       },
     });
@@ -203,7 +219,7 @@ export class RoleManagementComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = this.translate.instant('admin.roleManagement.errors.saveChangeFailed');
+        this.actionError = this.translate.instant('admin.roleManagement.errors.saveChangeFailed');
         this.savingRoleId = null;
         this.cdr.markForCheck();
       },
@@ -265,7 +281,7 @@ export class RoleManagementComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = this.translate.instant('admin.roleManagement.errors.assignRoleFailed');
+        this.actionError = this.translate.instant('admin.roleManagement.errors.assignRoleFailed');
         this.savingRoleAssignment = false;
         this.cdr.markForCheck();
       },
@@ -274,6 +290,8 @@ export class RoleManagementComponent implements OnInit {
 
   loadOverrides(userId: number): void {
     this.loadingOverrides = true;
+    this.overrides = [];
+    this.actionError = '';
     this.rbacService.listUserOverrides(userId).subscribe({
       next: (overrides) => {
         this.overrides = overrides;
@@ -281,7 +299,7 @@ export class RoleManagementComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = this.translate.instant('admin.roleManagement.errors.loadOverridesFailed');
+        this.actionError = this.translate.instant('admin.roleManagement.errors.loadOverridesFailed');
         this.loadingOverrides = false;
         this.cdr.markForCheck();
       },
@@ -317,7 +335,7 @@ export class RoleManagementComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.error = this.translate.instant('admin.roleManagement.errors.saveOverridesFailed');
+        this.actionError = this.translate.instant('admin.roleManagement.errors.saveOverridesFailed');
         this.savingOverride = false;
         this.cdr.markForCheck();
       },

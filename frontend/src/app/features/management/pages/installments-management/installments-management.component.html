@@ -11,7 +11,7 @@
   }
 
   @if (loadingMembers) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <app-section-loader variant="rows" [count]="5" />
   } @else {
     <div class="installments-master-detail">
       <div class="card installments-member-list">
@@ -19,7 +19,7 @@
           <div
             class="installments-member-item"
             [class.active]="m.id === selectedMemberId"
-            (click)="selectMember(m.id)"
+            role="button" tabindex="0" (click)="selectMember(m.id)" (keydown.enter)="selectMember(m.id)"
           >
             <div class="installments-member-name">{{ m.fullName }}</div>
             <div class="installments-member-id">{{ m.memberId }}</div>
@@ -41,7 +41,7 @@
           </div>
 
           @if (loadingInstallments) {
-            <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+            <app-section-loader variant="cards" [count]="6" />
           } @else {
             <div class="month-badge-strip">
               @for (i of installments; track i.id) {

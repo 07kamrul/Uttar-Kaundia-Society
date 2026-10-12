@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
@@ -15,7 +16,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   selector: 'app-member-amendments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent],
+  imports: [SectionLoaderComponent, FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -96,9 +97,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         </div>
         <div class="ds-card-body">
           @if (loading()) {
-            @for (i of [1, 2]; track i) {
-              <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div>
-            }
+            <app-section-loader variant="rows" [count]="3" />
           } @else if (proposals().length === 0) {
             <div class="gov-empty">
               <span class="gov-empty-icon"><app-icon name="doc" [size]="22" /></span>

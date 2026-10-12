@@ -4,16 +4,16 @@
 
 ## ACTIVE STATE
 <!-- Rewrite in place; this is the single source of truth for resuming. Status: IDLE | IN_PROGRESS | INTERRUPTED | DONE -->
-- Status: DONE
-- Current session ID: SESSION-20261011-1733-zcode
-- Current agent: zcode
-- Current task / user prompt: Make the 3 screenshot pages (emergency-safety, profile correction-request, funds/fund-addition) UI+functionality smart, professional, user friendly, fully responsive on any device
-- Last completed step: All 3-page code done + vitest/i18n-parity/build verified on my work. Visual QA round 2 in flight: IAB fullPage capture was broken (tiles at scroll 0), replaced with manual scroll+tiles+PIL stitch; 6 faithful captures at /tmp/qa2/*.png sent to 2 visual-judge agents. Login workaround: demo member passwords kept being reset by parallel agents; used admin API reset -> immediate login -> localStorage token injection (krmf_* keys), finally on member 2 (01711000002)
-- NEXT step: none (awaiting next user prompt)
-- Files touched so far: AI_SESSIONS.md, frontend/src/styles.scss, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/fund-transparency/{fund-transparency.component.html,scss,ts}, frontend/public/i18n/{bn,en}.json
+- Status: IN_PROGRESS
+- Current session ID: SESSION-20261012-0613-claude
+- Current agent: claude
+- Current task / user prompt: Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first)
+- Last completed step: Phase 1-2: section-loader component+spec, global skeleton/tab/table/checkbox CSS, governance per-tab loading, review+committee wired; build+378 tests OK
+- NEXT step: Phase 3: roll <app-section-loader> + responsive table/tab fixes to remaining ~45 management/member pages in batches; visual check at 360/768/1440 not done (needs running app)
+- Files touched so far: frontend/src/styles.scss, frontend/src/app/shared/section-loader/*, management/pages/{membership-governance, membership-review, committee-registry}
 - Uncommitted / half-finished work: none
-- Blockers / decisions pending: judge verdicts pending
-- Last updated (UTC): 2026-10-11 19:38
+- Blockers / decisions pending: none
+- Last updated (UTC): 2026-10-12 06:13
 
 ## TASK QUEUE
 - [x] Set up cross-AI session ledger (AI_SESSIONS.md, protocol in entry files, scripts/ai helpers) | sessions: `SESSION-20261011-1051-claude`
@@ -24,6 +24,7 @@
 - [x] Make the 3 screenshot pages (emergency-safety, profile correction-request, funds/fund-addition) UI+functionality smart, professional, user friendly, fully responsive on any device | sessions: `SESSION-20261011-1804-claude`
 - [x] Implement cross-AI rules plan: master docs/AI_RULES.md synced to all AI tool instruction files + enforcement configs + pre-commit hook | sessions: `SESSION-20261011-1808-claude`
 - [x] Implement global smart loader plan | sessions: `SESSION-20261011-1821-claude`
+- [ ] Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first) | sessions: `SESSION-20261012-0545-claude`, `SESSION-20261012-0613-claude`
 
 ## SESSION LOG
 <!-- Append-only, newest at bottom. Entry format:
@@ -183,6 +184,32 @@
 - Files created/modified/deleted: AI_SESSIONS.md, frontend/src/styles.scss, frontend/src/app/features/member/pages/complaints/emergency-help.component.ts, frontend/src/app/features/member/pages/profile/my-data-panel.component.ts, frontend/src/app/features/member/pages/fund-transparency/{fund-transparency.component.html, scss, ts}, frontend/public/i18n/{bn, en}.json
 - Remaining work (exact): none — task complete. Note: most page redesign files were committed by a concurrent session inside 30f6dfd/c5ffcc8; this session committed 5eef9b1 (sidebar scroll fix). QA artifacts in /tmp/qa-gov. Member QA login: 01711000002/Member@123 (member 1 keeps being reset by another process)
 - Notes for the next agent: A concurrent agent session was active on the same tree — it committed this session's uncommitted redesign work and reset member-1's password 3x via admin API
+
+### [SESSION-20261012-0545-claude] START
+- Agent: claude
+- Model: claude-sonnet-5-5
+- Started (UTC): 2026-10-12 05:45
+- User prompt: Per-view section loaders + responsive layout for management pages (plan approved: phases 1-2 first)
+- Resumed from: none
+- Plan: shared loader/LoadState, fix 3 screenshot pages, then rollout
+#### CHECKPOINTS
+- [05:48] Phase 1-2: section-loader component+spec, global skeleton/tab/table/checkbox CSS, governance per-tab loading, review+committee wired; build+378 tests OK -> frontend/src/styles.scss, frontend/src/app/shared/section-loader/*, management/pages/{membership-governance,membership-review,committee-registry} -> Visual check at 360/768/1440 of 3 pages, then Phase 3 rollout to remaining pages in batches
+### END
+- Ended (UTC): 2026-10-12 05:49
+- End reason: HANDOFF
+- Summary of work done: Phases 1-2 done: shared <app-section-loader>, global skeleton/tab/table/checkbox CSS, per-tab loading on Membership Governance, loader on Membership Review + Committee Registry. Build OK, 382 tests pass.
+- Files created/modified/deleted: frontend/src/styles.scss, frontend/src/app/shared/section-loader/*, management/pages/{membership-governance, membership-review, committee-registry}, frontend/src/app/features/management/pages/committee-registry/committee-registry.component.ts, frontend/src/app/features/management/pages/membership-governance/membership-governance.component.ts, frontend/src/app/features/management/pages/membership-review/membership-review.component.ts, frontend/src/app/shared/section-loader/
+- Remaining work (exact): Phase 3: roll <app-section-loader> + responsive table/tab fixes to remaining ~45 management/member pages in batches; visual check at 360/768/1440 not done (needs running app)
+- Notes for the next agent: Initial bundle 512 kB vs 500 kB budget (was 510.9 before; pre-existing overage)
+
+### [SESSION-20261012-0613-claude] START
+- Agent: claude
+- Model: claude-sonnet-5-5
+- Started (UTC): 2026-10-12 06:13
+- User prompt: Complete all phases: roll section loader + responsive fixes across all remaining pages
+- Resumed from: SESSION-20261012-0545-claude
+- Plan: 4 parallel agents by area, then build/test/verify
+#### CHECKPOINTS
 
 ## ARCHIVE
 <!-- Sessions older than the last 10 move here, condensed to 3-5 lines each. -->

@@ -163,4 +163,31 @@
   .row-actions {
     justify-content: flex-start;
   }
+
+  .toggle-group {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .toggle-option {
+    flex: 1 1 auto;
+    min-height: 2.5rem;
+  }
+
+  .inline-add-input {
+    max-width: 7rem;
+  }
+
+  .manual-row input {
+    max-width: 6rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    flex: 1 1 100%;
+  }
 }

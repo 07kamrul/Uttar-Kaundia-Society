@@ -11,6 +11,7 @@ import type {
 } from '../../../../core/services/admin.service';
 import { FEE_MANAGER_PERMISSION, AuthService } from '../../../../core/services/auth.service';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 
@@ -57,6 +58,7 @@ const EMPTY_DRAFT: FeeTypeDraft = {
     ConfirmModalComponent,
     IconComponent,
     DatePickerComponent,
+    SectionLoaderComponent,
   ],
   templateUrl: './fee-settings.component.html',
   styleUrl: './fee-settings.component.scss',
@@ -72,7 +74,7 @@ export class FeeSettingsComponent implements OnInit {
   readonly canManage = this.auth.hasPermission(FEE_MANAGER_PERMISSION);
 
   feeTypes: AdminFeeType[] = [];
-  loading = false;
+  loading = true;
   error = '';
   search = '';
 
@@ -131,8 +133,8 @@ export class FeeSettingsComponent implements OnInit {
     }
   }
 
-  load(): void {
-    this.loading = true;
+  load(silent = false): void {
+    if (!silent) this.loading = true;
     this.adminService.getFeeTypes().subscribe({
       next: (data) => {
         this.feeTypes = data;
@@ -348,7 +350,7 @@ export class FeeSettingsComponent implements OnInit {
         this.draftUnit = '';
         this.draftStartDate = '';
         this.flashSuccess(this.translate.instant('admin.feeSettings.versionSaved'));
-        this.load();
+        this.load(true);
         this.cdr.markForCheck();
       },
       error: (err: unknown) => {
@@ -501,7 +503,7 @@ export class FeeSettingsComponent implements OnInit {
             done();
             this.flashSuccess(this.translate.instant('admin.feeSettings.feeTypeCreated'));
             this.draftKey = this.draft.key;
-            this.load();
+            this.load(true);
           },
           error: (err: unknown) => {
             this.feeTypeError =
@@ -524,7 +526,7 @@ export class FeeSettingsComponent implements OnInit {
       next: () => {
         done();
         this.flashSuccess(this.translate.instant('admin.feeSettings.feeTypeUpdated'));
-        this.load();
+        this.load(true);
       },
       error: (err: unknown) => {
         this.feeTypeError =
@@ -567,7 +569,7 @@ export class FeeSettingsComponent implements OnInit {
             ft.isActive ? 'admin.feeSettings.feeDeactivated' : 'admin.feeSettings.feeActivated',
           ),
         );
-        this.load();
+        this.load(true);
       },
       error: () => {
         this.error = this.translate.instant('admin.feeSettings.errors.saveFailed');

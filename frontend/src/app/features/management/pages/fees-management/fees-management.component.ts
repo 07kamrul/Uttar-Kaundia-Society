@@ -11,6 +11,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import type { AdminFeePayment, AdminFeeType } from '../../../../core/services/admin.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 
 /** Legacy member-catalog fee types whose labels come from i18n; catalog
@@ -36,7 +37,7 @@ type AdminFeeTypeOption = Pick<AdminFeeType, 'key' | 'labelBn' | 'labelEn'>;
   selector: 'app-fees-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, DatePickerComponent],
+  imports: [DecimalPipe, FormsModule, TranslatePipe, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './fees-management.component.html',
   styleUrl: './fees-management.component.scss',
 })
@@ -50,7 +51,7 @@ export class FeesManagementComponent implements OnInit {
   payments: AdminFeePayment[] = [];
   totalCollected = 0;
   count = 0;
-  loading = false;
+  loading = true;
   error = '';
 
   feeTypeFilter = '';

@@ -23,6 +23,7 @@ import {
 } from '../../../../core/services/member.service';
 import { ConfigListService } from '../../../../core/services/config-list.service';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 interface ExistingDocRow {
   docType: string;
@@ -43,7 +44,7 @@ const MAX_DOC_FILE_BYTES = 10 * 1024 * 1024;
   selector: 'app-property-request-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, IconComponent, TranslatePipe],
+  imports: [SectionLoaderComponent, FormsModule, IconComponent, TranslatePipe],
   templateUrl: './property-request-form.component.html',
   styleUrl: './property-request-form.component.scss',
 })

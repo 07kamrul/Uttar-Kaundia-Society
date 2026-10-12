@@ -13,9 +13,7 @@
   }
 
   @if (loading) {
-    <div class="loading-state">
-      <span class="spinner"></span> {{ 'common.loading' | translate }}
-    </div>
+    <app-section-loader variant="cards" [count]="3" />
   } @else {
     <h2 class="section-title" style="margin-bottom: 0.75rem">
       {{ 'events.upcoming' | translate }}

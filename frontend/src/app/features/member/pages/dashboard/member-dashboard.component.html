@@ -1,6 +1,6 @@
 <div class="gov-page">
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <app-section-loader variant="cards" [count]="3" />
   } @else if (error) {
     <div class="error-box"><p style="margin:0">{{ error }}</p></div>
   } @else if (profile) {

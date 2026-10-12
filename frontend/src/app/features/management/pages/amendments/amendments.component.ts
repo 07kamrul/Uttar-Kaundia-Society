@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { LanguageService } from '../../../../core/services/language.service';
 import {
@@ -16,7 +17,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   selector: 'app-amendments-admin',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -43,7 +44,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         <div class="filter-chips">
           @for (status of statusFilters; track status) {
             <button type="button" class="filter-chip" [class.filter-chip-active]="statusFilter() === status"
-                    (click)="setStatusFilter(status)">
+                    [disabled]="loading()" (click)="setStatusFilter(status)">
               {{ 'amendments.statuses.' + (status === 'all' ? 'all' : status) | translate }}
             </button>
           }
@@ -53,9 +54,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       <!-- Proposals -->
       <section class="card card-pad">
         @if (loading()) {
-          @for (i of [1, 2, 3]; track i) {
-            <div class="skeleton-line" style="height: 64px; margin-bottom: 8px"></div>
-          }
+          <app-section-loader variant="rows" [count]="3" />
         } @else if (proposals().length === 0) {
           <div class="ds-empty">{{ 'amendments.noProposals' | translate }}</div>
         } @else {
@@ -201,7 +200,9 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
         <h2 class="am-section-title">{{ 'amendments.versionsTitle' | translate }}</h2>
         <p class="field-hint">{{ 'amendments.versionsAdminHint' | translate }}</p>
 
-        @if (versions().length === 0) {
+        @if (versionsLoading()) {
+          <app-section-loader variant="rows" [count]="2" />
+        } @else if (versions().length === 0) {
           <div class="am-seed-form">
             <p class="field-hint">{{ 'amendments.seedHint' | translate }}</p>
             <div class="field">
@@ -294,14 +295,17 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       .am-meta { margin: 0; font-size: 0.82rem; color: var(--gray-600); }
       .am-rationale { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
       .am-action-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-      .am-action-row .field-control { min-width: 220px; }
+      .am-action-row .field-control { min-width: min(100%, 220px); }
+      .am-item { justify-items: stretch; }
+      .am-action-row .btn { min-height: 40px; }
+      @media (max-width: 640px) { .am-action-row > .btn { flex: 1 1 100%; } }
       .am-decision-form { width: 100%; display: grid; gap: 0.6rem; }
       .am-votes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; }
       .am-version-text { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin: 0; max-height: 320px; overflow-y: auto; width: 100%; }
       .am-dissolution-banner { display: flex; gap: 0.6rem; align-items: center; border-inline-start: 4px solid var(--gold, #c9a34c); }
       .am-seed-form { display: grid; gap: 0.6rem; max-width: 640px; }
       .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); display: grid; place-items: center; padding: 1rem; z-index: 60; }
-      .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); max-height: 85vh; overflow: auto; display: grid; gap: 0.6rem; }
+      .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); box-sizing: border-box; max-height: 85vh; overflow: auto; display: grid; gap: 0.6rem; }
       .error-box { color: var(--red-600, #9c3a2c); }
     `,
   ],
@@ -309,6 +313,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
 export class AmendmentsComponent implements OnInit {
   readonly statusFilters: (AmendmentStatus | 'all')[] = ['all', 'submitted', 'scheduled', 'adopted', 'rejected', 'withdrawn'];
   readonly loading = signal(true);
+  readonly versionsLoading = signal(true);
   readonly error = signal('');
   readonly actionError = signal('');
   readonly proposals = signal<AmendmentProposal[]>([]);
@@ -381,9 +386,16 @@ export class AmendmentsComponent implements OnInit {
   }
 
   loadVersions(): void {
+    this.versionsLoading.set(true);
     this.amendments.versions().subscribe({
-      next: (versions) => this.versions.set(versions),
-      error: () => this.versions.set([]),
+      next: (versions) => {
+        this.versions.set(versions);
+        this.versionsLoading.set(false);
+      },
+      error: () => {
+        this.versions.set([]);
+        this.versionsLoading.set(false);
+      },
     });
   }
 

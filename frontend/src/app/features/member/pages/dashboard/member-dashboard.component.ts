@@ -12,6 +12,7 @@ import { IconComponent } from '../../../../shared/icon/icon.component';
 import { MemberService, type MemberProfile } from '../../../../core/services/member.service';
 import type { Installment } from '../../../../core/models/admin.model';
 import { monthNameKey } from '../../../../shared/constants/months';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 interface RecentContribution {
   id: Installment['id'];
@@ -23,7 +24,7 @@ interface RecentContribution {
   selector: 'app-member-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, RouterLink, IconComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, RouterLink, IconComponent],
   templateUrl: './member-dashboard.component.html',
   styleUrl: './member-dashboard.component.scss',
 })

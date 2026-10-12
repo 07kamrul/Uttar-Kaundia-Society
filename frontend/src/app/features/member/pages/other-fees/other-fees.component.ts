@@ -19,6 +19,7 @@ import {
   OtherFeePayment,
   OtherFeeType,
 } from '../../../../core/services/other-fees.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 const MAX_ADDITIONAL_HEADS = 20;
 const RELATIONS = ['spouse', 'child', 'guest'] as const;
@@ -36,7 +37,7 @@ interface HeadLabel {
   selector: 'app-member-other-fees',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KeyValuePipe, FormsModule, TranslatePipe, DatePickerComponent, IconComponent],
+  imports: [SectionLoaderComponent, KeyValuePipe, FormsModule, TranslatePipe, DatePickerComponent, IconComponent],
   templateUrl: './other-fees.component.html',
   styleUrl: './other-fees.component.css',
 })

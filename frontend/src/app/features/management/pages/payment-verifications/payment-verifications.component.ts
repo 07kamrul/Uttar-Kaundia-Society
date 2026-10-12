@@ -8,6 +8,7 @@ import {
   type PaymentStatus,
 } from '../../../../core/services/installment-payment.service';
 import { monthNameKey } from '../../../../shared/constants/months';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 const FILTERS: readonly PaymentStatus[] = ['pending', 'approved', 'rejected'];
@@ -18,7 +19,7 @@ const MIN_REASON_LENGTH = 3;
   selector: 'app-payment-verifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
   templateUrl: './payment-verifications.component.html',
   styleUrl: './payment-verifications.component.scss',
 })
@@ -29,7 +30,7 @@ export class PaymentVerificationsComponent implements OnInit {
   readonly filters = FILTERS;
   readonly filter = signal<PaymentStatus>('pending');
   readonly payments = signal<AdminInstallmentPayment[]>([]);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly error = signal('');
   readonly busyId = signal<number | null>(null);
   readonly rejecting = signal<AdminInstallmentPayment | null>(null);
@@ -40,18 +41,24 @@ export class PaymentVerificationsComponent implements OnInit {
   }
 
   setFilter(status: PaymentStatus): void {
+    if (status === this.filter() && this.loading()) return;
     this.filter.set(status);
+    this.payments.set([]);
     this.load();
   }
 
   load(): void {
     this.loading.set(true);
-    this.service.listForAdmin(this.filter()).subscribe({
+    this.error.set('');
+    const requested = this.filter();
+    this.service.listForAdmin(requested).subscribe({
       next: (rows) => {
+        if (this.filter() !== requested) return;
         this.payments.set(rows);
         this.loading.set(false);
       },
       error: () => {
+        if (this.filter() !== requested) return;
         this.error.set(this.translate.instant('admin.paymentVerifications.loadError'));
         this.loading.set(false);
       },

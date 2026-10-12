@@ -40,7 +40,7 @@
   }
 
   @if (loading()) {
-    <div class="card roadmap-loading"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <div class="card"><app-section-loader variant="cards" [count]="3" /></div>
   } @else if (error()) {
     <div class="error-box" role="alert">
       <p style="margin:0 0 0.5rem">{{ 'member.roadmap.loadError' | translate }}</p>

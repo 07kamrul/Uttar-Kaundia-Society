@@ -11,7 +11,11 @@
   }
 
   @if (loading) {
-    <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+    <div class="card"><app-section-loader variant="rows" [count]="6" /></div>
+  } @else if (error && entries.length === 0) {
+    <div class="card card-pad">
+      <button type="button" class="btn btn-secondary" (click)="load()">{{ 'common.retry' | translate }}</button>
+    </div>
   } @else {
     <!-- Filters -->
     <div class="card card-pad" style="margin-bottom:1.5rem">

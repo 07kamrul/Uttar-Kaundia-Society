@@ -17,6 +17,7 @@ import {
 import { RegistersService, type WelfareActivity } from '../../../../core/services/registers.service';
 import { RoadmapSlidesComponent } from './roadmap-slides.component';
 import { renderRoadmapShareImage } from './roadmap-share-image';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 type StatusFilter = 'all' | RoadmapStatus;
 const STATUS_FILTERS: StatusFilter[] = ['all', 'in_progress', 'done', 'planned'];
@@ -37,7 +38,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-roadmap',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, RoadmapSlidesComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, IconComponent, RoadmapSlidesComponent],
   templateUrl: './roadmap.component.html',
   styleUrl: './roadmap.component.scss',
 })

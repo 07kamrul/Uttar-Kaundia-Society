@@ -13,8 +13,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import type { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import '../../../../shared/map/leaflet-geoman-setup';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PlotMapService } from '../../../../core/services/plot-map.service';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -62,7 +64,7 @@ export interface OverlapInfo {
   selector: 'app-plot-boundaries',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent],
   templateUrl: './plot-boundaries.component.html',
   styleUrl: './plot-boundaries.component.scss',
 })
@@ -92,6 +94,8 @@ export class PlotBoundariesComponent implements OnInit {
 
   // Detail preview (mini map + declared info + actions).
   readonly selected = signal<AdminBoundary | null>(null);
+  /** In-flight list request; a newer click cancels it so stale data never lands. */
+  private listSub: Subscription | null = null;
   private previewMap: L.Map | null = null;
   /** Keeps the preview map sized right when the panel is shown/hidden. */
   private previewResize: ResizeObserver | null = null;
@@ -104,6 +108,7 @@ export class PlotBoundariesComponent implements OnInit {
     inject(DestroyRef).onDestroy(() => {
       if (this.searchTimer) clearTimeout(this.searchTimer);
       this.previewResize?.disconnect();
+      this.listSub?.unsubscribe();
     });
   }
 
@@ -172,14 +177,16 @@ export class PlotBoundariesComponent implements OnInit {
       .subscribe({ next: (count) => this.pendingCount.set(count) });
   }
 
-  load(): void {
+  /** `silent` keeps the list/detail on screen (used after a write). */
+  load(silent = false): void {
+    this.listSub?.unsubscribe();
     if (this.tab() === 'disputes') {
-      this.loadDisputes();
+      this.loadDisputes(silent);
       return;
     }
-    this.loading.set(true);
+    if (!silent) this.loading.set(true);
     this.loadErrorKey.set(null);
-    this.plotMapService
+    this.listSub = this.plotMapService
       .adminList(this.statusFilter() || undefined, this.search().trim() || undefined, this.includeDeleted())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -199,10 +206,10 @@ export class PlotBoundariesComponent implements OnInit {
       });
   }
 
-  private loadDisputes(): void {
-    this.loading.set(true);
+  private loadDisputes(silent: boolean): void {
+    if (!silent) this.loading.set(true);
     this.loadErrorKey.set(null);
-    this.plotMapService
+    this.listSub = this.plotMapService
       .listDisputes(this.disputeFilter())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -360,7 +367,7 @@ export class PlotBoundariesComponent implements OnInit {
           this.approveOpen.set(false);
           this.selected.set(updated);
           this.statusMessage.set('admin.plotBoundaries.success.approved');
-          this.load();
+          this.load(true);
           this.loadPendingCount();
         },
         error: (err: unknown) => {
@@ -392,7 +399,7 @@ export class PlotBoundariesComponent implements OnInit {
           this.rejectOpen.set(false);
           this.selected.set(updated);
           this.statusMessage.set('admin.plotBoundaries.success.rejected');
-          this.load();
+          this.load(true);
           this.loadPendingCount();
         },
         error: (err: unknown) => {
@@ -429,7 +436,7 @@ export class PlotBoundariesComponent implements OnInit {
           this.deleteOpen.set(false);
           this.selected.set(updated);
           this.statusMessage.set('admin.plotBoundaries.success.deleted');
-          this.load();
+          this.load(true);
         },
         error: (err: unknown) => {
           this.deleting.set(false);
@@ -486,7 +493,7 @@ export class PlotBoundariesComponent implements OnInit {
           this.shapeFor.set(null);
           this.selected.set(created);
           this.statusMessage.set('admin.plotBoundaries.success.saved');
-          this.load();
+          this.load(true);
         },
         error: (err: unknown) => {
           this.addSaving.set(false);
@@ -664,7 +671,7 @@ export class PlotBoundariesComponent implements OnInit {
           this.closeShapeModal();
           this.selected.set(updated);
           this.statusMessage.set('admin.plotBoundaries.success.saved');
-          this.load();
+          this.load(true);
           this.schedulePreviewRender(updated);
         },
         error: (err: unknown) => {
@@ -741,7 +748,7 @@ export class PlotBoundariesComponent implements OnInit {
         next: () => {
           this.disputeSaving.set(false);
           this.disputeResolveTarget.set(null);
-          this.loadDisputes();
+          this.loadDisputes(true);
         },
         error: (err: unknown) => {
           this.disputeSaving.set(false);

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import type { ConfigListItem } from '../../../../core/models/admin.model';
 
@@ -21,14 +22,15 @@ const CATEGORIES = [
   selector: 'app-config-lists',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
   templateUrl: './config-lists.component.html',
 })
 export class ConfigListsComponent implements OnInit {
   readonly categories = CATEGORIES;
   selectedCategory = CATEGORIES[0];
   items: ConfigListItem[] = [];
-  loading = false;
+  loading = true;
+  loadFailed = false;
   error = '';
 
   draftValue = '';
@@ -56,11 +58,13 @@ export class ConfigListsComponent implements OnInit {
   selectCategory(category: string): void {
     this.selectedCategory = category;
     this.editingId = null;
+    this.items = [];
     this.load();
   }
 
-  load(): void {
-    this.loading = true;
+  load(silent = false): void {
+    if (!silent) this.loading = true;
+    this.loadFailed = false;
     this.adminService.listConfigListItems(this.selectedCategory).subscribe({
       next: (data) => {
         this.items = data;
@@ -69,6 +73,7 @@ export class ConfigListsComponent implements OnInit {
       },
       error: () => {
         this.error = this.translate.instant('admin.configLists.errors.loadFailed');
+        this.loadFailed = !silent;
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -93,7 +98,7 @@ export class ConfigListsComponent implements OnInit {
           this.saving = false;
           this.draftValue = '';
           this.draftLabel = '';
-          this.load();
+          this.load(true);
         },
         error: (err) => {
           this.saveError =
@@ -187,7 +192,7 @@ export class ConfigListsComponent implements OnInit {
                 this.error = this.translate.instant('admin.configLists.errors.saveFailed');
                 this.togglingId = null;
                 // Reload to resync server-side sort order.
-                this.load();
+                this.load(true);
               },
             });
         },

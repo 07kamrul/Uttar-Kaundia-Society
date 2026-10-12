@@ -12,24 +12,26 @@ import {
 } from '../../../../core/services/fund-controls.service';
 import type { SocietyCostSummary } from '../../../../core/services/society-cost.service';
 import type { SubmissionSummary } from '../../../../core/models/admin.model';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe],
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })
 export class AdminDashboardComponent implements OnInit {
   pending: SubmissionSummary[] = [];
-  loading = false;
+  loading = true;
   error = '';
 
   readonly canManageCosts: boolean;
   costSummary: SocietyCostSummary | null = null;
-  costSummaryLoading = false;
+  costSummaryLoading = true;
+  financeLoading = true;
 
   readonly canManageFinance: boolean;
   readonly canManageAudit: boolean;
@@ -52,6 +54,8 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.costSummaryLoading = this.canManageCosts;
+    this.financeLoading = this.canManageFinance;
     if (this.canManageCosts) this.loadCostSummary();
     if (this.canManageFinance) this.loadFinanceOverview();
     if (this.canManageAudit) this.loadAuditReminder();
@@ -90,13 +94,16 @@ export class AdminDashboardComponent implements OnInit {
 
   /** Fund widget: pending approvals, this month's net, current balance. */
   private loadFinanceOverview(): void {
+    this.financeLoading = true;
     this.financeService.overview().subscribe({
       next: (overview) => {
         this.financeOverview = overview;
+        this.financeLoading = false;
         this.cdr.markForCheck();
       },
       error: () => {
         this.financeOverview = null;
+        this.financeLoading = false;
         this.cdr.markForCheck();
       },
     });

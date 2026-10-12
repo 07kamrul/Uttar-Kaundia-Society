@@ -22,6 +22,7 @@
           type="button"
           class="filter-chip"
           [class.filter-chip-active]="statusFilter === filter"
+          [disabled]="loading"
           (click)="setStatusFilter(filter)"
         >
           {{ 'admin.events.filters.' + filter | translate }}
@@ -31,6 +32,7 @@
     <select
       [(ngModel)]="categoryFilter"
       (ngModelChange)="onCategoryFilter()"
+      [disabled]="loading"
       class="filter-select"
       [attr.aria-label]="'admin.events.filters.category' | translate"
     >
@@ -165,13 +167,7 @@
   }
 
   @if (loading) {
-    <div class="loading-state">
-      <div class="skeleton-rows">
-        @for (row of [1, 2, 3]; track row) {
-          <div class="skeleton-row"></div>
-        }
-      </div>
-    </div>
+    <div class="card"><app-section-loader variant="rows" [count]="4" /></div>
   } @else if (error && !events.length) {
     <div class="card card-pad empty-state">
       <p>{{ error }}</p>

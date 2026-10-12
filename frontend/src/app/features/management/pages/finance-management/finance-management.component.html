@@ -30,7 +30,9 @@
   </div>
 
   <!-- Committee overview: what needs attention right now -->
-  @if (overview) {
+  @if (overviewLoading) {
+    <app-section-loader variant="cards" [count]="3" />
+  } @else if (overview) {
     <div class="overview-grid">
       <button type="button" class="stat-card overview-stat" (click)="setStatusFilter('pending')">
         <div class="stat-card-icon stat-icon-due">
@@ -95,6 +97,7 @@
             type="button"
             class="filter-chip"
             [class.filter-chip-active]="statusFilter === filter"
+            [disabled]="loading && statusFilter === filter"
             (click)="setStatusFilter(filter)"
           >
             {{ 'admin.financeManagement.status.' + (filter === 'all' ? 'all' : filter) | translate }}
@@ -149,13 +152,7 @@
   </div>
 
   @if (loading) {
-    <div class="card skeleton-card">
-      <div class="skeleton-rows">
-        @for (row of [1, 2, 3, 4, 5]; track row) {
-          <div class="skeleton-row"></div>
-        }
-      </div>
-    </div>
+    <app-section-loader variant="rows" [count]="5" />
   } @else if (error) {
     <div class="card card-pad error-card">
       <p>{{ error }}</p>
@@ -569,7 +566,7 @@
               />
             </div>
             @if (paymentLoading) {
-              <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+              <app-section-loader variant="rows" [count]="3" />
             } @else {
               <ul class="payment-list">
                 @for (payment of paymentOptions; track payment.sourceType + '-' + payment.sourceId) {

@@ -200,11 +200,7 @@
   }
 
   @if (loading) {
-    <div class="card" style="padding:1rem" aria-hidden="true">
-      @for (row of [1, 2, 3]; track row) {
-        <div class="fee-skeleton-row"></div>
-      }
-    </div>
+    <div class="card"><app-section-loader variant="rows" [count]="3" /></div>
   } @else if (historyError) {
     <div class="error-box"><p style="margin:0">{{ historyError }}</p></div>
   } @else {

@@ -8,6 +8,7 @@ import {
   type WelfareActivity,
   type WelfareActivityType,
 } from '../../../../core/services/registers.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
 
@@ -15,7 +16,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
   selector: 'app-welfare-activities',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <div class="page-header">
@@ -24,7 +25,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
           <p class="page-subtitle">{{ 'welfareActivities.subtitle' | translate }}</p>
         </div>
         <div class="header-actions">
-          <button type="button" class="btn btn-secondary" (click)="downloadPdf()" [disabled]="pdfBusy">
+          <button type="button" class="btn btn-secondary" (click)="downloadPdf()" [disabled]="pdfBusy()">
             {{ 'welfareActivities.downloadPdf' | translate }}
           </button>
           <button type="button" class="btn btn-primary" (click)="openForm()">
@@ -34,11 +35,14 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       </div>
 
       @if (error()) {
-        <div class="card card-pad error-box" role="alert">{{ error() }}</div>
+        <div class="card card-pad error-box" role="alert">
+          {{ error() }}
+          <button type="button" class="btn btn-secondary btn-sm" (click)="load()">{{ 'common.retry' | translate }}</button>
+        </div>
       }
 
       <div class="am-toolbar">
-        <select class="field-control" [(ngModel)]="typeFilter" (ngModelChange)="load()">
+        <select class="field-control" [(ngModel)]="typeFilter" (ngModelChange)="load()" [disabled]="loading()">
           <option value="">{{ 'welfareActivities.allTypes' | translate }}</option>
           @for (type of activityTypes; track type) {
             <option [value]="type">{{ 'welfareActivities.types.' + type | translate }}</option>
@@ -48,9 +52,9 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
 
       <section class="card">
         @if (loading()) {
-          @for (i of [1, 2, 3]; track i) {
-            <div class="skeleton-line" style="height: 48px; margin-bottom: 8px"></div>
-          }
+          <app-section-loader variant="rows" [count]="3" />
+        } @else if (error() && activities().length === 0) {
+          <!-- error box above carries the retry -->
         } @else if (activities().length === 0) {
           <div class="ds-empty">{{ 'welfareActivities.empty' | translate }}</div>
         } @else {
@@ -119,11 +123,11 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
                 <label for="wa-outcome">{{ 'welfareActivities.outcome' | translate }}</label>
                 <textarea id="wa-outcome" class="field-control" rows="3" name="outcome" [(ngModel)]="formOutcome"></textarea>
               </div>
-              @if (formError) {
-                <p class="field-error">{{ formError }}</p>
+              @if (formError()) {
+                <p class="field-error">{{ formError() }}</p>
               }
               <div class="wa-modal-actions">
-                <button type="submit" class="btn btn-primary" [disabled]="busy">
+                <button type="submit" class="btn btn-primary" [disabled]="busy()">
                   {{ 'common.save' | translate }}
                 </button>
                 <button type="button" class="btn btn-secondary" (click)="formOpen = false">
@@ -150,7 +154,14 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       .wa-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
       .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); display: grid; place-items: center; padding: 1rem; z-index: 60; }
       .modal-card { background: var(--surface, #fff); border-radius: 0.6rem; padding: 1.25rem; width: min(560px, 100%); max-height: 85vh; overflow: auto; }
-      .wa-modal-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+      .wa-modal-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+      @media (max-width: 640px) {
+        .am-toolbar .field-control { max-width: none; width: 100%; }
+        .header-actions { width: 100%; }
+        .header-actions .btn, .wa-modal-actions .btn { flex: 1 1 100%; min-height: 2.5rem; }
+        .wa-actions .btn { min-height: 2.5rem; }
+        .modal-card { padding: 1rem; max-height: 92vh; }
+      }
       .error-box { color: var(--red-600, #9c3a2c); }
     `,
   ],
@@ -170,9 +181,9 @@ export class WelfareActivitiesComponent implements OnInit {
   formParticipants = 0;
   formOrganizer = '';
   formOutcome = '';
-  formError = '';
-  busy = false;
-  pdfBusy = false;
+  readonly formError = signal('');
+  readonly busy = signal(false);
+  readonly pdfBusy = signal(false);
 
   private readonly registers = inject(RegistersService);
   private readonly language = inject(LanguageService);
@@ -187,8 +198,9 @@ export class WelfareActivitiesComponent implements OnInit {
     return localizeDigits(value, this.lang());
   }
 
-  load(): void {
-    this.loading.set(true);
+  load(silent = false): void {
+    if (!silent) this.loading.set(true);
+    this.error.set('');
     this.registers
       .activities({ activityType: this.typeFilter || undefined })
       .subscribe({
@@ -197,7 +209,7 @@ export class WelfareActivitiesComponent implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('welfareActivities.loadError');
+          this.error.set(this.translate.instant('welfareActivities.loadError'));
           this.loading.set(false);
         },
       });
@@ -211,14 +223,14 @@ export class WelfareActivitiesComponent implements OnInit {
     this.formParticipants = activity?.participantsCount ?? 0;
     this.formOrganizer = activity?.organizer ?? '';
     this.formOutcome = activity?.outcome ?? '';
-    this.formError = '';
+    this.formError.set('');
     this.formOpen = true;
   }
 
   save(): void {
-    if (this.busy) return;
-    this.busy = true;
-    this.formError = '';
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.formError.set('');
     const input = {
       activityDate: this.formDate,
       title: this.formTitle.trim(),
@@ -232,32 +244,33 @@ export class WelfareActivitiesComponent implements OnInit {
       : this.registers.createActivity(input);
     request$.subscribe({
       next: () => {
-        this.busy = false;
+        this.busy.set(false);
         this.formOpen = false;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
-        this.busy = false;
-        this.formError =
+        this.busy.set(false);
+        this.formError.set(
           (typeof err?.error?.detail === 'string' && err.error.detail) ||
-          this.translate.instant('common.saveFailed');
+            this.translate.instant('common.saveFailed'),
+        );
       },
     });
   }
 
   remove(activity: WelfareActivity): void {
     this.registers.deleteActivity(activity.id).subscribe({
-      next: () => this.load(),
+      next: () => this.load(true),
       error: () => this.error.set(this.translate.instant('common.saveFailed')),
     });
   }
 
   downloadPdf(): void {
-    if (this.pdfBusy) return;
-    this.pdfBusy = true;
+    if (this.pdfBusy()) return;
+    this.pdfBusy.set(true);
     this.registers.downloadActivitiesPdf().subscribe({
       next: (blob) => {
-        this.pdfBusy = false;
+        this.pdfBusy.set(false);
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
@@ -268,7 +281,7 @@ export class WelfareActivitiesComponent implements OnInit {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       },
       error: () => {
-        this.pdfBusy = false;
+        this.pdfBusy.set(false);
         this.error.set(this.translate.instant('common.loadFailed'));
       },
     });

@@ -12,12 +12,13 @@ import {
   SocietyCostService,
   type CostSplitShare,
 } from '../../../../core/services/society-cost.service';
+import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 @Component({
   selector: 'app-member-cost-shares',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, IconComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, IconComponent],
   templateUrl: './cost-shares.component.html',
   styleUrl: './cost-shares.component.scss',
 })

@@ -42,8 +42,20 @@
   color: var(--emerald-800);
 }
 
+.filter-chip:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
 .filter-select {
   max-width: 16rem;
+}
+
+@media (max-width: 640px) {
+  .filter-select {
+    max-width: none;
+    width: 100%;
+  }
 }
 
 .form-card {

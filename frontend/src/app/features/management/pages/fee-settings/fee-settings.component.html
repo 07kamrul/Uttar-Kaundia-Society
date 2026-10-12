@@ -25,6 +25,9 @@
   <!-- ============ Add New Version ============ -->
   <div class="card card-pad section-card">
     <h2 class="section-title">{{ 'admin.feeSettings.addVersion' | translate }}</h2>
+    @if (loading && feeTypes.length === 0) {
+      <app-section-loader variant="form" [count]="3" />
+    } @else {
     <form (ngSubmit)="openVersionConfirm()">
       <div class="form-grid">
         <div class="field">
@@ -134,6 +137,7 @@
         </div>
       }
     </form>
+    }
     @if (saveError) {
       <p class="error-box" style="margin-top:0.75rem;margin-bottom:0">{{ saveError }}</p>
     }
@@ -142,6 +146,9 @@
   <!-- ============ Fee Calculator ============ -->
   <div class="card card-pad section-card">
     <h2 class="section-title">{{ 'admin.feeSettings.calculator.title' | translate }}</h2>
+    @if (loading && feeTypes.length === 0) {
+      <app-section-loader variant="form" [count]="3" />
+    } @else {
     <div class="form-grid">
       <div class="field">
         <label for="calcFeeKey">{{ 'admin.feeSettings.form.key' | translate }}</label>
@@ -204,6 +211,7 @@
         }
       }
     </div>
+    }
     @if (calcError) {
       <p class="error-box" style="margin:0.75rem 0 0">{{ calcError }}</p>
     }
@@ -218,11 +226,7 @@
     </div>
 
     @if (loading) {
-      <div class="skeleton-list" aria-hidden="true">
-        @for (row of [1, 2, 3, 4]; track row) {
-          <div class="fee-skeleton-row"></div>
-        }
-      </div>
+      <app-section-loader variant="rows" [count]="4" />
     } @else if (feeTypes.length === 0) {
       <div class="empty-state empty-state-block">
         <span class="empty-state-icon"><app-icon name="coin" [size]="22" /></span>
@@ -276,7 +280,7 @@
                   <td [attr.data-label]="'admin.feeSettings.table.startDate' | translate">
                     {{ ft.currentVersion?.startDate ?? '—' }}</td>
                   <td [attr.data-label]="'admin.feeSettings.table.history' | translate">
-                    <button type="button" class="btn btn-ghost btn-sm btn-icon" (click)="toggleHistory(ft)"
+                    <button type="button" class="btn btn-ghost btn-sm btn-icon" [disabled]="loadingHistory && expandedKey !== ft.key" (click)="toggleHistory(ft)"
                       [attr.aria-expanded]="expandedKey === ft.key">
                       <span class="prop-chevron"
                         [style.transform]="expandedKey === ft.key ? 'rotate(180deg)' : 'none'">
@@ -310,7 +314,7 @@
                   <tr>
                     <td colspan="7">
                       @if (loadingHistory) {
-                        <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>
+                        <app-section-loader variant="rows" [count]="2" />
                       } @else {
                         <div class="table-scroll">
                           <table class="data-table history-table">
