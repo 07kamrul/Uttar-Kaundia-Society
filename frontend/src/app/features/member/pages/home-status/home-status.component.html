@@ -1,0 +1,97 @@
+<div class="home-status">
+  <h1 class="page-title">{{ 'home.status.title' | translate }}</h1>
+
+  <section class="card status-card" data-testid="next-step" aria-live="polite">
+    <h2 class="card-label">{{ 'home.status.nextStep' | translate }}</h2>
+    @if (profileCard.state() === 'error') {
+      <p>{{ 'home.status.loadError' | translate }}</p>
+      <button type="button" class="btn btn-secondary" data-testid="retry" (click)="loadProfile()">{{ 'common.retry' | translate }}</button>
+    } @else if (nextStep(); as step) {
+      @switch (step.kind) {
+        @case ('pending') {
+          <p class="status-text">{{ 'home.status.pending' | translate }}</p>
+        }
+        @case ('needs_dag') {
+          <p class="status-text">{{ 'home.status.needsDag' | translate }}</p>
+        }
+        @case ('dues') {
+          <p class="status-text">{{ 'home.status.dues' | translate: { amount: (step.amount | taka) } }}</p>
+        }
+        @default {
+          <p class="status-text status-ok">{{ 'home.status.ok' | translate }}</p>
+        }
+      }
+    } @else {
+      <app-section-loader variant="cards" [count]="1" />
+    }
+  </section>
+
+  <section class="card dues-card" data-testid="card-dues">
+    <h2 class="card-label">{{ 'home.duesCard' | translate }}</h2>
+    @switch (duesCard.state()) {
+      @case ('loading') {
+        <app-section-loader variant="cards" [count]="1" />
+      }
+      @case ('error') {
+        <p>{{ 'home.status.loadError' | translate }}</p>
+        <button type="button" class="btn btn-secondary" data-testid="retry" (click)="loadDues()">{{ 'common.retry' | translate }}</button>
+      }
+      @default {
+        <strong class="dues-amount">{{ duesCard.data() | taka }}</strong>
+        <a class="btn btn-primary dues-pay" data-testid="dues-pay" [routerLink]="payRoute" [queryParams]="payQuery">
+          {{ 'member.payments.payNow' | translate }}
+        </a>
+      }
+    }
+  </section>
+
+  <section class="card" data-testid="card-notice">
+    <h2 class="card-label">{{ 'home.latestNotice' | translate }}</h2>
+    @switch (noticeCard.state()) {
+      @case ('loading') {
+        <app-section-loader variant="cards" [count]="1" />
+      }
+      @case ('error') {
+        <p>{{ 'home.status.loadError' | translate }}</p>
+        <button type="button" class="btn btn-secondary" data-testid="retry" (click)="loadNotice()">{{ 'common.retry' | translate }}</button>
+      }
+      @default {
+        @if (noticeCard.data(); as n) {
+          <a class="item-link" [routerLink]="['/notices', n.id]">{{ n.title }}</a>
+        } @else {
+          <p class="muted">{{ 'home.noNotice' | translate }}</p>
+        }
+      }
+    }
+  </section>
+
+  <section class="card" data-testid="card-event">
+    <h2 class="card-label">{{ 'home.nextEvent' | translate }}</h2>
+    @switch (eventCard.state()) {
+      @case ('loading') {
+        <app-section-loader variant="cards" [count]="1" />
+      }
+      @case ('error') {
+        <p>{{ 'home.status.loadError' | translate }}</p>
+        <button type="button" class="btn btn-secondary" data-testid="retry" (click)="loadEvent()">{{ 'common.retry' | translate }}</button>
+      }
+      @default {
+        @if (eventCard.data(); as e) {
+          <a class="item-link" [routerLink]="['/events', e.id]">{{ e.title }}</a>
+          <p class="muted">{{ e.startAt | bnDate }}@if (e.location) { · {{ e.location }} }</p>
+        } @else {
+          <p class="muted">{{ 'home.noEvent' | translate }}</p>
+        }
+      }
+    }
+  </section>
+
+  <div class="shortcuts">
+    @for (s of shortcuts; track s.labelKey) {
+      <a class="shortcut" data-testid="shortcut" [routerLink]="s.route" [queryParams]="s.query ?? null">
+        <app-icon [name]="s.icon" [size]="32" />
+        <span>{{ s.labelKey | translate }}</span>
+      </a>
+    }
+  </div>
+</div>

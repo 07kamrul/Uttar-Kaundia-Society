@@ -103,3 +103,15 @@
     }
   }
 }
+
+.tab-count {
+  display: inline-block;
+  margin-left: 0.35rem;
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--emerald-600, #059669);
+  color: #fff;
+  font-size: 0.8rem;
+  text-align: center;
+}

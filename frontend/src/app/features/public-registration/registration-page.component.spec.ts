@@ -267,7 +267,7 @@ describe('RegistrationPageComponent', () => {
       const cfg = http.expectOne((r) => r.url.endsWith('/public/registration-config'));
       expect(cfg.request.method).toBe('GET');
       cfg.flush({ consent_version: '2027-01', payment_accounts: [] });
-      http.match(() => true).forEach((r) => r.flush({ admission_fee: 1 }));
+      flushInitial();
     });
 
     it('keeps working when the config endpoint fails', () => {

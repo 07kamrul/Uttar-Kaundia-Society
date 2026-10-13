@@ -8,6 +8,12 @@ const KNOWN_DETAIL_CODES: ReadonlySet<string> = new Set([
   'DAG_REQUIRED',
   'ABROAD_ADDRESS_REQUIRED',
   'DAG_REQUIRED_FIELD',
+  'SHARE_NOT_FOUND',
+  'SHARE_ALREADY_PAID',
+  'DUPLICATE_TRANSACTION_REF',
+  'AMOUNT_EXCEEDS_REMAINING',
+  'FEATURE_DISABLED',
+  'INVALID_BD_MOBILE',
 ]);
 
 function knownCodeKey(err: HttpErrorResponse): string | null {

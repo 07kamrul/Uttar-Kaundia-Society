@@ -15,12 +15,10 @@ import { debounceTime } from 'rxjs';
 import {
   ALLOWED_DOC_MIME_TYPES,
   MAX_DOC_FILE_BYTES,
-  MFS_PAYMENT_METHODS,
   ORG_BANK_INFO,
   ORG_MFS_INFO,
   PAYMENT_METHODS,
   PAYMENT_METHOD_KEYS,
-  type PaymentAccount,
   type RegistrationConfig,
   SubscriptionQuote,
 } from '../../../../core/models/registration.model';
@@ -29,17 +27,9 @@ import { propertiesArray } from '../../registration-form.builder';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { TakaPipe } from '../../../../shared/pipes/bn-pipes';
 import { prepareUpload, readAsDataUrl } from '../../file-upload';
+import { PaymentMethodPickerComponent } from '../../../../shared/payment-method/payment-method-picker.component';
+import { referenceLabelKey } from '../../../../shared/payment-method/payment-methods';
 import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
-
-const COPIED_RESET_MS = 2000;
-const METHOD_ICONS: Record<string, string> = {
-  cash: '💵',
-  bkash: '📱',
-  nagad: '📱',
-  rocket: '📱',
-  bank: '🏦',
-  other: '➕',
-};
 
 const SUBSCRIPTION_QUOTE_DEBOUNCE_MS = 400;
 
@@ -47,7 +37,7 @@ const SUBSCRIPTION_QUOTE_DEBOUNCE_MS = 400;
   selector: 'app-payment-info',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe, TakaPipe],
+  imports: [ReactiveFormsModule, TranslatePipe, TakaPipe, PaymentMethodPickerComponent],
   templateUrl: './payment-info.component.html',
 })
 export class PaymentInfoComponent implements OnInit {
@@ -65,7 +55,6 @@ export class PaymentInfoComponent implements OnInit {
   readonly subscriptionBusyChange = output<boolean>();
   readonly paymentMethods = PAYMENT_METHODS;
   readonly methodKeys = PAYMENT_METHOD_KEYS;
-  readonly copiedNumber = signal<string | null>(null);
   readonly subscriptionQuote = signal<SubscriptionQuote | null>(null);
   readonly subscriptionLoading = signal(false);
   readonly subscriptionError = signal(false);
@@ -183,55 +172,7 @@ export class PaymentInfoComponent implements OnInit {
 
   /** TrxID for mobile banking, receipt number for cash, bank and other. */
   get referenceLabelKey(): string {
-    return MFS_PAYMENT_METHODS.includes(this.selectedMethod)
-      ? 'registration.simplified.payment.refTrx'
-      : 'registration.simplified.payment.refReceipt';
-  }
-
-  /** Society account details for the chosen method: from the server, else the built-in ones. */
-  get accounts(): PaymentAccount[] {
-    const method = this.selectedMethod;
-    const fromServer = (this.config?.paymentAccounts ?? []).filter((a) => a.method === method);
-    if (fromServer.length > 0) return fromServer;
-    if (MFS_PAYMENT_METHODS.includes(method)) {
-      return [
-        {
-          method,
-          label: `${ORG_MFS_INFO.number} (${ORG_MFS_INFO.type})`,
-          number: ORG_MFS_INFO.number,
-          accountName: null,
-        },
-      ];
-    }
-    if (method === 'bank') {
-      return [
-        {
-          method,
-          label: `${ORG_BANK_INFO.bankName}, ${ORG_BANK_INFO.branch} — ${ORG_BANK_INFO.accountName}, ${ORG_BANK_INFO.accountNumber}`,
-          number: ORG_BANK_INFO.accountNumber,
-          accountName: ORG_BANK_INFO.accountName,
-        },
-      ];
-    }
-    return [];
-  }
-
-  methodIcon(key: string): string {
-    return METHOD_ICONS[key] ?? '';
-  }
-
-  async copyNumber(number: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(number);
-    } catch {
-      return; // Clipboard blocked: the details stay visible to copy by hand.
-    }
-    this.copiedNumber.set(number);
-    this.cdr.markForCheck();
-    setTimeout(() => {
-      this.copiedNumber.set(null);
-      this.cdr.markForCheck();
-    }, COPIED_RESET_MS);
+    return referenceLabelKey(this.selectedMethod);
   }
 
   get isBankSelected(): boolean {

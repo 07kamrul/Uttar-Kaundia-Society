@@ -1,0 +1,12 @@
+.hub-page { display: flex; flex-direction: column; gap: 1rem; }
+.hub-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+@media (min-width: 640px) { .hub-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.hub-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 7rem; padding: 1rem 0.5rem; text-align: center; text-decoration: none; color: inherit;
+  border: 2px solid var(--gray-300, #d1d5db); border-radius: 1rem; background: var(--surface, #fff);
+}
+.hub-tile:hover { border-color: var(--emerald-600, #059669); }
+.hub-tile.is-highlight { border-color: var(--emerald-600, #059669); background: var(--emerald-50, #ecfdf5); grid-column: 1 / -1; }
+.hub-tile-label { font-weight: 700; font-size: 1.05rem; }
+.hub-badge { padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--emerald-600, #059669); color: #fff; font-size: 0.85rem; }

@@ -11,6 +11,7 @@ import {
   GovernanceService,
   SlaInfo,
 } from '../../../../core/services/governance.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
 
@@ -59,6 +60,12 @@ function saveBlob(blob: Blob, filename: string): void {
           <span class="gov-tile-name">{{ 'complaintsModule.landFormLink' | translate }}</span>
           <span class="gov-tile-hint">{{ 'member.dashboard.tiles.land' | translate }}</span>
         </a>
+        @if (mergedEntries) {
+          <a class="gov-tile" routerLink="/service-standard">
+            <span class="gov-tile-icon"><app-icon name="check-circle" [size]="19" /></span>
+            <span class="gov-tile-name">{{ 'nav.serviceStandard' | translate }}</span>
+          </a>
+        }
         <a class="gov-tile" routerLink="/emergency-help">
           <span class="gov-tile-icon"><app-icon name="alert" [size]="19" /></span>
           <span class="gov-tile-name">{{ 'complaintsModule.emergencyLink' | translate }}</span>
@@ -201,6 +208,10 @@ function saveBlob(blob: Blob, filename: string): void {
 export class ComplaintsComponent implements OnInit {
   private readonly governance = inject(GovernanceService);
   private readonly language = inject(LanguageService);
+  private readonly flags = inject(FeatureFlagService);
+
+  /** nav_merged_entries: the service standard moved here from the menu. */
+  readonly mergedEntries = this.flags.isEnabled('nav_merged_entries');
   readonly lang = this.language.lang;
 
   readonly constants = signal<ComplaintConstants | null>(null);

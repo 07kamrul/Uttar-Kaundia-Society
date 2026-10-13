@@ -1,3 +1,4 @@
+import { HelplineCardComponent } from './helpline-card.component';
 import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -22,7 +23,7 @@ const CATEGORIES = [
   selector: 'app-config-lists',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, HelplineCardComponent],
   templateUrl: './config-lists.component.html',
 })
 export class ConfigListsComponent implements OnInit {

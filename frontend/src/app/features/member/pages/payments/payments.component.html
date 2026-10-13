@@ -1,0 +1,118 @@
+<div class="payments-page">
+  <div class="page-header">
+    <h1 class="page-title">{{ 'member.payments.title' | translate }}</h1>
+  </div>
+
+  @if (thanks()) {
+    <div class="success-box" role="status">{{ 'member.pay.submitted' | translate }}</div>
+  }
+
+  @switch (summaryState()) {
+    @case ('loading') {
+      <app-section-loader variant="cards" [count]="2" />
+    }
+    @case ('error') {
+      <div class="error-box" role="alert">
+        <p>{{ 'member.payments.loadError' | translate }}</p>
+        <button type="button" class="btn btn-secondary" data-testid="summary-retry" (click)="loadSummary()">
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
+    }
+    @default {
+      @if (summary(); as s) {
+        <div class="pay-cards">
+          <div class="card pay-card pay-card-due" data-testid="card-due">
+            <span class="pay-card-label">{{ 'member.payments.myDue' | translate }}</span>
+            <strong class="pay-card-value">{{ s.totalDue | taka }}</strong>
+            @if (s.totalDue <= 0 && s.dues.length === 0) {
+              <span class="pay-card-note">{{ 'member.payments.emptyDue' | translate }}</span>
+            }
+          </div>
+          <div class="card pay-card" data-testid="card-paid">
+            <span class="pay-card-label">{{ 'member.payments.paid' | translate }}</span>
+            <strong class="pay-card-value">{{ s.totalPaid | taka }}</strong>
+          </div>
+        </div>
+        @if (s.pendingCount > 0) {
+          <p class="pay-chip" data-testid="chip-pending">
+            {{ 'member.payments.verifying' | translate }} {{ s.pendingAmount | taka }}
+          </p>
+        }
+      }
+    }
+  }
+
+  <button type="button" class="btn btn-primary pay-now" data-testid="pay-now" [disabled]="summaryState() !== 'ready'" (click)="openPay()">
+    {{ 'member.payments.payNow' | translate }}
+  </button>
+
+  <section class="pay-history" aria-labelledby="payHistoryTitle">
+    <h2 id="payHistoryTitle" class="section-title">{{ 'member.payments.historyTitle' | translate }}</h2>
+
+    <div class="chip-row" role="group" [attr.aria-label]="'member.payments.historyTitle' | translate">
+      <button type="button" class="chip" data-testid="kind-all" [class.is-active]="kind() === null" [attr.aria-pressed]="kind() === null" (click)="setKind(null)">
+        {{ 'member.payments.all' | translate }}
+      </button>
+      @for (k of kinds; track k) {
+        <button type="button" class="chip" [attr.data-testid]="'kind-' + k" [class.is-active]="kind() === k" [attr.aria-pressed]="kind() === k" (click)="setKind(k)">
+          {{ 'member.payments.kind.' + k | translate }}
+        </button>
+      }
+    </div>
+    <div class="chip-row" role="group">
+      <button type="button" class="chip" data-testid="status-all" [class.is-active]="status() === null" [attr.aria-pressed]="status() === null" (click)="setStatus(null)">
+        {{ 'member.payments.all' | translate }}
+      </button>
+      @for (st of statuses; track st) {
+        <button type="button" class="chip" [attr.data-testid]="'status-' + st" [class.is-active]="status() === st" [attr.aria-pressed]="status() === st" (click)="setStatus(st)">
+          {{ 'member.payments.statusName.' + st | translate }}
+        </button>
+      }
+    </div>
+
+    @if (historyState() === 'error') {
+      <div class="error-box" role="alert">
+        <p>{{ 'member.payments.loadError' | translate }}</p>
+        <button type="button" class="btn btn-secondary" data-testid="history-retry" (click)="retryHistory()">
+          {{ 'common.retry' | translate }}
+        </button>
+      </div>
+    } @else {
+      <ul class="history-list">
+        @for (item of items(); track item.kind + item.id) {
+          <li class="card history-row" data-testid="history-row">
+            <div class="history-main">
+              <strong>{{ item.title | payTitle: item.kind }}</strong>
+              <small>{{ 'member.payments.kind.' + item.kind | translate }} · {{ item.date | bnDate }}</small>
+              @if (item.reference) {
+                <small class="history-ref">{{ item.reference }}</small>
+              }
+            </div>
+            <div class="history-side">
+              <strong>{{ item.amount | taka }}</strong>
+              <span class="status-chip" [class]="'status-chip status-' + item.status">
+                {{ 'member.payments.status.' + item.status | translate: { reason: item.rejectionReason ?? '' } }}
+              </span>
+            </div>
+          </li>
+        } @empty {
+          @if (historyState() === 'ready') {
+            <li class="empty-state"><p class="empty-title">{{ 'member.payments.emptyHistory' | translate }}</p></li>
+          }
+        }
+      </ul>
+      @if (historyState() === 'loading') {
+        <app-section-loader variant="cards" [count]="2" />
+      } @else if (hasMore) {
+        <button type="button" class="btn btn-secondary" data-testid="history-more" (click)="loadHistory(false)">
+          {{ 'member.payments.loadMore' | translate }}
+        </button>
+      }
+    }
+  </section>
+</div>
+
+@if (dialogOpen() && summary(); as s) {
+  <app-pay-flow-dialog [summary]="s" [preselect]="preselect()" (closed)="closePay()" (finished)="onFinished()" />
+}

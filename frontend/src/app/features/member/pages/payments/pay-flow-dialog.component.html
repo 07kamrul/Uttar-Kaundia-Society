@@ -1,0 +1,230 @@
+<div class="modal-backdrop" (click)="!submitting() && closed.emit()">
+  <div
+    class="modal-card modal-card-wide pay-flow"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="payFlowTitle"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="pay-flow-head">
+      <h3 class="modal-title" id="payFlowTitle">
+        {{ (step() === 1 ? 'member.pay.step1Title' : 'member.pay.step2Title') | translate }}
+      </h3>
+      <button type="button" class="btn-icon" [attr.aria-label]="'member.pay.close' | translate" (click)="closed.emit()">
+        <app-icon name="x" [size]="18" />
+      </button>
+    </div>
+
+    @if (step() === 1) {
+      @if (isEmpty()) {
+        <p class="pay-flow-empty">{{ 'member.payments.emptyDue' | translate }}</p>
+      } @else {
+        @if (dues().length > 0 || pendingDues().length > 0) {
+          <h4 class="pay-flow-group">{{ 'member.payments.myDue' | translate }}</h4>
+          <ul class="pay-flow-list">
+            @for (due of dues(); track dueId(due)) {
+              <li>
+                <label class="pay-flow-row" [class.is-selected]="isSelected(dueId(due))">
+                  <input
+                    type="checkbox"
+                    [attr.data-testid]="'due-' + dueId(due).replace(':', '-')"
+                    [checked]="isSelected(dueId(due))"
+                    (change)="toggle(dueId(due))"
+                  />
+                  <span class="pay-flow-name">
+                    {{ due.title | payTitle: due.kind }}
+                    <small class="pay-flow-kind">{{ 'member.payments.kind.' + due.kind | translate }}</small>
+                  </span>
+                  <span class="pay-flow-amount">{{ due.amount | taka }}</span>
+                </label>
+              </li>
+            }
+            @for (due of pendingDues(); track dueId(due)) {
+              <li class="pay-flow-row pay-flow-row-pending" data-testid="pending-due">
+                <span class="pay-flow-name">
+                  {{ due.title | payTitle: due.kind }}
+                  <small class="pay-flow-kind">{{ 'member.payments.kind.' + due.kind | translate }}</small>
+                </span>
+                <span class="status-chip status-pending">{{ 'member.payments.status.pending' | translate }}</span>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (fees().length > 0) {
+          <h4 class="pay-flow-group">{{ 'member.payments.kind.other_fee' | translate }}</h4>
+          <ul class="pay-flow-list">
+            @for (fee of fees(); track fee.key) {
+              <li>
+                <label class="pay-flow-row" [class.is-selected]="isSelected(feeId(fee))">
+                  <input
+                    type="checkbox"
+                    [attr.data-testid]="'fee-' + fee.key"
+                    [checked]="isSelected(feeId(fee))"
+                    (change)="toggle(feeId(fee))"
+                  />
+                  <span class="pay-flow-name">{{ fee.label }}</span>
+                  <span class="pay-flow-amount">
+                    @if (fee.calculation !== 'variable') {
+                      {{ feeAmount(fee) | taka }}
+                    }
+                  </span>
+                </label>
+                @if (isSelected(feeId(fee))) {
+                  @if (fee.calculation === 'picnic') {
+                    <div class="pay-flow-extra">
+                      <span>{{ 'member.pay.extraHeads' | translate }}</span>
+                      <div class="pay-flow-stepper">
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          data-testid="heads-minus"
+                          [attr.aria-label]="'member.pay.fewer' | translate"
+                          [disabled]="headsOf(fee) === 0"
+                          (click)="changeHeads(fee, -1)"
+                        >
+                          −
+                        </button>
+                        <output class="pay-flow-count">{{ headsOf(fee) }}</output>
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          data-testid="heads-plus"
+                          [attr.aria-label]="'member.pay.more' | translate"
+                          [disabled]="headsOf(fee) >= maxHeads"
+                          (click)="changeHeads(fee, 1)"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  } @else if (fee.calculation === 'variable') {
+                    <div class="pay-flow-extra">
+                      <label [for]="'amt-' + fee.key">{{ 'member.pay.customAmount' | translate }}</label>
+                      <input
+                        [id]="'amt-' + fee.key"
+                        class="pay-flow-input"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        [attr.data-testid]="'amount-' + fee.key"
+                        [value]="amountOf(fee) || ''"
+                        (input)="setAmount(fee, $any($event.target).value)"
+                      />
+                    </div>
+                  }
+                }
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      <div class="pay-flow-footer">
+        <div class="pay-flow-total">
+          <span>{{ 'member.pay.total' | translate }}</span>
+          <strong data-testid="total">{{ total() | taka }}</strong>
+        </div>
+        <button type="button" class="btn btn-primary tap" data-testid="next" [disabled]="!canNext()" (click)="goTo(2)">
+          {{ 'member.pay.next' | translate }}
+        </button>
+      </div>
+    } @else {
+      <app-payment-method-picker [method]="method()" [serverAccounts]="accounts()" (methodChange)="method.set($event)" />
+
+      <div class="pay-flow-field">
+        <label for="payFlowRef" data-testid="reference-label">{{ referenceLabel | translate }} *</label>
+        <input
+          id="payFlowRef"
+          class="pay-flow-input"
+          type="text"
+          autocomplete="off"
+          maxlength="64"
+          data-testid="reference"
+          [value]="reference()"
+          [attr.aria-invalid]="referenceTouched() && !referenceValid"
+          (input)="onReferenceInput($event)"
+          (blur)="referenceTouched.set(true)"
+        />
+        @if (referenceTouched() && !referenceValid) {
+          <p class="field-error">{{ 'member.payDues.transactionRefError' | translate }}</p>
+        }
+      </div>
+
+      <div class="pay-flow-field">
+        <label for="payFlowDate">{{ 'member.pay.paidOn' | translate }}</label>
+        <input
+          id="payFlowDate"
+          class="pay-flow-input"
+          type="date"
+          data-testid="paid-on"
+          [max]="today"
+          [value]="paidOn()"
+          (input)="onDateInput($event)"
+        />
+      </div>
+
+      <div class="pay-flow-field">
+        <span class="pay-flow-label">{{ 'registration.simplified.payment.screenshot' | translate }}</span>
+        @if (proof(); as file) {
+          <div class="pay-flow-file">
+            <span class="pay-flow-filename">{{ file.name }}</span>
+            <button type="button" class="btn btn-ghost" (click)="removeProof()">
+              {{ 'registration.payment.removeFile' | translate }}
+            </button>
+          </div>
+        } @else {
+          <label class="btn btn-secondary pay-flow-attach">
+            <span aria-hidden="true">📎</span> {{ 'registration.simplified.payment.screenshot' | translate }}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,application/pdf"
+              class="visually-hidden"
+              data-testid="proof"
+              (change)="onProofSelected($event)"
+            />
+          </label>
+        }
+        @if (proofError()) {
+          <p class="field-error">{{ proofError() }}</p>
+        }
+      </div>
+
+      <p class="pay-flow-abroad" data-testid="abroad-note">
+        {{ 'registration.simplified.payment.abroadNote' | translate }}
+      </p>
+
+      @if (results().length > 0) {
+        <div class="pay-flow-results" data-testid="results" role="alert">
+          <p class="pay-flow-results-title">{{ summaryLine }}</p>
+          <ul>
+            @for (r of results(); track $index) {
+              <li [class.is-failed]="!r.ok">
+                <strong>{{ r.label }}</strong>
+                —
+                @if (r.ok) {
+                  {{ 'member.payments.status.recorded' | translate }}
+                } @else if (r.errorKey) {
+                  {{ r.errorKey | translate }}
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="pay-flow-footer">
+        <div class="pay-flow-total">
+          <span>{{ 'member.pay.total' | translate }}</span>
+          <strong>{{ total() | taka }}</strong>
+        </div>
+        <button type="button" class="btn btn-secondary" data-testid="back" [disabled]="submitting()" (click)="goTo(1)">
+          {{ 'member.pay.back' | translate }}
+        </button>
+        <button type="button" class="btn btn-primary tap" data-testid="submit" [disabled]="!canSubmit" (click)="submit()">
+          {{ (submitting() ? 'member.pay.submitting' : 'member.pay.submit') | translate }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

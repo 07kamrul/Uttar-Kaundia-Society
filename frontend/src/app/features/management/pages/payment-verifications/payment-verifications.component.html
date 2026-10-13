@@ -6,6 +6,15 @@
     </div>
   </div>
 
+  <div class="tab-row" role="tablist" [attr.aria-label]="'admin.paymentVerifications.title' | translate">
+    @for (k of kinds; track k) {
+      <button type="button" role="tab" class="tab" [attr.data-testid]="'kind-' + k" [class.active]="kind() === k" [attr.aria-selected]="kind() === k" (click)="setKind(k)">
+        {{ 'admin.paymentVerifications.kind.' + k | translate }}
+        @if (countOf(k); as n) { <span class="tab-count">{{ n | bnNumber }}</span> }
+      </button>
+    }
+  </div>
+
   <div class="tab-row" role="tablist">
     @for (f of filters; track f) {
       <button type="button" role="tab" class="tab" [class.active]="filter() === f" [attr.aria-selected]="filter() === f" [disabled]="loading() && filter() === f" (click)="setFilter(f)">
@@ -27,7 +36,7 @@
           <div class="pv-card-head">
             <div>
               <p class="pv-member">{{ p.memberName || '—' }} <span class="pv-member-id">{{ p.memberDisplayId }}</span></p>
-              <p class="pv-months">{{ months(p) }}</p>
+              <p class="pv-months">{{ p.headline }}</p>
             </div>
             <strong class="pv-amount">৳ {{ formatAmount(p.amount) }}</strong>
           </div>
@@ -36,6 +45,9 @@
             <div><dt>{{ 'admin.paymentVerifications.method' | translate }}</dt><dd>{{ p.method }}</dd></div>
             <div><dt>{{ 'admin.paymentVerifications.reference' | translate }}</dt><dd class="pv-mono">{{ p.transactionRef }}</dd></div>
             <div><dt>{{ 'admin.paymentVerifications.paidOn' | translate }}</dt><dd>{{ p.paidOn }}</dd></div>
+            @if (p.remaining !== null) {
+              <div><dt>{{ 'admin.paymentVerifications.remaining' | translate }}</dt><dd>৳ {{ p.remaining | bnNumber }}</dd></div>
+            }
             @if (p.senderAccount) {
               <div><dt>{{ 'admin.paymentVerifications.sender' | translate }}</dt><dd>{{ p.senderAccount }}</dd></div>
             }
@@ -54,10 +66,10 @@
               </a>
             }
             @if (p.status === 'pending') {
-              <button type="button" class="btn btn-danger btn-sm" [disabled]="busyId() === p.id" (click)="openReject(p)">
+              <button type="button" class="btn btn-danger btn-sm" data-testid="reject" [disabled]="busyId() === p.id" (click)="openReject(p)">
                 {{ 'admin.paymentVerifications.reject' | translate }}
               </button>
-              <button type="button" class="btn btn-primary btn-sm" [disabled]="busyId() === p.id" (click)="approve(p)">
+              <button type="button" class="btn btn-primary btn-sm" data-testid="approve" [disabled]="busyId() === p.id" (click)="approve(p)">
                 <app-icon name="check" [size]="14" /> {{ 'admin.paymentVerifications.approve' | translate }}
               </button>
             }
@@ -84,7 +96,7 @@
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" (click)="rejecting.set(null)">{{ 'admin.paymentVerifications.cancel' | translate }}</button>
-          <button type="button" class="btn btn-danger" [disabled]="!canReject" (click)="confirmReject()">
+          <button type="button" class="btn btn-danger" data-testid="confirm-reject" [disabled]="!canReject" (click)="confirmReject()">
             {{ 'admin.paymentVerifications.reject' | translate }}
           </button>
         </div>

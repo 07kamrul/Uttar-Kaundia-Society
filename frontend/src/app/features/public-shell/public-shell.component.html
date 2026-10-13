@@ -32,6 +32,9 @@
         >
           <app-icon [name]="theme.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
         </button>
+        @if (fiveAreas) {
+          <app-lang-switch />
+        } @else {
         <button
           type="button"
           class="btn btn-ghost btn-sm"
@@ -41,6 +44,7 @@
         >
           {{ lang.lang() === 'bn' ? 'EN' : 'অ-A' }}
         </button>
+        }
       </div>
       <button
         type="button"

@@ -58,7 +58,7 @@ export interface OtherFeePaymentPayload {
   additionalPeople?: { name: string; relation: string }[];
 }
 
-interface OtherFeeTypeApi {
+export interface OtherFeeTypeApi {
   key: string;
   label: string;
   calculation: string;
@@ -91,7 +91,7 @@ interface OtherFeeHistoryPageApi {
   summary: { total_paid: number; by_type: Record<string, number> };
 }
 
-function toFeeType(api: OtherFeeTypeApi): OtherFeeType {
+export function toFeeType(api: OtherFeeTypeApi): OtherFeeType {
   return {
     key: api.key,
     label: api.label,

@@ -1,0 +1,45 @@
+<div class="hub-page">
+  <div class="page-header">
+    <h1 class="page-title">{{ titleKey | translate }}</h1>
+  </div>
+
+  <div class="hub-grid">
+    @for (tile of mainTiles(); track tile.route) {
+      <a class="hub-tile" data-testid="hub-tile" [routerLink]="tile.route" [class.is-highlight]="isElection(tile)">
+        <app-icon [name]="tile.icon" [size]="28" />
+        <span class="hub-tile-label">{{ tile.labelKey | translate }}</span>
+        @if (isElection(tile)) {
+          <span class="hub-badge">{{ 'hub.electionActive' | translate }}</span>
+        }
+      </a>
+    }
+  </div>
+
+  @if (helpTiles().length > 0) {
+    <section data-testid="group-help" aria-labelledby="hubHelp">
+      <h2 id="hubHelp" class="section-title">{{ 'hub.complaintsHelp' | translate }}</h2>
+      <div class="hub-grid">
+        @for (tile of helpTiles(); track tile.route) {
+          <a class="hub-tile" data-testid="hub-tile" [routerLink]="tile.route">
+            <app-icon [name]="tile.icon" [size]="28" />
+            <span class="hub-tile-label">{{ tile.labelKey | translate }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  @if (moreTiles().length > 0) {
+    <section data-testid="group-more" aria-labelledby="hubMore">
+      <h2 id="hubMore" class="section-title">{{ 'hub.more' | translate }}</h2>
+      <div class="hub-grid">
+        @for (tile of moreTiles(); track tile.route) {
+          <a class="hub-tile" data-testid="hub-tile" [routerLink]="tile.route">
+            <app-icon [name]="tile.icon" [size]="28" />
+            <span class="hub-tile-label">{{ tile.labelKey | translate }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>

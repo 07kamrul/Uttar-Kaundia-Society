@@ -22,6 +22,9 @@
         @if (welcomeName) {
           <span class="topbar-welcome">{{ 'welcome' | translate: { name: welcomeName } }}</span>
         }
+        @if (fiveAreas) {
+          <app-lang-switch />
+        }
         <div class="topbar-user-menu">
           <button
             type="button"
@@ -38,6 +41,7 @@
           @if (isUserMenuOpen) {
             <div class="topbar-menu-backdrop" (click)="closeUserMenu()"></div>
             <div class="topbar-menu-panel" role="menu">
+              @if (!fiveAreas) {
               <button
                 type="button"
                 class="topbar-menu-item"
@@ -61,6 +65,7 @@
                 }}</span>
               </button>
               <div class="topbar-menu-divider" role="separator"></div>
+              }
               <button
                 type="button"
                 class="topbar-menu-item topbar-menu-item-danger"
@@ -107,6 +112,18 @@
           <div class="sidebar-section">
             <p class="sidebar-section-title">{{ section.labelKey | translate }}</p>
             @for (item of section.items; track item.route) {
+              @if (item.area) {
+                <a
+                  [routerLink]="item.route"
+                  class="sidebar-link sidebar-link-admin"
+                  [class.active]="isAreaActive(item)"
+                  [attr.aria-current]="isAreaActive(item) ? 'page' : null"
+                  (click)="closeSidebar()"
+                >
+                  <app-icon [name]="item.icon" [size]="19" />
+                  <span>{{ item.labelKey | translate }}</span>
+                </a>
+              } @else {
               <a
                 [routerLink]="item.route"
                 routerLinkActive="active"
@@ -116,7 +133,11 @@
               >
                 <app-icon [name]="item.icon" [size]="19" />
                 <span>{{ item.labelKey | translate }}</span>
+                @if (item.route === '/payment-verifications' && pendingVerifications() > 0) {
+                  <span class="sidebar-badge" data-testid="pending-badge">{{ pendingVerifications() | bnNumber }}</span>
+                }
               </a>
+              }
             }
           </div>
         }
@@ -127,10 +148,30 @@
       <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
     }
 
-    <main class="app-content">
+    <main class="app-content" [class.has-bottom-bar]="showBottomBar">
       <router-outlet />
     </main>
   </div>
+
+  @if (showBottomBar) {
+    <nav class="bottom-bar" data-testid="bottom-bar" [attr.aria-label]="'nav.areasLabel' | translate">
+      @for (item of areaItems; track item.route) {
+        <a
+          class="bottom-bar-link"
+          [routerLink]="item.route"
+          [class.active]="isAreaActive(item)"
+          [attr.aria-current]="isAreaActive(item) ? 'page' : null"
+        >
+          <app-icon [name]="item.icon" [size]="22" />
+          <span class="bottom-bar-label">{{ item.labelKey | translate }}</span>
+        </a>
+      }
+    </nav>
+  }
+
+  @if (showHelpFab) {
+    <app-help-fab />
+  }
 
   <footer class="site-footer">
     {{ 'footer.prototypeNotice' | translate }}

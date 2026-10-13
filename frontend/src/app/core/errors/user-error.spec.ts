@@ -121,6 +121,12 @@ describe('known server detail codes', () => {
     [409, 'DAG_REQUIRED', 'errors.code.DAG_REQUIRED'],
     [422, 'ABROAD_ADDRESS_REQUIRED', 'errors.code.ABROAD_ADDRESS_REQUIRED'],
     [422, 'DAG_REQUIRED_FIELD', 'errors.code.DAG_REQUIRED_FIELD'],
+    [404, 'SHARE_NOT_FOUND', 'errors.code.SHARE_NOT_FOUND'],
+    [409, 'SHARE_ALREADY_PAID', 'errors.code.SHARE_ALREADY_PAID'],
+    [409, 'DUPLICATE_TRANSACTION_REF', 'errors.code.DUPLICATE_TRANSACTION_REF'],
+    [422, 'AMOUNT_EXCEEDS_REMAINING', 'errors.code.AMOUNT_EXCEEDS_REMAINING'],
+    [404, 'FEATURE_DISABLED', 'errors.code.FEATURE_DISABLED'],
+    [422, 'INVALID_BD_MOBILE', 'errors.code.INVALID_BD_MOBILE'],
   ])('maps %i %s to a friendly key', (status, code, key) => {
     expect(toUserMessageKey(httpError(status, { detail: { code } }))).toBe(key);
   });
@@ -130,7 +136,7 @@ describe('known server detail codes', () => {
     expect(toUserMessageKey(httpError(422, { detail: 'PHOTO_REQUIRED' }))).toBe('errors.validation');
   });
 
-  it.each(['PHOTO_REQUIRED', 'PROPERTY_PROOF_REQUIRED', 'DAG_REQUIRED', 'ABROAD_ADDRESS_REQUIRED', 'DAG_REQUIRED_FIELD'])(
+  it.each(['PHOTO_REQUIRED', 'PROPERTY_PROOF_REQUIRED', 'DAG_REQUIRED', 'ABROAD_ADDRESS_REQUIRED', 'DAG_REQUIRED_FIELD', 'SHARE_NOT_FOUND', 'SHARE_ALREADY_PAID', 'DUPLICATE_TRANSACTION_REF', 'AMOUNT_EXCEEDS_REMAINING', 'FEATURE_DISABLED', 'INVALID_BD_MOBILE'])(
     'has plain Bangla and English text for %s',
     (code) => {
       const bnText = lookup(bn, `errors.code.${code}`) as string;

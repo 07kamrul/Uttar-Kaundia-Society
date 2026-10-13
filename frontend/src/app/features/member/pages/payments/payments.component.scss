@@ -1,0 +1,22 @@
+.payments-page { display: flex; flex-direction: column; gap: 1rem; }
+.pay-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; }
+.pay-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem; }
+.pay-card-label { color: var(--gray-600, #4b5563); }
+.pay-card-value { font-size: 1.6rem; }
+.pay-card-due .pay-card-value { color: var(--emerald-700, #047857); }
+.pay-card-note { color: var(--gray-600, #4b5563); }
+.pay-chip { display: inline-block; align-self: flex-start; margin: 0; padding: 0.35rem 0.8rem; border-radius: 999px; background: #fffbeb; color: #92400e; font-weight: 600; }
+.pay-now { min-height: 56px; font-size: 1.1rem; width: 100%; max-width: 24rem; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+.chip { min-height: 44px; padding: 0 1rem; border: 1px solid var(--gray-300, #d1d5db); border-radius: 999px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.chip.is-active { background: var(--emerald-600, #059669); border-color: var(--emerald-600, #059669); color: #fff; }
+.history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.history-row { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem; }
+.history-main, .history-side { display: flex; flex-direction: column; gap: 0.2rem; }
+.history-side { align-items: flex-end; text-align: right; }
+.history-ref { font-family: monospace; }
+.status-chip { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; background: var(--gray-100, #f3f4f6); }
+.status-pending { background: #fffbeb; color: #92400e; }
+.status-approved, .status-recorded { background: #ecfdf5; color: #047857; }
+.status-rejected { background: #fef2f2; color: #b91c1c; }
+.success-box { padding: 0.75rem 1rem; border-radius: 0.5rem; background: #ecfdf5; color: #047857; font-weight: 600; }

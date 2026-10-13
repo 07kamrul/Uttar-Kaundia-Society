@@ -23,6 +23,8 @@ import {
   type MemberProfileUpdatePayload,
 } from '../../../../core/services/member.service';
 import { AttachmentService } from '../../../../core/services/attachment.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { ProfileDisplayComponent } from './profile-display.component';
 import { MyDataPanelComponent } from './my-data-panel.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -69,6 +71,7 @@ const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
     PhoneLinkComponent,
     ConfirmModalComponent,
     MyDataPanelComponent,
+    ProfileDisplayComponent,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -129,10 +132,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private sanitizedFrameUrl: SafeResourceUrl | null = null;
   private sanitizedFrameUrlFor: string | null | undefined = undefined;
 
+  private readonly flags = inject(FeatureFlagService);
+
   constructor(
     private memberService: MemberService,
     private translate: TranslateService,
   ) {}
+
+  /** nav_five_areas: the theme toggle and account links live on the profile page. */
+  get fiveAreas(): boolean {
+    return this.flags.isEnabled('nav_five_areas');
+  }
 
   ngOnInit(): void {
     this.loading = true;

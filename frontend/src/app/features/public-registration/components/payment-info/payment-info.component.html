@@ -32,43 +32,15 @@
 
   <div class="field" role="radiogroup" [attr.aria-label]="'registration.simplified.payment.methodTitle' | translate">
     <label class="method-title">{{ 'registration.simplified.payment.methodTitle' | translate }} <span class="required">*</span></label>
-    <div class="method-cards">
-      @for (key of methodKeys; track key) {
-        <button
-          type="button"
-          role="radio"
-          class="method-card tap-48"
-          [attr.data-testid]="'method-' + key"
-          [attr.aria-checked]="selectedMethod === key"
-          [class.is-selected]="selectedMethod === key"
-          (click)="selectMethod(key)"
-        >
-          <span aria-hidden="true">{{ methodIcon(key) }}</span>
-          {{ 'registration.simplified.payment.methods.' + key | translate }}
-        </button>
-      }
-    </div>
+    <app-payment-method-picker
+      [method]="selectedMethod"
+      [serverAccounts]="config?.paymentAccounts ?? []"
+      (methodChange)="selectMethod($event)"
+    />
     @if (showError('paymentMethod')) {
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
     }
   </div>
-
-  @if (accounts.length > 0) {
-    <div class="account-box" data-testid="account-box">
-      <h3>{{ 'registration.simplified.payment.accountTitle' | translate }}</h3>
-      @for (account of accounts; track $index) {
-        <div class="account-row">
-          <span class="account-details">{{ account.label }}</span>
-          @if (account.number) {
-            <button type="button" class="btn btn-secondary tap-48" data-testid="copy-account" (click)="copyNumber(account.number)">
-              <span aria-hidden="true">📋</span>
-              {{ (copiedNumber() === account.number ? 'registration.simplified.payment.copied' : 'registration.simplified.payment.copy') | translate }}
-            </button>
-          }
-        </div>
-      }
-    </div>
-  }
 
   <div class="field">
     <label for="receiptNo">{{ referenceLabelKey | translate }}</label>

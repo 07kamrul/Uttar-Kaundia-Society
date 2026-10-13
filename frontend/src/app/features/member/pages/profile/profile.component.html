@@ -53,6 +53,10 @@
       </div>
     </div>
 
+    @if (fiveAreas) {
+      <app-profile-display />
+    }
+
     @if (profile.status === 'pending') {
       <div class="profile-banner profile-banner-warning">
         <app-icon name="alert" [size]="18" />
