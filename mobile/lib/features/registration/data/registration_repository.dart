@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/utils/file_utils.dart';
+import '../domain/reg_flags.dart';
 import '../domain/registration_payload_mapper.dart';
 import '../domain/registration_form.dart';
 import '../domain/submission_error_mapper.dart';
@@ -19,16 +20,28 @@ class SubmissionResult {
 /// 'payload' JSON field + member_photo + receipt_photo + doc_files[] whose
 /// order matches each property's applicable_docs flattened in property order.
 class RegistrationRepository {
-  RegistrationRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  RegistrationRepository({required ApiClient apiClient, RegFlags Function()? flagsProvider})
+      : _apiClient = apiClient,
+        _flagsProvider = flagsProvider;
 
   final ApiClient _apiClient;
+
+  /// Read at submit time so flags that finished loading after the wizard
+  /// opened still apply. Null means all flags off (today's behaviour).
+  final RegFlags Function()? _flagsProvider;
 
   Future<SubmissionResult> submit(
     RegistrationForm form, {
     required String admissionFee,
     required String subscription,
   }) async {
-    final payload = buildRegistrationPayload(form, admissionFee: admissionFee, subscription: subscription);
+    final payload = buildRegistrationPayload(
+      form,
+      admissionFee: admissionFee,
+      subscription: subscription,
+      flags: _flagsProvider?.call() ?? RegFlags.off,
+      consentVersion: form.consentVersion,
+    );
 
     final formData = FormData();
     formData.fields.add(MapEntry('payload', jsonEncode(payload)));

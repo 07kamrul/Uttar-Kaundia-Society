@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Integer, JSON, String
+from sqlalchemy import Boolean, ForeignKey, Integer, JSON, String, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -17,6 +17,11 @@ class Property(Base):
     khatian_no: Mapped[str | None] = mapped_column(String(128), nullable=True)
     dag_no_cs: Mapped[str | None] = mapped_column(String(128), nullable=True)
     dag_no_rs: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # True when the applicant does not know the dag; an admin fills it in
+    # before approval (see needs_dag on the member).
+    dag_unknown: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
     holding_number: Mapped[str | None] = mapped_column(String(128), nullable=True)
     land_quantity: Mapped[str | None] = mapped_column(String(128), nullable=True)
     my_share_quantity: Mapped[str | None] = mapped_column(String(128), nullable=True)
@@ -29,6 +34,13 @@ class Property(Base):
     )
     applicable_docs: Mapped[list["ApplicableDoc"]] = relationship(
         back_populates="property", cascade="all, delete-orphan"
+    )
+
+
+def property_needs_dag(prop: "Property") -> bool:
+    """Dag was declared unknown and no admin has filled either dag yet."""
+    return bool(prop.dag_unknown) and not (
+        (prop.dag_no_cs or "").strip() or (prop.dag_no_rs or "").strip()
     )
 
 

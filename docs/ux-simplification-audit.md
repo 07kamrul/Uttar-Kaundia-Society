@@ -278,6 +278,13 @@ Each batch ships with before/after screenshots, build and test status, metrics, 
 - **Screenshots:** via a seed script with fake data only, run by the owner on staging, never production.
 - **Order:** (1) admin installments/fee-payments permission fix, (2) cache docs and wiring as a separate change, (3) Batch 0.
 
+**Update (2026-10-13, after staging passed):**
+- **Members abroad — address:** a "বিদেশে থাকি" toggle for the current address (country, city, free-text address). The permanent address stays in Bangladesh.
+- **Members abroad — payment:** same methods as everyone else, plus a note that a relative in Bangladesh may pay on the member's behalf; TrxID/receipt and screenshot as usual. No international transfer option.
+- **Helpline / WhatsApp:** left blank; the help button stays hidden until an admin enters numbers.
+- **Screenshots:** not required ("no need this portion"); batches report build/test status and metrics only.
+- **Branching:** work is pushed to `origin/staging`, not `main`.
+
 ## 14. Original questions (answered in §13)
 
 1. R1–R10: yes or no for each.

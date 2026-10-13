@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/layout/responsive.dart';
+import '../../../../core/network/api_error_messages.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/phone_display.dart';
@@ -23,6 +24,8 @@ const Duration _refreshTimeout = Duration(seconds: 20);
 String describeApiError(BuildContext context, Object? error) {
   final loc = AppLocalizations.of(context);
   if (error is ApiException) {
+    final byCode = apiErrorCodeMessage(loc, error.errorCode);
+    if (byCode != null) return byCode;
     if (error.isNetwork) return loc.commonNetworkError;
     if (error.isUnauthorized) return loc.commonUnauthorized;
     if (error.isBusiness && error.businessMessage != null) {

@@ -82,4 +82,36 @@ void main() {
       expect(msgs.toSet().length, msgs.length);
     }
   });
+
+  group('structured detail codes', () {
+    ApiException coded(int status, String code) => ApiException(
+          type: status == 422 ? ApiExceptionType.validation : ApiExceptionType.server,
+          statusCode: status,
+          errorCode: code,
+        );
+
+    test('422 PHOTO_REQUIRED / PROPERTY_PROOF_REQUIRED have their own messages', () {
+      for (final l in [bn, en]) {
+        expect(apiErrorMessage(l, coded(422, 'PHOTO_REQUIRED')), l.apiErrorPhotoRequired);
+        expect(apiErrorMessage(l, coded(422, 'PROPERTY_PROOF_REQUIRED')),
+            l.apiErrorPropertyProofRequired);
+        expect(l.apiErrorPhotoRequired, isNot(l.apiErrorInvalidInput));
+        expect(l.apiErrorPropertyProofRequired, isNot(l.apiErrorInvalidInput));
+      }
+    });
+
+    test('409 DAG_REQUIRED is a plain message, not the generic conflict', () {
+      for (final l in [bn, en]) {
+        final m = apiErrorMessage(l, coded(409, 'DAG_REQUIRED'));
+        expect(m, l.apiErrorDagRequired);
+        expect(m, isNot(l.apiErrorConflict));
+      }
+      expect(bn.apiErrorDagRequired, contains('দাগ'));
+    });
+
+    test('unknown codes fall back to the status mapping', () {
+      expect(apiErrorMessage(bn, coded(409, 'SOMETHING_ELSE')), bn.apiErrorConflict);
+      expect(apiErrorMessage(bn, coded(422, 'SOMETHING_ELSE')), bn.apiErrorInvalidInput);
+    });
+  });
 }

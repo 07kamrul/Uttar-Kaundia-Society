@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/layout/responsive.dart';
+import '../../../../core/validation/bd_input.dart' show toAsciiDigits;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
@@ -180,6 +181,7 @@ class SubmissionAttachmentsCard extends StatelessWidget {
     required this.submission,
     required this.busy,
     required this.onReplace,
+    this.onUploadMemberPhoto,
   });
 
   final SubmissionDetail submission;
@@ -187,6 +189,9 @@ class SubmissionAttachmentsCard extends StatelessWidget {
 
   /// (attachment kind, picked local path).
   final void Function(String kind, String path) onReplace;
+
+  /// Upload the member photo on the member's behalf (shown when it is missing).
+  final ValueChanged<String>? onUploadMemberPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +212,14 @@ class SubmissionAttachmentsCard extends StatelessWidget {
                 label: loc.adminSubmissionDetailFieldsMemberPhoto,
                 url: s.memberPhotoUrl,
                 busy: busy,
-                onPicked: (path) => onReplace('member_photo', path),
+                uploadLabel: (s.memberPhotoUrl == null || s.memberPhotoUrl!.isEmpty) &&
+                        onUploadMemberPhoto != null
+                    ? loc.adminPhotoUploadButton
+                    : null,
+                onPicked: (path) => (s.memberPhotoUrl == null || s.memberPhotoUrl!.isEmpty) &&
+                        onUploadMemberPhoto != null
+                    ? onUploadMemberPhoto!(path)
+                    : onReplace('member_photo', path),
               ),
               _AttachmentTile(
                 label: loc.adminSubmissionDetailFieldsReceiptPhoto,
@@ -235,12 +247,14 @@ class _AttachmentTile extends StatelessWidget {
     required this.url,
     required this.busy,
     required this.onPicked,
+    this.uploadLabel,
   });
 
   final String label;
   final String? url;
   final bool busy;
   final ValueChanged<String> onPicked;
+  final String? uploadLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +273,7 @@ class _AttachmentTile extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: AppButton(
-            label: loc.adminSubmissionDetailUploadAgain,
+            label: uploadLabel ?? loc.adminSubmissionDetailUploadAgain,
             icon: Icons.upload_outlined,
             variant: AppButtonVariant.ghost,
             onPressed: busy
@@ -340,6 +354,7 @@ class SubmissionPropertiesCard extends StatelessWidget {
     required this.submission,
     required this.busy,
     required this.onReplaceDocument,
+    this.onFillDag,
   });
 
   final SubmissionDetail submission;
@@ -347,6 +362,9 @@ class SubmissionPropertiesCard extends StatelessWidget {
 
   /// (document id, picked local path).
   final void Function(String docId, String path) onReplaceDocument;
+
+  /// (property id, CS dag, RS dag) - null values were left blank.
+  final void Function(String propertyId, String? dagNoCs, String? dagNoRs)? onFillDag;
 
   @override
   Widget build(BuildContext context) {
@@ -371,6 +389,7 @@ class SubmissionPropertiesCard extends StatelessWidget {
               property: properties[i],
               busy: busy,
               onReplaceDocument: onReplaceDocument,
+              onFillDag: onFillDag,
             ),
           ],
         ],
@@ -385,11 +404,13 @@ class SubmissionPropertyTile extends StatelessWidget {
     required this.property,
     required this.busy,
     required this.onReplaceDocument,
+    this.onFillDag,
   });
 
   final SubmissionProperty property;
   final bool busy;
   final void Function(String docId, String path) onReplaceDocument;
+  final void Function(String propertyId, String? dagNoCs, String? dagNoRs)? onFillDag;
 
   @override
   Widget build(BuildContext context) {
@@ -408,6 +429,9 @@ class SubmissionPropertyTile extends StatelessWidget {
         '${loc.adminSubmissionDetailFieldLabelsLandQuantity} ${p.landQuantity}',
       if (p.ownership?.isNotEmpty == true) p.ownership!,
     ].join(' · ');
+    final needsDag = p.dagUnknown &&
+        (p.dagNoCs ?? '').trim().isEmpty &&
+        (p.dagNoRs ?? '').trim().isEmpty;
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(bottom: 8),
@@ -420,13 +444,42 @@ class SubmissionPropertyTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
       ),
-      subtitle: summary.isEmpty
+      subtitle: (summary.isEmpty && !needsDag)
           ? null
-          : Text(summary,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall),
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (summary.isNotEmpty)
+                  Text(summary,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall),
+                if (needsDag) ...[
+                  const SizedBox(height: 4),
+                  const NeedsDagBadge(),
+                ],
+              ],
+            ),
       children: [
+        if (needsDag && onFillDag != null)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: AppButton(
+                key: const Key('fillDagButton'),
+                label: loc.adminDagFillButton,
+                icon: Icons.edit_outlined,
+                variant: AppButtonVariant.secondary,
+                onPressed: busy
+                    ? null
+                    : () async {
+                        final result = await showDagFillDialog(context);
+                        if (result != null) onFillDag!(p.id, result.$1, result.$2);
+                      },
+              ),
+            ),
+          ),
         if (p.dagNoCs?.isNotEmpty == true)
           InfoRow(
               label: loc.adminSubmissionDetailFieldLabelsDagNoCs,
@@ -622,6 +675,106 @@ class DetailSectionsPadding extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.pageGutter),
       child: child,
+    );
+  }
+}
+
+/// Red-tinted "দাগ দরকার" badge: the member did not know the dag and an admin
+/// must fill it in before the application can be approved.
+class NeedsDagBadge extends StatelessWidget {
+  const NeedsDagBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StatusBadge(
+      kind: StatusKind.rejected,
+      label: AppLocalizations.of(context).adminNeedsDagBadge,
+    );
+  }
+}
+
+/// Dialog with CS / RS dag fields. Resolves to (cs, rs) with Bangla digits
+/// normalised and blanks as null, or null when cancelled. At least one value
+/// is required.
+Future<(String?, String?)?> showDagFillDialog(BuildContext context) {
+  return showDialog<(String?, String?)>(
+    context: context,
+    builder: (_) => const _DagFillDialog(),
+  );
+}
+
+class _DagFillDialog extends StatefulWidget {
+  const _DagFillDialog();
+
+  @override
+  State<_DagFillDialog> createState() => _DagFillDialogState();
+}
+
+class _DagFillDialogState extends State<_DagFillDialog> {
+  final _cs = TextEditingController();
+  final _rs = TextEditingController();
+  bool _showError = false;
+
+  @override
+  void dispose() {
+    _cs.dispose();
+    _rs.dispose();
+    super.dispose();
+  }
+
+  String? _clean(TextEditingController c) {
+    final v = toAsciiDigits(c.text).trim();
+    return v.isEmpty ? null : v;
+  }
+
+  void _save() {
+    final cs = _clean(_cs);
+    final rs = _clean(_rs);
+    if (cs == null && rs == null) {
+      setState(() => _showError = true);
+      return;
+    }
+    Navigator.of(context).pop((cs, rs));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(loc.adminDagFillTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const Key('dagCsField'),
+            controller: _cs,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: loc.adminDagCsLabel),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const Key('dagRsField'),
+            controller: _rs,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: loc.adminDagRsLabel,
+              errorText: _showError ? loc.adminDagFillHint : null,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(loc.commonCancel),
+        ),
+        FilledButton(
+          key: const Key('dagSaveButton'),
+          onPressed: _save,
+          child: Text(loc.adminDagSave),
+        ),
+      ],
     );
   }
 }

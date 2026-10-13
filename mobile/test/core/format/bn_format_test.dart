@@ -2,6 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kaundia_app/core/format/bn_format.dart';
 
 void main() {
+  test('bnMonthName gives Bangla or English month names', () {
+    expect(bnMonthName(3), 'মার্চ');
+    expect(bnMonthName(3, locale: 'en'), 'Mar');
+  });
+
   final oct11 = DateTime(2026, 10, 11);
 
   group('bnDate', () {

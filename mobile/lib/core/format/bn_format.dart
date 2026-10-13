@@ -44,6 +44,10 @@ String bnDate(DateTime date, {String locale = 'bn', bool short = false}) {
   return _digits('${date.day} ', locale) + month + _digits(' ${date.year}', locale);
 }
 
+/// Month name for [month] 1-12: `মার্চ` (Bangla) / `Mar` (English).
+String bnMonthName(int month, {String locale = 'bn'}) =>
+    (_isBn(locale) ? _bnMonths : _enMonths)[month - 1];
+
 /// Replaces ASCII digits with Bangla digits when [locale] is 'bn'.
 String bnNumber(Object value, {String locale = 'bn'}) => _digits(value.toString(), locale);
 

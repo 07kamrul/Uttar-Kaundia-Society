@@ -96,10 +96,32 @@ async def _seed_admission_fee(db_session: AsyncSession):
     await db_session.commit()
 
 
+NO_PHOTO_HEADER = "x-test-no-photo"
+_TEST_PHOTO = ("member_photo", ("photo.jpg", b"\xff\xd8\xff\xe0fakejpeg", "image/jpeg"))
+
+
+class _PhotoDefaultClient(AsyncClient):
+    """The member photo is mandatory on /api/submissions. Most tests are not
+    about the photo, so POSTs there get a tiny default one unless the test
+    sends its own photo or the `x-test-no-photo` header."""
+
+    async def post(self, url, *args, **kwargs):  # type: ignore[override]
+        if str(url).endswith("/api/submissions"):
+            headers = dict(kwargs.get("headers") or {})
+            if headers.pop(NO_PHOTO_HEADER, None) is None:
+                files = kwargs.get("files")
+                files = list(files.items() if isinstance(files, dict) else files or [])
+                if not any(name in ("member_photo", "memberPhoto") for name, _ in files):
+                    files.insert(0, _TEST_PHOTO)
+                kwargs["files"] = files
+            kwargs["headers"] = headers
+        return await super().post(url, *args, **kwargs)
+
+
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with _PhotoDefaultClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
 

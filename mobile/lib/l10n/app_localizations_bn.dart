@@ -6249,4 +6249,271 @@ class AppLocalizationsBn extends AppLocalizations {
   String phoneDisplayWhatsappAria(Object number) {
     return '$number-এ হোয়াটসঅ্যাপে বার্তা পাঠান';
   }
+
+  @override
+  String get regStepWord => 'ধাপ';
+
+  @override
+  String get regOptionalSuffix => '(ঐচ্ছিক)';
+
+  @override
+  String get regNationalityOtherCheckbox => 'আমি অন্য দেশের নাগরিক';
+
+  @override
+  String get regWhatsappSwitch => 'এই নম্বরে হোয়াটসঅ্যাপ আছে';
+
+  @override
+  String get regNidHint => '১০, ১৩ বা ১৭ সংখ্যা';
+
+  @override
+  String get regValidationEmailRequired => 'ইমেইল লিখুন';
+
+  @override
+  String get regValidationNidRequired => 'NID নম্বর লিখুন';
+
+  @override
+  String get regValidationNidInvalidSimple =>
+      'NID নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে';
+
+  @override
+  String get regDobDay => 'দিন';
+
+  @override
+  String get regDobMonth => 'মাস';
+
+  @override
+  String get regDobYear => 'বছর';
+
+  @override
+  String get regAbroadSwitch => 'বিদেশে থাকি';
+
+  @override
+  String get regAbroadCountry => 'দেশ';
+
+  @override
+  String get regAbroadCountryPick => 'দেশ বেছে নিন';
+
+  @override
+  String get regAbroadCity => 'শহর';
+
+  @override
+  String get regAbroadAddressText => 'ঠিকানা (বিস্তারিত লিখুন)';
+
+  @override
+  String get regAbroadPermanentNote => 'স্থায়ী ঠিকানা বাংলাদেশের হতে হবে।';
+
+  @override
+  String get regValidationAbroadCountry => 'দেশ বেছে নিন (বাংলাদেশ নয়)';
+
+  @override
+  String get regValidationAbroadCity => 'শহরের নাম লিখুন';
+
+  @override
+  String get regValidationAbroadAddress => 'বিদেশের ঠিকানা লিখুন';
+
+  @override
+  String get regAddProperty => '+ আরেকটি সম্পত্তি যোগ করুন';
+
+  @override
+  String get regRemoveProperty => 'এই সম্পত্তি মুছুন';
+
+  @override
+  String get regDagUnknownCheckbox => 'আমি দাগ জানি না — অফিস সাহায্য করবে';
+
+  @override
+  String get regDagHelpLink => 'আমার দাগ কোথায় পাব?';
+
+  @override
+  String get regDagHelpIntro =>
+      'খতিয়ান বা পর্চা (জমির কাগজ) দেখুন। সেখানে খতিয়ান নম্বর আর দাগ নম্বর লেখা থাকে। পুরনো জরিপের নম্বরকে সিএস দাগ, পরের জরিপের নম্বরকে আরএস দাগ বলে।';
+
+  @override
+  String get regDagHelpSchemaTitle => 'নমুনা খতিয়ান (শুধু বোঝানোর জন্য)';
+
+  @override
+  String get regDagHelpKhatian => 'খতিয়ান নং';
+
+  @override
+  String get regDagHelpCs => 'সিএস দাগ';
+
+  @override
+  String get regDagHelpRs => 'আরএস দাগ';
+
+  @override
+  String get regDagHelpTip =>
+      'খুঁজে না পেলে \"আমি দাগ জানি না\" টিক দিন। অফিস আপনার কাগজ দেখে দাগ বসিয়ে দেবে।';
+
+  @override
+  String get regDagHelpClose => 'বুঝেছি';
+
+  @override
+  String get regDagExample => 'যেমন: ২২১৪';
+
+  @override
+  String get regProofTitle => 'জমির প্রমাণ (কমপক্ষে একটি)';
+
+  @override
+  String get regProofHelp =>
+      'খতিয়ান, নামজারি, খাজনার রসিদ বা উত্তরাধিকার সনদের যেকোনো একটি দিন। ছবি বা পিডিএফ চলবে।';
+
+  @override
+  String get regProofAttach => 'ফাইল বা ছবি দিন';
+
+  @override
+  String get regValidationProofRequired => 'অন্তত একটি প্রমাণের কাগজ দিন';
+
+  @override
+  String get regPayCash => 'নগদ টাকা';
+
+  @override
+  String get regPayBkash => 'বিকাশ';
+
+  @override
+  String get regPayNagad => 'নগদ (MFS)';
+
+  @override
+  String get regPayRocket => 'রকেট';
+
+  @override
+  String get regPayBank => 'ব্যাংক';
+
+  @override
+  String get regPayOther => 'অন্যান্য';
+
+  @override
+  String get regPayAccountTitle => 'এই নম্বরে টাকা পাঠান';
+
+  @override
+  String get regPayAccountName => 'অ্যাকাউন্টের নাম';
+
+  @override
+  String get regPayAccountNumber => 'নম্বর';
+
+  @override
+  String get regPayCopy => 'কপি';
+
+  @override
+  String get regPayCopied => 'কপি হয়েছে';
+
+  @override
+  String get regPayRefTrx => 'ট্রানজেকশন আইডি (TrxID)';
+
+  @override
+  String get regPayRefReceipt => 'রসিদ নম্বর';
+
+  @override
+  String get regPayScreenshot => 'পেমেন্টের স্ক্রিনশট দিন';
+
+  @override
+  String get regPayAbroadNote =>
+      'বিদেশে থাকলে বাংলাদেশে থাকা কোনো আত্মীয় আপনার হয়ে টাকা দিতে পারেন। ট্রানজেকশন আইডি বা রসিদ নম্বর আর স্ক্রিনশট দিন।';
+
+  @override
+  String get regConsentLabel => 'আমি গঠনতন্ত্র ও শর্তে সম্মত';
+
+  @override
+  String get regSignatureOptional => 'স্বাক্ষর (ঐচ্ছিক)';
+
+  @override
+  String get regSignatureOptionalHint =>
+      'স্বাক্ষর না দিলেও আবেদন জমা হবে। ছবি দিলেই যথেষ্ট।';
+
+  @override
+  String get regDraftSaved =>
+      'আপনার তথ্য সংরক্ষিত আছে, পরে আবার এসে শেষ করতে পারেন।';
+
+  @override
+  String get regReviewChange => 'পরিবর্তন করুন';
+
+  @override
+  String get regReviewWhatsapp => 'হোয়াটসঅ্যাপ';
+
+  @override
+  String get regReviewYes => 'আছে';
+
+  @override
+  String get regReviewNo => 'নেই';
+
+  @override
+  String get regReviewDagUnknown => 'দাগ জানা নেই — অফিস সাহায্য করবে';
+
+  @override
+  String get regReviewAbroadAddress => 'বিদেশের ঠিকানা';
+
+  @override
+  String get regSuccessTitle => 'আবেদন জমা হয়েছে';
+
+  @override
+  String get regSuccessLine2 => 'অফিস আপনার তথ্য যাচাই করবে';
+
+  @override
+  String get regSuccessLine3 => 'আনুমানিক ২০ কর্মদিবসের মধ্যে জানানো হবে';
+
+  @override
+  String get regSuccessReference => 'আপনার রেফারেন্স নম্বর';
+
+  @override
+  String get regSuccessCopyRef => 'কপি করুন';
+
+  @override
+  String get regSuccessHome => 'হোম পেজে যান';
+
+  @override
+  String get apiErrorPhotoRequired =>
+      'সদস্যের ছবি দিতে হবে। ছবি দিয়ে আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorPropertyProofRequired =>
+      'প্রতিটি সম্পত্তির জন্য কমপক্ষে একটি প্রমাণের কাগজ দিন।';
+
+  @override
+  String get apiErrorDagRequired =>
+      'আগে দাগ নম্বর লিখুন, তারপর অনুমোদন করা যাবে।';
+
+  @override
+  String get registrationSubmitPhotoRequired => 'সদস্যের ছবি দিতে হবে।';
+
+  @override
+  String get registrationSubmitProofRequired =>
+      'প্রতিটি সম্পত্তির জন্য কমপক্ষে একটি প্রমাণের কাগজ দিন।';
+
+  @override
+  String get adminNeedsDagBadge => 'দাগ দরকার';
+
+  @override
+  String get adminDagFillButton => 'দাগ লিখুন';
+
+  @override
+  String get adminDagFillTitle => 'দাগ নম্বর লিখুন';
+
+  @override
+  String get adminDagFillHint => 'অন্তত একটি দাগ নম্বর দিন।';
+
+  @override
+  String get adminDagCsLabel => 'সিএস দাগ';
+
+  @override
+  String get adminDagRsLabel => 'আরএস দাগ';
+
+  @override
+  String get adminDagSave => 'সংরক্ষণ করুন';
+
+  @override
+  String get adminPhotoUploadButton => 'সদস্যের ছবি আপলোড করুন';
+
+  @override
+  String get regPickCamera => 'ক্যামেরায় ছবি তুলুন';
+
+  @override
+  String get regPickFile => 'গ্যালারি বা ফাইল থেকে নিন';
+
+  @override
+  String get regProofAttached => 'যুক্ত হয়েছে';
+
+  @override
+  String get regChangeFile => 'বদলান';
+
+  @override
+  String get apiErrorAbroadAddressRequired =>
+      'বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।';
 }

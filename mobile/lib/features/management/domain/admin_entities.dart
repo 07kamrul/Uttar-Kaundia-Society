@@ -10,6 +10,7 @@ class SubmissionSummary {
     required this.mobile,
     required this.status,
     required this.createdAt,
+    this.needsDag = false,
   });
 
   final String id;
@@ -17,6 +18,10 @@ class SubmissionSummary {
   final String mobile;
   final SubmissionStatus status;
   final String createdAt;
+
+  /// True when any property is flagged "dag unknown" and still has no dag
+  /// (shows the "দাগ দরকার" badge; approval is blocked by the server).
+  final bool needsDag;
 }
 
 class ApplicableDoc {
@@ -44,6 +49,7 @@ class SubmissionProperty {
     this.myShareQuantity,
     this.ownership,
     this.jointOwnerCount,
+    this.dagUnknown = false,
   });
 
   final String id;
@@ -57,6 +63,7 @@ class SubmissionProperty {
   final String? myShareQuantity;
   final String? ownership;
   final int? jointOwnerCount;
+  final bool dagUnknown;
   final List<ApplicableDoc> applicableDocs;
 }
 
@@ -85,6 +92,7 @@ class SubmissionDetail extends SubmissionSummary {
     required super.mobile,
     required super.status,
     required super.createdAt,
+    super.needsDag,
     required this.fatherOrHusband,
     required this.mother,
     required this.dob,

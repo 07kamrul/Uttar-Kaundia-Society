@@ -8,11 +8,13 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../data/geo_repository.dart';
+import '../../domain/reg_flags.dart';
 import '../../domain/registration_form.dart';
 import '../../domain/registration_validators.dart';
 import '../bloc/registration_bloc.dart';
 import 'registration_inputs.dart';
 import 'registration_l10n.dart';
+import 'registration_member_extras.dart';
 
 /// Step 1: member photo + personal fields (member-info.component) and both
 /// address blocks with cascading বিভাগ/জেলা/উপজেলা dropdowns
@@ -44,10 +46,11 @@ class _PersonalFields extends StatelessWidget {
     final bloc = context.read<RegistrationBloc>();
     final l10n = AppLocalizations.of(context);
     final f = state.form;
+    final flags = state.flags;
 
     String? err(RegErrorKind kind) {
       final e = findError(state.stepErrors, kind);
-      return e == null ? null : regErrorMessage(l10n, e);
+      return e == null ? null : regErrorMessage(l10n, e, flags: flags);
     }
 
     void change(MemberField field, String v) => bloc.add(MemberFieldChanged(field, v));
@@ -88,15 +91,17 @@ class _PersonalFields extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         RegFieldPair(
-          first: const _DobField(),
+          first: flags.simplifiedUi ? const DobDropdowns() : const _DobField(),
           second: RegTextField(
+            key: const Key('nidField'),
             label: l10n.registrationMemberInfoNidLabel,
             required: true,
             value: f.nid,
-            hint: l10n.registrationMemberInfoNidPlaceholder,
+            hint: flags.simplifiedUi ? l10n.regNidHint : l10n.registrationMemberInfoNidPlaceholder,
             prefixIcon: Icons.badge_outlined,
             keyboardType: TextInputType.number,
-            error: err(RegErrorKind.nidInvalid),
+            inputFormatters: flags.simplifiedUi ? const [AsciiDigitsFormatter()] : null,
+            error: err(RegErrorKind.nidRequired) ?? err(RegErrorKind.nidInvalid),
             onChanged: (v) => change(MemberField.nid, v),
           ),
         ),
@@ -117,27 +122,104 @@ class _PersonalFields extends StatelessWidget {
             prefixIcon: Icons.alternate_email,
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
-            error: err(RegErrorKind.emailInvalid),
+            error: err(RegErrorKind.emailRequired) ?? err(RegErrorKind.emailInvalid),
             onChanged: (v) => change(MemberField.email, v),
           ),
         ),
+        if (flags.simplifiedUi)
+          RegSwitchRow(
+            switchKey: const Key('whatsappSwitch'),
+            label: l10n.regWhatsappSwitch,
+            value: f.hasWhatsapp ?? false,
+            onChanged: (v) => bloc.add(MemberWhatsappChanged(v)),
+          ),
         const SizedBox(height: 12),
-        RegFieldPair(
-          first: RegTextField(
-            label: l10n.registrationMemberInfoOccupationLabel,
-            value: f.occupation,
-            prefixIcon: Icons.work_outline,
-            onChanged: (v) => change(MemberField.occupation, v),
-          ),
-          second: RegTextField(
-            label: l10n.registrationMemberInfoNationalityLabel,
-            value: f.nationality,
-            prefixIcon: Icons.flag_outlined,
-            onChanged: (v) => change(MemberField.nationality, v),
-          ),
-        ),
+        _occupationAndNationality(l10n, f, flags, change),
         const SizedBox(height: 12),
         const _GenderField(),
+      ],
+    );
+  }
+}
+
+Widget _occupationAndNationality(
+  AppLocalizations l10n,
+  RegistrationForm f,
+  RegFlags flags,
+  void Function(MemberField, String) change,
+) {
+  final occupationLabel = flags.occupationOptional
+      ? '${l10n.registrationMemberInfoOccupationLabel} ${l10n.regOptionalSuffix}'
+      : l10n.registrationMemberInfoOccupationLabel;
+  final occupation = RegTextField(
+    label: occupationLabel,
+    value: f.occupation,
+    prefixIcon: Icons.work_outline,
+    onChanged: (v) => change(MemberField.occupation, v),
+  );
+  if (flags.hideNationality) {
+    // বাংলাদেশী unless the member says otherwise.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [occupation, const _NationalityOther()],
+    );
+  }
+  return RegFieldPair(
+    first: occupation,
+    second: RegTextField(
+      label: l10n.registrationMemberInfoNationalityLabel,
+      value: f.nationality,
+      prefixIcon: Icons.flag_outlined,
+      onChanged: (v) => change(MemberField.nationality, v),
+    ),
+  );
+}
+
+/// "আমি অন্য দেশের নাগরিক" checkbox that reveals the nationality field.
+class _NationalityOther extends StatefulWidget {
+  const _NationalityOther();
+
+  @override
+  State<_NationalityOther> createState() => _NationalityOtherState();
+}
+
+class _NationalityOtherState extends State<_NationalityOther> {
+  static const _bangladeshi = 'বাংলাদেশী';
+  late bool _other;
+
+  @override
+  void initState() {
+    super.initState();
+    final n = context.read<RegistrationBloc>().state.form.nationality.trim();
+    _other = n.isNotEmpty && n != _bangladeshi;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final bloc = context.read<RegistrationBloc>();
+    final nationality = context.watch<RegistrationBloc>().state.form.nationality;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RegCheckboxRow(
+          key: const Key('nationalityOtherCheckbox'),
+          value: _other,
+          label: l10n.regNationalityOtherCheckbox,
+          onChanged: (v) {
+            setState(() => _other = v);
+            if (!v) bloc.add(const MemberFieldChanged(MemberField.nationality, _bangladeshi));
+            if (v) bloc.add(const MemberFieldChanged(MemberField.nationality, ''));
+          },
+        ),
+        if (_other)
+          RegTextField(
+            key: const Key('nationalityField'),
+            label: l10n.registrationMemberInfoNationalityLabel,
+            value: nationality,
+            prefixIcon: Icons.flag_outlined,
+            onChanged: (v) => bloc.add(MemberFieldChanged(MemberField.nationality, v)),
+          ),
       ],
     );
   }
@@ -414,8 +496,8 @@ class _AddressBlock extends StatelessWidget {
     final state = context.watch<RegistrationBloc>().state;
     final l10n = AppLocalizations.of(context);
     final bloc = context.read<RegistrationBloc>();
-    final geo = state.geoData!;
-    final address = isCurrent ? state.form.currentAddress : state.form.permanentAddress;
+    final flags = state.flags;
+    final abroad = flags.abroadAddress && state.form.currentAddressAbroad;
 
     String? err(AddressField field) {
       final e = findError(
@@ -430,9 +512,6 @@ class _AddressBlock extends StatelessWidget {
     void change(AddressField field, String value) =>
         bloc.add(AddressFieldChanged(isCurrent: isCurrent, field: field, value: value));
 
-    final districts = geo.districtsByDivisionName(address.division);
-    final upazilas = geo.upazilasByDistrictName(address.district);
-
     return RegSectionCard(
       title: isCurrent
           ? l10n.registrationAddressInfoCurrentAddressTitle
@@ -441,7 +520,17 @@ class _AddressBlock extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!isCurrent) ...[
+          if (isCurrent && flags.abroadAddress) ...[
+            RegSwitchRow(
+              switchKey: const Key('abroadSwitch'),
+              label: l10n.regAbroadSwitch,
+              value: state.form.currentAddressAbroad,
+              onChanged: (v) => bloc.add(AbroadToggled(v)),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (isCurrent && abroad) const AbroadAddressFields(),
+          if (!isCurrent && !abroad) ...[
             RegCheckboxRow(
               value: state.form.sameAsCurrentAddress,
               label: l10n.registrationAddressInfoSameAsCurrentLabel,
@@ -449,6 +538,36 @@ class _AddressBlock extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
+          if (!(isCurrent && abroad) && !_mirrored(flags, state, isCurrent)) ..._bdFields(
+            context: context,
+            state: state,
+            isCurrent: isCurrent,
+            change: change,
+            err: err,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Permanent block collapses to its checkbox while it mirrors the current one.
+  bool _mirrored(RegFlags flags, RegistrationState state, bool isCurrent) =>
+      flags.simplifiedUi && !isCurrent && state.form.sameAsCurrentAddress;
+
+  List<Widget> _bdFields({
+    required BuildContext context,
+    required RegistrationState state,
+    required bool isCurrent,
+    required void Function(AddressField, String) change,
+    required String? Function(AddressField) err,
+  }) {
+    final l10n = AppLocalizations.of(context);
+    final geo = state.geoData!;
+    final flags = state.flags;
+    final address = isCurrent ? state.form.currentAddress : state.form.permanentAddress;
+    final districts = geo.districtsByDivisionName(address.division);
+    final upazilas = geo.upazilasByDistrictName(address.district);
+    return [
           RegDropdown(
             label: l10n.registrationAddressInfoDivisionLabel,
             required: true,
@@ -486,7 +605,7 @@ class _AddressBlock extends StatelessWidget {
           const SizedBox(height: 12),
           RegTextField(
             label: l10n.registrationAddressInfoRoadLabel,
-            required: true,
+            required: !flags.roadOptional,
             value: address.road,
             autofillHints: isCurrent ? const [AutofillHints.streetAddressLine1] : null,
             error: err(AddressField.road),
@@ -500,9 +619,7 @@ class _AddressBlock extends StatelessWidget {
             error: err(AddressField.house),
             onChanged: (v) => change(AddressField.house, v),
           ),
-        ],
-      ),
-    );
+    ];
   }
 
   String _fieldError(AppLocalizations l10n, AddressField field) => switch (field) {

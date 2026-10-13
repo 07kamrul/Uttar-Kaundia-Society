@@ -6,14 +6,19 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mime/mime.dart';
 
+import '../../../../core/feature_flags/feature_flags_service.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../../core/validation/bd_input.dart' show toAsciiDigits;
+import '../../../../shared/utils/image_compression.dart';
 import '../../../../core/enums/enums.dart';
 import '../../../../shared/utils/file_utils.dart';
 import '../../data/config_list_repository.dart';
 import '../../data/fee_repository.dart';
 import '../../data/geo_repository.dart';
+import '../../data/registration_config_repository.dart';
 import '../../data/registration_draft_service.dart';
 import '../../data/registration_repository.dart';
+import '../../domain/reg_flags.dart';
 import '../../domain/registration_form.dart';
 import '../../domain/registration_validators.dart';
 import '../../domain/submission_error_mapper.dart';
@@ -24,6 +29,18 @@ part 'registration_state.dart';
 const _autosaveDebounce = Duration(milliseconds: 400);
 const _quoteDebounce = Duration(milliseconds: 400);
 const maxNominees = 5;
+const maxProperties = 9;
+
+/// Waits at most this long for the feature flags before the wizard starts.
+const _flagsLoadTimeout = Duration(seconds: 4);
+
+/// Shrinks a picked image before upload and returns the path to use.
+typedef ImageShrinker = Future<String> Function(String path);
+
+Future<String> _defaultShrink(String path) async => (await compressForUpload(File(path))).path;
+
+/// Bangladeshi default area for new applications (audit section 3.2).
+const _defaultAddress = AddressDetail(division: 'ঢাকা', district: 'ঢাকা', upazila: 'সাভার');
 
 /// Orchestrates the whole 6-step registration wizard: form state, step
 /// navigation with per-step validation, debounced draft autosave, fee/quote
@@ -35,12 +52,21 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     required GeoRepository geoRepository,
     required ConfigListRepository configListRepository,
     required RegistrationDraftService draftService,
+    RegFlags flags = RegFlags.off,
+    FeatureFlagsService? flagsService,
+    RegistrationConfigRepository? registrationConfigRepository,
+    ImageShrinker shrinkImage = _defaultShrink,
   })  : _registrationRepository = registrationRepository,
+        _flagsService = flagsService,
+        _registrationConfigRepository = registrationConfigRepository,
+        _shrinkImage = shrinkImage,
         _feeRepository = feeRepository,
         _geoRepository = geoRepository,
         _configListRepository = configListRepository,
         _draftService = draftService,
-        super(const RegistrationState()) {
+        super(RegistrationState(
+          flags: flagsService == null ? flags : RegFlags.from(flagsService.isEnabled),
+        )) {
     on<RegistrationStarted>(_onStarted);
     on<RegistrationDraftDiscarded>(_onDraftDiscarded);
     on<RegistrationDraftBannerDismissed>(_onDraftBannerDismissed);
@@ -79,6 +105,18 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     on<SubmitRequested>(_onSubmit);
     on<SubmitSuccessAcknowledged>(_onSubmitAcknowledged);
     on<QuoteRefreshRequested>(_onQuoteRefreshTick);
+    on<RegistrationFlagsChanged>((e, emit) => emit(state.copyWith(flags: e.flags)));
+    on<MemberWhatsappChanged>(_onWhatsapp);
+    on<AbroadToggled>(_onAbroadToggled);
+    on<AbroadFieldChanged>(_onAbroadField);
+    on<PropertyAdded>(_onPropertyAdded);
+    on<PropertyRemoved>(_onPropertyRemoved);
+    on<DagUnknownToggled>(_onDagUnknown);
+    _flagsService?.addListener(_onFlagsServiceChanged);
+  }
+
+  void _onFlagsServiceChanged() {
+    if (!isClosed) add(RegistrationFlagsChanged(RegFlags.from(_flagsService!.isEnabled)));
   }
 
   final RegistrationRepository _registrationRepository;
@@ -86,6 +124,14 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   final GeoRepository _geoRepository;
   final ConfigListRepository _configListRepository;
   final RegistrationDraftService _draftService;
+  final FeatureFlagsService? _flagsService;
+  final RegistrationConfigRepository? _registrationConfigRepository;
+  final ImageShrinker _shrinkImage;
+
+  RegFlags get _flags => state.flags;
+
+  /// ASCII digits under regSimplifiedUi (members type Bangla digits); as typed otherwise.
+  String _digits(String v) => _flags.simplifiedUi ? toAsciiDigits(v) : v;
 
   Timer? _autosaveTimer;
   Timer? _quoteTimer;
@@ -93,6 +139,11 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   // -- lifecycle ------------------------------------------------------------
 
   Future<void> _onStarted(RegistrationStarted e, Emitter<RegistrationState> emit) async {
+    final flagsService = _flagsService;
+    if (flagsService != null && !flagsService.isLoaded) {
+      await flagsService.load().timeout(_flagsLoadTimeout, onTimeout: () {});
+    }
+    final flags = flagsService == null ? state.flags : RegFlags.from(flagsService.isEnabled);
     final today = DateTime.now();
     final submissionDate = '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
@@ -107,9 +158,21 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
       currentStep = draft.currentStep.clamp(1, wizardStepCount);
       draftRestored = true;
       draftLastSaved = draft.lastSaved;
+    } else if (flags.simplifiedUi) {
+      // Most members live in Savar: preselect it and mirror it to the permanent address.
+      form = form.copyWith(
+        currentAddress: _defaultAddress,
+        permanentAddress: _defaultAddress,
+        sameAsCurrentAddress: true,
+        hasWhatsapp: false,
+      );
+    }
+    if (flags.addPropertyButton && form.properties.isEmpty) {
+      form = form.copyWith(propertyCount: 1, properties: const [PropertyItem()]);
     }
 
     emit(state.copyWith(
+      flags: flags,
       status: RegistrationStatus.ready,
       form: form,
       currentStep: currentStep,
@@ -120,9 +183,21 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     await _loadFee(emit);
     await _loadConfigLists(emit);
     await _loadGeo(emit);
+    if (flags.simplifiedUi) await _loadRegistrationConfig(emit);
     if (form.totalShareQuantity > 0) {
       await _refreshQuote(emit, form.totalShareQuantity);
     }
+  }
+
+  Future<void> _loadRegistrationConfig(Emitter<RegistrationState> emit) async {
+    final repository = _registrationConfigRepository;
+    if (repository == null) return;
+    final config = await repository.load();
+    emit(state.copyWith(
+      consentVersion: config.consentVersion,
+      paymentAccounts: config.paymentAccounts,
+      configLoaded: true,
+    ));
   }
 
   Future<void> _loadFee(Emitter<RegistrationState> emit) async {
@@ -232,7 +307,7 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
       MemberField.dob => state.form.copyWith(dob: e.value),
       MemberField.nationality => state.form.copyWith(nationality: e.value),
       MemberField.occupation => state.form.copyWith(occupation: e.value),
-      MemberField.nid => state.form.copyWith(nid: e.value),
+      MemberField.nid => state.form.copyWith(nid: _digits(e.value)),
       MemberField.mobile => state.form.copyWith(mobile: e.value),
       MemberField.email => state.form.copyWith(email: e.value),
     };
@@ -244,19 +319,34 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
 
   Future<void> _onPhotoAttached(MemberPhotoAttached e, Emitter<RegistrationState> emit) async {
     try {
-      final prepared = await prepareImage(e.path);
-      if (prepared == null) {
-        emit(state.copyWith(fileError: const FilePickError(kind: FileErrorKind.size)));
-        return;
+      final FileRef photo;
+      if (_flags.simplifiedUi) {
+        final path = await _shrinkOrOriginal(e.path);
+        photo = FileRef(fileName: _baseName(path), path: path);
+      } else {
+        final prepared = await prepareImage(e.path);
+        if (prepared == null) {
+          emit(state.copyWith(fileError: const FilePickError(kind: FileErrorKind.size)));
+          return;
+        }
+        photo = FileRef(fileName: prepared.fileName, path: prepared.path);
       }
-      _emitFormChange(
-        emit,
-        state.form.copyWith(memberPhoto: FileRef(fileName: prepared.fileName, path: prepared.path)),
-      );
+      _emitFormChange(emit, state.form.copyWith(memberPhoto: photo));
     } catch (_) {
       emit(state.copyWith(fileError: const FilePickError(kind: FileErrorKind.size)));
     }
   }
+
+  /// Compresses (images over 1 MB) and falls back to the original on any failure.
+  Future<String> _shrinkOrOriginal(String path) async {
+    try {
+      return await _shrinkImage(path);
+    } catch (_) {
+      return path;
+    }
+  }
+
+  String _baseName(String path) => path.split(Platform.pathSeparator).last.split('/').last;
 
   void _onPhotoCleared(MemberPhotoCleared e, Emitter<RegistrationState> emit) =>
       _emitFormChange(emit, state.form.copyWith(clearMemberPhoto: true));
@@ -264,7 +354,11 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   void _onAddressField(AddressFieldChanged e, Emitter<RegistrationState> emit) {
     if (e.isCurrent) {
       final a = state.form.currentAddress;
-      _emitFormChange(emit, state.form.copyWith(currentAddress: _withField(a, e.field, e.value)));
+      var form = state.form.copyWith(currentAddress: _withField(a, e.field, e.value));
+      if (_flags.simplifiedUi && form.sameAsCurrentAddress) {
+        form = form.copyWith(permanentAddress: form.currentAddress);
+      }
+      _emitFormChange(emit, form);
     } else {
       final a = state.form.permanentAddress;
       _emitFormChange(emit, state.form.copyWith(permanentAddress: _withField(a, e.field, e.value)));
@@ -279,6 +373,30 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
         AddressField.road => a.copyWith(road: value),
         AddressField.house => a.copyWith(house: value),
       };
+
+  void _onWhatsapp(MemberWhatsappChanged e, Emitter<RegistrationState> emit) =>
+      _emitFormChange(emit, state.form.copyWith(hasWhatsapp: e.value));
+
+  void _onAbroadToggled(AbroadToggled e, Emitter<RegistrationState> emit) {
+    var form = state.form.copyWith(currentAddressAbroad: e.value);
+    // The permanent address stays in Bangladesh, so it can no longer mirror the current one.
+    form = e.value
+        ? form.copyWith(sameAsCurrentAddress: false)
+        : form.copyWith(currentCountry: '', currentCity: '', currentAddressText: '');
+    _emitFormChange(emit, form);
+  }
+
+  void _onAbroadField(AbroadFieldChanged e, Emitter<RegistrationState> emit) {
+    final f = state.form;
+    _emitFormChange(
+      emit,
+      switch (e.field) {
+        AbroadField.country => f.copyWith(currentCountry: e.value),
+        AbroadField.city => f.copyWith(currentCity: e.value),
+        AbroadField.text => f.copyWith(currentAddressText: e.value),
+      },
+    );
+  }
 
   void _onSameAsCurrent(SameAsCurrentToggled e, Emitter<RegistrationState> emit) {
     var form = state.form.copyWith(sameAsCurrentAddress: e.value);
@@ -312,15 +430,41 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     );
   }
 
+  void _onPropertyAdded(PropertyAdded e, Emitter<RegistrationState> emit) {
+    final props = state.form.properties;
+    if (props.length >= maxProperties) return;
+    _emitFormChange(
+      emit,
+      state.form.copyWith(propertyCount: props.length + 1, properties: [...props, const PropertyItem()]),
+      affectsQuote: true,
+    );
+  }
+
+  void _onPropertyRemoved(PropertyRemoved e, Emitter<RegistrationState> emit) {
+    final props = List<PropertyItem>.of(state.form.properties);
+    if (props.length <= 1 || e.index < 0 || e.index >= props.length) return;
+    props.removeAt(e.index);
+    _emitFormChange(
+      emit,
+      state.form.copyWith(propertyCount: props.length, properties: props),
+      affectsQuote: true,
+    );
+  }
+
+  void _onDagUnknown(DagUnknownToggled e, Emitter<RegistrationState> emit) {
+    final props = _updatedProperties(e.index, (p) => p.copyWith(dagUnknown: e.value));
+    _emitFormChange(emit, state.form.copyWith(properties: props));
+  }
+
   void _onPropertyField(PropertyFieldChanged e, Emitter<RegistrationState> emit) {
     final props = _updatedProperties(e.index, (p) => switch (e.field) {
           PropertyField.propertyTypeOther => p.copyWith(propertyTypeOther: e.value),
-          PropertyField.khatianNo => p.copyWith(khatianNo: e.value),
-          PropertyField.dagNoCs => p.copyWith(dagNoCs: e.value),
-          PropertyField.dagNoRs => p.copyWith(dagNoRs: e.value),
-          PropertyField.holdingNumber => p.copyWith(holdingNumber: e.value),
-          PropertyField.landQuantity => p.copyWith(landQuantity: e.value),
-          PropertyField.myShareQuantity => p.copyWith(myShareQuantity: e.value),
+          PropertyField.khatianNo => p.copyWith(khatianNo: _digits(e.value)),
+          PropertyField.dagNoCs => p.copyWith(dagNoCs: _digits(e.value)),
+          PropertyField.dagNoRs => p.copyWith(dagNoRs: _digits(e.value)),
+          PropertyField.holdingNumber => p.copyWith(holdingNumber: _digits(e.value)),
+          PropertyField.landQuantity => p.copyWith(landQuantity: _digits(e.value)),
+          PropertyField.myShareQuantity => p.copyWith(myShareQuantity: _digits(e.value)),
         });
     _emitFormChange(emit, state.form.copyWith(properties: props), affectsQuote: true);
   }
@@ -364,16 +508,20 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   }
 
   Future<void> _onDocFileAttached(DocFileAttached e, Emitter<RegistrationState> emit) async {
-    final error = await _validateDocFile(e.path);
+    final path = _flags.simplifiedUi ? await _shrinkOrOriginal(e.path) : e.path;
+    final error = await _validateDocFile(path);
     if (error != null) {
       emit(state.copyWith(fileError: FilePickError(kind: error, propertyIndex: e.propertyIndex, docType: e.docType)));
       return;
     }
     final props = _updatedProperties(e.propertyIndex, (p) {
-      final docs = [
-        for (final d in p.applicableDocs)
-          if (d.type == e.docType) d.copyWith(fileName: e.fileName, path: e.path) else d,
-      ];
+      // Attaching a file ticks its document type (the proof picker has no checkboxes).
+      final docs = p.applicableDocs.any((d) => d.type == e.docType)
+          ? [
+              for (final d in p.applicableDocs)
+                if (d.type == e.docType) d.copyWith(fileName: e.fileName, path: path) else d,
+            ]
+          : [...p.applicableDocs, ApplicableDoc(type: e.docType, fileName: e.fileName, path: path)];
       return p.copyWith(applicableDocs: docs);
     });
     _emitFormChange(emit, state.form.copyWith(properties: props));
@@ -445,12 +593,13 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
       _emitFormChange(emit, state.form.copyWith(receiptNo: e.value));
 
   Future<void> _onReceiptFileAttached(ReceiptFileAttached e, Emitter<RegistrationState> emit) async {
-    final error = await _validateDocFile(e.path);
+    final path = _flags.simplifiedUi ? await _shrinkOrOriginal(e.path) : e.path;
+    final error = await _validateDocFile(path);
     if (error != null) {
       emit(state.copyWith(fileError: FilePickError(kind: error, isReceipt: true)));
       return;
     }
-    _emitFormChange(emit, state.form.copyWith(receiptFile: FileRef(fileName: e.fileName, path: e.path)));
+    _emitFormChange(emit, state.form.copyWith(receiptFile: FileRef(fileName: e.fileName, path: path)));
   }
 
   void _onReceiptFileRemoved(ReceiptFileRemoved e, Emitter<RegistrationState> emit) =>
@@ -465,7 +614,13 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
       _emitFormChange(emit, state.form.copyWith(submissionDate: e.value));
 
   void _onDeclaration(DeclarationToggled e, Emitter<RegistrationState> emit) =>
-      _emitFormChange(emit, state.form.copyWith(declarationAccepted: e.value));
+      _emitFormChange(
+        emit,
+        state.form.copyWith(
+          declarationAccepted: e.value,
+          consentVersion: e.value ? state.consentVersion : '',
+        ),
+      );
 
   Future<void> _onSignatureSaved(SignatureSaved e, Emitter<RegistrationState> emit) async {
     try {
@@ -496,7 +651,7 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
     if (target < 1 || target > wizardStepCount) return;
     if (validate && target > state.currentStep) {
       for (var s = state.currentStep; s < target; s++) {
-        final errors = validateStep(s, state.form);
+        final errors = validateStep(s, state.form, flags: _flags);
         if (errors.isNotEmpty) {
           // Stay on the offending step and surface the messages (mirrors the
           // Angular goToStep early return).
@@ -523,12 +678,15 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
   // -- submit ---------------------------------------------------------------
 
   Future<void> _onSubmit(SubmitRequested e, Emitter<RegistrationState> emit) async {
-    final f = state.form;
+    final f = state.form.consentVersion.isEmpty && state.consentVersion.isNotEmpty
+        ? state.form.copyWith(consentVersion: state.consentVersion)
+        : state.form;
     final clientErrors = [
-      ...validateAllSteps(f, hasAdmissionFee: state.hasAdmissionFee, hasSubscription: state.hasSubscription),
+      ...validateAllSteps(f,
+          hasAdmissionFee: state.hasAdmissionFee, hasSubscription: state.hasSubscription, flags: _flags),
     ];
     if (clientErrors.isNotEmpty) {
-      final invalid = firstInvalidStep(f) ?? 1;
+      final invalid = firstInvalidStep(f, flags: _flags) ?? 1;
       emit(state.copyWith(
         stepErrors: clientErrors,
         submitAttempted: true,
@@ -598,6 +756,7 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
 
   @override
   Future<void> close() {
+    _flagsService?.removeListener(_onFlagsServiceChanged);
     _autosaveTimer?.cancel();
     _quoteTimer?.cancel();
     return super.close();

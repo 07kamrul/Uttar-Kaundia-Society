@@ -7,6 +7,8 @@ enum FeatureFlag {
   regDagUnknown('reg_dag_unknown'),
   regAddPropertyButton('reg_add_property_button'),
   regMinOneProof('reg_min_one_proof'),
+  regAbroadAddress('reg_abroad_address'),
+  regSimplifiedUi('reg_simplified_ui'),
   passwordPolicyV2('password_policy_v2'),
   navMergedEntries('nav_merged_entries'),
   navAdvancedSection('nav_advanced_section');

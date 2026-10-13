@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, func, true
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, func, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -88,6 +88,16 @@ class Member(Base):
     member_signature: Mapped[str | None] = mapped_column(Text, nullable=True)
     submission_date: Mapped[str] = mapped_column(String(32), nullable=False)
 
+    # Contact / address extras (batch 1 registration)
+    has_whatsapp: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    current_address_abroad: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    current_country: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    current_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    current_address_text: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    consent_version: Mapped[str | None] = mapped_column(String(16), nullable=True)
+
     # Photo
     member_photo_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
@@ -122,6 +132,15 @@ class Member(Base):
     nominees: Mapped[list["Nominee"]] = relationship(
         back_populates="member", cascade="all, delete-orphan"
     )
+    @property
+    def needs_dag(self) -> bool:
+        """True when any property still has an unknown, unfilled dag. Reads the
+        already-loaded properties only (False when they are not loaded, so a
+        summary row never triggers a lazy load); list endpoints set it by query."""
+        if "properties" not in self.__dict__:
+            return False
+        return any(property_needs_dag(p) for p in self.properties)
+
     credential: Mapped["MemberCredential | None"] = relationship(
         back_populates="member", cascade="all, delete-orphan", uselist=False
     )
@@ -134,7 +153,7 @@ class Member(Base):
         return len(self.properties)
 
 
-from app.models.property import Property  # noqa: E402
+from app.models.property import Property, property_needs_dag  # noqa: E402
 from app.models.nominee import Nominee  # noqa: E402
 from app.models.credential import MemberCredential  # noqa: E402
 from app.models.installment import Installment  # noqa: E402

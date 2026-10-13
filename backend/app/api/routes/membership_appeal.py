@@ -70,6 +70,7 @@ from app.models.membership_appeal import (
 )
 from app.schemas.common import validate_required_phone
 from app.services.audit import record_audit
+from app.services.dag_guard import ensure_dag_filled
 from app.services.email import send_email, send_with_retries
 from app.services.governance import (
     APPEAL_WINDOW_DAYS,
@@ -1197,6 +1198,8 @@ async def approve_application(
         member_id = member.id
     else:
         member = await _load_member(db, member_id)
+        if member.status == MemberStatus.PENDING:
+            await ensure_dag_filled(db, member.id)
         member.member_class = payload.member_class
         if member.status == MemberStatus.PENDING:
             member.status = MemberStatus.APPROVED

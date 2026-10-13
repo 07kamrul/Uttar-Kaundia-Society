@@ -86,6 +86,7 @@ class PropertyOut(BaseModel):
     khatian_no: str | None = None
     dag_no_cs: str | None = None
     dag_no_rs: str | None = None
+    dag_unknown: bool = False
     holding_number: str | None = None
     land_quantity: str | None = None
     my_share_quantity: str | None = None
@@ -117,6 +118,7 @@ class MemberSummary(BaseModel):
     created_at: datetime
     member_class: str | None = None
     due_installments: int = 0
+    needs_dag: bool = False
 
 
 class MemberDetail(MemberSummary):
@@ -139,6 +141,12 @@ class MemberDetail(MemberSummary):
     current_upazila: str | None = None
     current_district: str | None = None
     current_division: str | None = None
+    has_whatsapp: bool | None = None
+    current_address_abroad: bool = False
+    current_country: str | None = None
+    current_city: str | None = None
+    current_address_text: str | None = None
+    consent_version: str | None = None
     urgent_contact_name: str | None = None
     urgent_contact_relation: str | None = None
     urgent_contact_mobile: str | None = None

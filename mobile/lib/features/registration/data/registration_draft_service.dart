@@ -234,6 +234,9 @@ class RegistrationDraftService {
 
 PaymentMethod _paymentMethodFromName(String name) => switch (name) {
       'cash' => PaymentMethod.cash,
+      'bkash' => PaymentMethod.bkash,
+      'nagad' => PaymentMethod.nagad,
+      'rocket' => PaymentMethod.rocket,
       'bank' => PaymentMethod.bank,
       'mfs' => PaymentMethod.mfs,
       'other' => PaymentMethod.other,

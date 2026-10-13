@@ -296,3 +296,64 @@ final class SubmitRequested extends RegistrationEvent {
 final class SubmitSuccessAcknowledged extends RegistrationEvent {
   const SubmitSuccessAcknowledged();
 }
+
+// ---- Batch 1 additions ----------------------------------------------------
+
+/// Feature flags changed after the wizard was created (flags finished loading).
+final class RegistrationFlagsChanged extends RegistrationEvent {
+  const RegistrationFlagsChanged(this.flags);
+  final RegFlags flags;
+
+  @override
+  List<Object?> get props => [flags];
+}
+
+final class MemberWhatsappChanged extends RegistrationEvent {
+  const MemberWhatsappChanged(this.value);
+  final bool value;
+
+  @override
+  List<Object?> get props => [value];
+}
+
+/// "বিদেশে থাকি" switch for the current address.
+final class AbroadToggled extends RegistrationEvent {
+  const AbroadToggled(this.value);
+  final bool value;
+
+  @override
+  List<Object?> get props => [value];
+}
+
+enum AbroadField { country, city, text }
+
+final class AbroadFieldChanged extends RegistrationEvent {
+  const AbroadFieldChanged(this.field, this.value);
+  final AbroadField field;
+  final String value;
+
+  @override
+  List<Object?> get props => [field, value];
+}
+
+/// "+ আরেকটি সম্পত্তি যোগ করুন".
+final class PropertyAdded extends RegistrationEvent {
+  const PropertyAdded();
+}
+
+final class PropertyRemoved extends RegistrationEvent {
+  const PropertyRemoved(this.index);
+  final int index;
+
+  @override
+  List<Object?> get props => [index];
+}
+
+final class DagUnknownToggled extends RegistrationEvent {
+  const DagUnknownToggled(this.index, this.value);
+  final int index;
+  final bool value;
+
+  @override
+  List<Object?> get props => [index, value];
+}

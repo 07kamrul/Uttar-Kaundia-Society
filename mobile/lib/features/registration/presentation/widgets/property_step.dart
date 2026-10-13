@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/enums/enums.dart';
 import '../../domain/registration_validators.dart';
 import '../bloc/registration_bloc.dart';
+import 'dag_help_sheet.dart';
 import 'registration_inputs.dart';
 import 'registration_l10n.dart';
 
@@ -27,6 +29,7 @@ class PropertyStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         RegSectionTitle(text: l10n.registrationStepTitlesProperty),
+        if (!state.flags.addPropertyButton)
         RegSectionCard(
           child: RegDropdown(
             label: l10n.registrationPropertyCountLabel,
@@ -40,6 +43,17 @@ class PropertyStep extends StatelessWidget {
           ),
         ),
         for (var i = 0; i < f.properties.length; i++) _PropertyCard(index: i),
+        if (state.flags.addPropertyButton)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: OutlinedButton.icon(
+              key: const Key('addPropertyButton'),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(48, 52)),
+              icon: const Icon(Icons.add),
+              onPressed: f.properties.length >= maxProperties ? null : () => bloc.add(const PropertyAdded()),
+              label: Text(l10n.regAddProperty),
+            ),
+          ),
         if (state.fileError != null && state.fileError!.propertyIndex != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -94,6 +108,9 @@ class _PropertyCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final p = state.form.properties[index];
     final errs = state.stepErrors;
+    final flags = state.flags;
+    final numeric = flags.simplifiedUi;
+    final dagUnknown = flags.dagUnknown && p.dagUnknown;
 
     String? propErr(RegErrorKind kind) {
       final e = findError(errs, kind, propertyIndex: index);
@@ -105,6 +122,15 @@ class _PropertyCard extends StatelessWidget {
     return RegSectionCard(
       title: '${l10n.registrationPropertyItemTitle} #${index + 1}',
       icon: Icons.home_work_outlined,
+      trailing: flags.addPropertyButton && state.form.properties.length > 1
+          ? IconButton(
+              key: Key('removeProperty_$index'),
+              tooltip: l10n.regRemoveProperty,
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => bloc.add(PropertyRemoved(index)),
+            )
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -139,6 +165,9 @@ class _PropertyCard extends StatelessWidget {
               required: true,
               value: p.khatianNo,
               prefixIcon: Icons.tag,
+              hint: numeric ? l10n.regDagExample : null,
+              keyboardType: numeric ? TextInputType.text : null,
+              inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
               error: propErr(RegErrorKind.khatianRequired),
               onChanged: (v) => change(PropertyField.khatianNo, v),
             ),
@@ -146,11 +175,12 @@ class _PropertyCard extends StatelessWidget {
               label: l10n.registrationPropertyHoldingNumberLabel,
               value: p.holdingNumber,
               prefixIcon: Icons.numbers,
+              inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
               onChanged: (v) => change(PropertyField.holdingNumber, v),
             ),
           ),
           const SizedBox(height: 12),
-          RegLabel(required: true, text: l10n.registrationPropertyDagNoLabel),
+          RegLabel(required: !dagUnknown, text: l10n.registrationPropertyDagNoLabel),
           const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,6 +189,8 @@ class _PropertyCard extends StatelessWidget {
                 child: RegTextField(
                   label: 'CS',
                   value: p.dagNoCs,
+                  keyboardType: numeric ? TextInputType.text : null,
+                  inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
                   error: _dagError(context, 'cs'),
                   onChanged: (v) => change(PropertyField.dagNoCs, v),
                 ),
@@ -168,12 +200,31 @@ class _PropertyCard extends StatelessWidget {
                 child: RegTextField(
                   label: 'RS',
                   value: p.dagNoRs,
+                  keyboardType: numeric ? TextInputType.text : null,
+                  inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
                   error: _dagError(context, 'rs'),
                   onChanged: (v) => change(PropertyField.dagNoRs, v),
                 ),
               ),
             ],
           ),
+          if (flags.dagUnknown) ...[
+            RegCheckboxRow(
+              key: Key('dagUnknownCheckbox_$index'),
+              value: p.dagUnknown,
+              label: l10n.regDagUnknownCheckbox,
+              onChanged: (v) => bloc.add(DagUnknownToggled(index, v)),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: Key('dagHelpLink_$index'),
+                icon: const Icon(Icons.help_outline, size: 20),
+                onPressed: () => showDagHelpSheet(context),
+                label: Text(l10n.regDagHelpLink),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           RegFieldPair(
             first: RegTextField(
@@ -181,6 +232,7 @@ class _PropertyCard extends StatelessWidget {
               required: true,
               value: p.landQuantity,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
               hint: l10n.registrationPropertyLandQuantityPlaceholder,
               error: propErr(RegErrorKind.landQuantityRequired) ??
                   propErr(RegErrorKind.landQuantityInvalid),
@@ -191,6 +243,7 @@ class _PropertyCard extends StatelessWidget {
               required: true,
               value: p.myShareQuantity,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: numeric ? const [AsciiDigitsFormatter()] : null,
               hint: l10n.registrationPropertyMyShareQuantityPlaceholder,
               error: propErr(RegErrorKind.shareQuantityRequired) ??
                   propErr(RegErrorKind.shareQuantityInvalid) ??
@@ -214,12 +267,16 @@ class _PropertyCard extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 16),
-          RegLabel(
-            required: true,
-            text: l10n.registrationPropertyApplicableDocsLabel,
-            error: propErr(RegErrorKind.applicableDocsRequired),
-          ),
-          for (final docType in state.documentOptions) _DocSection(index: index, docType: docType),
+          if (flags.minOneProof)
+            _ProofSection(index: index, error: propErr(RegErrorKind.proofRequired))
+          else ...[
+            RegLabel(
+              required: true,
+              text: l10n.registrationPropertyApplicableDocsLabel,
+              error: propErr(RegErrorKind.applicableDocsRequired),
+            ),
+            for (final docType in state.documentOptions) _DocSection(index: index, docType: docType),
+          ],
         ],
       ),
     );
@@ -352,6 +409,99 @@ class _DocSection extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Camera / gallery-or-file picker used for proofs; returns (path, name) or null.
+Future<(String, String)?> _pickProof(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final source = await showModalBottomSheet<String>(
+    context: context,
+    useSafeArea: true,
+    builder: (sheet) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.photo_camera_outlined),
+          title: Text(l10n.regPickCamera),
+          onTap: () => Navigator.of(sheet).pop('camera'),
+        ),
+        ListTile(
+          leading: const Icon(Icons.photo_library_outlined),
+          title: Text(l10n.regPickFile),
+          onTap: () => Navigator.of(sheet).pop('file'),
+        ),
+      ],
+    ),
+  );
+  if (source == null) return null;
+  if (source == 'camera') {
+    final shot = await ImagePicker().pickImage(source: ImageSource.camera);
+    return shot == null ? null : (shot.path, shot.name);
+  }
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+  );
+  final file = result?.files.singleOrNull;
+  return file?.path == null ? null : (file!.path!, file.name);
+}
+
+/// regMinOneProof: any one of the proof papers is enough. Attaching a file
+/// ticks its document type; there are no per-document checkboxes.
+class _ProofSection extends StatelessWidget {
+  const _ProofSection({required this.index, required this.error});
+
+  final int index;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<RegistrationBloc>().state;
+    final bloc = context.read<RegistrationBloc>();
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final p = state.form.properties[index];
+    return Column(
+      key: Key('proofSection_$index'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RegLabel(required: true, text: l10n.regProofTitle, error: error),
+        const SizedBox(height: 2),
+        Text(l10n.regProofHelp, style: theme.textTheme.bodySmall),
+        for (final docType in state.documentOptions)
+          Builder(builder: (context) {
+            final doc = p.applicableDocs.where((d) => d.type == docType).firstOrNull;
+            final attached = doc?.hasFile ?? false;
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: attached
+                  ? RegFileChip(
+                      fileName: '$docType - ${doc!.fileName}',
+                      removeLabel: l10n.registrationPropertyRemoveFileButton,
+                      onRemove: () => bloc.add(DocToggled(index, docType)),
+                    )
+                  : OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        alignment: AlignmentDirectional.centerStart,
+                        minimumSize: const Size(48, 48),
+                      ),
+                      icon: const Icon(Icons.attach_file, size: 20),
+                      label: Text('$docType - ${l10n.regProofAttach}', overflow: TextOverflow.ellipsis),
+                      onPressed: () async {
+                        final picked = await _pickProof(context);
+                        if (picked != null) bloc.add(DocFileAttached(index, docType, picked.$1, picked.$2));
+                      },
+                    ),
+            );
+          }),
+        if (state.fileError != null && state.fileError!.propertyIndex == index)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: _fileErrorText(context, state.fileError!),
+          ),
+      ],
     );
   }
 }

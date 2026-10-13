@@ -46,6 +46,10 @@ class RegistrationState extends Equatable {
     this.fileError,
     this.draftRestored = false,
     this.draftLastSaved,
+    this.flags = RegFlags.off,
+    this.consentVersion = '',
+    this.paymentAccounts = const [],
+    this.configLoaded = false,
   });
 
   final RegistrationStatus status;
@@ -74,6 +78,13 @@ class RegistrationState extends Equatable {
   final bool draftRestored;
   final String? draftLastSaved;
 
+  final RegFlags flags;
+
+  /// From GET /public/registration-config (only requested with regSimplifiedUi).
+  final String consentVersion;
+  final List<PaymentAccount> paymentAccounts;
+  final bool configLoaded;
+
   bool get hasAdmissionFee => admissionFee != null && admissionFee! > 0;
   bool get hasSubscription => quote != null && quoteStatus == QuoteStatus.loaded && quote!.total > 0;
 
@@ -100,6 +111,10 @@ class RegistrationState extends Equatable {
     bool clearFileError = false,
     bool? draftRestored,
     String? draftLastSaved,
+    RegFlags? flags,
+    String? consentVersion,
+    List<PaymentAccount>? paymentAccounts,
+    bool? configLoaded,
   }) =>
       RegistrationState(
         status: status ?? this.status,
@@ -123,6 +138,10 @@ class RegistrationState extends Equatable {
         fileError: clearFileError ? null : (fileError ?? this.fileError),
         draftRestored: draftRestored ?? this.draftRestored,
         draftLastSaved: draftLastSaved ?? this.draftLastSaved,
+        flags: flags ?? this.flags,
+        consentVersion: consentVersion ?? this.consentVersion,
+        paymentAccounts: paymentAccounts ?? this.paymentAccounts,
+        configLoaded: configLoaded ?? this.configLoaded,
       );
 
   @override
@@ -148,5 +167,9 @@ class RegistrationState extends Equatable {
         fileError,
         draftRestored,
         draftLastSaved,
+        flags,
+        consentVersion,
+        paymentAccounts,
+        configLoaded,
       ];
 }

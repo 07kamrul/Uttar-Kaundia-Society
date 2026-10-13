@@ -26,6 +26,12 @@ class SubmissionDetailBloc
         (event, emit) => _replaceAttachment(event.kind, event.filePath, emit));
     on<SubmissionDetailDocumentReplaceRequested>(
         (event, emit) => _replaceDocument(event.docId, event.filePath, emit));
+    on<SubmissionDetailDagFillRequested>((event, emit) => _refreshAfter(
+        emit,
+        () => _repository.fillDag(id, event.propertyId,
+            dagNoCs: event.dagNoCs, dagNoRs: event.dagNoRs)));
+    on<SubmissionDetailPhotoUploadRequested>((event, emit) =>
+        _refreshAfter(emit, () => _repository.uploadMemberPhoto(id, event.filePath)));
   }
 
   final String id;
@@ -118,6 +124,18 @@ class SubmissionDetailBloc
     }
   }
 
+  /// Runs a mutation that returns the refreshed submission.
+  Future<void> _refreshAfter(Emitter<SubmissionDetailState> emit,
+      Future<SubmissionDetail> Function() action) async {
+    emit(_d.copyWith(busy: true, actionError: () => null));
+    try {
+      final submission = await action();
+      emit(_d.copyWith(busy: false, submission: submission));
+    } catch (e) {
+      emit(_d.copyWith(busy: false, actionError: () => e));
+    }
+  }
+
   /// Rejected snapshot of the current submission (status -> rejected).
   SubmissionDetail? _rejected(SubmissionDetail? s, String reason) {
     if (s == null) return null;
@@ -127,6 +145,7 @@ class SubmissionDetailBloc
       mobile: s.mobile,
       status: SubmissionStatus.rejected,
       createdAt: s.createdAt,
+      needsDag: s.needsDag,
       fatherOrHusband: s.fatherOrHusband,
       mother: s.mother,
       dob: s.dob,

@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from enum import Enum
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, noload, selectinload
@@ -34,6 +35,7 @@ from app.schemas.fee_settings import FeeSettingCreate, FeeSettingOut
 from app.schemas.installment import InstallmentCreate, InstallmentOut, InstallmentUpdate
 from app.models.audit_log import AuditLog
 from app.services.audit import record_audit
+from app.services.dag_guard import ensure_dag_filled, member_ids_needing_dag
 from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
 from app.services.registration_installment import add_registration_installment
 from app.schemas.member import (
@@ -97,7 +99,7 @@ async def list_submissions(
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
     _admin: AdminUser = Depends(require_permission("membership.review")),
-) -> list[Member]:
+) -> list[MemberSummary]:
     query = select(Member).options(load_only(*_SUMMARY_COLUMNS))
     if status_filter is not None:
         query = query.where(Member.status == status_filter)
@@ -110,7 +112,12 @@ async def list_submissions(
     if limit is not None:
         query = query.limit(limit)
     result = await db.execute(query)
-    return list(result.scalars().all())
+    members = list(result.scalars().all())
+    needing_dag = await member_ids_needing_dag(db, [m.id for m in members])
+    return [
+        MemberSummary.model_validate(m).model_copy(update={"needs_dag": m.id in needing_dag})
+        for m in members
+    ]
 
 
 @router.get("/submissions/{member_id}", response_model=MemberDetail)
@@ -120,6 +127,77 @@ async def get_submission(
     _admin: AdminUser = Depends(require_permission("membership.review")),
 ) -> Member:
     member = await _get_member_or_404(db, member_id)
+    return member
+
+
+class DagFillPayload(BaseModel):
+    dag_no_cs: str | None = None
+    dag_no_rs: str | None = None
+
+
+@router.patch(
+    "/submissions/{member_id}/properties/{property_id}/dag", response_model=MemberDetail
+)
+async def fill_property_dag(
+    member_id: int,
+    property_id: int,
+    payload: DagFillPayload,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("membership.review")),
+) -> Member:
+    """Admin completes a dag the applicant did not know; clears dag_unknown."""
+    cs = (payload.dag_no_cs or "").strip()
+    rs = (payload.dag_no_rs or "").strip()
+    if not cs and not rs:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "success": False,
+                "code": "DAG_REQUIRED_FIELD",
+                "message": "Enter at least one dag number.",
+            },
+        )
+    member = await _get_member_or_404(db, member_id)
+    prop = next((p for p in member.properties if p.id == property_id), None)
+    if prop is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
+    if cs:
+        prop.dag_no_cs = cs
+    if rs:
+        prop.dag_no_rs = rs
+    prop.dag_unknown = False
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="property.dag_fill",
+        entity_type="property",
+        entity_id=str(prop.id),
+        detail=f"member {member.id}: dag filled",
+    )
+    await db.commit()
+    return member
+
+
+@router.put("/submissions/{member_id}/photo", response_model=MemberDetail)
+async def upload_member_photo(
+    member_id: int,
+    member_photo: UploadFile = File(..., alias="memberPhoto"),
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("membership.review")),
+) -> Member:
+    """Upload the member's photo on their behalf (same storage path as the
+    public submission and the attachment replace route)."""
+    member = await _get_member_or_404(db, member_id)
+    member.member_photo_path = await save_upload_file(member_photo, f"photos/member_{member.id}")
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="member.photo_upload",
+        entity_type="member",
+        entity_id=str(member.id),
+        detail="photo uploaded by admin",
+    )
+    await db.commit()
     return member
 
 
@@ -176,6 +254,7 @@ async def approve_submission(
     member = await _get_member_or_404(db, member_id, eager=False)
     if member.status == MemberStatus.APPROVED:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already approved")
+    await ensure_dag_filled(db, member.id)
 
     # A member re-queued to PENDING by their own core-field edit (see
     # app/api/routes/member.py's re-approval workflow) already has a

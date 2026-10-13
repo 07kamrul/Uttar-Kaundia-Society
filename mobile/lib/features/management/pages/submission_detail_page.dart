@@ -103,6 +103,7 @@ class _SubmissionDetailView extends StatelessWidget {
             kind: submissionStatusKind(s.status),
             label: statusLabel(loc, s.status),
           ),
+          if (s.needsDag) const NeedsDagBadge(),
         ],
       ),
       DetailSectionsPadding(
@@ -127,12 +128,17 @@ class _SubmissionDetailView extends StatelessWidget {
               busy: state.busy,
               onReplace: (kind, path) => bloc
                   .add(SubmissionDetailAttachmentReplaceRequested(kind, path)),
+              onUploadMemberPhoto: (path) =>
+                  bloc.add(SubmissionDetailPhotoUploadRequested(path)),
             ),
             SubmissionPropertiesCard(
               submission: s,
               busy: state.busy,
               onReplaceDocument: (docId, path) => bloc
                   .add(SubmissionDetailDocumentReplaceRequested(docId, path)),
+              onFillDag: (propertyId, cs, rs) => bloc.add(
+                  SubmissionDetailDagFillRequested(propertyId,
+                      dagNoCs: cs, dagNoRs: rs)),
             ),
             SubmissionNomineesCard(submission: s),
           ],

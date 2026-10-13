@@ -1,4 +1,5 @@
 import '../../../core/enums/enums.dart';
+import 'reg_flags.dart';
 import 'registration_form.dart';
 
 /// Builds the JSON `payload` form field for POST /submissions, mirroring
@@ -12,6 +13,8 @@ Map<String, dynamic> buildRegistrationPayload(
   RegistrationForm form, {
   required String admissionFee,
   required String subscription,
+  RegFlags flags = RegFlags.off,
+  String? consentVersion,
 }) {
   Map<String, dynamic>? addressToJson(AddressDetail a) => {
         'house': a.house,
@@ -22,19 +25,32 @@ Map<String, dynamic> buildRegistrationPayload(
         'division': a.division,
       };
 
+  final abroad = flags.abroadAddress && form.currentAddressAbroad;
+  final nationality = flags.hideNationality && form.nationality.trim().isEmpty
+      ? 'বাংলাদেশী'
+      : form.nationality;
+
   return {
     'full_name': form.fullName,
     'father_or_husband': form.fatherOrHusband,
     'mother': form.mother,
     'dob': form.dob,
-    'nationality': form.nationality,
+    'nationality': nationality,
     'occupation': form.occupation,
     'nid': form.nid,
     'mobile': form.mobile,
     'gender': form.gender.apiValue,
     'email': form.email,
     'permanent_address': addressToJson(form.permanentAddress),
-    'current_address': addressToJson(form.currentAddress),
+    'current_address': abroad ? null : addressToJson(form.currentAddress),
+    if (abroad) ...{
+      'current_address_abroad': true,
+      'current_country': form.currentCountry.trim().toUpperCase(),
+      'current_city': form.currentCity.trim(),
+      'current_address_text': form.currentAddressText.trim(),
+    },
+    if (flags.simplifiedUi && form.hasWhatsapp != null) 'has_whatsapp': form.hasWhatsapp,
+    if (flags.simplifiedUi && (consentVersion?.isNotEmpty ?? false)) 'consent_version': consentVersion,
     'urgent_contact_name': form.urgentContactName,
     'urgent_contact_relation': form.urgentContactRelation,
     'urgent_contact_mobile': form.urgentContactMobile,
@@ -42,7 +58,7 @@ Map<String, dynamic> buildRegistrationPayload(
     'admission_fee': admissionFee,
     'subscription': subscription,
     'receipt_no': form.receiptNo,
-    'payment_method': form.paymentMethod.apiValue,
+    'payment_method': flags.simplifiedUi ? form.paymentMethod.canonicalKey : form.paymentMethod.apiValue,
     'member_signature': form.memberSignature,
     'submission_date': form.submissionDate,
     'properties': [
@@ -53,6 +69,7 @@ Map<String, dynamic> buildRegistrationPayload(
           'khatian_no': p.khatianNo,
           'dag_no_cs': p.dagNoCs,
           'dag_no_rs': p.dagNoRs,
+          if (flags.dagUnknown && p.dagUnknown) 'dag_unknown': true,
           'holding_number': p.holdingNumber,
           'land_quantity': p.landQuantity,
           'my_share_quantity': p.myShareQuantity,
@@ -61,7 +78,8 @@ Map<String, dynamic> buildRegistrationPayload(
               : 'একক',
           'joint_owner_count': p.isJoint ? p.jointOwnerCount : null,
           'applicable_docs': [
-            for (final doc in p.applicableDocs) {'doc_type': doc.type},
+            for (final doc in p.applicableDocs)
+              if (!flags.minOneProof || doc.hasFile) {'doc_type': doc.type},
           ],
         },
     ],

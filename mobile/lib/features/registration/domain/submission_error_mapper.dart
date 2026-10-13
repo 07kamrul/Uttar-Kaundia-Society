@@ -20,6 +20,11 @@ const submissionFieldSteps = <String, int>{
   'email': 1,
   'permanent_address': 1,
   'current_address': 1,
+  'current_address_abroad': 1,
+  'current_country': 1,
+  'current_city': 1,
+  'current_address_text': 1,
+  'has_whatsapp': 1,
   'properties': 2,
   'urgent_contact_name': 3,
   'urgent_contact_relation': 3,
@@ -32,6 +37,7 @@ const submissionFieldSteps = <String, int>{
   'payment_method': 4,
   'member_signature': 5,
   'submission_date': 5,
+  'consent_version': 5,
 };
 
 enum SubmitErrorKind {
@@ -41,6 +47,9 @@ enum SubmitErrorKind {
   feeNotConfigured,
   invalidShareQuantity,
   invalidData,
+  photoRequired,
+  proofRequired,
+  abroadAddressRequired,
   generic,
   field,
 }
@@ -85,6 +94,9 @@ class SubmitErrorItem {
   int? get step => kind == SubmitErrorKind.field ? submissionFieldSteps[fieldRoot] : switch (kind) {
         SubmitErrorKind.feeNotConfigured => 4,
         SubmitErrorKind.invalidShareQuantity => 2,
+        SubmitErrorKind.photoRequired => 1,
+        SubmitErrorKind.abroadAddressRequired => 1,
+        SubmitErrorKind.proofRequired => 2,
         _ => null,
       };
 }
@@ -111,6 +123,16 @@ MappedSubmissionError mapSubmissionError(ApiException err) {
   }
   if (_serverFailureStatuses.contains(err.statusCode) || err.isServer) {
     return MappedSubmissionError(items: [SubmitErrorItem.plain(SubmitErrorKind.server)]);
+  }
+
+  if (err.errorCode == 'PHOTO_REQUIRED') {
+    return MappedSubmissionError(items: [SubmitErrorItem.plain(SubmitErrorKind.photoRequired)], step: 1);
+  }
+  if (err.errorCode == 'ABROAD_ADDRESS_REQUIRED') {
+    return MappedSubmissionError(items: [SubmitErrorItem.plain(SubmitErrorKind.abroadAddressRequired)], step: 1);
+  }
+  if (err.errorCode == 'PROPERTY_PROOF_REQUIRED') {
+    return MappedSubmissionError(items: [SubmitErrorItem.plain(SubmitErrorKind.proofRequired)], step: 2);
   }
 
   // Field errors: keys are 'root' or 'root.index' (snake_case), values are the

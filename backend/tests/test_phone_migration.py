@@ -293,7 +293,7 @@ class TestMigrationFile:
         from alembic.script import ScriptDirectory
 
         script = ScriptDirectory(str(MIGRATION_PATH.parent.parent))
-        assert script.get_heads() == ["b4d6f8a0c2e5"]
+        assert script.get_heads() == ["c1e5a9d3b7f4"]
 
     def test_upgrade_then_downgrade_round_trip(self) -> None:
         """Run the real migration file on a legacy-shaped throw-away SQLite DB."""

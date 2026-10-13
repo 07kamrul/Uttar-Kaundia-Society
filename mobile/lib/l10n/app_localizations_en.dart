@@ -6263,4 +6263,273 @@ class AppLocalizationsEn extends AppLocalizations {
   String phoneDisplayWhatsappAria(Object number) {
     return 'Message $number on WhatsApp';
   }
+
+  @override
+  String get regStepWord => 'Step';
+
+  @override
+  String get regOptionalSuffix => '(optional)';
+
+  @override
+  String get regNationalityOtherCheckbox => 'I am a citizen of another country';
+
+  @override
+  String get regWhatsappSwitch => 'This number has WhatsApp';
+
+  @override
+  String get regNidHint => '10, 13 or 17 digits';
+
+  @override
+  String get regValidationEmailRequired => 'Enter your email';
+
+  @override
+  String get regValidationNidRequired => 'Enter your NID number';
+
+  @override
+  String get regValidationNidInvalidSimple =>
+      'The NID number must be 10, 13 or 17 digits';
+
+  @override
+  String get regDobDay => 'Day';
+
+  @override
+  String get regDobMonth => 'Month';
+
+  @override
+  String get regDobYear => 'Year';
+
+  @override
+  String get regAbroadSwitch => 'I live abroad';
+
+  @override
+  String get regAbroadCountry => 'Country';
+
+  @override
+  String get regAbroadCountryPick => 'Choose a country';
+
+  @override
+  String get regAbroadCity => 'City';
+
+  @override
+  String get regAbroadAddressText => 'Address (write in full)';
+
+  @override
+  String get regAbroadPermanentNote =>
+      'Your permanent address must be in Bangladesh.';
+
+  @override
+  String get regValidationAbroadCountry => 'Choose a country (not Bangladesh)';
+
+  @override
+  String get regValidationAbroadCity => 'Enter the city';
+
+  @override
+  String get regValidationAbroadAddress => 'Enter your address abroad';
+
+  @override
+  String get regAddProperty => '+ Add another property';
+
+  @override
+  String get regRemoveProperty => 'Remove this property';
+
+  @override
+  String get regDagUnknownCheckbox =>
+      'I don\'t know the dag — the office will help';
+
+  @override
+  String get regDagHelpLink => 'Where do I find my dag?';
+
+  @override
+  String get regDagHelpIntro =>
+      'Look at your khatian or porcha (land paper). It shows the khatian number and the dag numbers. The older survey number is the CS dag and the later one is the RS dag.';
+
+  @override
+  String get regDagHelpSchemaTitle => 'Sample khatian (for illustration only)';
+
+  @override
+  String get regDagHelpKhatian => 'Khatian no.';
+
+  @override
+  String get regDagHelpCs => 'CS dag';
+
+  @override
+  String get regDagHelpRs => 'RS dag';
+
+  @override
+  String get regDagHelpTip =>
+      'If you cannot find it, tick \"I don\'t know the dag\". The office will check your paper and fill it in.';
+
+  @override
+  String get regDagHelpClose => 'Got it';
+
+  @override
+  String get regDagExample => 'e.g. 2214';
+
+  @override
+  String get regProofTitle => 'Property proof (at least one)';
+
+  @override
+  String get regProofHelp =>
+      'Give any one of: khatian, namjari, tax receipt or inheritance certificate. A photo or PDF is fine.';
+
+  @override
+  String get regProofAttach => 'Attach a file or photo';
+
+  @override
+  String get regValidationProofRequired => 'Attach at least one proof';
+
+  @override
+  String get regPayCash => 'Cash';
+
+  @override
+  String get regPayBkash => 'bKash';
+
+  @override
+  String get regPayNagad => 'Nagad';
+
+  @override
+  String get regPayRocket => 'Rocket';
+
+  @override
+  String get regPayBank => 'Bank';
+
+  @override
+  String get regPayOther => 'Other';
+
+  @override
+  String get regPayAccountTitle => 'Send the money to this account';
+
+  @override
+  String get regPayAccountName => 'Account name';
+
+  @override
+  String get regPayAccountNumber => 'Number';
+
+  @override
+  String get regPayCopy => 'Copy';
+
+  @override
+  String get regPayCopied => 'Copied';
+
+  @override
+  String get regPayRefTrx => 'Transaction ID (TrxID)';
+
+  @override
+  String get regPayRefReceipt => 'Receipt number';
+
+  @override
+  String get regPayScreenshot => 'Upload a screenshot of the payment';
+
+  @override
+  String get regPayAbroadNote =>
+      'If you live abroad, a relative in Bangladesh can pay on your behalf. Give the transaction ID or receipt number and a screenshot.';
+
+  @override
+  String get regConsentLabel => 'I agree to the constitution and terms';
+
+  @override
+  String get regSignatureOptional => 'Signature (optional)';
+
+  @override
+  String get regSignatureOptionalHint =>
+      'You can submit without a signature. Your photo is enough.';
+
+  @override
+  String get regDraftSaved =>
+      'Your information is saved. You can come back later and finish.';
+
+  @override
+  String get regReviewChange => 'Change';
+
+  @override
+  String get regReviewWhatsapp => 'WhatsApp';
+
+  @override
+  String get regReviewYes => 'Yes';
+
+  @override
+  String get regReviewNo => 'No';
+
+  @override
+  String get regReviewDagUnknown => 'Dag not known — the office will help';
+
+  @override
+  String get regReviewAbroadAddress => 'Address abroad';
+
+  @override
+  String get regSuccessTitle => 'Application submitted';
+
+  @override
+  String get regSuccessLine2 => 'The office will check your information';
+
+  @override
+  String get regSuccessLine3 => 'You will be told within about 20 working days';
+
+  @override
+  String get regSuccessReference => 'Your reference number';
+
+  @override
+  String get regSuccessCopyRef => 'Copy';
+
+  @override
+  String get regSuccessHome => 'Go to the home page';
+
+  @override
+  String get apiErrorPhotoRequired =>
+      'A member photo is required. Add a photo and try again.';
+
+  @override
+  String get apiErrorPropertyProofRequired =>
+      'Attach at least one proof for every property.';
+
+  @override
+  String get apiErrorDagRequired =>
+      'Fill in the dag number first, then you can approve.';
+
+  @override
+  String get registrationSubmitPhotoRequired => 'A member photo is required.';
+
+  @override
+  String get registrationSubmitProofRequired =>
+      'Attach at least one proof for every property.';
+
+  @override
+  String get adminNeedsDagBadge => 'Dag needed';
+
+  @override
+  String get adminDagFillButton => 'Fill in the dag';
+
+  @override
+  String get adminDagFillTitle => 'Enter the dag number';
+
+  @override
+  String get adminDagFillHint => 'Enter at least one dag number.';
+
+  @override
+  String get adminDagCsLabel => 'CS dag';
+
+  @override
+  String get adminDagRsLabel => 'RS dag';
+
+  @override
+  String get adminDagSave => 'Save';
+
+  @override
+  String get adminPhotoUploadButton => 'Upload the member photo';
+
+  @override
+  String get regPickCamera => 'Take a photo';
+
+  @override
+  String get regPickFile => 'Choose from gallery or files';
+
+  @override
+  String get regProofAttached => 'Attached';
+
+  @override
+  String get regChangeFile => 'Change';
+
+  @override
+  String get apiErrorAbroadAddressRequired =>
+      'Enter your address abroad (country, city and address).';
 }

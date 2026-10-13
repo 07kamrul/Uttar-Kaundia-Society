@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.schemas.common import AddressDetail, Nominee, PropertyIn, validate_phone
 
@@ -14,8 +14,10 @@ class SubmissionPayload(BaseModel):
     father_or_husband: str
     mother: str
     dob: str
-    nationality: str
-    occupation: str
+    # Required unless the matching feature flag is on; enforced in the route
+    # (flags live in the database, pydantic validators cannot read them).
+    nationality: str | None = None
+    occupation: str | None = None
     nid: str
     mobile: str
     gender: str
@@ -23,6 +25,12 @@ class SubmissionPayload(BaseModel):
 
     permanent_address: AddressDetail | None = None
     current_address: AddressDetail | None = None
+    current_address_abroad: bool = False
+    current_country: str | None = Field(default=None, max_length=2)
+    current_city: str | None = Field(default=None, max_length=100)
+    current_address_text: str | None = Field(default=None, max_length=500)
+    has_whatsapp: bool | None = None
+    consent_version: str | None = Field(default=None, max_length=16)
 
     urgent_contact_name: str | None = None
     urgent_contact_relation: str | None = None

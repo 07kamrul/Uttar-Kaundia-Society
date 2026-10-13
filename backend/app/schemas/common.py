@@ -76,6 +76,7 @@ class PropertyIn(BaseModel):
     khatian_no: str | None = None
     dag_no_cs: str | None = None
     dag_no_rs: str | None = None
+    dag_unknown: bool = False
     holding_number: str | None = None
     land_quantity: str | None = None
     my_share_quantity: str | None = None

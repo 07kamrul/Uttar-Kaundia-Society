@@ -3,7 +3,59 @@ import 'package:flutter/services.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/validation/bd_input.dart' show toAsciiDigits;
 import '../../../../shared/widgets/phone_field.dart';
+
+/// Converts Bangla / Arabic-Indic digits to ASCII as the member types, so the
+/// stored value is always ASCII. One code unit maps to one code unit, so the
+/// cursor position is preserved.
+class AsciiDigitsFormatter extends TextInputFormatter {
+  const AsciiDigitsFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final converted = toAsciiDigits(newValue.text);
+    return converted == newValue.text ? newValue : newValue.copyWith(text: converted);
+  }
+}
+
+/// Label + switch row with a 48dp tap target (WhatsApp, abroad).
+class RegSwitchRow extends StatelessWidget {
+  const RegSwitchRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.switchKey,
+  });
+
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final Key? switchKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      toggled: value,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: () => onChanged(!value),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
+            children: [
+              Expanded(child: Text(label)),
+              Switch(key: switchKey, value: value, onChanged: onChanged),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Small form primitives for the registration wizard. All user-visible strings
 /// come from ARB via [AppLocalizations]; widgets dispatch changes upward and

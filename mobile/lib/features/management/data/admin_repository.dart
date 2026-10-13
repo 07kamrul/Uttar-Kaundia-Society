@@ -56,6 +56,28 @@ class AdminRepository {
     return Map<String, dynamic>.from(data as Map).toDetailEntity();
   }
 
+  /// PATCH the CS/RS dag of a property flagged "dag unknown" (needs
+  /// `membership.review`). Blank values are sent as null; the server needs at
+  /// least one. Returns the refreshed submission.
+  Future<SubmissionDetail> fillDag(String id, String propertyId,
+      {String? dagNoCs, String? dagNoRs}) async {
+    String? clean(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
+    await _api.patch('$_base/submissions/$id/properties/$propertyId/dag', {
+      'dag_no_cs': clean(dagNoCs),
+      'dag_no_rs': clean(dagNoRs),
+    });
+    return getSubmission(id);
+  }
+
+  /// Admin uploads the member photo on the member's behalf (multipart field
+  /// `memberPhoto`, needs `membership.review`). Returns the refreshed submission.
+  Future<SubmissionDetail> uploadMemberPhoto(String id, String filePath) async {
+    final form =
+        FormData.fromMap({'memberPhoto': await MultipartFile.fromFile(filePath)});
+    await _api.putMultipart('$_base/submissions/$id/photo', form);
+    return getSubmission(id);
+  }
+
   /// Returns the approved member_id.
   Future<String> approveSubmission(String id) async {
     final data = await _api.post('$_base/submissions/$id/approve', {});

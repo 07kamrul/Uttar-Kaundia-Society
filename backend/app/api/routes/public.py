@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, Response
@@ -5,6 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import case, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.constants import CONSENT_VERSION
 from app.core.cache import CacheName, cached_response, make_key
 from app.db.session import get_db
 from app.models.config_list_item import ConfigListItem
@@ -17,6 +19,7 @@ from app.schemas.event import EventOut
 from app.schemas.notice import NoticeOut
 from app.schemas.public import PublicStatsOut, SubscriptionQuoteOut, SubscriptionQuoteRequest
 from app.services.fee_calculation import calculate_monthly_subscription
+from app.services.installment_payment import list_payment_accounts
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -70,6 +73,40 @@ async def _load_public_stats(db: AsyncSession) -> dict:
         approved_count=approved_count,
         monthly_subscription_total=monthly_subscription_total,
     ).model_dump(mode="json")
+
+
+_ACCOUNT_NUMBER_RE = re.compile(r"\+?\d[\d\s-]{5,}\d")
+
+
+def _registration_account(method: str, details: str) -> dict:
+    """Shape a society payment account (the same admin-managed 'payment_account'
+    list the member pay-dues dialog reads). `label` keeps the full admin text;
+    `number` is the first phone/account-like run of digits in it, if any."""
+    found = _ACCOUNT_NUMBER_RE.search(details)
+    return {
+        "method": method,
+        "label": details,
+        "number": found.group(0).strip() if found else None,
+        "account_name": None,
+    }
+
+
+async def _load_registration_config(db: AsyncSession) -> dict:
+    accounts = await list_payment_accounts(db)
+    return {
+        "consent_version": CONSENT_VERSION,
+        "payment_accounts": [_registration_account(a.method, a.details) for a in accounts],
+    }
+
+
+@router.get("/registration-config")
+async def get_registration_config(response: Response, db: AsyncSession = Depends(get_db)) -> dict:
+    return await cached_response(
+        response,
+        CacheName.PUBLIC_LISTS,
+        make_key("registration_config"),
+        lambda: _load_registration_config(db),
+    )
 
 
 @router.get("/fee-settings")

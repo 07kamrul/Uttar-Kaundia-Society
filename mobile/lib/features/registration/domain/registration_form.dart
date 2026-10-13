@@ -30,11 +30,14 @@ extension GenderX on Gender {
 }
 
 /// Mirrors Angular PAYMENT_METHODS (sent verbatim in the payload).
-enum PaymentMethod { cash, bank, mfs, other, unknown }
+enum PaymentMethod { cash, bkash, nagad, rocket, bank, mfs, other, unknown }
 
 extension PaymentMethodX on PaymentMethod {
   String get apiValue => switch (this) {
         PaymentMethod.cash => 'ক্যাশ',
+        PaymentMethod.bkash => 'bkash',
+        PaymentMethod.nagad => 'nagad',
+        PaymentMethod.rocket => 'rocket',
         PaymentMethod.bank => 'ব্যাংক',
         PaymentMethod.mfs => 'MFS (বিকাশ/নগদ/রকেট)',
         PaymentMethod.other => 'অন্যান্য',
@@ -46,8 +49,33 @@ extension PaymentMethodX on PaymentMethod {
         'ব্যাংক' => PaymentMethod.bank,
         'MFS (বিকাশ/নগদ/রকেট)' => PaymentMethod.mfs,
         'অন্যান্য' => PaymentMethod.other,
+        'cash' => PaymentMethod.cash,
+        'bkash' => PaymentMethod.bkash,
+        'nagad' => PaymentMethod.nagad,
+        'rocket' => PaymentMethod.rocket,
+        'bank' => PaymentMethod.bank,
+        'other' => PaymentMethod.other,
         _ => PaymentMethod.unknown,
       };
+
+  /// Canonical server key (contract: cash, bkash, nagad, rocket, bank, other).
+  /// Legacy-only methods fall back to their legacy payload value.
+  String get canonicalKey => switch (this) {
+        PaymentMethod.cash => 'cash',
+        PaymentMethod.bkash => 'bkash',
+        PaymentMethod.nagad => 'nagad',
+        PaymentMethod.rocket => 'rocket',
+        PaymentMethod.bank => 'bank',
+        PaymentMethod.other => 'other',
+        _ => apiValue,
+      };
+
+  /// Mobile-banking methods are referenced by a TrxID; the rest by a receipt number.
+  bool get usesTransactionId =>
+      this == PaymentMethod.bkash ||
+      this == PaymentMethod.nagad ||
+      this == PaymentMethod.rocket ||
+      this == PaymentMethod.mfs;
 }
 
 /// Local attachment metadata. The file lives on disk at [path]; after a draft
@@ -162,6 +190,7 @@ class PropertyItem {
     this.khatianNo = '',
     this.dagNoCs = '',
     this.dagNoRs = '',
+    this.dagUnknown = false,
     this.holdingNumber = '',
     this.landQuantity = '',
     this.myShareQuantity = '',
@@ -175,6 +204,7 @@ class PropertyItem {
   final String khatianNo;
   final String dagNoCs;
   final String dagNoRs;
+  final bool dagUnknown;
   final String holdingNumber;
   final String landQuantity;
   final String myShareQuantity;
@@ -190,6 +220,7 @@ class PropertyItem {
     String? khatianNo,
     String? dagNoCs,
     String? dagNoRs,
+    bool? dagUnknown,
     String? holdingNumber,
     String? landQuantity,
     String? myShareQuantity,
@@ -204,6 +235,7 @@ class PropertyItem {
         khatianNo: khatianNo ?? this.khatianNo,
         dagNoCs: dagNoCs ?? this.dagNoCs,
         dagNoRs: dagNoRs ?? this.dagNoRs,
+        dagUnknown: dagUnknown ?? this.dagUnknown,
         holdingNumber: holdingNumber ?? this.holdingNumber,
         landQuantity: landQuantity ?? this.landQuantity,
         myShareQuantity: myShareQuantity ?? this.myShareQuantity,
@@ -213,10 +245,10 @@ class PropertyItem {
       );
 
   @override
-  bool operator ==(Object other) => other is PropertyItem && other.propertyType == propertyType && other.propertyTypeOther == propertyTypeOther && other.khatianNo == khatianNo && other.dagNoCs == dagNoCs && other.dagNoRs == dagNoRs && other.holdingNumber == holdingNumber && other.landQuantity == landQuantity && other.myShareQuantity == myShareQuantity && other.ownership == ownership && other.jointOwnerCount == jointOwnerCount && other.applicableDocs == applicableDocs;
+  bool operator ==(Object other) => other is PropertyItem && other.propertyType == propertyType && other.propertyTypeOther == propertyTypeOther && other.khatianNo == khatianNo && other.dagNoCs == dagNoCs && other.dagNoRs == dagNoRs && other.dagUnknown == dagUnknown && other.holdingNumber == holdingNumber && other.landQuantity == landQuantity && other.myShareQuantity == myShareQuantity && other.ownership == ownership && other.jointOwnerCount == jointOwnerCount && other.applicableDocs == applicableDocs;
 
   @override
-  int get hashCode => Object.hash(propertyType, propertyTypeOther, khatianNo, dagNoCs, dagNoRs, holdingNumber, landQuantity, myShareQuantity, ownership, jointOwnerCount, applicableDocs);
+  int get hashCode => Object.hash(propertyType, propertyTypeOther, khatianNo, dagNoCs, dagNoRs, dagUnknown, holdingNumber, landQuantity, myShareQuantity, ownership, jointOwnerCount, applicableDocs);
 }
 
 /// Whole-form value (Angular form.getRawValue() equivalent).
@@ -232,6 +264,11 @@ class RegistrationForm {
     this.mobile = '',
     this.gender = Gender.unknown,
     this.email = '',
+    this.hasWhatsapp,
+    this.currentAddressAbroad = false,
+    this.currentCountry = '',
+    this.currentCity = '',
+    this.currentAddressText = '',
     this.permanentAddress = const AddressDetail(),
     this.currentAddress = const AddressDetail(),
     this.sameAsCurrentAddress = false,
@@ -249,6 +286,7 @@ class RegistrationForm {
     this.memberSignature = '',
     this.submissionDate = '',
     this.declarationAccepted = false,
+    this.consentVersion = '',
   });
 
   final String fullName;
@@ -261,6 +299,18 @@ class RegistrationForm {
   final String mobile;
   final Gender gender;
   final String email;
+
+  /// Tri-state: null until the member answers the WhatsApp switch.
+  final bool? hasWhatsapp;
+
+  /// "বিদেশে থাকি": the current address is abroad (country/city/free text).
+  /// The permanent address always stays in Bangladesh.
+  final bool currentAddressAbroad;
+
+  /// ISO 3166-1 alpha-2 (never BD).
+  final String currentCountry;
+  final String currentCity;
+  final String currentAddressText;
 
   final AddressDetail permanentAddress;
   final AddressDetail currentAddress;
@@ -289,6 +339,10 @@ class RegistrationForm {
   final String submissionDate;
   final bool declarationAccepted;
 
+  /// Consent text version the member agreed to (from the registration config).
+  /// Not persisted in the draft: it is re-stamped when consent is ticked.
+  final String consentVersion;
+
   RegistrationForm copyWith({
     String? fullName,
     String? fatherOrHusband,
@@ -300,6 +354,11 @@ class RegistrationForm {
     String? mobile,
     Gender? gender,
     String? email,
+    bool? hasWhatsapp,
+    bool? currentAddressAbroad,
+    String? currentCountry,
+    String? currentCity,
+    String? currentAddressText,
     AddressDetail? permanentAddress,
     AddressDetail? currentAddress,
     bool? sameAsCurrentAddress,
@@ -320,6 +379,7 @@ class RegistrationForm {
     String? memberSignature,
     String? submissionDate,
     bool? declarationAccepted,
+    String? consentVersion,
   }) =>
       RegistrationForm(
         fullName: fullName ?? this.fullName,
@@ -332,6 +392,11 @@ class RegistrationForm {
         mobile: mobile ?? this.mobile,
         gender: gender ?? this.gender,
         email: email ?? this.email,
+        hasWhatsapp: hasWhatsapp ?? this.hasWhatsapp,
+        currentAddressAbroad: currentAddressAbroad ?? this.currentAddressAbroad,
+        currentCountry: currentCountry ?? this.currentCountry,
+        currentCity: currentCity ?? this.currentCity,
+        currentAddressText: currentAddressText ?? this.currentAddressText,
         permanentAddress: permanentAddress ?? this.permanentAddress,
         currentAddress: currentAddress ?? this.currentAddress,
         sameAsCurrentAddress: sameAsCurrentAddress ?? this.sameAsCurrentAddress,
@@ -349,6 +414,7 @@ class RegistrationForm {
         memberSignature: memberSignature ?? this.memberSignature,
         submissionDate: submissionDate ?? this.submissionDate,
         declarationAccepted: declarationAccepted ?? this.declarationAccepted,
+        consentVersion: consentVersion ?? this.consentVersion,
       );
 
   /// Sum of all properties' share quantities — drives the চাঁদা quote request.

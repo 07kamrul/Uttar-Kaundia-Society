@@ -9,6 +9,7 @@ import '../../domain/registration_form.dart';
 import '../../domain/registration_validators.dart';
 import '../bloc/registration_bloc.dart';
 import 'registration_inputs.dart';
+import 'payment_simple.dart';
 import 'registration_l10n.dart';
 
 /// Step 4: admission fee (read-only, from GET /public/fee-settings), চাঁদা
@@ -28,6 +29,16 @@ class PaymentStep extends StatelessWidget {
     String? err(RegErrorKind kind) {
       final e = findError(state.stepErrors, kind);
       return e == null ? null : regErrorMessage(l10n, e);
+    }
+
+    if (state.flags.simplifiedUi) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RegSectionTitle(text: l10n.registrationStepTitlesPayment),
+          const SimplePaymentStep(),
+        ],
+      );
     }
 
     // The fee is rendered only from the live fee settings (never from the

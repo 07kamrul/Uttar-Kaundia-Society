@@ -58,3 +58,24 @@ final class SubmissionDetailDocumentReplaceRequested
   @override
   List<Object?> get props => [docId, filePath];
 }
+
+final class SubmissionDetailDagFillRequested extends SubmissionDetailEvent {
+  const SubmissionDetailDagFillRequested(this.propertyId,
+      {this.dagNoCs, this.dagNoRs});
+
+  final String propertyId;
+  final String? dagNoCs;
+  final String? dagNoRs;
+
+  @override
+  List<Object?> get props => [propertyId, dagNoCs, dagNoRs];
+}
+
+final class SubmissionDetailPhotoUploadRequested extends SubmissionDetailEvent {
+  const SubmissionDetailPhotoUploadRequested(this.filePath);
+
+  final String filePath;
+
+  @override
+  List<Object?> get props => [filePath];
+}

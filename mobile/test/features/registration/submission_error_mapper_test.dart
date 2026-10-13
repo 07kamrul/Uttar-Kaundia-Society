@@ -97,4 +97,30 @@ void main() {
     expect(mapped.items.single.status, 418);
     expect(mapped.step, isNull);
   });
+
+  test('PHOTO_REQUIRED detail code maps to the photo error on step 1', () {
+    final mapped = mapSubmissionError(const ApiException(
+      type: ApiExceptionType.validation,
+      statusCode: 422,
+      errorCode: 'PHOTO_REQUIRED',
+    ));
+    expect(mapped.items.single.kind, SubmitErrorKind.photoRequired);
+    expect(mapped.step, 1);
+  });
+
+  test('PROPERTY_PROOF_REQUIRED detail code maps to the proof error on step 2', () {
+    final mapped = mapSubmissionError(const ApiException(
+      type: ApiExceptionType.validation,
+      statusCode: 422,
+      errorCode: 'PROPERTY_PROOF_REQUIRED',
+    ));
+    expect(mapped.items.single.kind, SubmitErrorKind.proofRequired);
+    expect(mapped.step, 2);
+  });
+
+  test('new abroad fields belong to step 1', () {
+    for (final f in ['current_country', 'current_city', 'current_address_text']) {
+      expect(submissionFieldSteps[f], 1, reason: f);
+    }
+  });
 }

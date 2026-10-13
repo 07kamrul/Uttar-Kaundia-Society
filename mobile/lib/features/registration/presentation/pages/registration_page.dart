@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injector.dart';
+import '../../../../core/feature_flags/feature_flags_service.dart';
 import '../../../../core/layout/responsive.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -13,8 +14,10 @@ import '../../../../shared/widgets/widgets.dart';
 import '../../data/config_list_repository.dart';
 import '../../data/fee_repository.dart';
 import '../../data/geo_repository.dart';
+import '../../data/registration_config_repository.dart';
 import '../../data/registration_draft_service.dart';
 import '../../data/registration_repository.dart';
+import '../../domain/reg_flags.dart';
 import '../../domain/submission_error_mapper.dart';
 import '../bloc/registration_bloc.dart';
 import '../widgets/contact_step.dart';
@@ -24,6 +27,7 @@ import '../widgets/payment_step.dart';
 import '../widgets/property_step.dart';
 import '../widgets/registration_inputs.dart';
 import '../widgets/registration_l10n.dart';
+import '../widgets/registration_simple_widgets.dart';
 import '../widgets/registration_stepper.dart';
 import '../widgets/review_step.dart';
 
@@ -39,7 +43,12 @@ class RegistrationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => RegistrationBloc(
-        registrationRepository: RegistrationRepository(apiClient: sl<ApiClient>()),
+        registrationRepository: RegistrationRepository(
+          apiClient: sl<ApiClient>(),
+          flagsProvider: () => RegFlags.from(sl<FeatureFlagsService>().isEnabled),
+        ),
+        flagsService: sl<FeatureFlagsService>(),
+        registrationConfigRepository: RegistrationConfigRepository(apiClient: sl()),
         feeRepository: FeeRepository(apiClient: sl()),
         geoRepository: GeoRepository(apiClient: sl()),
         configListRepository: ConfigListRepository(apiClient: sl()),
@@ -103,9 +112,12 @@ class _RegistrationViewState extends State<_RegistrationView> {
         ],
       ),
       bottomNavigationBar: BlocBuilder<RegistrationBloc, RegistrationState>(
-        buildWhen: (p, c) => p.status != c.status,
+        buildWhen: (p, c) => p.status != c.status || p.submitStatus != c.submitStatus,
         builder: (context, state) =>
-            state.status == RegistrationStatus.loading ? const SizedBox.shrink() : const _NavBar(),
+            state.status == RegistrationStatus.loading ||
+                    (state.flags.simplifiedUi && state.submitStatus == SubmitStatus.success)
+                ? const SizedBox.shrink()
+                : const _NavBar(),
       ),
       body: MultiBlocListener(
         listeners: [
@@ -121,6 +133,13 @@ class _RegistrationViewState extends State<_RegistrationView> {
         ],
         child: BlocBuilder<RegistrationBloc, RegistrationState>(
           builder: (context, state) {
+            if (state.flags.simplifiedUi && state.submitStatus == SubmitStatus.success) {
+              return Center(
+                child: SingleChildScrollView(
+                  child: RegistrationSuccessView(reference: state.successId, onHome: () => context.go('/')),
+                ),
+              );
+            }
             if (state.status == RegistrationStatus.loading) {
               return const PageBody(
                 maxWidth: Breakpoints.formMaxWidth,
@@ -164,7 +183,7 @@ class _RegistrationViewState extends State<_RegistrationView> {
     if (state.submitStatus == SubmitStatus.duplicate && state.duplicateKind != null) {
       _showDuplicateDialog(context, state);
     }
-    if (state.submitStatus == SubmitStatus.success) {
+    if (state.submitStatus == SubmitStatus.success && !state.flags.simplifiedUi) {
       _showSuccessDialog(context, state);
     }
   }
@@ -275,7 +294,9 @@ class _StepperPanel extends StatelessWidget {
                 currentStep: state.currentStep,
                 onStepTapped: (s) => bloc.add(StepGoToRequested(s)),
               ),
-              if (state.draftLastSaved != null)
+              if (state.flags.simplifiedUi)
+                const Padding(padding: EdgeInsets.only(top: 6), child: RegDraftSavedLine())
+              else if (state.draftLastSaved != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Row(
@@ -314,11 +335,12 @@ class _StepBody extends StatelessWidget {
     final submitErrorMessages = [
       for (final item in state.submitErrors) submitItemMessage(l10n, item),
     ];
-    final stepErrorMessages = [for (final e in state.stepErrors) regErrorMessage(l10n, e)];
+    final stepErrorMessages = [for (final e in state.stepErrors) regErrorMessage(l10n, e, flags: state.flags)];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (state.currentStep == 1) const _Header(),
+        if (state.flags.simplifiedUi) RegStepHeader(step: state.currentStep),
         if (state.draftRestored) const _DraftBanner(),
         _buildStep(state.currentStep),
         if (stepErrorMessages.isNotEmpty) RegErrorBox(messages: stepErrorMessages.take(8).toList()),

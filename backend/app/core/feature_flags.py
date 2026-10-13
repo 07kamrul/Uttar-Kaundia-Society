@@ -36,6 +36,16 @@ _FLAGS = (
         False,
         "At least one ownership proof instead of one file per ticked doc (R7)",
     ),
+    FlagDef(
+        "reg_abroad_address",
+        False,
+        "'I live abroad' toggle for the current address at registration",
+    ),
+    FlagDef(
+        "reg_simplified_ui",
+        False,
+        "Simplified registration UI: step header, DOB selects, payment cards, success screen",
+    ),
     FlagDef("password_policy_v2", False, "Min 8 chars + common-password blocklist, no forced digit (R8)"),
     FlagDef("nav_merged_entries", False, "Merged member/admin menu entries (R9)"),
     FlagDef("nav_advanced_section", False, "Technical screens under Settings › Advanced (R10)"),

@@ -11557,6 +11557,516 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'{number}-এ হোয়াটসঅ্যাপে বার্তা পাঠান'**
   String phoneDisplayWhatsappAria(Object number);
+
+  /// No description provided for @regStepWord.
+  ///
+  /// In bn, this message translates to:
+  /// **'ধাপ'**
+  String get regStepWord;
+
+  /// No description provided for @regOptionalSuffix.
+  ///
+  /// In bn, this message translates to:
+  /// **'(ঐচ্ছিক)'**
+  String get regOptionalSuffix;
+
+  /// No description provided for @regNationalityOtherCheckbox.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমি অন্য দেশের নাগরিক'**
+  String get regNationalityOtherCheckbox;
+
+  /// No description provided for @regWhatsappSwitch.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বরে হোয়াটসঅ্যাপ আছে'**
+  String get regWhatsappSwitch;
+
+  /// No description provided for @regNidHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'১০, ১৩ বা ১৭ সংখ্যা'**
+  String get regNidHint;
+
+  /// No description provided for @regValidationEmailRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'ইমেইল লিখুন'**
+  String get regValidationEmailRequired;
+
+  /// No description provided for @regValidationNidRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'NID নম্বর লিখুন'**
+  String get regValidationNidRequired;
+
+  /// No description provided for @regValidationNidInvalidSimple.
+  ///
+  /// In bn, this message translates to:
+  /// **'NID নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে'**
+  String get regValidationNidInvalidSimple;
+
+  /// No description provided for @regDobDay.
+  ///
+  /// In bn, this message translates to:
+  /// **'দিন'**
+  String get regDobDay;
+
+  /// No description provided for @regDobMonth.
+  ///
+  /// In bn, this message translates to:
+  /// **'মাস'**
+  String get regDobMonth;
+
+  /// No description provided for @regDobYear.
+  ///
+  /// In bn, this message translates to:
+  /// **'বছর'**
+  String get regDobYear;
+
+  /// No description provided for @regAbroadSwitch.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশে থাকি'**
+  String get regAbroadSwitch;
+
+  /// No description provided for @regAbroadCountry.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশ'**
+  String get regAbroadCountry;
+
+  /// No description provided for @regAbroadCountryPick.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশ বেছে নিন'**
+  String get regAbroadCountryPick;
+
+  /// No description provided for @regAbroadCity.
+  ///
+  /// In bn, this message translates to:
+  /// **'শহর'**
+  String get regAbroadCity;
+
+  /// No description provided for @regAbroadAddressText.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঠিকানা (বিস্তারিত লিখুন)'**
+  String get regAbroadAddressText;
+
+  /// No description provided for @regAbroadPermanentNote.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্থায়ী ঠিকানা বাংলাদেশের হতে হবে।'**
+  String get regAbroadPermanentNote;
+
+  /// No description provided for @regValidationAbroadCountry.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশ বেছে নিন (বাংলাদেশ নয়)'**
+  String get regValidationAbroadCountry;
+
+  /// No description provided for @regValidationAbroadCity.
+  ///
+  /// In bn, this message translates to:
+  /// **'শহরের নাম লিখুন'**
+  String get regValidationAbroadCity;
+
+  /// No description provided for @regValidationAbroadAddress.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশের ঠিকানা লিখুন'**
+  String get regValidationAbroadAddress;
+
+  /// No description provided for @regAddProperty.
+  ///
+  /// In bn, this message translates to:
+  /// **'+ আরেকটি সম্পত্তি যোগ করুন'**
+  String get regAddProperty;
+
+  /// No description provided for @regRemoveProperty.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই সম্পত্তি মুছুন'**
+  String get regRemoveProperty;
+
+  /// No description provided for @regDagUnknownCheckbox.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমি দাগ জানি না — অফিস সাহায্য করবে'**
+  String get regDagUnknownCheckbox;
+
+  /// No description provided for @regDagHelpLink.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার দাগ কোথায় পাব?'**
+  String get regDagHelpLink;
+
+  /// No description provided for @regDagHelpIntro.
+  ///
+  /// In bn, this message translates to:
+  /// **'খতিয়ান বা পর্চা (জমির কাগজ) দেখুন। সেখানে খতিয়ান নম্বর আর দাগ নম্বর লেখা থাকে। পুরনো জরিপের নম্বরকে সিএস দাগ, পরের জরিপের নম্বরকে আরএস দাগ বলে।'**
+  String get regDagHelpIntro;
+
+  /// No description provided for @regDagHelpSchemaTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নমুনা খতিয়ান (শুধু বোঝানোর জন্য)'**
+  String get regDagHelpSchemaTitle;
+
+  /// No description provided for @regDagHelpKhatian.
+  ///
+  /// In bn, this message translates to:
+  /// **'খতিয়ান নং'**
+  String get regDagHelpKhatian;
+
+  /// No description provided for @regDagHelpCs.
+  ///
+  /// In bn, this message translates to:
+  /// **'সিএস দাগ'**
+  String get regDagHelpCs;
+
+  /// No description provided for @regDagHelpRs.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগ'**
+  String get regDagHelpRs;
+
+  /// No description provided for @regDagHelpTip.
+  ///
+  /// In bn, this message translates to:
+  /// **'খুঁজে না পেলে \"আমি দাগ জানি না\" টিক দিন। অফিস আপনার কাগজ দেখে দাগ বসিয়ে দেবে।'**
+  String get regDagHelpTip;
+
+  /// No description provided for @regDagHelpClose.
+  ///
+  /// In bn, this message translates to:
+  /// **'বুঝেছি'**
+  String get regDagHelpClose;
+
+  /// No description provided for @regDagExample.
+  ///
+  /// In bn, this message translates to:
+  /// **'যেমন: ২২১৪'**
+  String get regDagExample;
+
+  /// No description provided for @regProofTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমির প্রমাণ (কমপক্ষে একটি)'**
+  String get regProofTitle;
+
+  /// No description provided for @regProofHelp.
+  ///
+  /// In bn, this message translates to:
+  /// **'খতিয়ান, নামজারি, খাজনার রসিদ বা উত্তরাধিকার সনদের যেকোনো একটি দিন। ছবি বা পিডিএফ চলবে।'**
+  String get regProofHelp;
+
+  /// No description provided for @regProofAttach.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফাইল বা ছবি দিন'**
+  String get regProofAttach;
+
+  /// No description provided for @regValidationProofRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্তত একটি প্রমাণের কাগজ দিন'**
+  String get regValidationProofRequired;
+
+  /// No description provided for @regPayCash.
+  ///
+  /// In bn, this message translates to:
+  /// **'নগদ টাকা'**
+  String get regPayCash;
+
+  /// No description provided for @regPayBkash.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিকাশ'**
+  String get regPayBkash;
+
+  /// No description provided for @regPayNagad.
+  ///
+  /// In bn, this message translates to:
+  /// **'নগদ (MFS)'**
+  String get regPayNagad;
+
+  /// No description provided for @regPayRocket.
+  ///
+  /// In bn, this message translates to:
+  /// **'রকেট'**
+  String get regPayRocket;
+
+  /// No description provided for @regPayBank.
+  ///
+  /// In bn, this message translates to:
+  /// **'ব্যাংক'**
+  String get regPayBank;
+
+  /// No description provided for @regPayOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্যান্য'**
+  String get regPayOther;
+
+  /// No description provided for @regPayAccountTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বরে টাকা পাঠান'**
+  String get regPayAccountTitle;
+
+  /// No description provided for @regPayAccountName.
+  ///
+  /// In bn, this message translates to:
+  /// **'অ্যাকাউন্টের নাম'**
+  String get regPayAccountName;
+
+  /// No description provided for @regPayAccountNumber.
+  ///
+  /// In bn, this message translates to:
+  /// **'নম্বর'**
+  String get regPayAccountNumber;
+
+  /// No description provided for @regPayCopy.
+  ///
+  /// In bn, this message translates to:
+  /// **'কপি'**
+  String get regPayCopy;
+
+  /// No description provided for @regPayCopied.
+  ///
+  /// In bn, this message translates to:
+  /// **'কপি হয়েছে'**
+  String get regPayCopied;
+
+  /// No description provided for @regPayRefTrx.
+  ///
+  /// In bn, this message translates to:
+  /// **'ট্রানজেকশন আইডি (TrxID)'**
+  String get regPayRefTrx;
+
+  /// No description provided for @regPayRefReceipt.
+  ///
+  /// In bn, this message translates to:
+  /// **'রসিদ নম্বর'**
+  String get regPayRefReceipt;
+
+  /// No description provided for @regPayScreenshot.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্টের স্ক্রিনশট দিন'**
+  String get regPayScreenshot;
+
+  /// No description provided for @regPayAbroadNote.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশে থাকলে বাংলাদেশে থাকা কোনো আত্মীয় আপনার হয়ে টাকা দিতে পারেন। ট্রানজেকশন আইডি বা রসিদ নম্বর আর স্ক্রিনশট দিন।'**
+  String get regPayAbroadNote;
+
+  /// No description provided for @regConsentLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমি গঠনতন্ত্র ও শর্তে সম্মত'**
+  String get regConsentLabel;
+
+  /// No description provided for @regSignatureOptional.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর (ঐচ্ছিক)'**
+  String get regSignatureOptional;
+
+  /// No description provided for @regSignatureOptionalHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর না দিলেও আবেদন জমা হবে। ছবি দিলেই যথেষ্ট।'**
+  String get regSignatureOptionalHint;
+
+  /// No description provided for @regDraftSaved.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার তথ্য সংরক্ষিত আছে, পরে আবার এসে শেষ করতে পারেন।'**
+  String get regDraftSaved;
+
+  /// No description provided for @regReviewChange.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরিবর্তন করুন'**
+  String get regReviewChange;
+
+  /// No description provided for @regReviewWhatsapp.
+  ///
+  /// In bn, this message translates to:
+  /// **'হোয়াটসঅ্যাপ'**
+  String get regReviewWhatsapp;
+
+  /// No description provided for @regReviewYes.
+  ///
+  /// In bn, this message translates to:
+  /// **'আছে'**
+  String get regReviewYes;
+
+  /// No description provided for @regReviewNo.
+  ///
+  /// In bn, this message translates to:
+  /// **'নেই'**
+  String get regReviewNo;
+
+  /// No description provided for @regReviewDagUnknown.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ জানা নেই — অফিস সাহায্য করবে'**
+  String get regReviewDagUnknown;
+
+  /// No description provided for @regReviewAbroadAddress.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশের ঠিকানা'**
+  String get regReviewAbroadAddress;
+
+  /// No description provided for @regSuccessTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন জমা হয়েছে'**
+  String get regSuccessTitle;
+
+  /// No description provided for @regSuccessLine2.
+  ///
+  /// In bn, this message translates to:
+  /// **'অফিস আপনার তথ্য যাচাই করবে'**
+  String get regSuccessLine2;
+
+  /// No description provided for @regSuccessLine3.
+  ///
+  /// In bn, this message translates to:
+  /// **'আনুমানিক ২০ কর্মদিবসের মধ্যে জানানো হবে'**
+  String get regSuccessLine3;
+
+  /// No description provided for @regSuccessReference.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার রেফারেন্স নম্বর'**
+  String get regSuccessReference;
+
+  /// No description provided for @regSuccessCopyRef.
+  ///
+  /// In bn, this message translates to:
+  /// **'কপি করুন'**
+  String get regSuccessCopyRef;
+
+  /// No description provided for @regSuccessHome.
+  ///
+  /// In bn, this message translates to:
+  /// **'হোম পেজে যান'**
+  String get regSuccessHome;
+
+  /// No description provided for @apiErrorPhotoRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্যের ছবি দিতে হবে। ছবি দিয়ে আবার চেষ্টা করুন।'**
+  String get apiErrorPhotoRequired;
+
+  /// No description provided for @apiErrorPropertyProofRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রতিটি সম্পত্তির জন্য কমপক্ষে একটি প্রমাণের কাগজ দিন।'**
+  String get apiErrorPropertyProofRequired;
+
+  /// No description provided for @apiErrorDagRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'আগে দাগ নম্বর লিখুন, তারপর অনুমোদন করা যাবে।'**
+  String get apiErrorDagRequired;
+
+  /// No description provided for @registrationSubmitPhotoRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্যের ছবি দিতে হবে।'**
+  String get registrationSubmitPhotoRequired;
+
+  /// No description provided for @registrationSubmitProofRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রতিটি সম্পত্তির জন্য কমপক্ষে একটি প্রমাণের কাগজ দিন।'**
+  String get registrationSubmitProofRequired;
+
+  /// No description provided for @adminNeedsDagBadge.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ দরকার'**
+  String get adminNeedsDagBadge;
+
+  /// No description provided for @adminDagFillButton.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ লিখুন'**
+  String get adminDagFillButton;
+
+  /// No description provided for @adminDagFillTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ নম্বর লিখুন'**
+  String get adminDagFillTitle;
+
+  /// No description provided for @adminDagFillHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্তত একটি দাগ নম্বর দিন।'**
+  String get adminDagFillHint;
+
+  /// No description provided for @adminDagCsLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'সিএস দাগ'**
+  String get adminDagCsLabel;
+
+  /// No description provided for @adminDagRsLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগ'**
+  String get adminDagRsLabel;
+
+  /// No description provided for @adminDagSave.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংরক্ষণ করুন'**
+  String get adminDagSave;
+
+  /// No description provided for @adminPhotoUploadButton.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্যের ছবি আপলোড করুন'**
+  String get adminPhotoUploadButton;
+
+  /// No description provided for @regPickCamera.
+  ///
+  /// In bn, this message translates to:
+  /// **'ক্যামেরায় ছবি তুলুন'**
+  String get regPickCamera;
+
+  /// No description provided for @regPickFile.
+  ///
+  /// In bn, this message translates to:
+  /// **'গ্যালারি বা ফাইল থেকে নিন'**
+  String get regPickFile;
+
+  /// No description provided for @regProofAttached.
+  ///
+  /// In bn, this message translates to:
+  /// **'যুক্ত হয়েছে'**
+  String get regProofAttached;
+
+  /// No description provided for @regChangeFile.
+  ///
+  /// In bn, this message translates to:
+  /// **'বদলান'**
+  String get regChangeFile;
+
+  /// No description provided for @apiErrorAbroadAddressRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।'**
+  String get apiErrorAbroadAddressRequired;
 }
 
 class _AppLocalizationsDelegate

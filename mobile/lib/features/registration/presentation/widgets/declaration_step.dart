@@ -42,7 +42,7 @@ class DeclarationStep extends StatelessWidget {
             onChanged: (_) {},
           ),
         ),
-        const RegSectionCard(child: _SignaturePad()),
+        RegSectionCard(child: _SignaturePad(optional: state.flags.simplifiedUi)),
         RegSectionCard(
           title: l10n.registrationDeclarationTitle,
           icon: Icons.gavel_outlined,
@@ -61,7 +61,9 @@ class DeclarationStep extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: RegCheckboxRow(
                   value: state.form.declarationAccepted,
-                  label: l10n.registrationDeclarationConsentLabel,
+                  label: state.flags.simplifiedUi
+                      ? l10n.regConsentLabel
+                      : l10n.registrationDeclarationConsentLabel,
                   onChanged: (v) => bloc.add(DeclarationToggled(v)),
                 ),
               ),
@@ -84,7 +86,10 @@ class DeclarationStep extends StatelessWidget {
 /// Freehand signature capture with CustomPainter; "save" rasterizes the
 /// boundary to PNG bytes, writes a temp file and dispatches SignatureSaved.
 class _SignaturePad extends StatefulWidget {
-  const _SignaturePad();
+  const _SignaturePad({this.optional = false});
+
+  /// regSimplifiedUi: signature is optional (the photo is enough).
+  final bool optional;
 
   @override
   State<_SignaturePad> createState() => _SignaturePadState();
@@ -107,13 +112,18 @@ class _SignaturePadState extends State<_SignaturePad> {
       children: [
         Row(
           children: [
-            Expanded(child: RegLabel(text: l10n.registrationSignatureSectionTitle)),
+            Expanded(
+                child: RegLabel(
+                    text: widget.optional
+                        ? l10n.regSignatureOptional
+                        : l10n.registrationSignatureSectionTitle)),
             if (hasSignature)
               StatusBadge(kind: StatusKind.approved, label: l10n.registrationSignatureSavedButton),
           ],
         ),
         const SizedBox(height: 2),
-        Text(l10n.registrationSignatureHint, style: theme.textTheme.bodySmall),
+        Text(widget.optional ? l10n.regSignatureOptionalHint : l10n.registrationSignatureHint,
+            style: theme.textTheme.bodySmall),
         const SizedBox(height: 8),
         Container(
           height: _padHeight,

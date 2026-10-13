@@ -1,4 +1,5 @@
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/reg_flags.dart';
 import '../../domain/registration_validators.dart';
 import '../../domain/submission_error_mapper.dart';
 
@@ -29,7 +30,7 @@ RegError? findError(
   return null;
 }
 
-String regErrorMessage(AppLocalizations l10n, RegError e) {
+String regErrorMessage(AppLocalizations l10n, RegError e, {RegFlags flags = RegFlags.off}) {
   switch (e.kind) {
     case RegErrorKind.fullNameRequired:
       return l10n.registrationValidationFullNameRequired;
@@ -45,10 +46,24 @@ String regErrorMessage(AppLocalizations l10n, RegError e) {
       return l10n.registrationValidationMobileInvalid;
     case RegErrorKind.genderRequired:
       return l10n.registrationValidationGenderRequired;
+    case RegErrorKind.emailRequired:
+      return l10n.regValidationEmailRequired;
     case RegErrorKind.emailInvalid:
       return l10n.registrationValidationEmailInvalid;
+    case RegErrorKind.nidRequired:
+      return l10n.regValidationNidRequired;
     case RegErrorKind.nidInvalid:
-      return l10n.registrationValidationNidInvalid;
+      return flags.simplifiedUi
+          ? l10n.regValidationNidInvalidSimple
+          : l10n.registrationValidationNidInvalid;
+    case RegErrorKind.abroadCountryRequired:
+      return l10n.regValidationAbroadCountry;
+    case RegErrorKind.abroadCityRequired:
+      return l10n.regValidationAbroadCity;
+    case RegErrorKind.abroadAddressRequired:
+      return l10n.regValidationAbroadAddress;
+    case RegErrorKind.proofRequired:
+      return '${_propertyLabel(l10n, e.propertyIndex)}: ${l10n.regValidationProofRequired}';
     case RegErrorKind.photoRequired:
       return l10n.registrationMemberInfoMemberPhotoRequired;
     case RegErrorKind.addressFieldRequired:
@@ -133,6 +148,12 @@ String submitItemMessage(AppLocalizations l10n, SubmitErrorItem item) {
       return l10n.registrationSubmitInvalidShareQuantity;
     case SubmitErrorKind.invalidData:
       return l10n.registrationSubmitInvalidData;
+    case SubmitErrorKind.photoRequired:
+      return l10n.registrationSubmitPhotoRequired;
+    case SubmitErrorKind.abroadAddressRequired:
+      return l10n.regValidationAbroadAddress;
+    case SubmitErrorKind.proofRequired:
+      return l10n.registrationSubmitProofRequired;
     case SubmitErrorKind.generic:
       final generic = l10n.registrationSubmitGenericError;
       final code = l10n.registrationSubmitErrorCode(item.status ?? 0);

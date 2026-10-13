@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from decimal import Decimal, InvalidOperation
 
+from app.core.constants import CONSENT_VERSION
+from app.core.feature_flags import is_enabled
 from app.db.session import get_db
 from app.models.fee_settings import FeeSetting
 from app.models.member import Member, MemberStatus
@@ -159,11 +161,121 @@ def _total_share_quantity(data: SubmissionPayload) -> Decimal:
 
 MAX_SUBMISSION_DOC_FILES = 40
 
+DEFAULT_NATIONALITY = "বাংলাদেশী"
+_DOMESTIC_COUNTRY = "BD"
+
+
+def _unprocessable(code: str, message: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={"success": False, "code": code, "message": message},
+    )
+
+
+def _missing_field_error(field: str) -> HTTPException:
+    """Same body shape pydantic produces for a missing required field."""
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "success": False,
+            "code": "VALIDATION_ERROR",
+            "message": "Some fields are invalid.",
+            "errors": [{"field": field, "code": "missing", "message": "Field required"}],
+        },
+    )
+
+
+def _has_file(upload: UploadFile | None) -> bool:
+    return upload is not None and bool(upload.filename)
+
+
+def _is_blank(value: str | None) -> bool:
+    return value is None or not value.strip()
+
+
+class _FlagRules:
+    """Flag-dependent registration rules, resolved once per submission."""
+
+    def __init__(self, **flags: bool) -> None:
+        self.occupation_optional = flags["reg_occupation_optional"]
+        self.hide_nationality = flags["reg_hide_nationality"]
+        self.dag_unknown = flags["reg_dag_unknown"]
+        self.min_one_proof = flags["reg_min_one_proof"]
+        self.abroad_address = flags["reg_abroad_address"]
+
+    @classmethod
+    async def load(cls, db: AsyncSession) -> "_FlagRules":
+        keys = (
+            "reg_occupation_optional",
+            "reg_hide_nationality",
+            "reg_dag_unknown",
+            "reg_min_one_proof",
+            "reg_abroad_address",
+        )
+        return cls(**{key: await is_enabled(db, key) for key in keys})
+
+
+def _resolve_occupation(data: SubmissionPayload, rules: _FlagRules) -> str:
+    if data.occupation is None and not rules.occupation_optional:
+        raise _missing_field_error("occupation")
+    return data.occupation or ""
+
+
+def _resolve_nationality(data: SubmissionPayload, rules: _FlagRules) -> str:
+    if rules.hide_nationality and _is_blank(data.nationality):
+        return DEFAULT_NATIONALITY
+    if data.nationality is None:
+        raise _missing_field_error("nationality")
+    return data.nationality
+
+
+def _validate_abroad_address(data: SubmissionPayload) -> None:
+    country = (data.current_country or "").strip().upper()
+    if (
+        len(country) != 2
+        or not country.isalpha()
+        or country == _DOMESTIC_COUNTRY
+        or _is_blank(data.current_city)
+        or _is_blank(data.current_address_text)
+    ):
+        raise _unprocessable(
+            "ABROAD_ADDRESS_REQUIRED",
+            "Country (not Bangladesh), city and address are required for an address abroad.",
+        )
+
+
+def _resolve_dag_unknown(property_in, rules: _FlagRules) -> bool:
+    """Whether the property is stored as dag-unknown; rejects an empty dag that
+    was not declared unknown when the dag-unknown flow is enabled."""
+    if not rules.dag_unknown:
+        return False
+    has_dag = not (_is_blank(property_in.dag_no_cs) and _is_blank(property_in.dag_no_rs))
+    if has_dag:
+        return False
+    if not property_in.dag_unknown:
+        raise _unprocessable("DAG_REQUIRED_FIELD", "Enter the dag number or tick 'I do not know'.")
+    return True
+
+
+def _validate_proofs(data: SubmissionPayload, doc_files: list[UploadFile]) -> None:
+    """Every property needs at least one uploaded proof file. Files are matched
+    to properties the same way pass 1 of the route walks them."""
+    files = iter(doc_files)
+    for property_in in data.properties:
+        provided = sum(
+            1 for _ in property_in.applicable_docs if _has_file(next(files, None))
+        )
+        if provided == 0:
+            raise _unprocessable(
+                "PROPERTY_PROOF_REQUIRED", "Upload at least one ownership document per property."
+            )
+
 
 @router.post("/submissions", response_model=SubmissionCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_submission(
     payload: str = Form(...),
     member_photo: UploadFile | None = File(None),
+    member_photo_camel: UploadFile | None = File(None, alias="memberPhoto"),
     receipt_photo: UploadFile | None = File(None),
     doc_files: list[UploadFile] = File(default=[]),
     db: AsyncSession = Depends(get_db),
@@ -198,6 +310,20 @@ async def create_submission(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=_validation_error_detail(exc)
         ) from exc
 
+    member_photo = member_photo if _has_file(member_photo) else member_photo_camel
+    if not _has_file(member_photo):
+        raise _unprocessable("PHOTO_REQUIRED", "A member photo is required.")
+
+    rules = await _FlagRules.load(db)
+    occupation = _resolve_occupation(data, rules)
+    nationality = _resolve_nationality(data, rules)
+    is_abroad = rules.abroad_address and data.current_address_abroad
+    if is_abroad:
+        _validate_abroad_address(data)
+    dag_unknown_flags = [_resolve_dag_unknown(p, rules) for p in data.properties]
+    if rules.min_one_proof:
+        _validate_proofs(data, doc_files)
+
     normalized_nid = normalize_nid(data.nid)
     normalized_mobile = normalize_mobile(data.mobile)
     normalized_email = normalize_email(data.email)
@@ -210,8 +336,8 @@ async def create_submission(
         father_or_husband=data.father_or_husband,
         mother=data.mother,
         dob=data.dob,
-        nationality=data.nationality,
-        occupation=data.occupation,
+        nationality=nationality,
+        occupation=occupation,
         nid=normalized_nid,
         mobile=normalized_mobile,
         gender=data.gender,
@@ -228,6 +354,12 @@ async def create_submission(
         current_upazila=data.current_address.upazila if data.current_address else None,
         current_district=data.current_address.district if data.current_address else None,
         current_division=data.current_address.division if data.current_address else None,
+        has_whatsapp=data.has_whatsapp,
+        current_address_abroad=is_abroad,
+        current_country=data.current_country.strip().upper() if is_abroad else None,
+        current_city=data.current_city.strip() if is_abroad else None,
+        current_address_text=data.current_address_text.strip() if is_abroad else None,
+        consent_version=data.consent_version or CONSENT_VERSION,
         urgent_contact_name=data.urgent_contact_name,
         urgent_contact_relation=data.urgent_contact_relation,
         urgent_contact_mobile=data.urgent_contact_mobile,
@@ -274,7 +406,7 @@ async def create_submission(
     # built keeps the connection checked out for the shortest window that the
     # `member_{id}` folder naming allows, and keeps all blocking file work out
     # of the insert path.
-    if member_photo is not None and member_photo.filename:
+    if _has_file(member_photo):
         member.member_photo_path = await save_upload_file(member_photo, f"photos/{member_dir}")
 
     if receipt_photo is not None and receipt_photo.filename:
@@ -300,9 +432,12 @@ async def create_submission(
     # pre-assigned foreign key, so SQLAlchemy orders the inserts itself. That
     # removes the old per-property `flush()` - one round-trip per property -
     # in favour of a single flush at commit.
-    for property_in, paths in zip(data.properties, doc_paths, strict=True):
+    for property_in, paths, dag_unknown in zip(
+        data.properties, doc_paths, dag_unknown_flags, strict=True
+    ):
         member.properties.append(
             Property(
+                dag_unknown=dag_unknown,
                 property_type=property_in.property_type,
                 property_type_other=property_in.property_type_other,
                 khatian_no=property_in.khatian_no,

@@ -9,6 +9,9 @@ String apiErrorMessage(AppLocalizations l10n, Object error) {
   if (error is! ApiException) return l10n.apiErrorUnknown;
   if (error.isNetwork) return l10n.apiErrorOffline;
 
+  final byCode = apiErrorCodeMessage(l10n, error.errorCode);
+  if (byCode != null) return byCode;
+
   final code = error.statusCode;
   if (code == null) return l10n.apiErrorUnknown;
   return switch (code) {
@@ -23,3 +26,14 @@ String apiErrorMessage(AppLocalizations l10n, Object error) {
     _ => l10n.apiErrorUnknown,
   };
 }
+
+/// Plain-language message for the structured `detail.code` values the server
+/// sends on 422 (PHOTO_REQUIRED, PROPERTY_PROOF_REQUIRED) and 409
+/// (DAG_REQUIRED); null for any other code so the status mapping applies.
+String? apiErrorCodeMessage(AppLocalizations l10n, String? code) => switch (code) {
+      'PHOTO_REQUIRED' => l10n.apiErrorPhotoRequired,
+      'PROPERTY_PROOF_REQUIRED' => l10n.apiErrorPropertyProofRequired,
+      'DAG_REQUIRED' || 'DAG_REQUIRED_FIELD' => l10n.apiErrorDagRequired,
+      'ABROAD_ADDRESS_REQUIRED' => l10n.apiErrorAbroadAddressRequired,
+      _ => null,
+    };

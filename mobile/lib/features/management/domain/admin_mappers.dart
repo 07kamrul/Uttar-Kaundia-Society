@@ -24,6 +24,7 @@ extension SubmissionSummaryApiX on Map<String, dynamic> {
         mobile: _sOr(this, 'mobile'),
         status: SubmissionStatusX.fromName(this['status'] as String?),
         createdAt: _sOr(this, 'created_at'),
+        needsDag: this['needs_dag'] == true,
       );
 }
 
@@ -53,6 +54,7 @@ extension SubmissionPropertyApiX on Map<String, dynamic> {
       myShareQuantity: _s(this, 'my_share_quantity'),
       ownership: _s(this, 'ownership'),
       jointOwnerCount: _iN(this, 'joint_owner_count'),
+      dagUnknown: this['dag_unknown'] == true,
       applicableDocs: docs is List
           ? docs
               .whereType<Map>()
@@ -81,6 +83,7 @@ extension SubmissionDetailApiX on Map<String, dynamic> {
         mobile: _sOr(this, 'mobile'),
         status: SubmissionStatusX.fromName(this['status'] as String?),
         createdAt: _sOr(this, 'created_at'),
+        needsDag: this['needs_dag'] == true,
         fatherOrHusband: _sOr(this, 'father_or_husband'),
         mother: _sOr(this, 'mother'),
         dob: _sOr(this, 'dob'),

@@ -1,5 +1,7 @@
 import '../../../core/enums/enums.dart';
+import '../../../core/validation/bd_input.dart' show isValidNid;
 import 'phone_validator.dart';
+import 'reg_flags.dart';
 import 'registration_form.dart';
 
 const _nidPattern = r'^\d{10,17}$';
@@ -50,9 +52,14 @@ enum RegErrorKind {
   mobileRequired,
   mobileInvalid,
   genderRequired,
+  emailRequired,
   emailInvalid,
+  nidRequired,
   nidInvalid,
   photoRequired,
+  abroadCountryRequired,
+  abroadCityRequired,
+  abroadAddressRequired,
   addressFieldRequired,
   propertyCountRequired,
   propertyTypeRequired,
@@ -68,6 +75,7 @@ enum RegErrorKind {
   shareQuantityExceedsTotal,
   applicableDocsRequired,
   docFileRequired,
+  proofRequired,
   urgentNameRequired,
   urgentMobileRequired,
   urgentMobileInvalid,
@@ -87,10 +95,11 @@ List<RegError> validateStep(
   RegistrationForm form, {
   bool hasAdmissionFee = false,
   bool hasSubscription = false,
+  RegFlags flags = RegFlags.off,
 }) =>
     switch (step) {
-      1 => validateMemberStep(form),
-      2 => validatePropertyStep(form),
+      1 => validateMemberStep(form, flags: flags),
+      2 => validatePropertyStep(form, flags: flags),
       3 => validateContactStep(form),
       4 => validatePaymentStep(form, hasAdmissionFee: hasAdmissionFee, hasSubscription: hasSubscription),
       5 => validateDeclarationStep(form),
@@ -98,23 +107,29 @@ List<RegError> validateStep(
     };
 
 /// Payment validation needs the live fee values, so it is passed in here.
-List<RegError> validateAllSteps(RegistrationForm form, {required bool hasAdmissionFee, required bool hasSubscription}) => [
-      ...validateStep(1, form),
-      ...validateStep(2, form),
-      ...validateStep(3, form),
+List<RegError> validateAllSteps(
+  RegistrationForm form, {
+  required bool hasAdmissionFee,
+  required bool hasSubscription,
+  RegFlags flags = RegFlags.off,
+}) =>
+    [
+      ...validateStep(1, form, flags: flags),
+      ...validateStep(2, form, flags: flags),
+      ...validateStep(3, form, flags: flags),
       ...validatePaymentStep(form, hasAdmissionFee: hasAdmissionFee, hasSubscription: hasSubscription),
-      ...validateStep(5, form),
+      ...validateStep(5, form, flags: flags),
     ];
 
 /// First step (1-based) failing its own validation; review (6) never fails.
-int? firstInvalidStep(RegistrationForm form) {
+int? firstInvalidStep(RegistrationForm form, {RegFlags flags = RegFlags.off}) {
   for (var step = 1; step < wizardStepCount; step++) {
-    if (validateStep(step, form).isNotEmpty) return step;
+    if (validateStep(step, form, flags: flags).isNotEmpty) return step;
   }
   return null;
 }
 
-List<RegError> validateMemberStep(RegistrationForm form) {
+List<RegError> validateMemberStep(RegistrationForm form, {RegFlags flags = RegFlags.off}) {
   final errs = <RegError>[];
   if (form.fullName.trim().isEmpty) errs.add(const RegError(RegErrorKind.fullNameRequired));
   if (form.fatherOrHusband.trim().isEmpty) errs.add(const RegError(RegErrorKind.fatherOrHusbandRequired));
@@ -126,10 +141,15 @@ List<RegError> validateMemberStep(RegistrationForm form) {
     errs.add(const RegError(RegErrorKind.mobileInvalid));
   }
   if (form.gender == Gender.unknown) errs.add(const RegError(RegErrorKind.genderRequired));
-  if (form.email.isNotEmpty && !_emailRegExp.hasMatch(form.email)) {
+  // Email and NID are required in every mode (audit sign-off, section 13).
+  if (form.email.trim().isEmpty) {
+    errs.add(const RegError(RegErrorKind.emailRequired));
+  } else if (!_emailRegExp.hasMatch(form.email.trim())) {
     errs.add(const RegError(RegErrorKind.emailInvalid));
   }
-  if (form.nid.isNotEmpty && !_nidRegExp.hasMatch(form.nid)) {
+  if (form.nid.trim().isEmpty) {
+    errs.add(const RegError(RegErrorKind.nidRequired));
+  } else if (flags.simplifiedUi ? !isValidNid(form.nid) : !_nidRegExp.hasMatch(form.nid)) {
     errs.add(const RegError(RegErrorKind.nidInvalid));
   }
   // Requires an actual file on disk: after a draft restore only metadata is
@@ -140,12 +160,25 @@ List<RegError> validateMemberStep(RegistrationForm form) {
 
   // Both address blocks are validated unconditionally, mirroring the Angular
   // page (its permanent block stays enabled even when "same as current").
-  errs.addAll(_validateAddressBlock(form.currentAddress, isCurrent: true));
-  errs.addAll(_validateAddressBlock(form.permanentAddress, isCurrent: false));
+  if (flags.abroadAddress && form.currentAddressAbroad) {
+    errs.addAll(_validateAbroadAddress(form));
+  } else {
+    errs.addAll(_validateAddressBlock(form.currentAddress, isCurrent: true, roadOptional: flags.roadOptional));
+  }
+  errs.addAll(_validateAddressBlock(form.permanentAddress, isCurrent: false, roadOptional: flags.roadOptional));
   return errs;
 }
 
-List<RegError> _validateAddressBlock(AddressDetail a, {required bool isCurrent}) {
+List<RegError> _validateAbroadAddress(RegistrationForm form) {
+  final country = form.currentCountry.trim().toUpperCase();
+  return [
+    if (country.length != 2 || country == 'BD') const RegError(RegErrorKind.abroadCountryRequired),
+    if (form.currentCity.trim().isEmpty) const RegError(RegErrorKind.abroadCityRequired),
+    if (form.currentAddressText.trim().isEmpty) const RegError(RegErrorKind.abroadAddressRequired),
+  ];
+}
+
+List<RegError> _validateAddressBlock(AddressDetail a, {required bool isCurrent, bool roadOptional = false}) {
   final errs = <RegError>[];
   void check(AddressField field, String value) {
     if (value.trim().isEmpty) {
@@ -157,12 +190,12 @@ List<RegError> _validateAddressBlock(AddressDetail a, {required bool isCurrent})
   check(AddressField.district, a.district);
   check(AddressField.upazila, a.upazila);
   check(AddressField.postOffice, a.postOffice);
-  check(AddressField.road, a.road);
+  if (!roadOptional) check(AddressField.road, a.road);
   check(AddressField.house, a.house);
   return errs;
 }
 
-List<RegError> validatePropertyStep(RegistrationForm form) {
+List<RegError> validatePropertyStep(RegistrationForm form, {RegFlags flags = RegFlags.off}) {
   final errs = <RegError>[];
   final count = form.propertyCount;
   if (count == null || count == 0) {
@@ -178,10 +211,11 @@ List<RegError> validatePropertyStep(RegistrationForm form) {
     if (p.khatianNo.trim().isEmpty) {
       errs.add(RegError(RegErrorKind.khatianRequired, propertyIndex: i));
     }
-    if (p.dagNoCs.trim().isEmpty) {
+    final dagMayBeEmpty = flags.dagUnknown && p.dagUnknown;
+    if (!dagMayBeEmpty && p.dagNoCs.trim().isEmpty) {
       errs.add(RegError(RegErrorKind.dagCsRequired, propertyIndex: i));
     }
-    if (p.dagNoRs.trim().isEmpty) {
+    if (!dagMayBeEmpty && p.dagNoRs.trim().isEmpty) {
       errs.add(RegError(RegErrorKind.dagRsRequired, propertyIndex: i));
     }
     if (p.ownership == OwnershipType.unknown) {
@@ -206,6 +240,13 @@ List<RegError> validatePropertyStep(RegistrationForm form) {
     }
     if (landValue != null && shareValue != null && shareValue > landValue) {
       errs.add(RegError(RegErrorKind.shareQuantityExceedsTotal, propertyIndex: i));
+    }
+    if (flags.minOneProof) {
+      // One attached proof per property replaces the per-ticked-document rule.
+      if (!p.applicableDocs.any((d) => d.hasFile)) {
+        errs.add(RegError(RegErrorKind.proofRequired, propertyIndex: i));
+      }
+      continue;
     }
     if (p.applicableDocs.isEmpty) {
       errs.add(RegError(RegErrorKind.applicableDocsRequired, propertyIndex: i));

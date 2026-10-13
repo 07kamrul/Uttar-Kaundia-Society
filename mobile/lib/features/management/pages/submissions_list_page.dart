@@ -12,6 +12,7 @@ import '../data/admin_repository.dart';
 import '../domain/admin_entities.dart';
 import '../presentation/bloc/submissions_bloc.dart';
 import '../presentation/widgets/management_widgets.dart';
+import '../presentation/widgets/submission_detail_widgets.dart' show NeedsDagBadge;
 
 /// Review queue: submissions filtered by status (Angular submissions-list).
 class SubmissionsListPage extends StatelessWidget {
@@ -105,15 +106,17 @@ class _SubmissionsView extends StatelessWidget {
       ),
       ManagementRecordGrid(
         children: [
-          for (final s in state.items) _SubmissionCard(submission: s),
+          for (final s in state.items) SubmissionListCard(submission: s),
         ],
       ),
     ];
   }
 }
 
-class _SubmissionCard extends StatelessWidget {
-  const _SubmissionCard({required this.submission});
+/// Queue card for one application; shows the "দাগ দরকার" badge when a
+/// property still needs its dag filled in by the office.
+class SubmissionListCard extends StatelessWidget {
+  const SubmissionListCard({super.key, required this.submission});
 
   final SubmissionSummary submission;
 
@@ -145,6 +148,11 @@ class _SubmissionCard extends StatelessWidget {
         ),
       ],
       children: [
+        if (s.needsDag)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: NeedsDagBadge(),
+          ),
         InfoRow.phone(
             label: loc.adminSubmissionsListTableHeadersMobile,
             phone: s.mobile,
