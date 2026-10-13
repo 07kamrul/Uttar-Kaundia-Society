@@ -115,7 +115,7 @@ class AppNav {
       labelKey: _t((l) => l.navInstallments),
       route: '/installments-management',
       icon: Icons.receipt_long_outlined,
-      requiredPermission: 'member.view_all',
+      requiredPermission: 'manage_finance',
     ),
     NavItem(
       labelKey: _t((l) => l.navFeeSettings),

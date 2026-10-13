@@ -199,7 +199,7 @@
             } @else {
               <p class="drawer-empty">{{ 'admin.memberDetail.noInstallments' | translate }}</p>
             }
-            @if (p.status === 'approved') {
+            @if (p.status === 'approved' && canManageInstallments) {
               <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.75rem" (click)="manageInstallments.emit(p.id)">
                 {{ 'admin.memberDetail.openInstallments' | translate }}
               </button>

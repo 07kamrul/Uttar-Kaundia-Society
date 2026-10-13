@@ -287,13 +287,13 @@ const NAV_SECTIONS: NavSection[] = [
         labelKey: 'nav.installmentsManagement',
         route: '/installments-management',
         icon: 'coin',
-        requiredPermission: ['member.view_all'],
+        requiredPermission: ['manage_finance'],
       },
       {
         labelKey: 'nav.feesManagement',
         route: '/fees-management',
         icon: 'coin',
-        requiredPermission: ['member.view_all'],
+        requiredPermission: ['manage_finance'],
       },
       {
         labelKey: 'nav.paymentVerifications',

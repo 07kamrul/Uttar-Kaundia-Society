@@ -717,7 +717,7 @@ async def get_member_profile(
 async def list_member_installments(
     member_id: int,
     db: AsyncSession = Depends(get_db),
-    _admin: AdminUser = Depends(require_permission("member.view_all")),
+    _admin: AdminUser = Depends(require_permission("manage_finance")),
 ) -> list[Installment]:
     await _require_member_exists(db, member_id)
     result = await db.execute(
@@ -737,7 +737,7 @@ async def create_installment(
     member_id: int,
     payload: InstallmentCreate,
     db: AsyncSession = Depends(get_db),
-    _admin: AdminUser = Depends(require_permission("member.manage")),
+    _admin: AdminUser = Depends(require_permission("manage_finance")),
 ) -> Installment:
     await _require_member_exists(db, member_id)
     installment = Installment(
@@ -849,7 +849,7 @@ async def update_installment(
     installment_id: int,
     payload: InstallmentUpdate,
     db: AsyncSession = Depends(get_db),
-    _admin: AdminUser = Depends(require_permission("member.manage")),
+    _admin: AdminUser = Depends(require_permission("manage_finance")),
 ) -> Installment:
     result = await db.execute(select(Installment).where(Installment.id == installment_id))
     installment = result.scalar_one_or_none()
@@ -1044,7 +1044,7 @@ async def list_picnic_payments(
     member_id: int | None = Query(default=None),
     date_from: date | None = Query(default=None),
     date_to: date | None = Query(default=None),
-    _admin: AdminUser = Depends(require_permission("member.view_all")),
+    _admin: AdminUser = Depends(require_permission("manage_finance")),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     query = (

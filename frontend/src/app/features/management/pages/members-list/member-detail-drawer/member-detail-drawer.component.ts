@@ -45,6 +45,8 @@ function joinAddress(a: AddressParts): string {
 export class MemberDetailDrawerComponent implements OnChanges, OnDestroy {
   /** Id of the member to show; null keeps the drawer closed. */
   @Input() memberId: string | null = null;
+  /** Installments are finance data (`manage_finance`); the parent decides. */
+  @Input() canManageInstallments = false;
   @Output() closed = new EventEmitter<void>();
   @Output() manageInstallments = new EventEmitter<string>();
 

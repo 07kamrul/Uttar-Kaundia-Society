@@ -120,7 +120,7 @@ async def list_all_other_fee_payments(
     date_to: date | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
-    _admin: AdminUser = Depends(require_permission("member.view_all")),
+    _admin: AdminUser = Depends(require_permission("manage_finance")),
     db: AsyncSession = Depends(get_db),
 ) -> AdminOtherFeeHistoryPage:
     """All members' non-installment payments with filters, pagination and a

@@ -42,8 +42,8 @@ const _publicPrefixes = [
 ];
 
 const _areaPermissions = <String, List<String>>{
-  '/installments-management': ['member.view_all'],
-  '/picnic-payments': ['member.view_all'],
+  '/installments-management': ['manage_finance'],
+  '/picnic-payments': ['manage_finance'],
   '/fee-settings': ['manage_fee_settings'],
   '/society-costs': ['manage_costs'],
   '/finance-management': ['manage_finance'],
@@ -75,6 +75,10 @@ const _memberPages = [
   '/property-requests/new',
   '/picnic-payment',
 ];
+
+/// Permissions required to open [loc]; null when the route is unguarded.
+@visibleForTesting
+List<String>? requiredPermissionFor(String loc) => _requiredPermissionFor(loc);
 
 List<String>? _requiredPermissionFor(String loc) {
   final path = loc.split('?').first;

@@ -354,7 +354,7 @@ export const routes: Routes = [
           },
           {
             path: 'installments-management',
-            canActivate: [permissionGuard(['member.view_all'])],
+            canActivate: [permissionGuard(['manage_finance'])],
             loadComponent: () =>
               import('./features/management/pages/installments-management/installments-management.component').then(
                 (m) => m.InstallmentsManagementComponent,
@@ -362,7 +362,7 @@ export const routes: Routes = [
           },
           {
             path: 'fees-management',
-            canActivate: [permissionGuard(['member.view_all'])],
+            canActivate: [permissionGuard(['manage_finance'])],
             loadComponent: () =>
               import('./features/management/pages/fees-management/fees-management.component').then(
                 (m) => m.FeesManagementComponent,
@@ -374,7 +374,7 @@ export const routes: Routes = [
             // picnic fee-type filter preselected so nothing 404s.
             // (redirectTo cannot carry canActivate — Angular rejects that
             // combination at bootstrap, NG04014. The target route carries
-            // the same member.view_all guard.)
+            // the same manage_finance guard.)
             path: 'picnic-payments',
             redirectTo: () => '/fees-management?feeType=picnic',
           },

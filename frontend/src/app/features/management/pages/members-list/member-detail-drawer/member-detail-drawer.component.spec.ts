@@ -86,4 +86,16 @@ describe('MemberDetailDrawerComponent (read-only view from সদস্য ত�
     expect(fixture.componentInstance.profile).toBeNull();
     expect(fixture.componentInstance.loading).toBe(false);
   });
+
+  it('hides the open-installments button without finance permission', () => {
+    const fixture = create('1');
+    expect(fixture.nativeElement.textContent).not.toContain('admin.memberDetail.openInstallments');
+  });
+
+  it('shows the open-installments button with finance permission', () => {
+    const fixture = create('1');
+    fixture.componentRef.setInput('canManageInstallments', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('admin.memberDetail.openInstallments');
+  });
 });

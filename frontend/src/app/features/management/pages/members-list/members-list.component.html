@@ -102,6 +102,7 @@
 
   <app-member-detail-drawer
     [memberId]="viewMemberId"
+    [canManageInstallments]="auth.hasPermission('manage_finance')"
     (closed)="closeDetails()"
     (manageInstallments)="viewContributions($event)"
   ></app-member-detail-drawer>
