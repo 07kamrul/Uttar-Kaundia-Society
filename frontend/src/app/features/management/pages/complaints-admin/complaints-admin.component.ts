@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import {
@@ -81,7 +81,7 @@ function saveBlob(blob: Blob, filename: string): void {
           </div>
         </div></div>
       } @else {
-        <div class="data-table data-table-cards">
+        <div class="data-table data-table-cards data-table-cards-lg">
           <table>
             <thead>
               <tr>
@@ -208,9 +208,9 @@ function saveBlob(blob: Blob, filename: string): void {
                           <ol class="gov-timeline">
                             @for (event of complaint.timeline; track $index) {
                               <li>
-                                <strong>{{ 'complaintsModule.events.' + event.event | translate }}</strong> — {{ event.at | date: 'yyyy-MM-dd' }}
+                                <strong>{{ eventLabel(event.event) }}</strong> — {{ event.at | date: 'yyyy-MM-dd' }}
                                 @if (event.actor) { <span class="muted">· {{ event.actor }}</span> }
-                                @if (event.note) { <span class="ca-event-note">{{ event.note }}</span> }
+                                @if (displayNote(event.note); as note) { <span class="ca-event-note">{{ note }}</span> }
                               </li>
                             }
                           </ol>
@@ -231,9 +231,10 @@ function saveBlob(blob: Blob, filename: string): void {
       .page-container { display: grid; gap: 1rem; }
       .muted { color: var(--gray-600); }
       .ca-row { cursor: pointer; }
+      .data-table td:last-child .btn + .btn { margin-top: 0.3rem; }
       .ca-chevron { color: var(--gray-400); vertical-align: -2px; }
       .detail-row td { background: var(--gray-50); overflow-wrap: anywhere; }
-      tr.overdue td { border-inline-start: 4px solid var(--red-600, #9c3a2c); }
+      tr.overdue td:first-child { border-inline-start: 4px solid var(--red-600, #9c3a2c); }
       .error-box-text { margin: 0 0 0.75rem; }
 
       .ca-title {
@@ -294,6 +295,7 @@ function saveBlob(blob: Blob, filename: string): void {
 })
 export class ComplaintsAdminComponent implements OnInit {
   private readonly governance = inject(GovernanceService);
+  private readonly translate = inject(TranslateService);
   private readonly language = inject(LanguageService);
   readonly lang = this.language.lang;
 
@@ -355,6 +357,25 @@ export class ComplaintsAdminComponent implements OnInit {
 
   noteOf(complaint: Complaint): string {
     return (this.notes[complaint.id] ?? '').trim();
+  }
+
+  /** Bengali label for a timeline event; unknown audit actions degrade to a
+     readable form instead of leaking a raw i18n key. */
+  eventLabel(event: string): string {
+    const key = 'complaintsModule.events.' + event;
+    const label = this.translate.instant(key);
+    if (label !== key) return label;
+    return event
+      .replace(/^complaint\./, '')
+      .replace(/_/g, ' ')
+      .replace(/^\w/, (c) => c.toUpperCase());
+  }
+
+  /** Audit details can be machine payloads (seeded/imported rows); never
+     print raw JSON into the audit trail. */
+  displayNote(note: string | null | undefined): string {
+    if (!note || note.trim().startsWith('{')) return '';
+    return note;
   }
 
   isFinal(complaint: Complaint): boolean {

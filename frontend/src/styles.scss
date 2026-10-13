@@ -1454,6 +1454,80 @@ a {
   }
 }
 
+/* Wide-card variant: same card stack as .data-table-cards but from 900px down,
+   for many-column tables that are already too squeezed at tablet width beside
+   the sidebar (complaints-admin: 6 columns). Opt-in. */
+@media (max-width: 900px) {
+  .data-table-cards-lg {
+    border-collapse: separate;
+    border-spacing: 0 0.6rem;
+    display: block;
+    padding: 0.6rem;
+  }
+
+  .data-table-cards-lg thead {
+    display: none;
+  }
+
+  .data-table-cards-lg tbody {
+    display: contents;
+  }
+
+  .data-table-cards-lg tbody tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 0.35rem 0.4rem;
+  }
+
+  .data-table-cards-lg tbody tr:hover {
+    background: var(--surface);
+  }
+
+  .data-table-cards-lg tbody td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px dashed var(--gray-200);
+    padding: 0.5rem 0.6rem;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .data-table-cards-lg tbody td::before {
+    content: attr(data-label);
+    color: var(--gray-600);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Full-width detail panels (an expanding <td colspan> without data-label)
+     are not label/value rows: render as a plain block. */
+  .data-table-cards-lg tbody td:not([data-label]) {
+    display: block;
+    text-align: start;
+    border-bottom: none;
+  }
+
+  .data-table-cards-lg tbody td:not([data-label])::before {
+    content: none;
+  }
+
+  .data-table-cards-lg tbody td:last-child {
+    border-bottom: none;
+    padding-bottom: 0.45rem;
+  }
+
+  .data-table-cards-lg tbody td:last-child .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -4200,7 +4274,9 @@ label.checkbox-row {
 .dlg-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* Must sit above the app header (z-index 1200) or the sticky top bar cuts
+     the dialog's header row off at the top of the viewport. */
+  z-index: 1300;
   display: flex;
   align-items: center;
   justify-content: center;

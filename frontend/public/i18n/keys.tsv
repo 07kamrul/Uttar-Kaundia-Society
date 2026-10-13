@@ -141,6 +141,7 @@ admin.feeSettings.keys.monthly_subscription_base_amount	মাসিক চা�
 admin.feeSettings.keys.monthly_subscription_base_threshold	মাসিক চাঁদা বেস থ্রেশহোল্ড	Monthly Subscription Base Threshold
 admin.feeSettings.keys.picnic_additional_head_fee	পিকনিক ফি - অতিরিক্ত প্রধান	Picnic Fee - Additional Head
 admin.feeSettings.keys.picnic_head_fee	পিকনিক ফি - সদস্য প্রধান	Picnic Fee - Member Head
+admin.feeSettings.newFee.subtitle	ফি-টি কীভাবে গণনা ও গোষ্ঠীভুক্ত হবে তা নির্ধারণ করুন।	Define how the fee is calculated and grouped.
 admin.feeSettings.noSettings	এখনো কোনো ফি সেটিংস কনফিগার করা হয়নি।	No fee settings configured yet.
 admin.feeSettings.picnicNotConfigured	পিকনিক ফি এখনও সম্পূর্ণভাবে নির্ধারিত হয়নি - উভয় পিকনিক রেটের সক্রিয় সংস্করণ না থাকলে সদস্যরা পেমেন্ট করতে পারবেন না।	Picnic fee is not configured yet - members cannot pay until both picnic rates have an active version.
 admin.feeSettings.subtitle	কার্যকর তারিখের পরিসরসহ ফি হারের সংস্করণ পরিচালনা করুন	Manage versioned fee rates with effective date ranges
@@ -193,7 +194,11 @@ admin.financeManagement.form.internalNotesHint	মেম্বাররা এ�
 admin.financeManagement.form.reference	রেফারেন্স নম্বর	Reference no.
 admin.financeManagement.form.referenceAuto	খালি রাখলে স্বয়ংক্রিয়ভাবে তৈরি হবে	Leave empty to auto-generate
 admin.financeManagement.form.referenceHint	FT-…	FT-…
+admin.financeManagement.form.sectionDetails	লেনদেনের বিবরণ	Transaction details
+admin.financeManagement.form.sectionDocs	রেফারেন্স ও সংযুক্তি	Reference & attachment
+admin.financeManagement.form.sectionIncome	আয়ের শ্রেণিবিন্যাস	Income classification
 admin.financeManagement.form.type	ধরন	Type
+admin.financeManagement.formSubtitle	অনুমোদনের পর লেনদেনটি খতিয়ানে যুক্ত হবে।	The transaction enters the ledger after approval.
 admin.financeManagement.ledger.amount	পরিমাণ	Amount
 admin.financeManagement.ledger.approvedBy	অনুমোদনকারী	Approved by
 admin.financeManagement.ledger.category	খাত	Category
@@ -641,6 +646,7 @@ admin.societyCosts.form.notes	নোট	Notes
 admin.societyCosts.form.receipt	রসিদ (ছবি/PDF)	Receipt (image/PDF)
 admin.societyCosts.form.source	পরিশোধ সূত্র	Paid from
 admin.societyCosts.form.title	শিরোনাম	Title
+admin.societyCosts.formSubtitle	খরচের বিবরণ লিখুন; সম্ভব হলে রসিদ সংযুক্ত করুন।	Record the expense details; attach a receipt if available.
 admin.societyCosts.notBilled	বিল করা হয়নি	Not billed
 admin.societyCosts.payment.amount	এখন পরিশোধিত পরিমাণ (৳)	Amount paid now (৳)
 admin.societyCosts.payment.remaining	বাকি	remaining
@@ -796,6 +802,8 @@ admin.submissionsList.tableHeaders.name	নাম	Name
 admin.submissionsList.tableHeaders.reference	রেফারেন্স	Reference
 admin.submissionsList.tableHeaders.status	স্ট্যাটাস	Status
 admin.submissionsList.title	আবেদনসমূহ	Applications
+amendments.submitSuccess	প্রস্তাব সফলভাবে জমা হয়েছে।	Proposal submitted successfully.
+amendments.withdrawConfirm	প্রত্যাহার করা হলে প্রস্তাবটি আর ফিরিয়ে আনা যাবে না। নিশ্চিত?	A withdrawn proposal cannot be restored. Withdraw it?
 assetRegister.addTitle	সম্পদ যোগ করুন	Add asset
 assetRegister.categoryPh	যেমন: আসবাবপত্র, ইলেকট্রনিক্স	e.g. Furniture, Electronics
 assetRegister.descriptionPh	ক্রয়ের বিবরণ, সিরিয়াল নম্বর ইত্যাদি…	Purchase details, serial number…
@@ -804,8 +812,6 @@ assetRegister.formSubtitle	সম্পদের সঠিক তথ্য প�
 assetRegister.locationPh	যেমন: কমিউনিটি সেন্টার, ২য় তলা	e.g. Community centre, 2nd floor
 assetRegister.namePh	যেমন: কমিউনিটি সেন্টারের প্রজেক্টর	e.g. Community centre projector
 assetRegister.requiredHint	* চিহ্নিত ঘর পূরণ করা আবশ্যক	Fields marked * are required
-amendments.submitSuccess	প্রস্তাব সফলভাবে জমা হয়েছে।	Proposal submitted successfully.
-amendments.withdrawConfirm	প্রত্যাহার করা হলে প্রস্তাবটি আর ফিরিয়ে আনা যাবে না। নিশ্চিত?	A withdrawn proposal cannot be restored. Withdraw it?
 auditReports.memberCount	{{count}}টি রিপোর্ট	{{count}} report(s)
 auditReports.memberEmptyHint	কমিটি বার্ষিক অডিট প্রকাশ করলে সারসংক্ষেপ ও ফাইল এখানে দেখা যাবে।	Summaries and files will appear here once the committee publishes an annual audit.
 auditReports.noFile	কোনো ফাইল সংযুক্ত নেই	No file attached
@@ -882,6 +888,11 @@ complaintsAdmin.meta.submitted	জমার সময়	Submitted
 complaintsAdmin.overdueNotice	{{count}}টি অভিযোগে এসএলএ সময়শেষ হয়েছে — দ্রুত ব্যবস্থা নিন।	{{count}} complaint(s) past the SLA deadline — action needed.
 complaintsAdmin.subtitle	সদস্যদের অভিযোগ গ্রহণ, দায়িত্ব দেওয়া ও নিষ্পত্তি — এসএলএ সময়সীমা সহ।	Receive, assign and resolve member complaints — with SLA deadlines.
 complaintsAdmin.total	মোট	Total
+complaintsModule.events.complaint.acknowledged	স্বীকৃতি দেওয়া হয়েছে	Acknowledged
+complaintsModule.events.complaint.closed	বন্ধ হয়েছে	Closed
+complaintsModule.events.complaint.rejected	খারিজ হয়েছে	Rejected
+complaintsModule.events.complaint.resolved	নিষ্পত্তি হয়েছে	Resolved
+complaintsModule.events.complaint.submitted	অভিযোগ জমা হয়েছে	Complaint submitted
 complaintsModule.new.success	অভিযোগ সফলভাবে জমা হয়েছে।	Complaint submitted successfully.
 events.backToList	সব অনুষ্ঠান	All events
 events.detail.endsAt	শেষ	Ends
@@ -1352,6 +1363,22 @@ member.roadmap.weAreHere	আমরা এখানে	We are here
 member.roadmap.whereSummary	মোট {{total}}টি পরিকল্পনার মধ্যে {{done}}টি সম্পন্ন হয়েছে।	{{done}} of {{total}} planned items are done.
 member.roadmap.whereTitle	আমরা এখন কোথায় আছি	Where we are now
 membershipGov.apply.success	সদস্যপদের আবেদন সফলভাবে জমা হয়েছে।	Application submitted successfully.
+membershipGov.notices.typesuspension	সাসপেনশন	Suspension
+membershipGov.notices.typetermination	বহিষ্কার	Termination
+membershipGovernance.actions.listSub	লিখিত নোটিশ থেকে চূড়ান্ত সিদ্ধান্ত পর্যন্ত প্রক্রিয়াধীন মামলার তালিকা।	Cases moving from written notice to final decision.
+membershipGovernance.actions.noticeSub	সাসপেনশন/বহিষ্কারের প্রথম ধাপ — সদস্যকে লিখিত নোটিশ পাঠান।	The first step of suspension/termination — send the member a written notice.
+membershipGovernance.actions.noticeSuccess	নোটিশ সফলভাবে পাঠানো হয়েছে।	Notice sent successfully.
+membershipGovernance.actions.suspendConfirm	এই সদস্যের সাসপেনশন নিশ্চিত করতে চান? সিদ্ধান্ত কার্যকর হলে সদস্য আপিল করতে পারবেন।	Confirm suspension for this member? Once the decision takes effect, the member can file an appeal.
+membershipGovernance.appeals.filedAt	আপিলের তারিখ	Filed on
+membershipGovernance.appeals.sub	প্রতিটি আপিলে পর্যালোচক নির্ধারণ করুন ও সিদ্ধান্তের অবস্থা দেখুন।	Assign a reviewer to each appeal and track decision status.
+membershipGovernance.arrears.sub	সদস্যদের চাঁদা পরিশোধের বর্তমান অবস্থা ও মোট হিসাব।	Members' current subscription payment status and totals.
+membershipGovernance.arrears.totalDue	মোট বকেয়া	Total due
+membershipGovernance.arrears.totalExpected	মোট প্রত্যাশিত	Total expected
+membershipGovernance.arrears.totalPaid	মোট পরিশোধিত	Total paid
+membershipGovernance.corrections.sub	সদস্যদের তথ্য সংশোধনের অনুরোধ যাচাই করে প্রয়োগ বা প্রত্যাখ্যান করুন।	Verify members' data-correction requests, then apply or reject.
+membershipGovernance.subtitle	ছাড়, সাসপেনশন, আপিল, তথ্য সংশোধন ও বকেয়া — সদস্য শাসনের সব কার্যক্রম এক জায়গায়।	Waivers, suspension, appeals, data corrections and arrears — every member-governance duty in one place.
+membershipGovernance.waivers.monthsShort	মাস	months
+membershipGovernance.waivers.sub	সদস্যদের ছাড় ও কিস্তির আবেদন পর্যালোচনা করে সিদ্ধান্ত নিন।	Review members' waiver and installment requests and decide.
 nav.admin	প্রশাসক	Admin
 nav.auditLog	অডিট লগ	Audit Log
 nav.changePassword	পাসওয়ার্ড পরিবর্তন	Change Password
@@ -1769,25 +1796,5 @@ registration.validation.propertyLabel	সম্পত্তি #{{number}}	Prope
 registration.validation.propertyTypeRequired	সম্পত্তির ধরন আবশ্যক	Property type is required
 registration.validation.urgentContactLabel	জরুরি যোগাযোগ	Urgent Contact
 welcome	স্বাগতম, {{name}}	Welcome, {{name}}
-welfareFund.applySuccess	আবেদন সফলভাবে জমা হয়েছে।	Request submitted successfully.
-membershipGovernance.subtitle	ছাড়, সাসপেনশন, আপিল, তথ্য সংশোধন ও বকেয়া — সদস্য শাসনের সব কার্যক্রম এক জায়গায়।	Waivers, suspension, appeals, data corrections and arrears — every member-governance duty in one place.
-membershipGovernance.waivers.sub	সদস্যদের ছাড় ও কিস্তির আবেদন পর্যালোচনা করে সিদ্ধান্ত নিন।	Review members' waiver and installment requests and decide.
-membershipGovernance.waivers.monthsShort	মাস	months
-membershipGovernance.actions.noticeSub	সাসপেনশন/বহিষ্কারের প্রথম ধাপ — সদস্যকে লিখিত নোটিশ পাঠান।	The first step of suspension/termination — send the member a written notice.
-membershipGovernance.actions.noticeSuccess	নোটিশ সফলভাবে পাঠানো হয়েছে।	Notice sent successfully.
-membershipGovernance.actions.listSub	লিখিত নোটিশ থেকে চূড়ান্ত সিদ্ধান্ত পর্যন্ত প্রক্রিয়াধীন মামলার তালিকা।	Cases moving from written notice to final decision.
-membershipGovernance.actions.suspendConfirm	এই সদস্যের সাসপেনশন নিশ্চিত করতে চান? সিদ্ধান্ত কার্যকর হলে সদস্য আপিল করতে পারবেন।	Confirm suspension for this member? Once the decision takes effect, the member can file an appeal.
-membershipGovernance.appeals.sub	প্রতিটি আপিলে পর্যালোচক নির্ধারণ করুন ও সিদ্ধান্তের অবস্থা দেখুন।	Assign a reviewer to each appeal and track decision status.
-membershipGovernance.appeals.filedAt	আপিলের তারিখ	Filed on
-membershipGovernance.corrections.sub	সদস্যদের তথ্য সংশোধনের অনুরোধ যাচাই করে প্রয়োগ বা প্রত্যাখ্যান করুন।	Verify members' data-correction requests, then apply or reject.
-membershipGovernance.arrears.sub	সদস্যদের চাঁদা পরিশোধের বর্তমান অবস্থা ও মোট হিসাব।	Members' current subscription payment status and totals.
-membershipGovernance.arrears.totalExpected	মোট প্রত্যাশিত	Total expected
-membershipGovernance.arrears.totalPaid	মোট পরিশোধিত	Total paid
-membershipGovernance.arrears.totalDue	মোট বকেয়া	Total due
-admin.feeSettings.newFee.subtitle	ফি-টি কীভাবে গণনা ও গোষ্ঠীভুক্ত হবে তা নির্ধারণ করুন।	Define how the fee is calculated and grouped.
-admin.financeManagement.form.sectionDetails	লেনদেনের বিবরণ	Transaction details
-admin.financeManagement.form.sectionDocs	রেফারেন্স ও সংযুক্তি	Reference & attachment
-admin.financeManagement.form.sectionIncome	আয়ের শ্রেণিবিন্যাস	Income classification
-admin.financeManagement.formSubtitle	অনুমোদনের পর লেনদেনটি খতিয়ানে যুক্ত হবে।	The transaction enters the ledger after approval.
-admin.societyCosts.formSubtitle	খরচের বিবরণ লিখুন; সম্ভব হলে রসিদ সংযুক্ত করুন।	Record the expense details; attach a receipt if available.
 welfareActivities.formHint	কার্যক্রমের তথ্য কল্যাণমূলক রেকর্ডে দেখা যাবে।	Activity details appear in the welfare records.
+welfareFund.applySuccess	আবেদন সফলভাবে জমা হয়েছে।	Request submitted successfully.

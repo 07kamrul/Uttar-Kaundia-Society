@@ -18,6 +18,8 @@ import {
 
 type Tab = 'waivers' | 'actions' | 'appeals' | 'corrections' | 'arrears';
 
+const TABS: Tab[] = ['waivers', 'actions', 'appeals', 'corrections', 'arrears'];
+
 @Component({
   selector: 'app-membership-governance',
   standalone: true,
@@ -210,7 +212,7 @@ type Tab = 'waivers' | 'actions' | 'appeals' | 'corrections' | 'arrears';
                             </span>
                           </td>
                           <td [attr.data-label]="'membershipGov.notices.type' | translate">
-                            <span class="ds-tag" [attr.data-tone]="action.type === 'terminate' ? 'bad' : 'warn'">{{ 'membershipGov.notices.type' + action.type | translate }}</span>
+                            <span class="ds-tag" [attr.data-tone]="typeTone(action.type)">{{ 'membershipGov.notices.type' + action.type | translate }}</span>
                           </td>
                           <td [attr.data-label]="'membershipGov.notices.reason' | translate" class="reason-cell">{{ action.reason }}</td>
                           <td [attr.data-label]="'membershipGov.notices.deadline' | translate"><span class="ds-mono">{{ action.response_deadline ? (action.response_deadline | date: 'yyyy-MM-dd') : '—' }}</span></td>
@@ -512,6 +514,20 @@ type Tab = 'waivers' | 'actions' | 'appeals' | 'corrections' | 'arrears';
       .change-value { color: var(--emerald-800); font-weight: 600; }
       .assign-cell { gap: 0.5rem; }
       .assign-input { max-width: 9.5rem; }
+      /* Dates and row-action labels stay on one line (auto-layout narrows those columns). */
+      .data-table td > .ds-mono { white-space: nowrap; }
+      .row-actions .btn { white-space: nowrap; }
+      /* Mobile card cells: value spans must be shrinkable so long values wrap, not overflow. */
+      @media (max-width: 640px) {
+        .data-table-cards tbody td > .member-cell,
+        .data-table-cards tbody td > .ds-mono,
+        .data-table-cards tbody td > .ds-tag,
+        .data-table-cards tbody td > .ds-badge { min-width: 0; max-width: 100%; }
+        .data-table-cards tbody td > .ds-mono { overflow-wrap: anywhere; }
+        /* The reviewer-assign control stacks below its label on narrow screens. */
+        .data-table-cards tbody td:last-child .assign-cell { flex-direction: column; align-items: stretch; }
+        .data-table-cards tbody td:last-child .assign-cell .assign-input { max-width: none; }
+      }
       /* Arrears summary tiles. */
       .totals-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); margin-bottom: 1rem; }
       .totals-tile {
@@ -578,6 +594,11 @@ export class MembershipGovernanceComponent implements OnInit {
     return 'warn';
   }
 
+  /** Backend data uses suspension/termination spellings (older rows may say suspend/terminate). */
+  typeTone(type: string): string {
+    return type === 'terminate' || type === 'termination' ? 'bad' : 'warn';
+  }
+
   ngOnInit(): void {
     this.loadTab('waivers');
     this.loadTab('actions');
@@ -590,6 +611,11 @@ export class MembershipGovernanceComponent implements OnInit {
   selectTab(tab: Tab): void {
     this.tab.set(tab);
     this.loadTab(tab);
+    // On narrow screens the bar scrolls: keep the selected tab visible.
+    setTimeout(() => {
+      const index = TABS.indexOf(tab);
+      document.querySelectorAll('.ds-tab')[index]?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    });
   }
 
   /** Silent refresh after an action: keeps current rows on screen (the global bar shows progress). */

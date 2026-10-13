@@ -56,11 +56,6 @@ function saveBlob(blob: Blob, filename: string): void {
           <h1 class="gov-hero-title">{{ 'elections.admin.title' | translate }}</h1>
           <p class="gov-hero-sub">{{ 'elections.admin.subtitle' | translate }}</p>
         </div>
-        @if (!loading() && elections().length > 0) {
-          <div class="gov-hero-side">
-            <span class="ds-count" [attr.aria-label]="elections().length">{{ digits(elections().length) }}</span>
-          </div>
-        }
       </header>
 
       @if (error()) {
@@ -300,7 +295,7 @@ function saveBlob(blob: Blob, filename: string): void {
                     <article class="gov-item" [class.gov-item-green]="nomination.status === 'approved'" [class.gov-item-amber]="nomination.status === 'rejected'">
                       <div class="gov-item-head">
                         <strong class="ea-post-name">{{ postLabel(nomination.postKey) }}</strong>
-                        <span class="ds-tag" [class.ds-tag-green]="nomination.status === 'approved'" [class.ds-tag-amber]="nomination.status === 'rejected'">
+                        <span class="ds-tag" [class.ds-tag-green]="nomination.status === 'approved'" [class.ds-tag-amber]="nomination.status === 'rejected'" [class.ds-tag-blue]="nomination.status === 'pending'">
                           {{ 'elections.nominationStatuses.' + nomination.status | translate }}
                         </span>
                       </div>
@@ -491,8 +486,13 @@ function saveBlob(blob: Blob, filename: string): void {
       .ea-hint { margin: 0.9rem 0 0; }
       .form-actions app-icon { vertical-align: -2px; }
 
-      /* --- elections list: status-rail cards --- */
-      .ea-list { display: grid; gap: 0.6rem; }
+      /* --- elections list: status-rail cards; 2-up on wide screens --- */
+      .ea-list {
+        display: grid;
+        gap: 0.6rem;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+      }
+      .ea-list .gov-item { align-content: start; }
       .gov-item.is-selected {
         border-color: color-mix(in srgb, var(--emerald-600) 45%, var(--gray-200));
         background: color-mix(in srgb, var(--emerald-50) 55%, var(--gray-50));
