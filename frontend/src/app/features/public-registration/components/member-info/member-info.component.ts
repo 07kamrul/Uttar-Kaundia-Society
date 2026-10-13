@@ -1,27 +1,63 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { PhoneInputComponent } from '../../../../shared/phone-input/phone-input.component';
+import { AsciiDigitsDirective } from '../../ascii-digits.directive';
+import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
+import { DobSelectComponent } from '../dob-select/dob-select.component';
+
+const DEFAULT_NATIONALITY = 'বাংলাদেশী';
 
 @Component({
   selector: 'app-member-info',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe, DatePickerComponent, PhoneInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    TranslatePipe,
+    DatePickerComponent,
+    PhoneInputComponent,
+    DobSelectComponent,
+    AsciiDigitsDirective,
+  ],
   templateUrl: './member-info.component.html',
 })
-export class MemberInfoComponent {
+export class MemberInfoComponent implements OnInit {
   @Input({ required: true }) form!: FormGroup;
   @Input() memberPhotoPreview = '';
   @Input() submitAttempted = false;
+  @Input() photoBusy = false;
+  /** Feature flags; all off keeps the original form. */
+  @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
   @Output() photoChange = new EventEmitter<Event>();
   @Output() photoClear = new EventEmitter<void>();
 
   /** dob must be in the past; used as the date-picker's max. */
   readonly today = new Date().toISOString().slice(0, 10);
 
+  /** reg_hide_nationality: the field only shows once "another country" is ticked. */
+  readonly foreignNational = signal(false);
+
   constructor(private translate: TranslateService) {}
+
+  ngOnInit(): void {
+    const nationality = (this.form.get('nationality')?.value ?? '').trim();
+    this.foreignNational.set(!!nationality && nationality !== DEFAULT_NATIONALITY);
+  }
+
+  toggleForeignNational(checked: boolean): void {
+    this.foreignNational.set(checked);
+    if (!checked) this.form.get('nationality')?.setValue(DEFAULT_NATIONALITY);
+  }
+
+  toggleWhatsapp(checked: boolean): void {
+    this.form.get('hasWhatsapp')?.setValue(checked);
+  }
+
+  get showNationality(): boolean {
+    return !this.ui.hideNationality || this.foreignNational();
+  }
 
   showError(controlName: string): boolean {
     const control = this.form.get(controlName);

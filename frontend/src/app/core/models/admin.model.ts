@@ -7,6 +7,8 @@ export interface SubmissionSummary {
   status: SubmissionStatus;
   createdAt: string;
   propertiesCount?: number;
+  /** A property is marked "dag unknown" and still has no dag: approval is blocked. */
+  needsDag?: boolean;
 }
 
 export interface ApplicableDoc {
@@ -29,6 +31,7 @@ export interface SubmissionProperty {
   myShareQuantity?: string | null;
   ownership?: string | null;
   jointOwnerCount?: number | null;
+  dagUnknown?: boolean;
   applicableDocs: ApplicableDoc[];
 }
 

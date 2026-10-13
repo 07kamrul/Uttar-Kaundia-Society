@@ -1,6 +1,7 @@
 <section [formGroup]="form">
   <h2 class="section-title">{{ 'registration.stepTitles.property' | translate }}</h2>
 
+  @if (!ui.addPropertyButton) {
   <div class="property-toolbar">
     <div class="property-toolbar__info">
       <span class="property-toolbar__label" id="propertyCountLabel">
@@ -36,15 +37,35 @@
     <p class="property-toolbar__hint">{{ 'registration.property.maxReached' | translate: { max: maxCount } }}</p>
   }
 
+  }
+
   @for (p of properties.controls; track p; let i = $index) {
     <app-property-item
       [id]="'property-card-' + i"
       [property]="propertyGroup(i)"
       [index]="i"
       [canRemove]="canRemove"
+      [ui]="ui"
       [submitAttempted]="submitAttempted"
       (removeProperty)="removeProperty(i)"
     />
+  }
+
+  @if (ui.addPropertyButton) {
+    <button
+      type="button"
+      class="btn btn-secondary tap-48 add-another"
+      data-testid="add-another"
+      [disabled]="!canAdd"
+      (click)="addProperty()"
+    >
+      <span aria-hidden="true">+</span> {{ 'registration.simplified.property.addAnother' | translate }}
+    </button>
+    @if (!canAdd) {
+      <p class="property-toolbar__hint">
+        {{ 'registration.simplified.property.maxReached' | translate: { max: maxCount | bnNumber } }}
+      </p>
+    }
   }
 
   <p class="visually-hidden" aria-live="polite">{{ liveMessage }}</p>

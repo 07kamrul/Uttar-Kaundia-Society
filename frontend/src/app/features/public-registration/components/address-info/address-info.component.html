@@ -1,11 +1,47 @@
 <section [formGroup]="form">
   <h2 class="section-title">{{ 'registration.stepTitles.addressInfo' | translate }}</h2>
   <div class="grid-2">
-    <div formGroupName="currentAddress">
+    <div class="address-col">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin:0 0 0.5rem">
         <h3 style="font-size:0.9rem;color:#374151;margin:0">{{ 'registration.addressInfo.currentAddressTitle' | translate }}</h3>
-
       </div>
+      @if (ui.abroadAddress) {
+        <label class="checkbox-item tap-48 abroad-toggle">
+          <input
+            type="checkbox"
+            data-testid="abroad-toggle"
+            [checked]="abroad"
+            (change)="setAbroad($any($event.target).checked)"
+          />
+          {{ 'registration.simplified.address.abroadToggle' | translate }}
+        </label>
+      }
+      @if (abroad) {
+        <div class="field">
+          <div class="field-label-row">
+            <label for="currentCountry">{{ 'registration.simplified.address.country' | translate }} <span class="required">*</span></label>
+          </div>
+          <app-searchable-select
+            inputId="currentCountry"
+            [formControl]="countryControl"
+            [options]="countryOptions()"
+            [invalid]="submitAttempted && !countryControl.value"
+          />
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label for="currentCity">{{ 'registration.simplified.address.city' | translate }} <span class="required">*</span></label>
+          </div>
+          <input id="currentCity" type="text" class="tap-48" formControlName="currentCity" />
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label for="currentAddressText">{{ 'registration.simplified.address.addressText' | translate }} <span class="required">*</span></label>
+          </div>
+          <textarea id="currentAddressText" rows="3" formControlName="currentAddressText"></textarea>
+        </div>
+      } @else {
+      <div formGroupName="currentAddress">
       <div class="field">
         <div class="field-label-row">
           <label for="currentAddress_division">{{ 'registration.addressInfo.divisionLabel' | translate }} <span class="required">*</span></label>
@@ -13,12 +49,21 @@
             <span class="field-error-inline">{{ errorMessage('division') }}</span>
           }
         </div>
-        <select id="currentAddress_division" formControlName="division">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="currentAddress_division"
+            formControlName="division"
+            [options]="divisionOptions()"
+            [invalid]="showError('currentAddress', 'division')"
+          />
+        } @else {
+          <select id="currentAddress_division" formControlName="division">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (division of divisions$ | async; track division.id) {
             <option [value]="division.bn_name">{{ localizedName(division) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -27,12 +72,21 @@
             <span class="field-error-inline">{{ errorMessage('district') }}</span>
           }
         </div>
-        <select id="currentAddress_district" formControlName="district">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="currentAddress_district"
+            formControlName="district"
+            [options]="currentDistrictOptions()"
+            [invalid]="showError('currentAddress', 'district')"
+          />
+        } @else {
+          <select id="currentAddress_district" formControlName="district">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (district of currentDistricts$ | async; track district.id) {
             <option [value]="district.bn_name">{{ localizedName(district) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -41,12 +95,21 @@
             <span class="field-error-inline">{{ errorMessage('upazila') }}</span>
           }
         </div>
-        <select id="currentAddress_upazila" formControlName="upazila">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="currentAddress_upazila"
+            formControlName="upazila"
+            [options]="currentUpazilaOptions()"
+            [invalid]="showError('currentAddress', 'upazila')"
+          />
+        } @else {
+          <select id="currentAddress_upazila" formControlName="upazila">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (upazila of currentUpazilas$ | async; track upazila.name) {
             <option [value]="upazila.bn_name">{{ localizedName(upazila) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -59,7 +122,7 @@
       </div>
       <div class="field">
         <div class="field-label-row">
-          <label for="currentAddress_road">{{ 'registration.addressInfo.roadLabel' | translate }} <span class="required">*</span></label>
+          <label for="currentAddress_road">{{ 'registration.addressInfo.roadLabel' | translate }} @if (!ui.roadOptional) {<span class="required">*</span>}</label>
           @if (showError('currentAddress', 'road')) {
             <span class="field-error-inline">{{ errorMessage('road') }}</span>
           }
@@ -75,17 +138,23 @@
         </div>
         <input id="currentAddress_house" type="text" formControlName="house" />
       </div>
+      </div>
+      }
     </div>
     <div formGroupName="permanentAddress">
       <h3 style="font-size:0.9rem;color:#374151;margin:0 0 0.5rem">{{ 'registration.addressInfo.permanentAddressTitle' | translate }}</h3>
-        <div style="display:flex;align-items:center;gap:0.5rem">
-          <input
-            type="checkbox"
-            id="sameAsCurrentAddress"
-            [formControl]="sameAsCurrentAddress"
-          />
-          <label for="sameAsCurrentAddress" style="margin:0; font-size:12px">{{ 'registration.addressInfo.sameAsCurrentLabel' | translate }}</label>
-        </div>
+        @if (abroad) {
+          <p class="field-hint">{{ 'registration.simplified.address.permanentNote' | translate }}</p>
+        } @else {
+          <div style="display:flex;align-items:center;gap:0.5rem" [class.tap-48]="ui.simplified">
+            <input
+              type="checkbox"
+              id="sameAsCurrentAddress"
+              [formControl]="sameAsCurrentAddress"
+            />
+            <label for="sameAsCurrentAddress" style="margin:0; font-size:12px">{{ 'registration.addressInfo.sameAsCurrentLabel' | translate }}</label>
+          </div>
+        }
       <div class="field">
         <div class="field-label-row">
           <label for="permanentAddress_division">{{ 'registration.addressInfo.divisionLabel' | translate }} <span class="required">*</span></label>
@@ -93,12 +162,21 @@
             <span class="field-error-inline">{{ errorMessage('division') }}</span>
           }
         </div>
-        <select id="permanentAddress_division" formControlName="division">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="permanentAddress_division"
+            formControlName="division"
+            [options]="divisionOptions()"
+            [invalid]="showError('permanentAddress', 'division')"
+          />
+        } @else {
+          <select id="permanentAddress_division" formControlName="division">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (division of divisions$ | async; track division.id) {
             <option [value]="division.bn_name">{{ localizedName(division) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -107,12 +185,21 @@
             <span class="field-error-inline">{{ errorMessage('district') }}</span>
           }
         </div>
-        <select id="permanentAddress_district" formControlName="district">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="permanentAddress_district"
+            formControlName="district"
+            [options]="permanentDistrictOptions()"
+            [invalid]="showError('permanentAddress', 'district')"
+          />
+        } @else {
+          <select id="permanentAddress_district" formControlName="district">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (district of permanentDistricts$ | async; track district.id) {
             <option [value]="district.bn_name">{{ localizedName(district) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -121,12 +208,21 @@
             <span class="field-error-inline">{{ errorMessage('upazila') }}</span>
           }
         </div>
-        <select id="permanentAddress_upazila" formControlName="upazila">
+        @if (ui.simplified) {
+          <app-searchable-select
+            inputId="permanentAddress_upazila"
+            formControlName="upazila"
+            [options]="permanentUpazilaOptions()"
+            [invalid]="showError('permanentAddress', 'upazila')"
+          />
+        } @else {
+          <select id="permanentAddress_upazila" formControlName="upazila">
           <option value="" disabled>{{ 'registration.addressInfo.selectPlaceholder' | translate }}</option>
           @for (upazila of permanentUpazilas$ | async; track upazila.name) {
             <option [value]="upazila.bn_name">{{ localizedName(upazila) }}</option>
           }
         </select>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -139,7 +235,7 @@
       </div>
       <div class="field">
         <div class="field-label-row">
-          <label for="permanentAddress_road">{{ 'registration.addressInfo.roadLabel' | translate }} <span class="required">*</span></label>
+          <label for="permanentAddress_road">{{ 'registration.addressInfo.roadLabel' | translate }} @if (!ui.roadOptional) {<span class="required">*</span>}</label>
           @if (showError('permanentAddress', 'road')) {
             <span class="field-error-inline">{{ errorMessage('road') }}</span>
           }

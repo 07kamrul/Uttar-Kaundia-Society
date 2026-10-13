@@ -1,3 +1,105 @@
+@if (ui.simplified) {
+<section [formGroup]="form" class="payment-simple">
+  <h2 class="section-title">{{ 'registration.simplified.stepNames.4' | translate }}</h2>
+
+  <dl class="fee-list">
+    <div class="fee-row">
+      <dt>{{ 'registration.simplified.payment.feeLabel' | translate }}</dt>
+      <dd class="fee-amount">{{ form.get('admissionFee')?.value | taka }}</dd>
+    </div>
+    @if (feeLoading) {
+      <p class="field-hint">{{ 'registration.payment.admissionFeeLoading' | translate }}</p>
+    } @else if (feeError) {
+      <p class="field-error">{{ 'registration.payment.admissionFeeLoadFailed' | translate }}</p>
+      <button type="button" class="btn btn-secondary tap-48" (click)="retryFeeLoad.emit()">
+        {{ 'registration.payment.admissionFeeRetry' | translate }}
+      </button>
+    }
+    <div class="fee-row">
+      <dt>{{ 'registration.simplified.payment.subscriptionLabel' | translate }}</dt>
+      <dd class="fee-amount">{{ form.get('subscription')?.value | taka }}</dd>
+    </div>
+    @if (subscriptionLoading()) {
+      <p class="field-hint">{{ 'registration.payment.subscriptionLoading' | translate }}</p>
+    } @else if (subscriptionError()) {
+      <p class="field-error">{{ 'registration.payment.subscriptionLoadFailed' | translate }}</p>
+      <button type="button" class="btn btn-secondary tap-48" (click)="loadSubscriptionQuote()">
+        {{ 'registration.payment.subscriptionRetry' | translate }}
+      </button>
+    }
+  </dl>
+  <p class="field-hint">{{ 'registration.simplified.payment.readOnlyNote' | translate }}</p>
+
+  <div class="field" role="radiogroup" [attr.aria-label]="'registration.simplified.payment.methodTitle' | translate">
+    <label class="method-title">{{ 'registration.simplified.payment.methodTitle' | translate }} <span class="required">*</span></label>
+    <div class="method-cards">
+      @for (key of methodKeys; track key) {
+        <button
+          type="button"
+          role="radio"
+          class="method-card tap-48"
+          [attr.data-testid]="'method-' + key"
+          [attr.aria-checked]="selectedMethod === key"
+          [class.is-selected]="selectedMethod === key"
+          (click)="selectMethod(key)"
+        >
+          <span aria-hidden="true">{{ methodIcon(key) }}</span>
+          {{ 'registration.simplified.payment.methods.' + key | translate }}
+        </button>
+      }
+    </div>
+    @if (showError('paymentMethod')) {
+      <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
+    }
+  </div>
+
+  @if (accounts.length > 0) {
+    <div class="account-box" data-testid="account-box">
+      <h3>{{ 'registration.simplified.payment.accountTitle' | translate }}</h3>
+      @for (account of accounts; track $index) {
+        <div class="account-row">
+          <span class="account-details">{{ account.label }}</span>
+          @if (account.number) {
+            <button type="button" class="btn btn-secondary tap-48" data-testid="copy-account" (click)="copyNumber(account.number)">
+              <span aria-hidden="true">📋</span>
+              {{ (copiedNumber() === account.number ? 'registration.simplified.payment.copied' : 'registration.simplified.payment.copy') | translate }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <div class="field">
+    <label for="receiptNo">{{ referenceLabelKey | translate }}</label>
+    <input id="receiptNo" type="text" class="tap-48" formControlName="receiptNo" autocomplete="off" />
+  </div>
+
+  <div class="field">
+    <label>{{ 'registration.simplified.payment.screenshot' | translate }}</label>
+    @if (form.get('receiptFileDataUrl')?.value) {
+      <div class="proof-slot-file">
+        <span class="proof-slot-filename">{{ form.get('receiptFileName')?.value }}</span>
+        <button type="button" class="btn btn-ghost tap-48" (click)="removeReceiptFile()">
+          {{ 'registration.payment.removeFile' | translate }}
+        </button>
+      </div>
+    } @else {
+      <label class="btn btn-secondary tap-48 proof-slot-attach">
+        <span aria-hidden="true">📎</span> {{ 'registration.simplified.payment.screenshot' | translate }}
+        <input type="file" accept="image/jpeg,image/png,application/pdf" class="visually-hidden" (change)="onReceiptFileChange($event)" />
+      </label>
+    }
+    @if (receiptFileError) {
+      <p class="field-error">{{ receiptFileError }}</p>
+    }
+  </div>
+
+  @if (isAbroad) {
+    <p class="abroad-note">{{ 'registration.simplified.payment.abroadNote' | translate }}</p>
+  }
+</section>
+} @else {
 <section [formGroup]="form">
   <h2 class="section-title">{{ 'registration.stepTitles.payment' | translate }}</h2>
   <div class="grid-2">
@@ -121,3 +223,4 @@
     }
   </div>
 </section>
+}

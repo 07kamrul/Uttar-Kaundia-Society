@@ -113,3 +113,30 @@ describe('i18n catalogue', () => {
     );
   });
 });
+
+describe('known server detail codes', () => {
+  it.each([
+    [422, 'PHOTO_REQUIRED', 'errors.code.PHOTO_REQUIRED'],
+    [422, 'PROPERTY_PROOF_REQUIRED', 'errors.code.PROPERTY_PROOF_REQUIRED'],
+    [409, 'DAG_REQUIRED', 'errors.code.DAG_REQUIRED'],
+    [422, 'ABROAD_ADDRESS_REQUIRED', 'errors.code.ABROAD_ADDRESS_REQUIRED'],
+    [422, 'DAG_REQUIRED_FIELD', 'errors.code.DAG_REQUIRED_FIELD'],
+  ])('maps %i %s to a friendly key', (status, code, key) => {
+    expect(toUserMessageKey(httpError(status, { detail: { code } }))).toBe(key);
+  });
+
+  it('ignores unknown codes and string details', () => {
+    expect(toUserMessageKey(httpError(409, { detail: { code: 'WHATEVER' } }))).toBe('errors.conflict');
+    expect(toUserMessageKey(httpError(422, { detail: 'PHOTO_REQUIRED' }))).toBe('errors.validation');
+  });
+
+  it.each(['PHOTO_REQUIRED', 'PROPERTY_PROOF_REQUIRED', 'DAG_REQUIRED', 'ABROAD_ADDRESS_REQUIRED', 'DAG_REQUIRED_FIELD'])(
+    'has plain Bangla and English text for %s',
+    (code) => {
+      const bnText = lookup(bn, `errors.code.${code}`) as string;
+      expect(typeof lookup(en, `errors.code.${code}`)).toBe('string');
+      expect(bnText.length).toBeGreaterThan(0);
+      expect(bnText).not.toMatch(/[A-Za-z]/);
+    },
+  );
+});

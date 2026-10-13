@@ -115,6 +115,7 @@ interface SubmissionSummaryApiModel {
   full_name: string;
   mobile: string;
   created_at: string;
+  needs_dag?: boolean;
 }
 
 interface ApplicableDocApiModel {
@@ -135,6 +136,7 @@ interface SubmissionPropertyApiModel {
   my_share_quantity: string | null;
   ownership: string | null;
   joint_owner_count: number | null;
+  dag_unknown?: boolean;
   applicable_docs: ApplicableDocApiModel[];
 }
 
@@ -146,7 +148,7 @@ interface NomineeApiModel {
   address: string | null;
 }
 
-interface SubmissionDetailApiModel {
+export interface SubmissionDetailApiModel {
   id: number;
   member_id: string | null;
   status: SubmissionStatus;
@@ -186,6 +188,7 @@ interface SubmissionDetailApiModel {
   receipt_photo_path: string | null;
   rejection_reason: string | null;
   notification_status?: 'sent' | 'failed' | null;
+  needs_dag?: boolean;
   properties: SubmissionPropertyApiModel[];
   nominees: NomineeApiModel[];
 }
@@ -326,6 +329,7 @@ function toSubmissionSummary(api: SubmissionSummaryApiModel): SubmissionSummary 
     mobile: api.mobile,
     status: api.status,
     createdAt: api.created_at,
+    needsDag: !!api.needs_dag,
   };
 }
 
@@ -375,6 +379,7 @@ function toSubmissionProperty(api: SubmissionPropertyApiModel): SubmissionProper
     myShareQuantity: api.my_share_quantity,
     ownership: api.ownership,
     jointOwnerCount: api.joint_owner_count,
+    dagUnknown: !!api.dag_unknown,
     applicableDocs: api.applicable_docs.map(toApplicableDoc),
   };
 }
@@ -389,7 +394,7 @@ function toNominee(api: NomineeApiModel): Nominee {
   };
 }
 
-function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDetail {
+export function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDetail {
   return {
     id: String(api.id),
     fullName: api.full_name,
@@ -431,6 +436,7 @@ function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDetail {
     receiptPhotoUrl: toFileUrl(api.receipt_photo_path),
     rejectionReason: api.rejection_reason ?? undefined,
     notificationStatus: api.notification_status ?? undefined,
+    needsDag: !!api.needs_dag,
   };
 }
 

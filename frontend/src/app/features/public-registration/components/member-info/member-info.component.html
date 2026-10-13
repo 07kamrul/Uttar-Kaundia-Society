@@ -11,9 +11,17 @@
             <span>{{ 'registration.memberInfo.photoPlaceholder' | translate }}<br />2"×2"</span>
           }
         </label>
+        @if (ui.simplified) {
+          <label for="memberPhoto" class="btn btn-secondary tap-48 member-photo-pick">
+            <span aria-hidden="true">📷</span> {{ 'registration.simplified.member.photoButton' | translate }}
+          </label>
+          @if (photoBusy) {
+            <p class="field-hint" role="status">{{ 'registration.simplified.member.photoCompressing' | translate }}</p>
+          }
+        }
         <input id="memberPhoto" type="file" accept="image/*" (change)="photoChange.emit($event)" style="display:none" />
         @if (memberPhotoPreview) {
-          <button type="button" (click)="photoClear.emit()" class="member-photo-clear">
+          <button type="button" (click)="photoClear.emit()" class="member-photo-clear" [class.tap-48]="ui.simplified">
             {{ 'registration.memberInfo.clearPhotoButton' | translate }}
           </button>
         }
@@ -56,14 +64,24 @@
             <span class="field-error-inline">{{ errorMessage('dob') }}</span>
           }
         </div>
-        <app-date-picker
-          inputId="dob"
-          [value]="form.get('dob')?.value ?? ''"
-          (valueChange)="form.get('dob')?.setValue($event)"
-          [max]="today"
-          [invalid]="showError('dob')"
-          [errorMessage]="errorMessage('dob')"
-        ></app-date-picker>
+        @if (ui.simplified) {
+          <app-dob-select
+            inputId="dob"
+            [value]="form.get('dob')?.value ?? ''"
+            (valueChange)="form.get('dob')?.setValue($event)"
+            [max]="today"
+            [invalid]="showError('dob')"
+          />
+        } @else {
+          <app-date-picker
+            inputId="dob"
+            [value]="form.get('dob')?.value ?? ''"
+            (valueChange)="form.get('dob')?.setValue($event)"
+            [max]="today"
+            [invalid]="showError('dob')"
+            [errorMessage]="errorMessage('dob')"
+          ></app-date-picker>
+        }
       </div>
     </div>
 
@@ -75,7 +93,16 @@
             <span class="field-error-inline">{{ errorMessage('nid') }}</span>
           }
         </div>
-        <input id="nid" type="text" formControlName="nid" [placeholder]="'registration.memberInfo.nidPlaceholder' | translate" />
+        <input
+          id="nid"
+          type="text"
+          formControlName="nid"
+          [appAsciiDigits]="ui.simplified"
+          [attr.inputmode]="ui.simplified ? 'numeric' : null"
+          [attr.autocomplete]="ui.simplified ? 'off' : null"
+          [class.tap-48]="ui.simplified"
+          [placeholder]="'registration.memberInfo.nidPlaceholder' | translate"
+        />
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -85,6 +112,17 @@
           }
         </div>
         <app-phone-input inputId="mobile" formControlName="mobile" [invalid]="showError('mobile')" />
+        @if (ui.simplified) {
+          <label class="checkbox-item tap-48 whatsapp-toggle">
+            <input
+              type="checkbox"
+              data-testid="whatsapp-toggle"
+              [checked]="form.get('hasWhatsapp')?.value === true"
+              (change)="toggleWhatsapp($any($event.target).checked)"
+            />
+            {{ 'registration.simplified.member.whatsappLabel' | translate }}
+          </label>
+        }
       </div>
       <div class="field">
         <div class="field-label-row">
@@ -99,10 +137,23 @@
         <label for="occupation">{{ 'registration.memberInfo.occupationLabel' | translate }}</label>
         <input id="occupation" type="text" formControlName="occupation" />
       </div>
-      <div class="field">
-        <label for="nationality">{{ 'registration.memberInfo.nationalityLabel' | translate }}</label>
-        <input id="nationality" type="text" formControlName="nationality" />
-      </div>
+      @if (ui.hideNationality) {
+        <label class="checkbox-item tap-48">
+          <input
+            type="checkbox"
+            data-testid="foreign-national"
+            [checked]="foreignNational()"
+            (change)="toggleForeignNational($any($event.target).checked)"
+          />
+          {{ 'registration.simplified.member.foreignNational' | translate }}
+        </label>
+      }
+      @if (showNationality) {
+        <div class="field">
+          <label for="nationality">{{ 'registration.memberInfo.nationalityLabel' | translate }}</label>
+          <input id="nationality" type="text" formControlName="nationality" />
+        </div>
+      }
       <div class="field">
         <div class="field-label-row">
           <label>{{ 'registration.memberInfo.genderLabel' | translate }} <span class="required">*</span></label>

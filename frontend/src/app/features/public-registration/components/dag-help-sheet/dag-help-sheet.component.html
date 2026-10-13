@@ -1,0 +1,73 @@
+@if (open) {
+  <div class="sheet-backdrop" (click)="closed.emit()"></div>
+  <div
+    class="bottom-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="dag-help-title"
+    tabindex="-1"
+    (keydown.escape)="closed.emit()"
+  >
+    <div class="bottom-sheet-handle" aria-hidden="true"></div>
+    <h3 id="dag-help-title">{{ 'registration.simplified.property.dagHelpTitle' | translate }}</h3>
+    <p>{{ 'registration.simplified.property.dagHelpIntro' | translate }}</p>
+
+    <svg
+      class="porcha-sample"
+      viewBox="0 0 320 220"
+      role="img"
+      [attr.aria-label]="'registration.simplified.property.svgTitle' | translate"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="4" y="4" width="312" height="212" rx="6" fill="#fffdf5" stroke="#9ca3af" stroke-width="2" />
+      <rect x="90" y="14" width="140" height="10" rx="3" fill="#d1d5db" />
+      <rect x="110" y="30" width="100" height="7" rx="3" fill="#e5e7eb" />
+
+      <!-- Khatian number: top right of the paper -->
+      <g data-highlight="khatian">
+        <rect x="196" y="48" width="108" height="26" rx="4" fill="#fde68a" stroke="#d97706" stroke-width="2" />
+        <rect x="204" y="56" width="60" height="10" rx="3" fill="#92400e" opacity="0.35" />
+        <text x="250" y="42" font-size="11" fill="#92400e" font-weight="bold">
+          {{ 'registration.simplified.property.svgKhatianTag' | translate }}
+        </text>
+      </g>
+
+      <!-- Table header and rows (placeholders, not real data) -->
+      <rect x="16" y="92" width="288" height="16" rx="3" fill="#e5e7eb" />
+      <g fill="#e5e7eb">
+        <rect x="16" y="116" width="288" height="12" rx="3" />
+        <rect x="16" y="136" width="288" height="12" rx="3" />
+        <rect x="16" y="196" width="288" height="12" rx="3" />
+      </g>
+
+      <!-- CS dag -->
+      <g data-highlight="cs">
+        <rect x="16" y="154" width="130" height="30" rx="4" fill="#bbf7d0" stroke="#15803d" stroke-width="2" />
+        <rect x="24" y="164" width="56" height="10" rx="3" fill="#166534" opacity="0.35" />
+        <text x="22" y="150" font-size="11" fill="#166534" font-weight="bold">
+          {{ 'registration.simplified.property.svgCsTag' | translate }}
+        </text>
+      </g>
+
+      <!-- RS dag -->
+      <g data-highlight="rs">
+        <rect x="174" y="154" width="130" height="30" rx="4" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="2" />
+        <rect x="182" y="164" width="56" height="10" rx="3" fill="#1e3a8a" opacity="0.35" />
+        <text x="180" y="150" font-size="11" fill="#1e3a8a" font-weight="bold">
+          {{ 'registration.simplified.property.svgRsTag' | translate }}
+        </text>
+      </g>
+    </svg>
+
+    <ul class="dag-help-list">
+      <li>{{ 'registration.simplified.property.dagHelpKhatian' | translate }}</li>
+      <li>{{ 'registration.simplified.property.dagHelpCs' | translate }}</li>
+      <li>{{ 'registration.simplified.property.dagHelpRs' | translate }}</li>
+    </ul>
+    <p class="dag-help-tip">{{ 'registration.simplified.property.dagHelpTip' | translate }}</p>
+
+    <button type="button" class="btn btn-primary tap-48" data-testid="close-sheet" (click)="closed.emit()">
+      {{ 'registration.simplified.property.dagHelpClose' | translate }}
+    </button>
+  </div>
+}

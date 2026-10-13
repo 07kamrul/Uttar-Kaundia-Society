@@ -30,6 +30,11 @@ const FIELD_STEPS: Readonly<Record<string, number>> = {
   email: 1,
   permanent_address: 1,
   current_address: 1,
+  current_country: 1,
+  current_city: 1,
+  current_address_text: 1,
+  has_whatsapp: 1,
+  consent_version: 5,
   properties: 2,
   urgent_contact_name: 3,
   urgent_contact_relation: 3,
@@ -102,6 +107,14 @@ export function mapSubmissionError(err: HttpErrorResponse, t: TranslateFn): Mapp
       return single('feeNotConfigured', t, 4);
     case 'INVALID_SHARE_QUANTITY':
       return single('invalidShareQuantity', t, 2);
+    case 'PHOTO_REQUIRED':
+      return single('photoRequired', t, 1);
+    case 'PROPERTY_PROOF_REQUIRED':
+      return single('proofRequired', t, 2);
+    case 'ABROAD_ADDRESS_REQUIRED':
+      return single('abroadAddressRequired', t, 1);
+    case 'DAG_REQUIRED_FIELD':
+      return single('dagRequired', t, 2);
   }
 
   if (err.status === UNPROCESSABLE) return single('invalidData', t);

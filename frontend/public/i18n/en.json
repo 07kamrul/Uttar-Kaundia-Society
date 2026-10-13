@@ -308,6 +308,13 @@
       "mobile": "Mobile number must be 11 digits, for example 017XXXXXXXX",
       "nid": "National ID number must be 10, 13 or 17 digits",
       "invalid": "This field is not valid, please check it"
+    },
+    "code": {
+      "PHOTO_REQUIRED": "A photo is required. Add your photo and try again.",
+      "PROPERTY_PROOF_REQUIRED": "Add at least one document photo for every property.",
+      "DAG_REQUIRED": "The dag number is still missing. Fill it in first, then approve.",
+      "ABROAD_ADDRESS_REQUIRED": "Enter the country, city and address abroad.",
+      "DAG_REQUIRED_FIELD": "Enter a dag number. At least one is needed."
     }
   },
   "forbidden": {
@@ -1321,7 +1328,23 @@
       "shareTotal": "Total share: {{value}}%",
       "shareWarning": "Total share is {{value}}% — must equal 100%",
       "collapse": "Collapse",
-      "expand": "Expand"
+      "expand": "Expand",
+      "needsDag": "Dag needed",
+      "needsDagNote": "The dag number for this property is still empty. It cannot be approved until it is filled in.",
+      "dagForm": {
+        "title": "Fill in the dag number",
+        "cs": "CS dag",
+        "rs": "RS dag",
+        "save": "Save dag",
+        "saving": "Saving…",
+        "empty": "Enter at least one dag number.",
+        "failed": "Could not save the dag. Try again."
+      },
+      "photoUpload": {
+        "label": "Upload photo",
+        "hint": "Upload the photo on the member's behalf.",
+        "uploading": "Uploading…"
+      }
     },
     "statusLabels": {
       "all": "All",
@@ -1673,7 +1696,8 @@
       "noSubmissions": "No applications found",
       "errors": {
         "loadFailed": "Could not load list."
-      }
+      },
+      "needsDag": "Dag needed"
     },
     "dashboard": {
       "pendingTitle": "Pending Applications",
@@ -2445,7 +2469,7 @@
       "emailRequired": "Email is required",
       "emailInvalid": "Email is invalid",
       "nidRequired": "NID number is required",
-      "nidInvalid": "NID number must be 10-17 digits",
+      "nidInvalid": "National ID must have 10, 13 or 17 digits",
       "photoTypeError": "Please select an image file (JPG/PNG)",
       "photoSizeError": "Photo size must be less than 3 MB"
     },
@@ -2636,7 +2660,7 @@
       "mobileInvalid": "This number is not correct. Choose the country and enter the full number.",
       "genderRequired": "Please select gender",
       "emailInvalid": "Email is invalid",
-      "nidInvalid": "NID number must be 10-17 digits",
+      "nidInvalid": "National ID must have 10, 13 or 17 digits",
       "currentAddressLabel": "Current Address",
       "permanentAddressLabel": "Permanent Address",
       "propertyCountRequired": "Please select the number of properties",
@@ -2653,7 +2677,15 @@
       "applicableDocsRequired": "Please select applicable documents",
       "docFileRequired": "A file must be attached for \"{{docType}}\"",
       "urgentContactLabel": "Urgent Contact",
-      "nomineeLabel": "Nominee #{{number}}"
+      "nomineeLabel": "Nominee #{{number}}",
+      "emailRequired": "Email is required",
+      "nidRequired": "National ID is required",
+      "photoRequired": "Your photo is required",
+      "proofRequired": "Add at least one document photo",
+      "abroadCountryRequired": "Choose the country you live in",
+      "abroadCountryNotBd": "Choose a country other than Bangladesh",
+      "abroadCityRequired": "Enter the city",
+      "abroadAddressRequired": "Enter your address abroad"
     },
     "submit": {
       "genericError": "There was a problem submitting",
@@ -2696,14 +2728,159 @@
         "receipt_no": "Receipt no",
         "payment_method": "Payment method",
         "member_signature": "Member signature",
-        "submission_date": "Registration date"
-      }
+        "submission_date": "Registration date",
+        "current_country": "Country",
+        "current_city": "City",
+        "current_address_text": "Address abroad",
+        "has_whatsapp": "WhatsApp",
+        "consent_version": "Consent"
+      },
+      "photoRequired": "A photo is required. Add your photo in step 1.",
+      "proofRequired": "Add at least one document photo for every property.",
+      "abroadAddressRequired": "Enter the country, city and address abroad.",
+      "dagRequired": "Enter the dag number, or tick \"I do not know the dag\"."
     },
     "draft": {
       "draftSaved": "Draft saved",
       "draftRestoredToast": "Your previous incomplete form was restored",
       "discardDraft": "Discard and start fresh",
-      "reattachFilesNotice": "Please re-attach any files from the restored draft"
+      "reattachFilesNotice": "Please re-attach any files from the restored draft",
+      "savedLine": "Your information is saved. You can come back later and finish."
+    },
+    "simplified": {
+      "stepHeader": "Step {{current}} of {{total}} — {{title}}",
+      "stepNames": {
+        "1": "About you",
+        "2": "Property",
+        "3": "Emergency contact and nominee",
+        "4": "Payment",
+        "5": "Consent and signature",
+        "6": "Final check"
+      },
+      "member": {
+        "whatsappLabel": "This number has WhatsApp",
+        "dobDay": "Day",
+        "dobMonth": "Month",
+        "dobYear": "Year",
+        "foreignNational": "I am a citizen of another country",
+        "photoButton": "Take or choose a photo",
+        "photoCompressing": "Making the photo smaller…"
+      },
+      "address": {
+        "abroadToggle": "I live abroad",
+        "country": "Country",
+        "city": "City",
+        "addressText": "Full address",
+        "permanentNote": "Give your permanent address in Bangladesh.",
+        "searchPlaceholder": "Type to search",
+        "noResults": "Nothing found"
+      },
+      "property": {
+        "addAnother": "Add another property",
+        "removeThis": "Remove this property",
+        "maxReached": "You can add at most {{max}} properties.",
+        "dagUnknown": "I do not know the dag — the office will help",
+        "dagHelpLink": "Where do I find my dag?",
+        "dagHelpTitle": "Where the dag and khatian numbers are",
+        "dagHelpIntro": "These numbers are written on your land paper (porcha or khatian). The picture below is a sample, not real data.",
+        "dagHelpKhatian": "Khatian number: near the top of the paper",
+        "dagHelpCs": "CS dag: number from the old survey",
+        "dagHelpRs": "RS dag: number from the later survey",
+        "dagHelpTip": "If you cannot find it, tick \"I do not know the dag\". The office will fill it in.",
+        "dagHelpClose": "Close",
+        "svgTitle": "Sample khatian picture",
+        "svgKhatianTag": "Khatian no.",
+        "svgCsTag": "CS dag",
+        "svgRsTag": "RS dag",
+        "proofLabel": "Photo of a land paper (add at least one)",
+        "proofHint": "Khatian, mutation, tax receipt or succession certificate — any one is enough.",
+        "khatianExample": "For example: 2214",
+        "unitHint": "Write in decimals (shatangsho)"
+      },
+      "payment": {
+        "feeLabel": "Admission fee",
+        "subscriptionLabel": "Monthly subscription",
+        "readOnlyNote": "Set by the society. It cannot be changed.",
+        "methodTitle": "How did you pay?",
+        "methods": {
+          "cash": "Cash",
+          "bkash": "bKash",
+          "nagad": "Nagad",
+          "rocket": "Rocket",
+          "bank": "Bank",
+          "other": "Other"
+        },
+        "accountTitle": "Society account details",
+        "accountName": "Account name",
+        "accountNumber": "Number",
+        "copy": "Copy",
+        "copied": "Copied",
+        "refTrx": "Transaction ID (TrxID)",
+        "refReceipt": "Receipt number",
+        "screenshot": "Add a screenshot of the payment",
+        "screenshotCompressing": "Making the picture smaller…",
+        "abroadNote": "If you live abroad, a relative in Bangladesh can pay for you. Give the transaction ID or receipt number and a screenshot."
+      },
+      "consent": {
+        "label": "I agree to the constitution and the terms"
+      },
+      "signature": {
+        "title": "Signature (optional)",
+        "hint": "Sign here with your finger or mouse. You can skip this.",
+        "canvasLabel": "Signature area",
+        "clear": "Clear",
+        "upload": "Upload a photo of your signature",
+        "saved": "Signature added"
+      },
+      "review": {
+        "edit": "Change",
+        "intro": "Check that everything is right. Press \"Change\" to fix anything.",
+        "aboutYou": "About you",
+        "address": "Address",
+        "properties": "Property",
+        "contacts": "Emergency contact and nominee",
+        "payment": "Payment",
+        "consent": "Consent",
+        "name": "Name",
+        "father": "Father or husband",
+        "mother": "Mother",
+        "dob": "Date of birth",
+        "nid": "National ID",
+        "mobile": "Mobile",
+        "whatsapp": "WhatsApp",
+        "email": "Email",
+        "yes": "Yes",
+        "no": "No",
+        "currentAddress": "Current address",
+        "permanentAddress": "Permanent address",
+        "propertyTitle": "Property {{n}}",
+        "khatian": "Khatian number",
+        "dagCs": "CS dag",
+        "dagRs": "RS dag",
+        "dagUnknown": "Dag not known, the office will fill it in",
+        "land": "Total land (decimals)",
+        "share": "My share (decimals)",
+        "ownership": "Ownership",
+        "documents": "Document photos",
+        "urgent": "Emergency contact",
+        "nominee": "Nominee {{n}}",
+        "fee": "Admission fee",
+        "subscription": "Monthly subscription",
+        "method": "Paid by",
+        "reference": "Reference",
+        "consentGiven": "I agree to the constitution and the terms",
+        "consentMissing": "Consent not given yet",
+        "empty": "—"
+      },
+      "success": {
+        "title": "Application submitted",
+        "line2": "The office will check your information",
+        "line3": "You will be told within about 20 working days",
+        "referenceLabel": "Your reference number",
+        "copy": "Copy",
+        "copied": "Copied",
+        "done": "OK"
+      }
     }
   },
   "idCard": {

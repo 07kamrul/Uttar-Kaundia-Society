@@ -49,7 +49,14 @@
           @for (s of submissions; track s.id) {
             <tr>
               <td [attr.data-label]="'admin.submissionsList.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">{{ s.fullName }}</td>
+              <td [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">
+                {{ s.fullName }}
+                @if (s.needsDag) {
+                  <span class="status-badge status-pending" data-testid="needs-dag-badge">
+                    {{ 'admin.submissionsList.needsDag' | translate }}
+                  </span>
+                }
+              </td>
               <td [attr.data-label]="'admin.submissionsList.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" /></td>
               <td [attr.data-label]="'admin.submissionsList.tableHeaders.status' | translate">
                 <span

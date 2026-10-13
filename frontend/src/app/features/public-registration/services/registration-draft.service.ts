@@ -18,11 +18,47 @@ const AUTOSAVE_DEBOUNCE_MS = 400;
 // draft: a stale draft must not be able to carry an outdated amount forward.
 const NON_RESTORABLE_FIELDS = ['admissionFee', 'subscription'];
 
+/** Where file data URLs live when they are kept out of localStorage (IndexedDB in production). */
+export interface DraftFileStore {
+  /** Replaces the stored set with exactly these entries. */
+  saveAll(entries: Record<string, string>): Promise<void>;
+  loadAll(): Promise<Record<string, string>>;
+  clear(): Promise<void>;
+}
+
 export interface RegistrationDraft {
   schemaVersion: number;
   currentStep: number;
   lastSaved: string;
   formValue: Record<string, unknown>;
+  /** Paths (see collectFilePaths) whose data URL is held in the file store, not in formValue. */
+  fileRefs?: string[];
+}
+
+const TOP_LEVEL_FILE_FIELDS = ['memberPhoto', 'receiptFileDataUrl', 'memberSignature'];
+
+/** Lists every form path that holds a file data URL. */
+function collectFilePaths(formValue: Record<string, any>): string[] {
+  const paths = TOP_LEVEL_FILE_FIELDS.filter((f) => typeof formValue[f] === 'string' && formValue[f]);
+  const properties = Array.isArray(formValue['properties']) ? formValue['properties'] : [];
+  properties.forEach((property: Record<string, any>, i: number) => {
+    const docs = Array.isArray(property['applicableDocs']) ? property['applicableDocs'] : [];
+    docs.forEach((doc: Record<string, any>, j: number) => {
+      if (doc['fileDataUrl']) paths.push(`properties.${i}.applicableDocs.${j}.fileDataUrl`);
+    });
+  });
+  return paths;
+}
+
+function getPath(root: Record<string, any>, path: string): string {
+  return path.split('.').reduce<any>((node, part) => node?.[part], root) as string;
+}
+
+function setPath(root: Record<string, any>, path: string, value: string): void {
+  const parts = path.split('.');
+  const last = parts.pop() as string;
+  const parent = parts.reduce<any>((node, part) => node?.[part], root);
+  if (parent) parent[last] = value;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +66,21 @@ export class RegistrationDraftService {
   readonly lastSaved = signal<string | null>(null);
 
   private watchSubscription?: Subscription;
+  private fileStore: DraftFileStore | null = null;
+  private pendingFileWrite: Promise<void> = Promise.resolve();
+
+  /**
+   * Keeps photo/document blobs in `store` instead of localStorage. Without a
+   * store (flag off, or IndexedDB unavailable) files stay inline as before.
+   */
+  useFileStore(store: DraftFileStore | null): void {
+    this.fileStore = store;
+  }
+
+  /** Resolves once the latest background file write (or clear) has finished. */
+  whenFilesSaved(): Promise<void> {
+    return this.pendingFileWrite;
+  }
 
   /**
    * Wires debounced autosave to form value changes; call once per form instance.
@@ -63,11 +114,34 @@ export class RegistrationDraftService {
       lastSaved: new Date().toISOString(),
       formValue,
     };
+    const store = this.fileStore;
+    if (!store) {
+      this.writeDraft(draft);
+      return;
+    }
+    // Text first, synchronously and small; blobs follow in the background.
+    const inline = structuredClone(draft);
+    const paths = collectFilePaths(formValue);
+    const files: Record<string, string> = {};
+    for (const path of paths) {
+      files[path] = getPath(formValue, path);
+      setPath(draft.formValue, path, '');
+    }
+    draft.fileRefs = paths;
+    this.writeDraft(draft);
+    this.pendingFileWrite = store.saveAll(files).catch(() => {
+      // The store refused (quota, blocked): fall back to inline files, which
+      // may still fail on size, but the text fields are already saved.
+      this.writeDraft(inline);
+    });
+  }
+
+  private writeDraft(draft: RegistrationDraft): void {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       this.lastSaved.set(draft.lastSaved);
     } catch {
-      // localStorage unavailable (private browsing, storage disabled) — degrade silently.
+      // localStorage unavailable or full: degrade silently; the in-memory form is untouched.
     }
   }
 
@@ -113,6 +187,23 @@ export class RegistrationDraftService {
     this.lastSaved.set(draft.lastSaved);
   }
 
+  /** Puts the files kept in the store back onto a form restored from `draft`. Never throws. */
+  async restoreFiles(form: FormGroup, draft: RegistrationDraft): Promise<void> {
+    const store = this.fileStore;
+    if (!store || !draft.fileRefs?.length) return;
+    try {
+      const files = await store.loadAll();
+      const value = form.getRawValue() as Record<string, any>;
+      for (const path of draft.fileRefs) {
+        const data = files[path];
+        if (data) setPath(value, path, data);
+      }
+      form.patchValue(value);
+    } catch {
+      // Files are lost, text stays; the member re-attaches them.
+    }
+  }
+
   private restorePropertyArrays(
     propertyGroup: FormGroup,
     fb: FormBuilder,
@@ -128,6 +219,9 @@ export class RegistrationDraftService {
   }
 
   clear(): void {
+    if (this.fileStore) {
+      this.pendingFileWrite = this.fileStore.clear().catch(() => undefined);
+    }
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {

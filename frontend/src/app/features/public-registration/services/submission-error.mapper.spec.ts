@@ -95,3 +95,29 @@ describe('mapSubmissionError', () => {
     ]);
   });
 });
+
+describe('mapSubmissionError batch 1 detail codes', () => {
+  it('PHOTO_REQUIRED points at step 1', () => {
+    const result = mapSubmissionError(httpError(422, { detail: { code: 'PHOTO_REQUIRED' } }), t);
+    expect(result).toEqual({ messages: ['registration.submit.photoRequired'], step: 1 });
+  });
+
+  it('PROPERTY_PROOF_REQUIRED points at step 2', () => {
+    const result = mapSubmissionError(
+      httpError(422, { detail: { code: 'PROPERTY_PROOF_REQUIRED' } }),
+      t,
+    );
+    expect(result).toEqual({ messages: ['registration.submit.proofRequired'], step: 2 });
+  });
+
+  it('ABROAD_ADDRESS_REQUIRED points at step 1 and DAG_REQUIRED_FIELD at step 2', () => {
+    expect(mapSubmissionError(httpError(422, { detail: { code: 'ABROAD_ADDRESS_REQUIRED' } }), t)).toEqual({
+      messages: ['registration.submit.abroadAddressRequired'],
+      step: 1,
+    });
+    expect(mapSubmissionError(httpError(422, { detail: { code: 'DAG_REQUIRED_FIELD' } }), t)).toEqual({
+      messages: ['registration.submit.dagRequired'],
+      step: 2,
+    });
+  });
+});

@@ -1,5 +1,9 @@
 @if (success) {
-  <app-confirmation [submissionId]="success.id" (acknowledge)="onConfirmationAcknowledged()" />
+  <app-confirmation
+    [submissionId]="success.id"
+    [simplified]="simplified"
+    (acknowledge)="onConfirmationAcknowledged()"
+  />
 } @else {
   <app-confirm-modal
     [open]="!!duplicateSubmission"
@@ -15,7 +19,12 @@
     (cancel)="dismissDuplicateSubmission()"
   />
   <div class="page-with-banner">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card reg-card">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="card reg-card"
+    [class.reg-simplified]="simplified"
+  >
     <div class="reg-card-body">
       @if (serverError) {
         <div class="error-box">
@@ -87,7 +96,24 @@
         }
       </nav>
 
-      @if (draftLastSaved()) {
+      @if (simplified) {
+        <h2 class="reg-step-header" data-testid="step-header">
+          {{
+            'registration.simplified.stepHeader'
+              | translate
+                : {
+                    current: currentStep | bnNumber,
+                    total: steps.length | bnNumber,
+                    title: currentStepNameKey | translate,
+                  }
+          }}
+        </h2>
+        @if (draftLastSaved()) {
+          <p class="draft-saved-indicator draft-saved-line" role="status">
+            {{ 'registration.draft.savedLine' | translate }}
+          </p>
+        }
+      } @else if (draftLastSaved()) {
         <p class="draft-saved-indicator">{{ 'registration.draft.draftSaved' | translate }}</p>
       }
 
@@ -96,16 +122,23 @@
           <app-member-info
             [form]="form"
             [memberPhotoPreview]="memberPhotoPreview()"
+            [photoBusy]="photoBusy()"
+            [ui]="ui"
             [submitAttempted]="submitAttempted"
             (photoChange)="onPhotoChange($event)"
             (photoClear)="clearPhoto()"
           />
-          <app-address-info [form]="form" [submitAttempted]="submitAttempted" />
+          <app-address-info [form]="form" [ui]="ui" [submitAttempted]="submitAttempted" />
         </div>
       }
 
       @if (currentStep === 2) {
-        <app-property-list [form]="form" [properties]="properties" [submitAttempted]="submitAttempted" />
+        <app-property-list
+          [form]="form"
+          [properties]="properties"
+          [ui]="ui"
+          [submitAttempted]="submitAttempted"
+        />
       }
 
       @if (currentStep === 3) {
@@ -121,6 +154,8 @@
           [submitAttempted]="submitAttempted"
           [feeLoading]="feeLoading()"
           [feeError]="feeError()"
+          [ui]="ui"
+          [config]="config()"
           (retryFeeLoad)="loadAdmissionFee()"
           (subscriptionBusyChange)="subscriptionBusy.set($event)"
         />
@@ -131,19 +166,26 @@
           <p>
             <strong>{{ 'registration.declaration.title' | translate }}:</strong> {{ 'registration.declaration.text' | translate }}
           </p>
-          <label class="checkbox-item">
+          <label class="checkbox-item" [class.tap-48]="simplified">
             <input type="checkbox" [checked]="form.get('declarationAccepted')?.value" (change)="toggleDeclaration()" />
-            {{ 'registration.declaration.consentLabel' | translate }} <span class="required">*</span>
+            {{
+              (simplified ? 'registration.simplified.consent.label' : 'registration.declaration.consentLabel')
+                | translate
+            }}
+            <span class="required">*</span>
           </label>
           @if (submitAttempted && !form.get('declarationAccepted')?.value) {
             <p class="field-error">{{ 'registration.declaration.consentRequired' | translate }}</p>
           }
         </div>
+        @if (simplified) {
+          <app-signature-pad [form]="form" />
+        }
 
       }
 
       @if (currentStep === 6) {
-        <app-review-summary [form]="form" (editStep)="goToStep($event)" />
+        <app-review-summary [form]="form" [simplified]="simplified" (editStep)="goToStep($event)" />
       }
 
       @if (errors.length > 0) {

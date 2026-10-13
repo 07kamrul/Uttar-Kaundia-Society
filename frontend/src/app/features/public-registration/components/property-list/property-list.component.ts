@@ -12,6 +12,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MAX_PROPERTY_COUNT } from '../../../../core/models/registration.model';
 import { buildPropertyGroup } from '../../registration-form.builder';
 import { PropertyItemComponent } from './property-item.component';
+import { BnNumberPipe } from '../../../../shared/pipes/bn-pipes';
+import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
 
 /** True when any leaf control under `control` holds a user-entered value. */
 export function hasEnteredData(control: AbstractControl): boolean {
@@ -20,6 +22,8 @@ export function hasEnteredData(control: AbstractControl): boolean {
   }
   const value: unknown = control.value;
   if (Array.isArray(value)) return value.length > 0;
+  // An untouched checkbox (false) is not something the member typed.
+  if (typeof value === 'boolean') return value;
   return value !== null && value !== undefined && String(value).trim() !== '';
 }
 
@@ -27,7 +31,7 @@ export function hasEnteredData(control: AbstractControl): boolean {
   selector: 'app-property-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PropertyItemComponent, TranslatePipe],
+  imports: [ReactiveFormsModule, PropertyItemComponent, BnNumberPipe, TranslatePipe],
   templateUrl: './property-list.component.html',
   styleUrl: './property-list.component.scss',
 })
@@ -35,6 +39,8 @@ export class PropertyListComponent implements OnChanges {
   @Input({ required: true }) form!: FormGroup;
   @Input({ required: true }) properties!: FormArray;
   @Input() submitAttempted = false;
+  /** Feature flags; all off keeps the count toolbar. */
+  @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
 
   readonly maxCount = MAX_PROPERTY_COUNT;
   liveMessage = '';

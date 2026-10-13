@@ -56,6 +56,46 @@
         </div>
       </div>
 
+      @if (submission.needsDag) {
+        <p class="status-badge status-pending" data-testid="needs-dag-badge">
+          {{ 'admin.submissionDetail.needsDag' | translate }}
+        </p>
+      }
+
+      @if (propertiesNeedingDag.length) {
+        <div class="card dag-fill" data-testid="dag-form" style="padding: 1rem; margin: 1rem 0">
+          <h3 style="margin-top: 0">{{ 'admin.submissionDetail.dagForm.title' | translate }}</h3>
+          <p>{{ 'admin.submissionDetail.needsDagNote' | translate }}</p>
+          @for (property of propertiesNeedingDag; track property.id; let i = $index) {
+            <div class="grid-2" style="margin-bottom: 0.75rem">
+              <div class="field">
+                <label [attr.for]="'dag-cs-' + property.id">{{ 'admin.submissionDetail.dagForm.cs' | translate }}</label>
+                <input [id]="'dag-cs-' + property.id" data-testid="dag-cs" type="text" inputmode="text" [value]="dagDraft(property.id).cs" (input)="setDag(property.id, 'cs', $event)" />
+              </div>
+              <div class="field">
+                <label [attr.for]="'dag-rs-' + property.id">{{ 'admin.submissionDetail.dagForm.rs' | translate }}</label>
+                <input [id]="'dag-rs-' + property.id" data-testid="dag-rs" type="text" inputmode="text" [value]="dagDraft(property.id).rs" (input)="setDag(property.id, 'rs', $event)" />
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" style="min-height: 48px" data-testid="dag-save" [disabled]="dagSavingId === property.id" (click)="saveDag(property)">
+              {{ (dagSavingId === property.id ? 'admin.submissionDetail.dagForm.saving' : 'admin.submissionDetail.dagForm.save') | translate }}
+            </button>
+          }
+          @if (dagError) {
+            <p class="field-error">{{ dagError }}</p>
+          }
+        </div>
+      }
+
+      <div class="photo-upload-row" style="margin: 0.75rem 0">
+        <label class="btn btn-secondary" style="min-height: 48px; display: inline-flex; align-items: center; gap: 0.5rem" data-testid="photo-upload">
+          <span aria-hidden="true">📷</span>
+          {{ (photoUploading ? 'admin.submissionDetail.photoUpload.uploading' : 'admin.submissionDetail.photoUpload.label') | translate }}
+          <input type="file" accept="image/*" style="display: none" [disabled]="photoUploading" (change)="uploadMemberPhoto($event)" />
+        </label>
+        <span class="field-hint">{{ 'admin.submissionDetail.photoUpload.hint' | translate }}</span>
+      </div>
+
       @if (submission.rejectionReason) {
         <div class="error-box">
           <p style="margin: 0">

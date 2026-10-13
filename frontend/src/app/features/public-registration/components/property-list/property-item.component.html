@@ -5,11 +5,14 @@
       <button
         type="button"
         class="btn btn-ghost btn-sm"
+        data-testid="remove-this-property"
+        [class.tap-48]="ui.addPropertyButton"
         style="color:var(--red-600);border-color:var(--red-200);display:inline-flex;align-items:center;gap:0.3rem;min-height:2.25rem"
         [attr.aria-label]="('registration.property.remove' | translate) + ' #' + (index + 1)"
         (click)="removeProperty.emit()"
       >
-        <span aria-hidden="true">✕</span> {{ 'registration.property.remove' | translate }}
+        <span aria-hidden="true">✕</span>
+        {{ (ui.addPropertyButton ? 'registration.simplified.property.removeThis' : 'registration.property.remove') | translate }}
       </button>
     }
   </div>
@@ -35,7 +38,15 @@
   <div class="grid-2">
     <div class="field">
       <label [attr.for]="'prop' + index + '_khatianNo'">{{ 'registration.property.khatianNoLabel' | translate }} <span class="required">*</span></label>
-      <input [id]="'prop' + index + '_khatianNo'" type="text" formControlName="khatianNo" />
+      <input
+        [id]="'prop' + index + '_khatianNo'"
+        type="text"
+        formControlName="khatianNo"
+        [appAsciiDigits]="ui.simplified"
+        [attr.inputmode]="ui.simplified ? 'text' : null"
+        [class.tap-48]="ui.simplified"
+        [placeholder]="ui.simplified ? ('registration.simplified.property.khatianExample' | translate) : ''"
+      />
       @if (showKhatianNoError()) {
         <p class="field-error">{{ 'registration.property.khatianNoRequired' | translate }}</p>
       }
@@ -52,11 +63,25 @@
       <div class="flex-row-wrap">
         <div style="display:flex;align-items:center;gap:0.5rem;flex:1 1 8rem">
           <label [attr.for]="'prop' + index + '_dagNoCs'" style="font-size:0.875rem;color:#4b5563">CS:</label>
-          <input [id]="'prop' + index + '_dagNoCs'" type="text" formControlName="cs" />
+          <input
+            [id]="'prop' + index + '_dagNoCs'"
+            type="text"
+            formControlName="cs"
+            [appAsciiDigits]="ui.simplified"
+            [attr.inputmode]="ui.simplified ? 'text' : null"
+            [class.tap-48]="ui.simplified"
+          />
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex:1 1 8rem">
           <label [attr.for]="'prop' + index + '_dagNoRs'" style="font-size:0.875rem;color:#4b5563">RS:</label>
-          <input [id]="'prop' + index + '_dagNoRs'" type="text" formControlName="rs" />
+          <input
+            [id]="'prop' + index + '_dagNoRs'"
+            type="text"
+            formControlName="rs"
+            [appAsciiDigits]="ui.simplified"
+            [attr.inputmode]="ui.simplified ? 'text' : null"
+            [class.tap-48]="ui.simplified"
+          />
         </div>
       </div>
       @if (showDagNoError('cs')) {
@@ -65,10 +90,28 @@
       @if (showDagNoError('rs')) {
         <p class="field-error">{{ 'registration.property.dagNoRsRequired' | translate }}</p>
       }
+      @if (ui.dagUnknown) {
+        <label class="checkbox-item tap-48">
+          <input
+            type="checkbox"
+            data-testid="dag-unknown"
+            [checked]="dagUnknown"
+            (change)="setDagUnknown($any($event.target).checked)"
+          />
+          {{ 'registration.simplified.property.dagUnknown' | translate }}
+        </label>
+        <button type="button" class="btn btn-ghost tap-48 dag-help-link" data-testid="dag-help-link" (click)="dagHelpOpen.set(true)">
+          <span aria-hidden="true">❓</span> {{ 'registration.simplified.property.dagHelpLink' | translate }}
+        </button>
+        <app-dag-help-sheet [open]="dagHelpOpen()" (closed)="dagHelpOpen.set(false)" />
+      }
     </div>
     <div class="field">
       <label [attr.for]="'prop' + index + '_landQuantity'">{{ 'registration.property.landQuantityLabel' | translate }} <span class="required">*</span></label>
-      <input [id]="'prop' + index + '_landQuantity'" type="text" inputmode="decimal" formControlName="landQuantity" [placeholder]="'registration.property.landQuantityPlaceholder' | translate" />
+      <input [id]="'prop' + index + '_landQuantity'" type="text" inputmode="decimal" formControlName="landQuantity" [appAsciiDigits]="ui.simplified" [class.tap-48]="ui.simplified" [placeholder]="'registration.property.landQuantityPlaceholder' | translate" />
+      @if (ui.simplified) {
+        <p class="field-hint">{{ 'registration.simplified.property.unitHint' | translate }}</p>
+      }
       @if (showLandQuantityError()) {
         <p class="field-error">{{ 'registration.property.landQuantityRequired' | translate }}</p>
       }
@@ -78,7 +121,7 @@
     </div>
     <div class="field">
       <label [attr.for]="'prop' + index + '_myShareQuantity'">{{ 'registration.property.myShareQuantityLabel' | translate }} <span class="required">*</span></label>
-      <input [id]="'prop' + index + '_myShareQuantity'" type="text" inputmode="decimal" formControlName="myShareQuantity" [placeholder]="'registration.property.myShareQuantityPlaceholder' | translate" />
+      <input [id]="'prop' + index + '_myShareQuantity'" type="text" inputmode="decimal" formControlName="myShareQuantity" [appAsciiDigits]="ui.simplified" [class.tap-48]="ui.simplified" [placeholder]="'registration.property.myShareQuantityPlaceholder' | translate" />
       @if (showMyShareQuantityError()) {
         <p class="field-error">{{ 'registration.property.myShareQuantityRequired' | translate }}</p>
       }
@@ -131,6 +174,38 @@
     }
   </div>
 
+  @if (ui.minOneProof) {
+    <div class="field" style="margin-top:1rem">
+      <label>{{ 'registration.simplified.property.proofLabel' | translate }} <span class="required">*</span></label>
+      <p class="field-hint">{{ 'registration.simplified.property.proofHint' | translate }}</p>
+      @if (showApplicableDocsError()) {
+        <p class="field-error">{{ 'registration.validation.proofRequired' | translate }}</p>
+      }
+      <div class="proof-slots">
+        @for (doc of documentOptions; track doc) {
+          <div class="proof-slot" data-testid="proof-slot">
+            <span class="proof-slot-name">{{ doc }}</span>
+            @if (findDocEntry(doc)?.get('fileDataUrl')?.value) {
+              <div class="proof-slot-file">
+                <span class="proof-slot-filename">{{ findDocEntry(doc)?.get('fileName')?.value }}</span>
+                <button type="button" class="btn btn-ghost tap-48" (click)="removeDocFile(doc)">
+                  {{ 'registration.property.removeFileButton' | translate }}
+                </button>
+              </div>
+            } @else {
+              <label class="btn btn-secondary tap-48 proof-slot-attach">
+                <span aria-hidden="true">📎</span> {{ 'registration.property.attachFileButton' | translate }}
+                <input type="file" accept="image/jpeg,image/png,application/pdf" class="visually-hidden" (change)="onDocFileChange(doc, $event)" />
+              </label>
+            }
+            @if (docFileErrors[doc]) {
+              <p class="field-error">{{ docFileErrors[doc] }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
   <div class="field" style="margin-top:1rem">
     <label>{{ 'registration.property.applicableDocsLabel' | translate }} <span class="required">*</span></label>
     @if (showApplicableDocsError()) {
@@ -177,4 +252,5 @@
       }
     </div>
   </div>
+  }
 </div>

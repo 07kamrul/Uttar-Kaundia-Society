@@ -50,6 +50,8 @@ export interface PropertyItem {
   myShareQuantity: string;
   ownership: string;
   jointOwnerCount: number | null;
+  /** Member does not know the dag; the office fills it in before approval (reg_dag_unknown). */
+  dagUnknown?: boolean;
   applicableDocs: ApplicableDocEntry[];
 }
 
@@ -90,6 +92,27 @@ export const ORG_MFS_INFO = {
   number: '01758290421',
   type: 'পার্সোনাল',
 };
+
+/** Canonical payment method keys accepted by the server (reg_simplified_ui). */
+export const PAYMENT_METHOD_KEYS = ['cash', 'bkash', 'nagad', 'rocket', 'bank', 'other'] as const;
+export type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
+/** Methods whose reference is a mobile-banking TrxID rather than a paper receipt number. */
+export const MFS_PAYMENT_METHODS: readonly string[] = ['bkash', 'nagad', 'rocket'];
+
+export interface PaymentAccount {
+  method: string;
+  /** The full details text to show (e.g. "বিকাশ পার্সোনাল ০১৭…"). */
+  label: string;
+  /** First digit run of the details, when there is one; this is what "কপি" copies. */
+  number: string | null;
+  accountName: string | null;
+}
+
+/** GET /public/registration-config, mapped to camelCase. */
+export interface RegistrationConfig {
+  consentVersion: string;
+  paymentAccounts: PaymentAccount[];
+}
 
 export const ALLOWED_DOC_MIME_TYPES: string[] = [
   'image/jpeg',
@@ -155,6 +178,12 @@ export interface FormDataModel {
   submissionDate: string;
   memberPhoto?: string;
   declarationAccepted?: boolean;
+  hasWhatsapp?: boolean | null;
+  currentAddressAbroad?: boolean;
+  currentCountry?: string;
+  currentCity?: string;
+  currentAddressText?: string;
+  consentVersion?: string;
 }
 
 export interface SubmissionResult {

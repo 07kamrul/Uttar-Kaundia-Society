@@ -7,6 +7,7 @@ import {
   OnInit,
   Output,
   inject,
+  signal,
 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -21,6 +22,11 @@ import {
 } from '../../../../core/models/registration.model';
 import { ConfigListService } from '../../../../core/services/config-list.service';
 import { buildApplicableDocGroup, applicableDocsArray } from '../../registration-form.builder';
+import { AsciiDigitsDirective } from '../../ascii-digits.directive';
+import { prepareUpload, readAsDataUrl } from '../../file-upload';
+import { hasAtLeastOneProof } from '../../step-rules';
+import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
+import { DagHelpSheetComponent } from '../dag-help-sheet/dag-help-sheet.component';
 
 const DIGITS_ONLY_PATTERN = /^\d+$/;
 
@@ -28,7 +34,7 @@ const DIGITS_ONLY_PATTERN = /^\d+$/;
   selector: 'app-property-item',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe],
+  imports: [ReactiveFormsModule, TranslatePipe, AsciiDigitsDirective, DagHelpSheetComponent],
   templateUrl: './property-item.component.html',
 })
 export class PropertyItemComponent implements OnInit {
@@ -36,6 +42,8 @@ export class PropertyItemComponent implements OnInit {
   @Input({ required: true }) index = 0;
   @Input() submitAttempted = false;
   @Input() canRemove = false;
+  /** Feature flags; all off keeps the original form. */
+  @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
   @Output() removeProperty = new EventEmitter<void>();
 
   // Seeded with the static defaults so the form renders immediately; replaced
@@ -66,7 +74,34 @@ export class PropertyItemComponent implements OnInit {
     private configListService: ConfigListService,
   ) {}
 
+  readonly dagHelpOpen = signal(false);
+
+  get dagUnknown(): boolean {
+    return this.ui.dagUnknown && this.property.get('dagUnknown')?.value === true;
+  }
+
+  setDagUnknown(checked: boolean): void {
+    this.property.get('dagUnknown')?.setValue(checked);
+    this.syncDagState();
+  }
+
+  /** "I do not know the dag": the boxes are emptied and locked; the office fills them in later. */
+  private syncDagState(): void {
+    const dagNo = this.property.get('dagNo');
+    if (this.dagUnknown) {
+      dagNo?.reset({ cs: '', rs: '' });
+      dagNo?.disable();
+    } else {
+      dagNo?.enable();
+    }
+  }
+
+  hasProof(): boolean {
+    return hasAtLeastOneProof(this.applicableDocs.getRawValue());
+  }
+
   ngOnInit(): void {
+    if (this.dagUnknown) this.syncDagState();
     this.configListService.getValues('property_type', PROPERTY_TYPES).subscribe((values) => {
       this.propertyTypes = values;
       this.cdr.markForCheck();
@@ -119,38 +154,44 @@ export class PropertyItemComponent implements OnInit {
     }
   }
 
-  onDocFileChange(type: string, event: Event): void {
+  async onDocFileChange(type: string, event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const picked = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (!picked) return;
 
-    if (!ALLOWED_DOC_MIME_TYPES.includes(file.type)) {
-      this.docFileErrors = {
-        ...this.docFileErrors,
-        [type]: this.translate.instant('registration.property.docFileTypeError'),
-      };
+    if (!ALLOWED_DOC_MIME_TYPES.includes(picked.type)) {
+      this.setDocError(type, this.translate.instant('registration.property.docFileTypeError'));
       return;
     }
+    // Phone photos are shrunk first (simplified UI), so only the result is size-checked.
+    const file = await prepareUpload(picked, this.ui.simplified);
     if (file.size > MAX_DOC_FILE_BYTES) {
-      this.docFileErrors = {
-        ...this.docFileErrors,
-        [type]: this.translate.instant('registration.property.docFileSizeError', {
-          maxMb: this.maxDocFileMb,
-        }),
-      };
+      this.setDocError(
+        type,
+        this.translate.instant('registration.property.docFileSizeError', { maxMb: this.maxDocFileMb }),
+      );
       return;
     }
     const { [type]: _removed, ...rest } = this.docFileErrors;
     this.docFileErrors = rest;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const group = this.findDocEntry(type);
-      group?.patchValue({ fileName: file.name, fileDataUrl: reader.result as string });
-      this.cdr.markForCheck();
-    };
-    reader.readAsDataURL(file);
+    const dataUrl = await readAsDataUrl(file);
+    // "At least one proof": slots have no tick box, so the entry appears with its first file.
+    const group = this.findDocEntry(type) ?? this.addDocEntry(type);
+    group.patchValue({ fileName: file.name, fileDataUrl: dataUrl });
+    this.cdr.markForCheck();
+  }
+
+  private addDocEntry(type: string): FormGroup {
+    const group = buildApplicableDocGroup(this.fb, type);
+    this.applicableDocs.push(group);
+    return group;
+  }
+
+  private setDocError(type: string, message: string): void {
+    this.docFileErrors = { ...this.docFileErrors, [type]: message };
+    this.cdr.markForCheck();
   }
 
   removeDocFile(type: string): void {
@@ -177,6 +218,7 @@ export class PropertyItemComponent implements OnInit {
   }
 
   showDagNoError(controlName: 'cs' | 'rs'): boolean {
+    if (this.dagUnknown) return false;
     const control = this.property.get('dagNo')?.get(controlName);
     return this.submitAttempted && !control?.value?.trim();
   }
@@ -210,6 +252,9 @@ export class PropertyItemComponent implements OnInit {
   }
 
   showApplicableDocsError(): boolean {
-    return this.submitAttempted && this.applicableDocs.length === 0;
+    return (
+      this.submitAttempted &&
+      (this.ui.minOneProof ? !this.hasProof() : this.applicableDocs.length === 0)
+    );
   }
 }

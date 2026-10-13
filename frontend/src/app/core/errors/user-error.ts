@@ -1,6 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import type { ValidationErrors } from '@angular/forms';
 
+/** Machine codes the backend puts in `detail.code`; each has its own plain message. */
+const KNOWN_DETAIL_CODES: ReadonlySet<string> = new Set([
+  'PHOTO_REQUIRED',
+  'PROPERTY_PROOF_REQUIRED',
+  'DAG_REQUIRED',
+  'ABROAD_ADDRESS_REQUIRED',
+  'DAG_REQUIRED_FIELD',
+]);
+
+function knownCodeKey(err: HttpErrorResponse): string | null {
+  const detail: unknown = err.error?.detail;
+  if (!detail || typeof detail !== 'object') return null;
+  const code = (detail as { code?: unknown }).code;
+  return typeof code === 'string' && KNOWN_DETAIL_CODES.has(code) ? `errors.code.${code}` : null;
+}
+
 /**
  * Maps any thrown value to an i18n key under `errors.*`. Each message says what
  * went wrong and what to do next. The server's raw `detail` text is never
@@ -8,6 +24,8 @@ import type { ValidationErrors } from '@angular/forms';
  */
 export function toUserMessageKey(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) return 'errors.unknown';
+  const codeKey = knownCodeKey(err);
+  if (codeKey) return codeKey;
   switch (err.status) {
     case 0:
       return 'errors.network';

@@ -1,0 +1,33 @@
+<section class="signature-box">
+  <h3 class="signature-title">{{ 'registration.simplified.signature.title' | translate }}</h3>
+  <p class="field-hint">{{ 'registration.simplified.signature.hint' | translate }}</p>
+
+  <canvas
+    #canvas
+    class="signature-canvas"
+    [width]="width"
+    [height]="height"
+    [attr.aria-label]="'registration.simplified.signature.canvasLabel' | translate"
+    (pointerdown)="startStroke($event)"
+    (pointermove)="moveStroke($event)"
+    (pointerup)="endStroke()"
+    (pointerleave)="endStroke()"
+    (pointercancel)="endStroke()"
+  ></canvas>
+
+  @if (signature) {
+    <p class="signature-saved" role="status">
+      <span aria-hidden="true">✓</span> {{ 'registration.simplified.signature.saved' | translate }}
+    </p>
+  }
+
+  <div class="signature-actions">
+    <button type="button" class="btn btn-secondary tap-48" (click)="clear()">
+      {{ 'registration.simplified.signature.clear' | translate }}
+    </button>
+    <label class="btn btn-secondary tap-48 signature-upload">
+      <span aria-hidden="true">📷</span> {{ 'registration.simplified.signature.upload' | translate }}
+      <input type="file" accept="image/*" class="visually-hidden" (change)="onUpload($event)" />
+    </label>
+  </div>
+</section>

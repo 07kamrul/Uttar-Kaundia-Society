@@ -1,0 +1,34 @@
+<div class="searchable-select" [class.is-invalid]="invalid">
+  <input
+    type="text"
+    class="tap-48"
+    role="combobox"
+    autocomplete="off"
+    [id]="inputId"
+    [value]="text"
+    [disabled]="disabled"
+    [attr.placeholder]="placeholder || ('registration.simplified.address.searchPlaceholder' | translate)"
+    [attr.aria-expanded]="open"
+    [attr.aria-controls]="inputId + '-list'"
+    (focus)="openList()"
+    (input)="onInput($event)"
+    (blur)="close()"
+  />
+  @if (open) {
+    <ul class="searchable-select-list" role="listbox" [id]="inputId + '-list'">
+      @for (option of filtered; track option.value) {
+        <li
+          role="option"
+          class="searchable-select-option tap-48"
+          [attr.aria-selected]="option.value === value"
+          (mousedown)="$event.preventDefault()"
+          (click)="select(option)"
+        >
+          {{ option.label }}
+        </li>
+      } @empty {
+        <li class="searchable-select-empty">{{ 'registration.simplified.address.noResults' | translate }}</li>
+      }
+    </ul>
+  }
+</div>

@@ -1,3 +1,115 @@
+@if (simplified) {
+<section [formGroup]="form" class="review-plain">
+  <h2 class="section-title">{{ 'registration.simplified.stepNames.6' | translate }}</h2>
+  <p class="review-intro">{{ 'registration.simplified.review.intro' | translate }}</p>
+
+  <div class="card review-card">
+    <div class="review-card-head">
+      <h3>{{ 'registration.simplified.review.aboutYou' | translate }}</h3>
+      <button type="button" class="btn btn-secondary tap-48" data-testid="edit-1" (click)="goTo(1)">
+        {{ 'registration.simplified.review.edit' | translate }}
+      </button>
+    </div>
+    <dl class="review-list">
+      <div><dt>{{ 'registration.simplified.review.name' | translate }}</dt><dd>{{ form.get('fullName')?.value || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.father' | translate }}</dt><dd>{{ form.get('fatherOrHusband')?.value || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.mother' | translate }}</dt><dd>{{ form.get('mother')?.value || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.dob' | translate }}</dt><dd>{{ (form.get('dob')?.value | bnDate) || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.nid' | translate }}</dt><dd>{{ digits(form.get('nid')?.value) || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.mobile' | translate }}</dt><dd>{{ (form.get('mobile')?.value | phoneText) || '—' }}</dd></div>
+      <div>
+        <dt>{{ 'registration.simplified.review.whatsapp' | translate }}</dt>
+        <dd>{{ (form.get('hasWhatsapp')?.value ? 'registration.simplified.review.yes' : 'registration.simplified.review.no') | translate }}</dd>
+      </div>
+      <div><dt>{{ 'registration.simplified.review.email' | translate }}</dt><dd>{{ form.get('email')?.value || '—' }}</dd></div>
+      <div>
+        <dt>{{ 'registration.simplified.review.currentAddress' | translate }}</dt>
+        <dd>{{ (isAbroad ? abroadAddressText : addressText(form.getRawValue().currentAddress)) || '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'registration.simplified.review.permanentAddress' | translate }}</dt>
+        <dd>{{ addressText(form.getRawValue().permanentAddress) || '—' }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="card review-card">
+    <div class="review-card-head">
+      <h3>{{ 'registration.simplified.review.properties' | translate }}</h3>
+      <button type="button" class="btn btn-secondary tap-48" data-testid="edit-2" (click)="goTo(2)">
+        {{ 'registration.simplified.review.edit' | translate }}
+      </button>
+    </div>
+    @for (property of properties.getRawValue(); track $index; let i = $index) {
+      <div class="review-property">
+        <h4>{{ 'registration.simplified.review.propertyTitle' | translate: { n: (i + 1 | bnNumber) } }}</h4>
+        <dl class="review-list">
+          <div><dt>{{ 'registration.property.typeLabel' | translate }}</dt><dd>{{ propertyTypes(property) || '—' }}</dd></div>
+          <div><dt>{{ 'registration.simplified.review.khatian' | translate }}</dt><dd>{{ digits(property.khatianNo) || '—' }}</dd></div>
+          @if (property.dagUnknown) {
+            <div><dt>{{ 'registration.simplified.review.dagCs' | translate }}</dt><dd>{{ 'registration.simplified.review.dagUnknown' | translate }}</dd></div>
+          } @else {
+            <div><dt>{{ 'registration.simplified.review.dagCs' | translate }}</dt><dd>{{ digits(property.dagNo?.cs) || '—' }}</dd></div>
+            <div><dt>{{ 'registration.simplified.review.dagRs' | translate }}</dt><dd>{{ digits(property.dagNo?.rs) || '—' }}</dd></div>
+          }
+          <div><dt>{{ 'registration.simplified.review.land' | translate }}</dt><dd>{{ digits(property.landQuantity) || '—' }}</dd></div>
+          <div><dt>{{ 'registration.simplified.review.share' | translate }}</dt><dd>{{ digits(property.myShareQuantity) || '—' }}</dd></div>
+          <div><dt>{{ 'registration.simplified.review.ownership' | translate }}</dt><dd>{{ property.ownership || '—' }}</dd></div>
+          <div><dt>{{ 'registration.simplified.review.documents' | translate }}</dt><dd>{{ attachedDocs(property) || '—' }}</dd></div>
+        </dl>
+      </div>
+    }
+  </div>
+
+  <div class="card review-card">
+    <div class="review-card-head">
+      <h3>{{ 'registration.simplified.review.contacts' | translate }}</h3>
+      <button type="button" class="btn btn-secondary tap-48" data-testid="edit-3" (click)="goTo(3)">
+        {{ 'registration.simplified.review.edit' | translate }}
+      </button>
+    </div>
+    <dl class="review-list">
+      <div>
+        <dt>{{ 'registration.simplified.review.urgent' | translate }}</dt>
+        <dd>{{ form.get('urgentContactName')?.value || '—' }} {{ form.get('urgentContactMobile')?.value | phoneText }}</dd>
+      </div>
+      @for (nominee of nominees.getRawValue(); track $index; let i = $index) {
+        <div>
+          <dt>{{ 'registration.simplified.review.nominee' | translate: { n: (i + 1 | bnNumber) } }}</dt>
+          <dd>{{ nominee.name || '—' }} {{ nominee.mobile | phoneText }}</dd>
+        </div>
+      }
+    </dl>
+  </div>
+
+  <div class="card review-card">
+    <div class="review-card-head">
+      <h3>{{ 'registration.simplified.review.payment' | translate }}</h3>
+      <button type="button" class="btn btn-secondary tap-48" data-testid="edit-4" (click)="goTo(4)">
+        {{ 'registration.simplified.review.edit' | translate }}
+      </button>
+    </div>
+    <dl class="review-list">
+      <div><dt>{{ 'registration.simplified.review.fee' | translate }}</dt><dd>{{ (form.get('admissionFee')?.value | taka) || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.subscription' | translate }}</dt><dd>{{ (form.get('subscription')?.value | taka) || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.method' | translate }}</dt><dd>{{ methodLabel() || '—' }}</dd></div>
+      <div><dt>{{ 'registration.simplified.review.reference' | translate }}</dt><dd>{{ form.get('receiptNo')?.value || '—' }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card review-card">
+    <div class="review-card-head">
+      <h3>{{ 'registration.simplified.review.consent' | translate }}</h3>
+      <button type="button" class="btn btn-secondary tap-48" data-testid="edit-5" (click)="goTo(5)">
+        {{ 'registration.simplified.review.edit' | translate }}
+      </button>
+    </div>
+    <p class="review-consent">
+      {{ (form.get('declarationAccepted')?.value ? 'registration.simplified.review.consentGiven' : 'registration.simplified.review.consentMissing') | translate }}
+    </p>
+  </div>
+</section>
+} @else {
 <section [formGroup]="form">
   <h2 class="section-title">{{ 'registration.stepTitles.review' | translate }}</h2>
   <p style="font-size:0.85rem;color:#4b5563;margin-top:0">{{ 'registration.review.intro' | translate }}</p>
@@ -66,3 +178,4 @@
     </p>
   </div>
 </section>
+}

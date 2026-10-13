@@ -15,14 +15,31 @@ import { debounceTime } from 'rxjs';
 import {
   ALLOWED_DOC_MIME_TYPES,
   MAX_DOC_FILE_BYTES,
+  MFS_PAYMENT_METHODS,
   ORG_BANK_INFO,
   ORG_MFS_INFO,
   PAYMENT_METHODS,
+  PAYMENT_METHOD_KEYS,
+  type PaymentAccount,
+  type RegistrationConfig,
   SubscriptionQuote,
 } from '../../../../core/models/registration.model';
 import { RegistrationService } from '../../../../core/services/registration.service';
 import { propertiesArray } from '../../registration-form.builder';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TakaPipe } from '../../../../shared/pipes/bn-pipes';
+import { prepareUpload, readAsDataUrl } from '../../file-upload';
+import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
+
+const COPIED_RESET_MS = 2000;
+const METHOD_ICONS: Record<string, string> = {
+  cash: '💵',
+  bkash: '📱',
+  nagad: '📱',
+  rocket: '📱',
+  bank: '🏦',
+  other: '➕',
+};
 
 const SUBSCRIPTION_QUOTE_DEBOUNCE_MS = 400;
 
@@ -30,7 +47,7 @@ const SUBSCRIPTION_QUOTE_DEBOUNCE_MS = 400;
   selector: 'app-payment-info',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe],
+  imports: [ReactiveFormsModule, TranslatePipe, TakaPipe],
   templateUrl: './payment-info.component.html',
 })
 export class PaymentInfoComponent implements OnInit {
@@ -38,11 +55,17 @@ export class PaymentInfoComponent implements OnInit {
   @Input() submitAttempted = false;
   @Input() feeLoading = false;
   @Input() feeError = false;
+  /** Feature flags; all off keeps the original payment step. */
+  @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
+  /** Society accounts from the server; null falls back to the built-in details. */
+  @Input() config: RegistrationConfig | null = null;
   readonly retryFeeLoad = output<void>();
   // Lets the parent disable "পরবর্তী" while the quote is in flight or failed,
   // the same way it already does for the admission-fee load.
   readonly subscriptionBusyChange = output<boolean>();
   readonly paymentMethods = PAYMENT_METHODS;
+  readonly methodKeys = PAYMENT_METHOD_KEYS;
+  readonly copiedNumber = signal<string | null>(null);
   readonly subscriptionQuote = signal<SubscriptionQuote | null>(null);
   readonly subscriptionLoading = signal(false);
   readonly subscriptionError = signal(false);
@@ -114,33 +137,31 @@ export class PaymentInfoComponent implements OnInit {
       });
   }
 
-  onReceiptFileChange(event: Event): void {
+  async onReceiptFileChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const picked = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (!picked) return;
 
-    if (!ALLOWED_DOC_MIME_TYPES.includes(file.type)) {
+    if (!ALLOWED_DOC_MIME_TYPES.includes(picked.type)) {
       this.receiptFileError = this.translate.instant('registration.payment.fileTypeError');
       return;
     }
+    // Screenshots and phone photos are shrunk first (simplified UI); only the result is size-checked.
+    const file = await prepareUpload(picked, this.ui.simplified);
     if (file.size > MAX_DOC_FILE_BYTES) {
       this.receiptFileError = this.translate.instant('registration.payment.fileSizeError', {
         maxMb: this.maxReceiptFileMb,
       });
+      this.cdr.markForCheck();
       return;
     }
     this.receiptFileError = '';
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.form.patchValue({
-        receiptFileName: file.name,
-        receiptFileDataUrl: reader.result as string,
-      });
-      this.cdr.markForCheck();
-    };
-    reader.readAsDataURL(file);
+    this.form.patchValue({
+      receiptFileName: file.name,
+      receiptFileDataUrl: await readAsDataUrl(file),
+    });
+    this.cdr.markForCheck();
   }
 
   removeReceiptFile(): void {
@@ -149,6 +170,68 @@ export class PaymentInfoComponent implements OnInit {
 
   selectMethod(method: string): void {
     this.form.get('paymentMethod')?.setValue(method);
+  }
+
+  /** The abroad note only matters to members who ticked "বিদেশে থাকি". */
+  get isAbroad(): boolean {
+    return this.ui.abroadAddress && this.form.get('currentAddressAbroad')?.value === true;
+  }
+
+  get selectedMethod(): string {
+    return this.form.get('paymentMethod')?.value ?? '';
+  }
+
+  /** TrxID for mobile banking, receipt number for cash, bank and other. */
+  get referenceLabelKey(): string {
+    return MFS_PAYMENT_METHODS.includes(this.selectedMethod)
+      ? 'registration.simplified.payment.refTrx'
+      : 'registration.simplified.payment.refReceipt';
+  }
+
+  /** Society account details for the chosen method: from the server, else the built-in ones. */
+  get accounts(): PaymentAccount[] {
+    const method = this.selectedMethod;
+    const fromServer = (this.config?.paymentAccounts ?? []).filter((a) => a.method === method);
+    if (fromServer.length > 0) return fromServer;
+    if (MFS_PAYMENT_METHODS.includes(method)) {
+      return [
+        {
+          method,
+          label: `${ORG_MFS_INFO.number} (${ORG_MFS_INFO.type})`,
+          number: ORG_MFS_INFO.number,
+          accountName: null,
+        },
+      ];
+    }
+    if (method === 'bank') {
+      return [
+        {
+          method,
+          label: `${ORG_BANK_INFO.bankName}, ${ORG_BANK_INFO.branch} — ${ORG_BANK_INFO.accountName}, ${ORG_BANK_INFO.accountNumber}`,
+          number: ORG_BANK_INFO.accountNumber,
+          accountName: ORG_BANK_INFO.accountName,
+        },
+      ];
+    }
+    return [];
+  }
+
+  methodIcon(key: string): string {
+    return METHOD_ICONS[key] ?? '';
+  }
+
+  async copyNumber(number: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(number);
+    } catch {
+      return; // Clipboard blocked: the details stay visible to copy by hand.
+    }
+    this.copiedNumber.set(number);
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.copiedNumber.set(null);
+      this.cdr.markForCheck();
+    }, COPIED_RESET_MS);
   }
 
   get isBankSelected(): boolean {

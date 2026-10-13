@@ -7,14 +7,22 @@ import {
   inject,
   OnInit,
   signal,
+  ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { MAX_PHOTO_BYTES } from '../../core/models/registration.model';
+import { MAX_PHOTO_BYTES, type RegistrationConfig } from '../../core/models/registration.model';
+import { FeatureFlagService, type FeatureFlagKey } from '../../core/services/feature-flag.service';
+import { toAsciiDigits } from '../../core/services/digits.helper';
+import { isValidNid } from '../../core/utils/bd-input';
 import { RegistrationService } from '../../core/services/registration.service';
 import { RegistrationDraftService } from './services/registration-draft.service';
+import { createIndexedDbFileStore } from './services/indexed-db-file-store';
+import { NO_UI_FLAGS, readUiFlags, type RegistrationUiFlags } from './registration-ui-flags';
+import { abroadAddressErrors, dagErrors, hasAtLeastOneProof } from './step-rules';
+import { prepareUpload, readAsDataUrl } from './file-upload';
 import { MemberInfoComponent } from './components/member-info/member-info.component';
 import { AddressInfoComponent } from './components/address-info/address-info.component';
 import { UrgentContactComponent } from './components/urgent-contact/urgent-contact.component';
@@ -23,6 +31,8 @@ import { NomineeListComponent } from './components/nominee-list/nominee-list.com
 import { PaymentInfoComponent } from './components/payment-info/payment-info.component';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
 import { ReviewSummaryComponent } from './components/review-summary/review-summary.component';
+import { SignaturePadComponent } from './components/signature-pad/signature-pad.component';
+import { BnNumberPipe } from '../../shared/pipes/bn-pipes';
 import { DatePickerComponent } from '../../shared/date-picker/date-picker.component';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.component';
 import { buildRegistrationForm, propertiesArray, nomineesArray } from './registration-form.builder';
@@ -99,9 +109,13 @@ export const REGISTRATION_STEPS: RegistrationStep[] = [
     ReviewSummaryComponent,
     DatePickerComponent,
     ConfirmModalComponent,
+    SignaturePadComponent,
+    BnNumberPipe,
     TranslatePipe,
   ],
   templateUrl: './registration-page.component.html',
+  styleUrl: './registration-simplified.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class RegistrationPageComponent implements OnInit {
   form: FormGroup;
@@ -112,9 +126,15 @@ export class RegistrationPageComponent implements OnInit {
   success: { id: string } | null = null;
   duplicateSubmission: DuplicateSubmissionError | null = null;
   memberPhotoPreview = signal('');
+  photoBusy = signal(false);
+  /** Society payment accounts and consent version (reg_simplified_ui); null until loaded or if unavailable. */
+  config = signal<RegistrationConfig | null>(null);
   feeLoading = signal(true);
   feeError = signal(false);
   subscriptionBusy = signal(false);
+
+  /** Feature flags resolved once; handed to the step components as one input. */
+  ui: RegistrationUiFlags = NO_UI_FLAGS;
 
   steps = REGISTRATION_STEPS;
   currentStep = 1;
@@ -125,6 +145,7 @@ export class RegistrationPageComponent implements OnInit {
   private readonly draftService = inject(RegistrationDraftService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly flags = inject(FeatureFlagService);
 
   readonly draftLastSaved = this.draftService.lastSaved;
 
@@ -133,15 +154,46 @@ export class RegistrationPageComponent implements OnInit {
     private registrationService: RegistrationService,
     private router: Router,
   ) {
-    this.form = buildRegistrationForm(this.fb);
+    this.ui = readUiFlags((key) => this.flags.isEnabled(key));
+    this.form = this.newForm();
+  }
+
+  /** reg_simplified_ui: the redesigned wizard. Every part of it hangs off this one switch. */
+  get simplified(): boolean {
+    return this.ui.simplified;
+  }
+
+  flag(key: FeatureFlagKey): boolean {
+    return this.flags.isEnabled(key);
+  }
+
+  private newForm(): FormGroup {
+    return buildRegistrationForm(this.fb, { roadOptional: this.ui.roadOptional });
+  }
+
+  /** Localised "ধাপ ২ / ৬ — সম্পত্তি" key pieces for the header. */
+  get currentStepNameKey(): string {
+    return `registration.simplified.stepNames.${this.currentStep}`;
   }
 
   ngOnInit(): void {
+    if (this.simplified) {
+      this.draftService.useFileStore(createIndexedDbFileStore());
+      this.loadConfig();
+    }
     const draft = this.draftService.peekDraft();
     if (draft) {
       this.draftService.restore(this.form, this.fb, draft);
       this.currentStep = draft.currentStep;
       this.showDraftRestoredToast = true;
+      void this.draftService.restoreFiles(this.form, draft).then(() => {
+        this.memberPhotoPreview.set(this.form.get('memberPhoto')?.value ?? '');
+        this.cdr.markForCheck();
+      });
+    }
+    if (this.simplified && this.form.get('hasWhatsapp')?.value === null) {
+      // The toggle starts "off" (not unknown): has_whatsapp is sent as false unless ticked.
+      this.form.get('hasWhatsapp')?.setValue(false);
     }
     this.loadAdmissionFee();
     this.draftService.watch(this.form, () => this.currentStep);
@@ -177,13 +229,28 @@ export class RegistrationPageComponent implements OnInit {
       });
   }
 
+  private loadConfig(): void {
+    this.registrationService
+      .getRegistrationConfig()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (config) => {
+          this.config.set(config);
+          this.cdr.markForCheck();
+        },
+        // Payment accounts fall back to the built-in ones; consent_version falls back to the server's current.
+        error: () => undefined,
+      });
+  }
+
   dismissDraftToast(): void {
     this.showDraftRestoredToast = false;
   }
 
   discardDraft(): void {
     this.draftService.clear();
-    this.form = buildRegistrationForm(this.fb);
+    this.form = this.newForm();
+    this.memberPhotoPreview.set('');
     this.currentStep = 1;
     this.showDraftRestoredToast = false;
     this.draftService.watch(this.form, () => this.currentStep);
@@ -201,29 +268,31 @@ export class RegistrationPageComponent implements OnInit {
     this.form.get('memberSignature')?.setValue('');
   }
 
-  onPhotoChange(event: Event): void {
+  async onPhotoChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const picked = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (!picked) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!picked.type.startsWith('image/')) {
       this.serverError = this.translate.instant('registration.memberInfo.photoTypeError');
       return;
     }
-    if (file.size > MAX_PHOTO_BYTES) {
-      this.serverError = this.translate.instant('registration.memberInfo.photoSizeError');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    this.serverError = null;
+    this.photoBusy.set(true);
+    try {
+      const file = await prepareUpload(picked, this.simplified);
+      if (file.size > MAX_PHOTO_BYTES) {
+        this.serverError = this.translate.instant('registration.memberInfo.photoSizeError');
+        return;
+      }
+      const dataUrl = await readAsDataUrl(file);
       this.form.get('memberPhoto')?.setValue(dataUrl);
       this.memberPhotoPreview.set(dataUrl);
+    } finally {
+      this.photoBusy.set(false);
       this.cdr.markForCheck();
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
   clearPhoto(): void {
@@ -248,17 +317,27 @@ export class RegistrationPageComponent implements OnInit {
       errs.push(this.translate.instant('registration.validation.mobileInvalid'));
     if (!v.gender?.trim())
       errs.push(this.translate.instant('registration.validation.genderRequired'));
-    if (v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))
+    // Email and NID are required here exactly as in the form builder.
+    if (!v.email?.trim())
+      errs.push(this.translate.instant('registration.memberInfo.emailRequired'));
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))
       errs.push(this.translate.instant('registration.validation.emailInvalid'));
-    if (v.nid && !/^\d{10,17}$/.test(v.nid))
+    if (!v.nid?.trim()) errs.push(this.translate.instant('registration.memberInfo.nidRequired'));
+    else if (!isValidNid(v.nid))
       errs.push(this.translate.instant('registration.validation.nidInvalid'));
+    if (!v.memberPhoto)
+      errs.push(this.translate.instant('registration.memberInfo.memberPhotoRequired'));
 
-    errs.push(
-      ...this.validateAddressGroup(
-        this.translate.instant('registration.validation.currentAddressLabel'),
-        v.currentAddress,
-      ),
-    );
+    if (this.flag('reg_abroad_address') && v.currentAddressAbroad === true) {
+      errs.push(...abroadAddressErrors(v, (key, params) => this.translate.instant(key, params)));
+    } else {
+      errs.push(
+        ...this.validateAddressGroup(
+          this.translate.instant('registration.validation.currentAddressLabel'),
+          v.currentAddress,
+        ),
+      );
+    }
     if (this.form.get('permanentAddress')?.enabled) {
       errs.push(
         ...this.validateAddressGroup(
@@ -293,7 +372,7 @@ export class RegistrationPageComponent implements OnInit {
       errs.push(
         `${label}: ${this.translate.instant('registration.addressInfo.postOfficeRequired')}`,
       );
-    if (!address.road?.trim())
+    if (!address.road?.trim() && !this.flag('reg_road_optional'))
       errs.push(`${label}: ${this.translate.instant('registration.addressInfo.roadRequired')}`);
     if (!address.house?.trim())
       errs.push(`${label}: ${this.translate.instant('registration.addressInfo.houseRequired')}`);
@@ -330,8 +409,8 @@ export class RegistrationPageComponent implements OnInit {
           );
         }
       }
-      const landRaw = String(property.landQuantity ?? '').trim();
-      const shareRaw = String(property.myShareQuantity ?? '').trim();
+      const landRaw = toAsciiDigits(String(property.landQuantity ?? '')).trim();
+      const shareRaw = toAsciiDigits(String(property.myShareQuantity ?? '')).trim();
       const landQuantity = parseFloat(landRaw);
       const myShareQuantity = parseFloat(shareRaw);
       if (!landRaw) {
@@ -361,20 +440,32 @@ export class RegistrationPageComponent implements OnInit {
           `${label}: ${this.translate.instant('registration.validation.myShareQuantityExceedsTotal')}`,
         );
       }
-      if (!property.applicableDocs || property.applicableDocs.length === 0) {
-        errs.push(
-          `${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`,
-        );
+      if (this.flag('reg_dag_unknown')) {
+        errs.push(...dagErrors(property, label, (key, params) => this.translate.instant(key, params)));
       }
-      (property.applicableDocs as any[]).forEach((doc) => {
-        if (!doc.fileDataUrl)
-          errs.push(
-            `${label}: ${this.translate.instant('registration.validation.docFileRequired', { docType: doc.type })}`,
-          );
-      });
+      errs.push(...this.validateDocs(property, label));
     });
 
     return errs;
+  }
+
+  private validateDocs(property: { applicableDocs?: any[] }, label: string): string[] {
+    const docs = property.applicableDocs ?? [];
+    if (this.flag('reg_min_one_proof')) {
+      // One proof file of any type is enough; empty slots are ignored.
+      return hasAtLeastOneProof(docs)
+        ? []
+        : [`${label}: ${this.translate.instant('registration.validation.proofRequired')}`];
+    }
+    if (docs.length === 0) {
+      return [`${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`];
+    }
+    return docs
+      .filter((doc) => !doc.fileDataUrl)
+      .map(
+        (doc) =>
+          `${label}: ${this.translate.instant('registration.validation.docFileRequired', { docType: doc.type })}`,
+      );
   }
 
   private validateContactStep(): string[] {
@@ -517,7 +608,9 @@ export class RegistrationPageComponent implements OnInit {
 
     this.submitting = true;
     this.cdr.markForCheck();
-    this.registrationService.submit(this.form.getRawValue()).subscribe({
+    this.registrationService
+      .submit({ ...this.form.getRawValue(), consentVersion: this.config()?.consentVersion })
+      .subscribe({
       next: (res) => {
         this.submitting = false;
         // Reaching `next` means a 2xx response, which for POST /submissions

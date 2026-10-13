@@ -11,11 +11,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SubmissionReviewService } from './submission-review.service';
+import { toUserMessageKey } from '../../../../core/errors/user-error';
 import { AdminService, type AttachmentKind } from '../../../../core/services/admin.service';
 import {
   AttachmentMissingError,
   AttachmentService,
 } from '../../../../core/services/attachment.service';
+import { toAsciiDigits } from '../../../../core/services/digits.helper';
 import type {
   ApplicableDoc,
   EmergencyContact,
@@ -62,6 +65,11 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   /** Document currently being re-uploaded, if any. */
   uploadingDocId: string | null = null;
   uploadError = '';
+  /** Dag boxes typed so far, by property id. */
+  dagDrafts: Record<string, { cs: string; rs: string }> = {};
+  dagSavingId: string | null = null;
+  dagError = '';
+  photoUploading = false;
   copiedKey: string | null = null;
   expandedPropertyIds = new Set<string>();
 
@@ -99,6 +107,7 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private adminService: AdminService,
+    private review: SubmissionReviewService,
     private attachments: AttachmentService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
@@ -114,6 +123,69 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
         : null;
     }
     return this.sanitizedFrameUrl;
+  }
+
+  /** Properties the member marked "dag unknown" that the office has not filled yet. */
+  get propertiesNeedingDag(): SubmissionProperty[] {
+    return (this.submission?.properties ?? []).filter(
+      (p) => p.dagUnknown && !p.dagNoCs?.trim() && !p.dagNoRs?.trim(),
+    );
+  }
+
+  dagDraft(propertyId: string): { cs: string; rs: string } {
+    return (this.dagDrafts[propertyId] ??= { cs: '', rs: '' });
+  }
+
+  setDag(propertyId: string, part: 'cs' | 'rs', event: Event): void {
+    this.dagDraft(propertyId)[part] = (event.target as HTMLInputElement).value;
+  }
+
+  saveDag(property: SubmissionProperty): void {
+    if (!this.submission || this.dagSavingId) return;
+    const draft = this.dagDraft(property.id);
+    const cs = toAsciiDigits(draft.cs.trim());
+    const rs = toAsciiDigits(draft.rs.trim());
+    if (!cs && !rs) {
+      this.dagError = this.translate.instant('admin.submissionDetail.dagForm.empty');
+      return;
+    }
+    this.dagError = '';
+    this.dagSavingId = property.id;
+    this.review
+      .fillDag(this.submission.id, property.id, { dagNoCs: cs || null, dagNoRs: rs || null })
+      .subscribe({
+        next: (data) => {
+          this.submission = data;
+          this.dagSavingId = null;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.dagSavingId = null;
+          this.dagError = this.translate.instant('admin.submissionDetail.dagForm.failed');
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  uploadMemberPhoto(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!this.submission || !file || this.photoUploading) return;
+    this.photoUploading = true;
+    this.uploadError = '';
+    this.review.uploadPhoto(this.submission.id, file).subscribe({
+      next: (data) => {
+        this.submission = data;
+        this.photoUploading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.photoUploading = false;
+        this.uploadError = this.translate.instant('admin.submissionDetail.errors.uploadFailed');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   /** Only allow review actions once the submission has finished loading without error. */
@@ -625,9 +697,13 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     this.approving = true;
     this.adminService.approveSubmission(this.submission.id).subscribe({
       next: () => this.router.navigate(['/submissions']),
-      error: () => {
+      error: (err) => {
         this.approving = false;
-        this.actionError = this.translate.instant('admin.submissionDetail.errors.approveFailed');
+        // A known server code (e.g. DAG_REQUIRED) has its own plain message; anything else stays generic.
+        const key = toUserMessageKey(err);
+        this.actionError = this.translate.instant(
+          key.startsWith('errors.code.') ? key : 'admin.submissionDetail.errors.approveFailed',
+        );
         this.showApproveModal = false;
         this.cdr.markForCheck();
       },

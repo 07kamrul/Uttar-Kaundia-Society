@@ -1,0 +1,36 @@
+<div class="dob-select" [class.is-invalid]="invalid" role="group" [attr.aria-labelledby]="inputId + '-label'">
+  <select
+    class="tap-48"
+    data-testid="dob-day"
+    [id]="inputId"
+    [attr.aria-label]="'registration.simplified.member.dobDay' | translate"
+    (change)="onChange('day', $event)"
+  >
+    <option value="" [selected]="!day">{{ 'registration.simplified.member.dobDay' | translate }}</option>
+    @for (d of days; track d) {
+      <option [value]="d" [selected]="day === '' + d">{{ label(d) }}</option>
+    }
+  </select>
+  <select
+    class="tap-48"
+    data-testid="dob-month"
+    [attr.aria-label]="'registration.simplified.member.dobMonth' | translate"
+    (change)="onChange('month', $event)"
+  >
+    <option value="" [selected]="!month">{{ 'registration.simplified.member.dobMonth' | translate }}</option>
+    @for (m of months; track m) {
+      <option [value]="m" [selected]="month === '' + m">{{ monthKey(m) | translate }}</option>
+    }
+  </select>
+  <select
+    class="tap-48"
+    data-testid="dob-year"
+    [attr.aria-label]="'registration.simplified.member.dobYear' | translate"
+    (change)="onChange('year', $event)"
+  >
+    <option value="" [selected]="!year">{{ 'registration.simplified.member.dobYear' | translate }}</option>
+    @for (y of years; track y) {
+      <option [value]="y" [selected]="year === '' + y">{{ label(y) }}</option>
+    }
+  </select>
+</div>
