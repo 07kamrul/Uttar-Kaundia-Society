@@ -285,6 +285,17 @@ Each batch ships with before/after screenshots, build and test status, metrics, 
 - **Screenshots:** not required ("no need this portion"); batches report build/test status and metrics only.
 - **Branching:** work is pushed to `origin/staging`, not `main`.
 
+**Defaults adopted so Batches 2–7 can proceed ("complete all"; each is reversible, flagged and open to owner review):**
+- **B2-R1, other-fee verification:** **not built**. Other fees keep today's "recorded" behaviour until the owner decides.
+- **Batch 4 (map):** disputed shapes keep their base colour plus a label; "মানচিত্র দেখুন" is remembered per session; a member who can't find their dag can skip to free drawing.
+- **Batch 5 (admin):** bulk approve returns per-item results, guarded by the confirmed count and total; committee "expiring soon" = 60 days; no cache-flush button in the UI; Asset Register under সংগঠন › আরও.
+- **Batch 6 (login):** a mobile shared by several accounts asks for email or member ID; member-email login sits under `login_by_phone`; no own-mobile/member-ID password rule.
+- **Batch 7 (performance and accessibility):**
+  - Fonts: Google-hosted Hind Siliguri only, with no font files downloaded into the repo; Flutter keeps the system font.
+  - Bundle error budget: 550 kB.
+  - "লেখা বড় করুন": one step (18 px).
+  - No new dependencies.
+
 ## 14. Original questions (answered in §13)
 
 1. R1–R10: yes or no for each.
