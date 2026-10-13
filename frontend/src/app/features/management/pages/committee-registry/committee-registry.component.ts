@@ -195,21 +195,85 @@ interface TermFormState {
             <p class="cr-section-sub">{{ 'committeeRegistry.vacanciesSubtitle' | translate }}</p>
           </div>
           @if (!loading() && vacancies().length > 0) {
-            <span class="ds-tag ds-tag-blue">
-              {{ 'committeeRegistry.caseCount' | translate: { n: digits(vacancies().length) } }}
-            </span>
+            <div class="cr-case-stats">
+              <span class="cr-stat cr-stat-warn">
+                {{ digits(counts().pending) }} · {{ 'committeeRegistry.vacancyStatuses.pending_acknowledgement' | translate }}
+              </span>
+              <span class="cr-stat cr-stat-info">
+                {{ digits(counts().progress) }} · {{ 'committeeRegistry.filterProgress' | translate }}
+              </span>
+              <span class="cr-stat cr-stat-good">
+                {{ digits(counts().decided) }} · {{ 'committeeRegistry.vacancyStatuses.decided' | translate }}
+              </span>
+            </div>
           }
         </div>
+
+        @if (!loading() && vacancies().length > 0) {
+          <div class="cr-filter-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              class="cr-filter-tab"
+              [class.cr-filter-tab-active]="caseFilter() === 'all'"
+              [attr.aria-selected]="caseFilter() === 'all'"
+              (click)="caseFilter.set('all')"
+            >
+              {{ 'committeeRegistry.filterAll' | translate }}
+              <span class="cr-filter-count">{{ digits(vacancies().length) }}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="cr-filter-tab"
+              [class.cr-filter-tab-active]="caseFilter() === 'pending'"
+              [attr.aria-selected]="caseFilter() === 'pending'"
+              (click)="caseFilter.set('pending')"
+            >
+              {{ 'committeeRegistry.vacancyStatuses.pending_acknowledgement' | translate }}
+              <span class="cr-filter-count">{{ digits(counts().pending) }}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="cr-filter-tab"
+              [class.cr-filter-tab-active]="caseFilter() === 'progress'"
+              [attr.aria-selected]="caseFilter() === 'progress'"
+              (click)="caseFilter.set('progress')"
+            >
+              {{ 'committeeRegistry.filterProgress' | translate }}
+              <span class="cr-filter-count">{{ digits(counts().progress) }}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="cr-filter-tab"
+              [class.cr-filter-tab-active]="caseFilter() === 'decided'"
+              [attr.aria-selected]="caseFilter() === 'decided'"
+              (click)="caseFilter.set('decided')"
+            >
+              {{ 'committeeRegistry.vacancyStatuses.decided' | translate }}
+              <span class="cr-filter-count">{{ digits(counts().decided) }}</span>
+            </button>
+          </div>
+        }
+
         @if (loading()) {
           <app-section-loader [count]="3" />
-        } @else if (vacancies().length === 0) {
+        } @else if (filteredVacancies().length === 0 && caseFilter() === 'all') {
           <div class="gov-empty">
             <span class="gov-empty-icon"><app-icon name="check" [size]="22" /></span>
-            <p>{{ 'committeeRegistry.empty.vacancies' | translate }}</p>
+            <p class="cr-empty-title">{{ 'committeeRegistry.empty.vacancies' | translate }}</p>
+            <p class="cr-empty-hint">{{ 'committeeRegistry.empty.vacanciesHint' | translate }}</p>
+          </div>
+        } @else if (filteredVacancies().length === 0) {
+          <div class="gov-empty">
+            <span class="gov-empty-icon"><app-icon name="check" [size]="22" /></span>
+            <p>{{ 'committeeRegistry.empty.filterNoMatch' | translate }}</p>
           </div>
         } @else {
           <div class="cr-vacancy-list">
-            @for (vacancy of vacancies(); track vacancy.id) {
+            @for (vacancy of filteredVacancies(); track vacancy.id) {
               <article
                 class="gov-item"
                 [class.gov-item-amber]="vacancy.status === 'pending_acknowledgement'"
@@ -232,12 +296,22 @@ interface TermFormState {
                   }
                 </div>
 
+                <ol class="cr-steps" aria-hidden="true">
+                  @for (step of caseSteps(vacancy); track step.labelKey) {
+                    <li class="cr-step" [class.cr-step-done]="step.done" [class.cr-step-current]="step.current">
+                      <span class="cr-step-dot"></span>
+                      <span class="cr-step-label">{{ step.labelKey | translate }}</span>
+                    </li>
+                  }
+                </ol>
+
                 <div class="gov-item-chiprow">
-                  <span class="cr-chip">
-                    <app-icon name="user" [size]="14" />
-                    {{ vacancy.member?.fullName || vacancy.memberId }}
+                  <span class="cr-chip cr-chip-member">
+                    <span class="cr-chip-avatar">{{ initials(memberName(vacancy)) }}</span>
+                    {{ memberName(vacancy) }}
                   </span>
                   <span class="cr-chip" [class.cr-chip-overdue]="vacancy.responseSla?.state === 'overdue'">
+                    <app-icon name="alert" [size]="14" />
                     {{ 'committeeRegistry.responseDeadline' | translate }}:
                     @if (vacancy.responseDeadline) {
                       {{ fmtDate(vacancy.responseDeadline) }}
@@ -245,6 +319,11 @@ interface TermFormState {
                       —
                     }
                   </span>
+                  @if (slaDays(vacancy) !== null) {
+                    <span class="cr-chip" [class.cr-chip-overdue]="slaDays(vacancy)! < 0">
+                      {{ (slaDays(vacancy)! < 0 ? 'committeeRegistry.daysOverdue' : 'committeeRegistry.daysLeft') | translate: { n: digits(slaAbsDays(vacancy)) } }}
+                    </span>
+                  }
                   @if (vacancy.responseSla; as sla) {
                     <span class="ds-badge" [attr.data-tone]="slaTone(sla) || null" [class.ds-badge-blue]="sla.state === 'on_track'">
                       {{ 'committeeRegistry.sla.' + sla.state | translate }}
@@ -390,6 +469,95 @@ interface TermFormState {
       .cr-chip { display: inline-flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
       .cr-chip app-icon { color: var(--gray-500); flex-shrink: 0; }
       .cr-chip-overdue { color: var(--red-700); font-weight: 700; }
+      .cr-chip-member { font-weight: 600; color: var(--gray-700); }
+      .cr-chip-avatar {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.5rem; height: 1.5rem; border-radius: 50%;
+        background: var(--emerald-50); color: var(--emerald-800);
+        font-size: 0.68rem; font-weight: 700; flex-shrink: 0;
+      }
+      :root[data-theme='dark'] .cr-chip-avatar { background: color-mix(in srgb, var(--emerald-700) 30%, transparent); }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) .cr-chip-avatar { background: color-mix(in srgb, var(--emerald-700) 30%, transparent); }
+      }
+
+      /* Summary stat chips in the section header. */
+      .cr-case-stats { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+      .cr-stat {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        padding: 0.28rem 0.65rem; border-radius: 999px;
+        font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+      }
+      .cr-stat-warn { background: color-mix(in srgb, #b45309 12%, transparent); color: #92400e; }
+      .cr-stat-info { background: color-mix(in srgb, #4a7fb5 12%, transparent); color: #2c5282; }
+      .cr-stat-good { background: color-mix(in srgb, var(--emerald-600) 12%, transparent); color: var(--emerald-800); }
+      :root[data-theme='dark'] .cr-stat-warn { color: #fbbf24; }
+      :root[data-theme='dark'] .cr-stat-info { color: #9dc3ec; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) .cr-stat-warn { color: #fbbf24; }
+        :root:not([data-theme='light']) .cr-stat-info { color: #9dc3ec; }
+      }
+
+      /* Status filter tabs. */
+      .cr-filter-tabs {
+        display: flex; gap: 0.35rem; flex-wrap: nowrap;
+        overflow-x: auto; padding-bottom: 0.3rem; margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--gray-200);
+        scrollbar-width: thin;
+      }
+      .cr-filter-tab {
+        display: inline-flex; align-items: center; gap: 0.4rem;
+        padding: 0.4rem 0.8rem; border: 1px solid transparent; border-radius: 999px;
+        background: transparent; color: var(--gray-600);
+        font: inherit; font-size: 0.82rem; font-weight: 600;
+        cursor: pointer; white-space: nowrap;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      .cr-filter-tab:hover { background: var(--gray-100); color: var(--gray-800); }
+      .cr-filter-tab-active {
+        background: var(--emerald-600); color: #fff;
+        border-color: var(--emerald-600);
+      }
+      .cr-filter-tab-active:hover { background: var(--emerald-700); color: #fff; }
+      .cr-filter-count {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 1.35rem; padding: 0 0.35rem; border-radius: 999px;
+        background: color-mix(in srgb, currentColor 15%, transparent);
+        font-size: 0.72rem; font-weight: 700;
+      }
+
+      /* Filed → review → decided stepper. */
+      .cr-steps {
+        display: flex; align-items: center; gap: 0;
+        list-style: none; margin: 0; padding: 0; width: 100%;
+      }
+      .cr-step { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
+      .cr-step:last-child { flex: 0 0 auto; }
+      .cr-step-dot {
+        width: 0.7rem; height: 0.7rem; border-radius: 50%; flex-shrink: 0;
+        background: var(--gray-200); border: 2px solid var(--gray-300);
+        box-sizing: border-box;
+      }
+      .cr-step-current .cr-step-dot { background: var(--emerald-600); border-color: var(--emerald-600); box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald-600) 20%, transparent); }
+      .cr-step-done .cr-step-dot { background: var(--emerald-600); border-color: var(--emerald-600); }
+      .cr-step-label {
+        margin-inline-start: 0.35rem; font-size: 0.72rem; font-weight: 600;
+        color: var(--gray-500); white-space: nowrap;
+      }
+      .cr-step-current .cr-step-label, .cr-step-done .cr-step-label { color: var(--emerald-800); }
+      .cr-step:not(:last-child)::after {
+        content: ''; flex: 1 1 auto; height: 2px;
+        margin: 0 0.45rem; background: var(--gray-200);
+      }
+      .cr-step-done:not(:last-child)::after { background: var(--emerald-600); }
+      @media (max-width: 480px) {
+        .cr-step-label { display: none; }
+        .cr-step-current:first-child .cr-step-label,
+        .cr-step-current:last-child .cr-step-label { display: inline; }
+      }
+
+      .cr-empty-title { font-weight: 700; color: var(--gray-700); }
+      .cr-empty-hint { margin-top: -0.25rem !important; font-size: 0.82rem; }
       .cr-box-label {
         margin: 0 0 0.15rem; font-size: 0.72rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-500);
@@ -411,6 +579,10 @@ interface TermFormState {
       .cr-vacancy-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; }
       @media (max-width: 640px) {
         .cr-vacancy-actions .btn { flex: 1 1 100%; }
+        .cr-form-actions { flex-direction: column; }
+        .cr-form-actions .btn { width: 100%; }
+        .cr-case-stats { width: 100%; }
+        .cr-stat { flex: 1 1 auto; justify-content: center; }
       }
       .ds-warn-banner {
         display: flex; align-items: center; gap: 0.5rem;
@@ -448,6 +620,8 @@ export class CommitteeRegistryComponent implements OnInit {
   readonly resignPost = signal<RegistryPost | null>(null);
   readonly decideTarget = signal<{ vacancy: PostVacancy; decision: 'removed' | 'retained' } | null>(null);
 
+  readonly caseFilter = signal<'all' | 'pending' | 'progress' | 'decided'>('all');
+
   // Plain form state: template-driven ngModel mutates these directly and the
   // DOM event marks the OnPush component dirty (same pattern as the
   // membership-governance page).
@@ -455,6 +629,26 @@ export class CommitteeRegistryComponent implements OnInit {
   decisionNote = '';
 
   readonly anyExpired = computed(() => this.posts().some((post) => post.status === 'expired'));
+
+  readonly counts = computed(() => {
+    const counts = { pending: 0, progress: 0, decided: 0 };
+    for (const vacancy of this.vacancies()) {
+      if (vacancy.status === 'pending_acknowledgement') counts.pending += 1;
+      else if (vacancy.status === 'decided') counts.decided += 1;
+      else counts.progress += 1;
+    }
+    return counts;
+  });
+
+  readonly filteredVacancies = computed(() => {
+    const filter = this.caseFilter();
+    if (filter === 'all') return this.vacancies();
+    return this.vacancies().filter((vacancy) => {
+      if (filter === 'pending') return vacancy.status === 'pending_acknowledgement';
+      if (filter === 'decided') return vacancy.status === 'decided';
+      return vacancy.status === 'investigation' || vacancy.status === 'acknowledged';
+    });
+  });
 
   ngOnInit(): void {
     this.load();
@@ -528,6 +722,46 @@ export class CommitteeRegistryComponent implements OnInit {
     if (sla.state === 'due_soon') return 'warn';
     if (sla.state === 'overdue') return 'bad';
     return '';
+  }
+
+  /** Whole days until the member response deadline; negative once overdue. */
+  slaDays(vacancy: PostVacancy): number | null {
+    if (!vacancy.responseDeadline || vacancy.status === 'decided') return null;
+    const deadline = new Date(`${vacancy.responseDeadline.length === 10 ? vacancy.responseDeadline + 'T00:00:00' : vacancy.responseDeadline}`);
+    if (Number.isNaN(deadline.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((deadline.getTime() - today.getTime()) / 86_400_000);
+  }
+
+  slaAbsDays(vacancy: PostVacancy): number {
+    return Math.abs(this.slaDays(vacancy) ?? 0);
+  }
+
+  initials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  memberName(vacancy: PostVacancy): string {
+    return vacancy.member?.fullName ?? String(vacancy.memberId ?? '');
+  }
+
+  /** Filed → Under review → Decided rail for the case card. */
+  caseSteps(vacancy: PostVacancy): { labelKey: string; done: boolean; current: boolean }[] {
+    const filed = true;
+    const review = vacancy.status === 'acknowledged' || vacancy.status === 'investigation';
+    const decided = vacancy.status === 'decided';
+    return [
+      { labelKey: 'committeeRegistry.steps.filed', done: filed && (review || decided), current: filed && !review && !decided },
+      { labelKey: 'committeeRegistry.steps.review', done: review && decided, current: review && !decided },
+      { labelKey: 'committeeRegistry.steps.decided', done: decided, current: decided },
+    ];
   }
 
   historyFor(postKey: string): PostHistory | undefined {

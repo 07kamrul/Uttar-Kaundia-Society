@@ -20,7 +20,7 @@ import { SelectivePreloadingStrategy } from './core/routing/selective-preloading
 
 // Bump when i18n JSON content changes so browsers don't serve a stale cached
 // copy; a stale en.json silently falls back to Bangla per key (fallbackLang).
-const I18N_CACHE_BUST = 'v20261012a';
+const I18N_CACHE_BUST = 'v20261013a';
 
 function createTranslateLoader(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, '/i18n/', `.json?${I18N_CACHE_BUST}`);

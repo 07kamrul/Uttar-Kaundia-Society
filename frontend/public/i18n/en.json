@@ -3099,7 +3099,9 @@
     "ongoing": "Ongoing",
     "empty": {
       "history": "No term records for this post yet.",
-      "vacancies": "No vacancies or resignation cases."
+      "vacancies": "No vacancies or resignation cases.",
+      "vacanciesHint": "When a resignation or removal is recorded from the registry above, the case and its response deadline will appear here.",
+      "filterNoMatch": "No cases match this filter."
     },
     "editTerm": "Edit term",
     "createTermTitle": "New term",
@@ -3147,7 +3149,16 @@
     },
     "loadError": "Failed to load the committee registry.",
     "actionError": "The action failed. Please try again.",
-    "vacant": "Vacant"
+    "vacant": "Vacant",
+    "filterAll": "All",
+    "filterProgress": "In progress",
+    "daysLeft": "{{n}} day(s) left",
+    "daysOverdue": "{{n}} day(s) overdue",
+    "steps": {
+      "filed": "Filed",
+      "review": "Under review",
+      "decided": "Decided"
+    }
   },
   "elections": {
     "admin": {
