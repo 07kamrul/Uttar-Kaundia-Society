@@ -17,10 +17,12 @@ import { loaderInterceptor } from './core/interceptors/loader.interceptor';
 import { AuthService } from './core/services/auth.service';
 import { MediaTokenService } from './core/services/media-token.service';
 import { SelectivePreloadingStrategy } from './core/routing/selective-preloading.strategy';
+import { FeatureFlagService } from './core/services/feature-flag.service';
+import './core/i18n/register-bn-locale';
 
 // Bump when i18n JSON content changes so browsers don't serve a stale cached
 // copy; a stale en.json silently falls back to Bangla per key (fallbackLang).
-const I18N_CACHE_BUST = 'v20261013a';
+const I18N_CACHE_BUST = 'v20261013c';
 
 function createTranslateLoader(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, '/i18n/', `.json?${I18N_CACHE_BUST}`);
@@ -39,6 +41,8 @@ export const appConfig: ApplicationConfig = {
       if (!inject(AuthService).token) return;
       return firstValueFrom(inject(MediaTokenService).start());
     }),
+    // Feature flags load once; load() never rejects (falls back to all-off) so startup is never blocked.
+    provideAppInitializer(() => inject(FeatureFlagService).load()),
     provideTranslateService({
       loader: {
         provide: TranslateLoader,

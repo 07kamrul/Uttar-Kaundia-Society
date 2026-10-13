@@ -1777,7 +1777,7 @@
   "registrationMemberInfoGenderMale": "Male",
   "registrationMemberInfoGenderRequired": "Please select gender",
   "registrationMemberInfoMemberPhotoRequired": "Member's photo is required",
-  "registrationMemberInfoMobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+  "registrationMemberInfoMobileInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
   "registrationMemberInfoMobileLabel": "Mobile (WhatsApp)",
   "registrationMemberInfoMobileRequired": "Mobile is required",
   "registrationMemberInfoMotherLabel": "Mother",
@@ -1799,7 +1799,7 @@
   "registrationNomineeAddMore": "Add another nominee",
   "registrationNomineeAdditionalNomineesTitle": "Additional Nominees",
   "registrationNomineeAddressLabel": "Address",
-  "registrationNomineeMobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+  "registrationNomineeMobileInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
   "registrationNomineeMobileLabel": "Mobile",
   "registrationNomineeMobileRequired": "Mobile is required",
   "registrationNomineeNameLabel": "Name",
@@ -2032,7 +2032,7 @@
   "registrationSubmitReasonsRequired": "this field is required",
   "registrationSubmitServerError": "Server problem. Please try again in a few minutes.",
   "registrationUrgentContactAddressLabel": "Address",
-  "registrationUrgentContactMobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+  "registrationUrgentContactMobileInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
   "registrationUrgentContactMobileLabel": "Mobile",
   "registrationUrgentContactMobileRequired": "Mobile is required",
   "registrationUrgentContactNameLabel": "Name",
@@ -2056,7 +2056,7 @@
   "registrationValidationJointOwnerCountRequired": "Joint owner count is required",
   "registrationValidationLandQuantityInvalid": "Total land quantity must be greater than zero",
   "registrationValidationLandQuantityRequired": "Total land quantity is required",
-  "registrationValidationMobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+  "registrationValidationMobileInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
   "registrationValidationMobileRequired": "Mobile is required",
   "registrationValidationMotherRequired": "Mother's name is required",
   "registrationValidationMyShareQuantityExceedsTotal": "My share quantity cannot exceed total land quantity",
@@ -2121,7 +2121,7 @@
   "memberProfileCurrentDivisionLabel": "Current division",
   "memberProfileUrgentNameLabel": "Contact name",
   "memberProfileUrgentMobileLabel": "Contact mobile",
-  "memberProfileMobileInvalid": "Enter a valid mobile number (e.g. +8801XXXXXXXXX)",
+  "memberProfileMobileInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
   "memberProfilePropertyTypesLabel": "Property type",
   "attachmentViewerMissing": "The file is missing on the server.",
   "attachmentViewerDownloadFailed": "Download failed. Please try again.",
@@ -2410,5 +2410,59 @@
   "dagInfoRetrySemantics": "Retry loading dag details",
   "dagInfoFailure": "Could not load the dag details. Please try again.",
   "dagInfoNotFound": "No official record was found for this dag.",
-  "dagInfoRateLimited": "Too many requests. Please wait a moment and try again."
+  "dagInfoRateLimited": "Too many requests. Please wait a moment and try again.",
+  "validationFieldRequired": "This field is required.",
+  "validationMobileRequired": "Enter a mobile number, for example 017XXXXXXXX.",
+  "validationMobileInvalid": "The mobile number must be 11 digits, for example 017XXXXXXXX. Please check it and type it again.",
+  "validationNidRequired": "Enter your national ID number.",
+  "validationNidInvalid": "The national ID number must be 10, 13 or 17 digits. Please check the number on your card and type it again.",
+  "apiErrorOffline": "No internet connection. Check your connection and try again.",
+  "apiErrorSessionExpired": "Your login has expired. Please log in again.",
+  "apiErrorForbidden": "You do not have permission to do this. Contact an administrator if you need access.",
+  "apiErrorNotFound": "We could not find what you were looking for. Refresh the page and try again.",
+  "apiErrorConflict": "This information already exists or was changed by someone else. Refresh the page and look again.",
+  "apiErrorFileTooLarge": "The file is too big. Choose a smaller file or photo (maximum 5 MB).",
+  "apiErrorInvalidInput": "Some of the information is wrong. Please check it and try again.",
+  "apiErrorTooManyRequests": "Too many attempts. Please wait a little and try again.",
+  "apiErrorServer": "Something went wrong on our server. Please try again in a little while.",
+  "apiErrorUnknown": "Something went wrong. Please try again.",
+  "phoneFieldSelectCountry": "Select country",
+  "phoneFieldSearchCountry": "Search by country name or code",
+  "phoneFieldNoCountry": "No country found",
+  "phoneFieldSectionFrequent": "Frequently used countries",
+  "phoneFieldSectionAll": "All countries",
+  "phoneFieldCountrySemantics": "Country: {country}, code {dialCode}. Tap to change",
+  "@phoneFieldCountrySemantics": {
+    "placeholders": {
+      "country": {
+        "type": "Object"
+      },
+      "dialCode": {
+        "type": "Object"
+      }
+    }
+  },
+  "phoneFieldInvalid": "This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.",
+  "phoneFieldPossibleWarning": "This number does not match a known number range. If it is correct you can continue; otherwise please double-check it.",
+  "phoneDisplayCall": "Call",
+  "phoneDisplayWhatsapp": "WhatsApp",
+  "phoneDisplayCopy": "Copy number",
+  "phoneDisplayCopied": "Copied",
+  "phoneDisplayOpenFailed": "Could not open the dialer or WhatsApp.",
+  "phoneDisplayCallAria": "Call {number}",
+  "@phoneDisplayCallAria": {
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
+  },
+  "phoneDisplayWhatsappAria": "Message {number} on WhatsApp",
+  "@phoneDisplayWhatsappAria": {
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
+  }
 }

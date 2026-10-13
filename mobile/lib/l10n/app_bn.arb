@@ -1421,7 +1421,7 @@
   "registrationMemberInfoGenderMale": "পুরুষ",
   "registrationMemberInfoGenderRequired": "লিঙ্গ নির্বাচন করুন",
   "registrationMemberInfoMemberPhotoRequired": "সদস্যের ছবি আবশ্যক",
-  "registrationMemberInfoMobileInvalid": "মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)",
+  "registrationMemberInfoMobileInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
   "registrationMemberInfoMobileLabel": "মোবাইল (WhatsApp)",
   "registrationMemberInfoMobileRequired": "মোবাইল আবশ্যক",
   "registrationMemberInfoMotherLabel": "মাতা",
@@ -1443,7 +1443,7 @@
   "registrationNomineeAddMore": "আরও মনোনীত ব্যক্তি যোগ করুন",
   "registrationNomineeAdditionalNomineesTitle": "অতিরিক্ত মনোনীত ব্যক্তি",
   "registrationNomineeAddressLabel": "ঠিকানা",
-  "registrationNomineeMobileInvalid": "মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)",
+  "registrationNomineeMobileInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
   "registrationNomineeMobileLabel": "মোবাইল",
   "registrationNomineeMobileRequired": "মোবাইল আবশ্যক",
   "registrationNomineeNameLabel": "নাম",
@@ -1596,7 +1596,7 @@
   "registrationSubmitReasonsRequired": "এই তথ্যটি আবশ্যক",
   "registrationSubmitServerError": "সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
   "registrationUrgentContactAddressLabel": "ঠিকানা",
-  "registrationUrgentContactMobileInvalid": "মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)",
+  "registrationUrgentContactMobileInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
   "registrationUrgentContactMobileLabel": "মোবাইল",
   "registrationUrgentContactMobileRequired": "মোবাইল আবশ্যক",
   "registrationUrgentContactNameLabel": "নাম",
@@ -1613,7 +1613,7 @@
   "registrationValidationJointOwnerCountRequired": "যৌথ মালিকগণের সংখ্যা আবশ্যক",
   "registrationValidationLandQuantityInvalid": "মোট জমির পরিমাণ শূন্যের চেয়ে বেশি হতে হবে",
   "registrationValidationLandQuantityRequired": "মোট জমির পরিমাণ আবশ্যক",
-  "registrationValidationMobileInvalid": "মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)",
+  "registrationValidationMobileInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
   "registrationValidationMobileRequired": "মোবাইল আবশ্যক",
   "registrationValidationMotherRequired": "মাতা আবশ্যক",
   "registrationValidationMyShareQuantityExceedsTotal": "আমার অংশের পরিমাণ মোট জমির পরিমাণের চেয়ে বেশি হতে পারবে না",
@@ -1657,7 +1657,7 @@
   "memberProfileCurrentDivisionLabel": "বর্তমান বিভাগ",
   "memberProfileUrgentNameLabel": "যোগাযোগের নাম",
   "memberProfileUrgentMobileLabel": "যোগাযোগের মোবাইল",
-  "memberProfileMobileInvalid": "সঠিক মোবাইল নম্বর দিন (যেমন +8801XXXXXXXXX)",
+  "memberProfileMobileInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
   "memberProfilePropertyTypesLabel": "সম্পত্তির ধরন",
   "attachmentViewerMissing": "ফাইলটি সার্ভারে নেই।",
   "attachmentViewerDownloadFailed": "ডাউনলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।",
@@ -1911,5 +1911,59 @@
   "dagInfoRetrySemantics": "দাগের তথ্য আবার লোড করুন",
   "dagInfoFailure": "দাগের তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।",
   "dagInfoNotFound": "এই দাগের কোনো সরকারি তথ্য পাওয়া যায়নি।",
-  "dagInfoRateLimited": "অনেক বেশি অনুরোধ। কিছুক্ষণ পর আবার চেষ্টা করুন।"
+  "dagInfoRateLimited": "অনেক বেশি অনুরোধ। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "validationFieldRequired": "এই তথ্যটি দিতে হবে।",
+  "validationMobileRequired": "মোবাইল নম্বর দিন, যেমন ০১৭XXXXXXXX।",
+  "validationMobileInvalid": "মোবাইল নম্বর ১১ সংখ্যার হতে হবে, যেমন ০১৭XXXXXXXX। নম্বরটি আবার দেখে লিখুন।",
+  "validationNidRequired": "জাতীয় পরিচয়পত্রের নম্বর দিন।",
+  "validationNidInvalid": "জাতীয় পরিচয়পত্রের নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে। কার্ডের নম্বরটি দেখে আবার লিখুন।",
+  "apiErrorOffline": "ইন্টারনেট সংযোগ পাওয়া যাচ্ছে না। সংযোগ দেখে আবার চেষ্টা করুন।",
+  "apiErrorSessionExpired": "আপনার লগইনের সময় শেষ হয়েছে। আবার লগইন করুন।",
+  "apiErrorForbidden": "এই কাজটি করার অনুমতি আপনার নেই। প্রয়োজনে প্রশাসকের সাথে যোগাযোগ করুন।",
+  "apiErrorNotFound": "যে তথ্যটি খুঁজছেন তা পাওয়া যায়নি। পৃষ্ঠাটি রিফ্রেশ করে আবার চেষ্টা করুন।",
+  "apiErrorConflict": "এই তথ্য আগে থেকেই আছে, অথবা অন্য কেউ বদলে দিয়েছে। পৃষ্ঠাটি রিফ্রেশ করে আবার দেখুন।",
+  "apiErrorFileTooLarge": "ফাইলটি অনেক বড়। ছোট ফাইল বা ছবি বেছে নিন (সর্বোচ্চ ৫ এমবি)।",
+  "apiErrorInvalidInput": "দেওয়া তথ্যে ভুল আছে। তথ্যগুলো দেখে ঠিক করে আবার চেষ্টা করুন।",
+  "apiErrorTooManyRequests": "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।",
+  "apiErrorServer": "সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।",
+  "apiErrorUnknown": "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।",
+  "phoneFieldSelectCountry": "দেশ নির্বাচন করুন",
+  "phoneFieldSearchCountry": "দেশের নাম বা কোড লিখে খুঁজুন",
+  "phoneFieldNoCountry": "কোনো দেশ পাওয়া যায়নি",
+  "phoneFieldSectionFrequent": "সচরাচর ব্যবহৃত দেশ",
+  "phoneFieldSectionAll": "সব দেশ",
+  "phoneFieldCountrySemantics": "দেশ: {country}, কোড {dialCode}। পরিবর্তন করতে ট্যাপ করুন",
+  "@phoneFieldCountrySemantics": {
+    "placeholders": {
+      "country": {
+        "type": "Object"
+      },
+      "dialCode": {
+        "type": "Object"
+      }
+    }
+  },
+  "phoneFieldInvalid": "নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।",
+  "phoneFieldPossibleWarning": "নম্বরটি পরিচিত কোনো নম্বর-সিরিজের সাথে মেলেনি। নম্বর ঠিক থাকলে এগিয়ে যান, না হলে একবার দেখে নিন।",
+  "phoneDisplayCall": "কল করুন",
+  "phoneDisplayWhatsapp": "হোয়াটসঅ্যাপ",
+  "phoneDisplayCopy": "নম্বর কপি করুন",
+  "phoneDisplayCopied": "কপি হয়েছে",
+  "phoneDisplayOpenFailed": "কল বা হোয়াটসঅ্যাপ খোলা যাচ্ছে না।",
+  "phoneDisplayCallAria": "{number}-এ কল করুন",
+  "@phoneDisplayCallAria": {
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
+  },
+  "phoneDisplayWhatsappAria": "{number}-এ হোয়াটসঅ্যাপে বার্তা পাঠান",
+  "@phoneDisplayWhatsappAria": {
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
+  }
 }

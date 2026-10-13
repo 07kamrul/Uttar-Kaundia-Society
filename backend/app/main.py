@@ -23,6 +23,7 @@ from app.api.routes import (
     land_data,
     shared_data,
     fee_payments,
+    feature_flags,
     fee_types,
     fund_controls,
     other_fees,
@@ -185,6 +186,7 @@ app.include_router(fund_controls.router, prefix=api_router_prefix)
 app.include_router(amendments.router, prefix=api_router_prefix)
 app.include_router(registers.router, prefix=api_router_prefix)
 app.include_router(cache_admin.router, prefix=api_router_prefix)
+app.include_router(feature_flags.router, prefix=api_router_prefix)
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 

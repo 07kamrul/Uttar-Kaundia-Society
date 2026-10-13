@@ -8,6 +8,7 @@ from app.models.rbac import Permission, Role, UserPermissionOverride, role_permi
 from app.models.fee_settings import FeeSetting, FeeType
 from app.models.audit_log import AuditLog
 from app.models.config_list_item import ConfigListItem
+from app.models.feature_flag import FeatureFlag
 from app.models.event import Event
 from app.models.notice import Notice
 from app.models.picnic_payment import PicnicPayment
@@ -90,6 +91,7 @@ __all__ = [
     "FeeSetting",
     "AuditLog",
     "ConfigListItem",
+    "FeatureFlag",
     "Notice",
     "Event",
     "PicnicPayment",

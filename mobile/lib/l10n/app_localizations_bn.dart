@@ -4612,7 +4612,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get registrationMemberInfoMobileInvalid =>
-      'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)';
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
 
   @override
   String get registrationMemberInfoMobileLabel => 'মোবাইল (WhatsApp)';
@@ -4683,7 +4683,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get registrationNomineeMobileInvalid =>
-      'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)';
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
 
   @override
   String get registrationNomineeMobileLabel => 'মোবাইল';
@@ -5204,7 +5204,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get registrationUrgentContactMobileInvalid =>
-      'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)';
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
 
   @override
   String get registrationUrgentContactMobileLabel => 'মোবাইল';
@@ -5263,7 +5263,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get registrationValidationMobileInvalid =>
-      'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)';
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
 
   @override
   String get registrationValidationMobileRequired => 'মোবাইল আবশ্যক';
@@ -5409,7 +5409,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get memberProfileMobileInvalid =>
-      'সঠিক মোবাইল নম্বর দিন (যেমন +8801XXXXXXXXX)';
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
 
   @override
   String get memberProfilePropertyTypesLabel => 'সম্পত্তির ধরন';
@@ -6140,4 +6140,113 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get dagInfoRateLimited =>
       'অনেক বেশি অনুরোধ। কিছুক্ষণ পর আবার চেষ্টা করুন।';
+
+  @override
+  String get validationFieldRequired => 'এই তথ্যটি দিতে হবে।';
+
+  @override
+  String get validationMobileRequired => 'মোবাইল নম্বর দিন, যেমন ০১৭XXXXXXXX।';
+
+  @override
+  String get validationMobileInvalid =>
+      'মোবাইল নম্বর ১১ সংখ্যার হতে হবে, যেমন ০১৭XXXXXXXX। নম্বরটি আবার দেখে লিখুন।';
+
+  @override
+  String get validationNidRequired => 'জাতীয় পরিচয়পত্রের নম্বর দিন।';
+
+  @override
+  String get validationNidInvalid =>
+      'জাতীয় পরিচয়পত্রের নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে। কার্ডের নম্বরটি দেখে আবার লিখুন।';
+
+  @override
+  String get apiErrorOffline =>
+      'ইন্টারনেট সংযোগ পাওয়া যাচ্ছে না। সংযোগ দেখে আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorSessionExpired =>
+      'আপনার লগইনের সময় শেষ হয়েছে। আবার লগইন করুন।';
+
+  @override
+  String get apiErrorForbidden =>
+      'এই কাজটি করার অনুমতি আপনার নেই। প্রয়োজনে প্রশাসকের সাথে যোগাযোগ করুন।';
+
+  @override
+  String get apiErrorNotFound =>
+      'যে তথ্যটি খুঁজছেন তা পাওয়া যায়নি। পৃষ্ঠাটি রিফ্রেশ করে আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorConflict =>
+      'এই তথ্য আগে থেকেই আছে, অথবা অন্য কেউ বদলে দিয়েছে। পৃষ্ঠাটি রিফ্রেশ করে আবার দেখুন।';
+
+  @override
+  String get apiErrorFileTooLarge =>
+      'ফাইলটি অনেক বড়। ছোট ফাইল বা ছবি বেছে নিন (সর্বোচ্চ ৫ এমবি)।';
+
+  @override
+  String get apiErrorInvalidInput =>
+      'দেওয়া তথ্যে ভুল আছে। তথ্যগুলো দেখে ঠিক করে আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorTooManyRequests =>
+      'অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorServer =>
+      'সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।';
+
+  @override
+  String get apiErrorUnknown => 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+
+  @override
+  String get phoneFieldSelectCountry => 'দেশ নির্বাচন করুন';
+
+  @override
+  String get phoneFieldSearchCountry => 'দেশের নাম বা কোড লিখে খুঁজুন';
+
+  @override
+  String get phoneFieldNoCountry => 'কোনো দেশ পাওয়া যায়নি';
+
+  @override
+  String get phoneFieldSectionFrequent => 'সচরাচর ব্যবহৃত দেশ';
+
+  @override
+  String get phoneFieldSectionAll => 'সব দেশ';
+
+  @override
+  String phoneFieldCountrySemantics(Object country, Object dialCode) {
+    return 'দেশ: $country, কোড $dialCode। পরিবর্তন করতে ট্যাপ করুন';
+  }
+
+  @override
+  String get phoneFieldInvalid =>
+      'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।';
+
+  @override
+  String get phoneFieldPossibleWarning =>
+      'নম্বরটি পরিচিত কোনো নম্বর-সিরিজের সাথে মেলেনি। নম্বর ঠিক থাকলে এগিয়ে যান, না হলে একবার দেখে নিন।';
+
+  @override
+  String get phoneDisplayCall => 'কল করুন';
+
+  @override
+  String get phoneDisplayWhatsapp => 'হোয়াটসঅ্যাপ';
+
+  @override
+  String get phoneDisplayCopy => 'নম্বর কপি করুন';
+
+  @override
+  String get phoneDisplayCopied => 'কপি হয়েছে';
+
+  @override
+  String get phoneDisplayOpenFailed => 'কল বা হোয়াটসঅ্যাপ খোলা যাচ্ছে না।';
+
+  @override
+  String phoneDisplayCallAria(Object number) {
+    return '$number-এ কল করুন';
+  }
+
+  @override
+  String phoneDisplayWhatsappAria(Object number) {
+    return '$number-এ হোয়াটসঅ্যাপে বার্তা পাঠান';
+  }
 }

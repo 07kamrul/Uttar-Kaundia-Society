@@ -8632,7 +8632,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationMemberInfoMobileInvalid.
   ///
   /// In bn, this message translates to:
-  /// **'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)'**
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
   String get registrationMemberInfoMobileInvalid;
 
   /// No description provided for @registrationMemberInfoMobileLabel.
@@ -8764,7 +8764,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationNomineeMobileInvalid.
   ///
   /// In bn, this message translates to:
-  /// **'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)'**
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
   String get registrationNomineeMobileInvalid;
 
   /// No description provided for @registrationNomineeMobileLabel.
@@ -9683,7 +9683,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationUrgentContactMobileInvalid.
   ///
   /// In bn, this message translates to:
-  /// **'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)'**
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
   String get registrationUrgentContactMobileInvalid;
 
   /// No description provided for @registrationUrgentContactMobileLabel.
@@ -9785,7 +9785,7 @@ abstract class AppLocalizations {
   /// No description provided for @registrationValidationMobileInvalid.
   ///
   /// In bn, this message translates to:
-  /// **'মোবাইল নম্বর সঠিক নয় (01XXXXXXXXX)'**
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
   String get registrationValidationMobileInvalid;
 
   /// No description provided for @registrationValidationMobileRequired.
@@ -10049,7 +10049,7 @@ abstract class AppLocalizations {
   /// No description provided for @memberProfileMobileInvalid.
   ///
   /// In bn, this message translates to:
-  /// **'সঠিক মোবাইল নম্বর দিন (যেমন +8801XXXXXXXXX)'**
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
   String get memberProfileMobileInvalid;
 
   /// No description provided for @memberProfilePropertyTypesLabel.
@@ -11377,6 +11377,186 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'অনেক বেশি অনুরোধ। কিছুক্ষণ পর আবার চেষ্টা করুন।'**
   String get dagInfoRateLimited;
+
+  /// No description provided for @validationFieldRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই তথ্যটি দিতে হবে।'**
+  String get validationFieldRequired;
+
+  /// No description provided for @validationMobileRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল নম্বর দিন, যেমন ০১৭XXXXXXXX।'**
+  String get validationMobileRequired;
+
+  /// No description provided for @validationMobileInvalid.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল নম্বর ১১ সংখ্যার হতে হবে, যেমন ০১৭XXXXXXXX। নম্বরটি আবার দেখে লিখুন।'**
+  String get validationMobileInvalid;
+
+  /// No description provided for @validationNidRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'জাতীয় পরিচয়পত্রের নম্বর দিন।'**
+  String get validationNidRequired;
+
+  /// No description provided for @validationNidInvalid.
+  ///
+  /// In bn, this message translates to:
+  /// **'জাতীয় পরিচয়পত্রের নম্বর ১০, ১৩ বা ১৭ সংখ্যার হতে হবে। কার্ডের নম্বরটি দেখে আবার লিখুন।'**
+  String get validationNidInvalid;
+
+  /// No description provided for @apiErrorOffline.
+  ///
+  /// In bn, this message translates to:
+  /// **'ইন্টারনেট সংযোগ পাওয়া যাচ্ছে না। সংযোগ দেখে আবার চেষ্টা করুন।'**
+  String get apiErrorOffline;
+
+  /// No description provided for @apiErrorSessionExpired.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার লগইনের সময় শেষ হয়েছে। আবার লগইন করুন।'**
+  String get apiErrorSessionExpired;
+
+  /// No description provided for @apiErrorForbidden.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই কাজটি করার অনুমতি আপনার নেই। প্রয়োজনে প্রশাসকের সাথে যোগাযোগ করুন।'**
+  String get apiErrorForbidden;
+
+  /// No description provided for @apiErrorNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'যে তথ্যটি খুঁজছেন তা পাওয়া যায়নি। পৃষ্ঠাটি রিফ্রেশ করে আবার চেষ্টা করুন।'**
+  String get apiErrorNotFound;
+
+  /// No description provided for @apiErrorConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই তথ্য আগে থেকেই আছে, অথবা অন্য কেউ বদলে দিয়েছে। পৃষ্ঠাটি রিফ্রেশ করে আবার দেখুন।'**
+  String get apiErrorConflict;
+
+  /// No description provided for @apiErrorFileTooLarge.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফাইলটি অনেক বড়। ছোট ফাইল বা ছবি বেছে নিন (সর্বোচ্চ ৫ এমবি)।'**
+  String get apiErrorFileTooLarge;
+
+  /// No description provided for @apiErrorInvalidInput.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেওয়া তথ্যে ভুল আছে। তথ্যগুলো দেখে ঠিক করে আবার চেষ্টা করুন।'**
+  String get apiErrorInvalidInput;
+
+  /// No description provided for @apiErrorTooManyRequests.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ অপেক্ষা করে আবার চেষ্টা করুন।'**
+  String get apiErrorTooManyRequests;
+
+  /// No description provided for @apiErrorServer.
+  ///
+  /// In bn, this message translates to:
+  /// **'সার্ভারে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।'**
+  String get apiErrorServer;
+
+  /// No description provided for @apiErrorUnknown.
+  ///
+  /// In bn, this message translates to:
+  /// **'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।'**
+  String get apiErrorUnknown;
+
+  /// No description provided for @phoneFieldSelectCountry.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশ নির্বাচন করুন'**
+  String get phoneFieldSelectCountry;
+
+  /// No description provided for @phoneFieldSearchCountry.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশের নাম বা কোড লিখে খুঁজুন'**
+  String get phoneFieldSearchCountry;
+
+  /// No description provided for @phoneFieldNoCountry.
+  ///
+  /// In bn, this message translates to:
+  /// **'কোনো দেশ পাওয়া যায়নি'**
+  String get phoneFieldNoCountry;
+
+  /// No description provided for @phoneFieldSectionFrequent.
+  ///
+  /// In bn, this message translates to:
+  /// **'সচরাচর ব্যবহৃত দেশ'**
+  String get phoneFieldSectionFrequent;
+
+  /// No description provided for @phoneFieldSectionAll.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব দেশ'**
+  String get phoneFieldSectionAll;
+
+  /// No description provided for @phoneFieldCountrySemantics.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেশ: {country}, কোড {dialCode}। পরিবর্তন করতে ট্যাপ করুন'**
+  String phoneFieldCountrySemantics(Object country, Object dialCode);
+
+  /// No description provided for @phoneFieldInvalid.
+  ///
+  /// In bn, this message translates to:
+  /// **'নম্বরটি সঠিক নয়। দেশ ঠিক আছে কিনা দেখে সংখ্যাগুলো আবার লিখুন, অথবা + দিয়ে শুরু করে পুরো নম্বর দিন।'**
+  String get phoneFieldInvalid;
+
+  /// No description provided for @phoneFieldPossibleWarning.
+  ///
+  /// In bn, this message translates to:
+  /// **'নম্বরটি পরিচিত কোনো নম্বর-সিরিজের সাথে মেলেনি। নম্বর ঠিক থাকলে এগিয়ে যান, না হলে একবার দেখে নিন।'**
+  String get phoneFieldPossibleWarning;
+
+  /// No description provided for @phoneDisplayCall.
+  ///
+  /// In bn, this message translates to:
+  /// **'কল করুন'**
+  String get phoneDisplayCall;
+
+  /// No description provided for @phoneDisplayWhatsapp.
+  ///
+  /// In bn, this message translates to:
+  /// **'হোয়াটসঅ্যাপ'**
+  String get phoneDisplayWhatsapp;
+
+  /// No description provided for @phoneDisplayCopy.
+  ///
+  /// In bn, this message translates to:
+  /// **'নম্বর কপি করুন'**
+  String get phoneDisplayCopy;
+
+  /// No description provided for @phoneDisplayCopied.
+  ///
+  /// In bn, this message translates to:
+  /// **'কপি হয়েছে'**
+  String get phoneDisplayCopied;
+
+  /// No description provided for @phoneDisplayOpenFailed.
+  ///
+  /// In bn, this message translates to:
+  /// **'কল বা হোয়াটসঅ্যাপ খোলা যাচ্ছে না।'**
+  String get phoneDisplayOpenFailed;
+
+  /// No description provided for @phoneDisplayCallAria.
+  ///
+  /// In bn, this message translates to:
+  /// **'{number}-এ কল করুন'**
+  String phoneDisplayCallAria(Object number);
+
+  /// No description provided for @phoneDisplayWhatsappAria.
+  ///
+  /// In bn, this message translates to:
+  /// **'{number}-এ হোয়াটসঅ্যাপে বার্তা পাঠান'**
+  String phoneDisplayWhatsappAria(Object number);
 }
 
 class _AppLocalizationsDelegate

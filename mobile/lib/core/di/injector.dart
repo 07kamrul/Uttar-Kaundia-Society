@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 
 import '../auth/auth_repository.dart';
+import '../feature_flags/feature_flags_repository.dart';
+import '../feature_flags/feature_flags_service.dart';
 import '../../features/dashboard/data/public_stats_repository.dart';
 import '../auth/session.dart';
 import '../network/api_client.dart';
@@ -47,6 +49,13 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<PublicStatsRepository>(
     () => PublicStatsRepositoryImpl(apiClient: sl<ApiClient>()),
+  );
+
+  sl.registerLazySingleton<FeatureFlagsRepository>(
+    () => FeatureFlagsRepositoryImpl(apiClient: sl<ApiClient>()),
+  );
+  sl.registerLazySingleton<FeatureFlagsService>(
+    () => FeatureFlagsService(sl<FeatureFlagsRepository>()),
   );
 }
 

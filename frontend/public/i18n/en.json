@@ -292,6 +292,24 @@
     "assetRegister": "Asset Register",
     "welfareActivities": "Welfare Activities"
   },
+  "errors": {
+    "network": "No internet connection. Check your connection and try again.",
+    "unauthorized": "Your session has expired. Please log in again.",
+    "forbidden": "You don't have permission to do this. Contact the committee if you need access.",
+    "notFound": "We couldn't find what you were looking for. Reload the page and try again.",
+    "conflict": "This already exists or someone else has changed it. Reload the page and try again.",
+    "fileTooLarge": "The file is too large. Choose a smaller file or photo.",
+    "validation": "Some details are not correct. Check the highlighted fields and fix them.",
+    "tooManyRequests": "Too many attempts. Please wait a little and try again.",
+    "server": "Something went wrong on our side. Please try again in a little while.",
+    "unknown": "Something went wrong. Please try again. If it keeps happening, contact the committee.",
+    "field": {
+      "required": "This field is required",
+      "mobile": "Mobile number must be 11 digits, for example 017XXXXXXXX",
+      "nid": "National ID number must be 10, 13 or 17 digits",
+      "invalid": "This field is not valid, please check it"
+    }
+  },
   "forbidden": {
     "title": "Access Denied",
     "message": "You don't have permission to view this page.",
@@ -432,7 +450,8 @@
       "neighbourDirectory": {
         "label": "Show my mobile number to neighbours",
         "hint": "When off, neighbours see only your name, land quantity and dags."
-      }
+      },
+      "mobileInvalid": "This number is not correct. Choose the country and enter the full number."
     },
     "installments": {
       "title": "Subscription History",
@@ -1170,6 +1189,21 @@
   "passwordField": {
     "show": "Show password",
     "hide": "Hide password"
+  },
+  "phoneInput": {
+    "selectCountry": "Choose a country",
+    "searchCountry": "Type a country name or code",
+    "noCountry": "No country found",
+    "allCountries": "All countries",
+    "invalid": "This number is not correct. Choose the country and enter the full number.",
+    "warning": "We do not recognise this number — please check it again"
+  },
+  "phoneLink": {
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "copy": "Copy number",
+    "copied": "Copied",
+    "copyFailed": "Could not copy"
   },
   "admin": {
     "submissionDetail": {
@@ -2407,7 +2441,7 @@
       "genderRequired": "Please select gender",
       "memberPhotoRequired": "Member's photo is required",
       "mobileRequired": "Mobile is required",
-      "mobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+      "mobileInvalid": "This number is not correct. Choose the country and enter the full number.",
       "emailRequired": "Email is required",
       "emailInvalid": "Email is invalid",
       "nidRequired": "NID number is required",
@@ -2492,7 +2526,7 @@
       "relationLabel": "Relation",
       "mobileLabel": "Mobile",
       "mobileRequired": "Mobile is required",
-      "mobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+      "mobileInvalid": "This number is not correct. Choose the country and enter the full number.",
       "addressLabel": "Address"
     },
     "confirmation": {
@@ -2544,7 +2578,7 @@
       "addressLabel": "Address",
       "nameRequired": "Name is required",
       "mobileRequired": "Mobile is required",
-      "mobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+      "mobileInvalid": "This number is not correct. Choose the country and enter the full number.",
       "additionalNomineesTitle": "Additional Nominees",
       "nomineeNumberTitle": "Nominee {{number}}",
       "remove": "Remove",
@@ -2599,7 +2633,7 @@
       "motherRequired": "Mother's name is required",
       "dobRequired": "Date of birth is required",
       "mobileRequired": "Mobile is required",
-      "mobileInvalid": "Mobile number is invalid (01XXXXXXXXX)",
+      "mobileInvalid": "This number is not correct. Choose the country and enter the full number.",
       "genderRequired": "Please select gender",
       "emailInvalid": "Email is invalid",
       "nidInvalid": "NID number must be 10-17 digits",

@@ -4618,7 +4618,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationMemberInfoMobileInvalid =>
-      'Mobile number is invalid (01XXXXXXXXX)';
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
 
   @override
   String get registrationMemberInfoMobileLabel => 'Mobile (WhatsApp)';
@@ -4690,7 +4690,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationNomineeMobileInvalid =>
-      'Mobile number is invalid (01XXXXXXXXX)';
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
 
   @override
   String get registrationNomineeMobileLabel => 'Mobile';
@@ -5215,7 +5215,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationUrgentContactMobileInvalid =>
-      'Mobile number is invalid (01XXXXXXXXX)';
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
 
   @override
   String get registrationUrgentContactMobileLabel => 'Mobile';
@@ -5274,7 +5274,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationValidationMobileInvalid =>
-      'Mobile number is invalid (01XXXXXXXXX)';
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
 
   @override
   String get registrationValidationMobileRequired => 'Mobile is required';
@@ -5420,7 +5420,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memberProfileMobileInvalid =>
-      'Enter a valid mobile number (e.g. +8801XXXXXXXXX)';
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
 
   @override
   String get memberProfilePropertyTypesLabel => 'Property type';
@@ -6153,4 +6153,114 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dagInfoRateLimited =>
       'Too many requests. Please wait a moment and try again.';
+
+  @override
+  String get validationFieldRequired => 'This field is required.';
+
+  @override
+  String get validationMobileRequired =>
+      'Enter a mobile number, for example 017XXXXXXXX.';
+
+  @override
+  String get validationMobileInvalid =>
+      'The mobile number must be 11 digits, for example 017XXXXXXXX. Please check it and type it again.';
+
+  @override
+  String get validationNidRequired => 'Enter your national ID number.';
+
+  @override
+  String get validationNidInvalid =>
+      'The national ID number must be 10, 13 or 17 digits. Please check the number on your card and type it again.';
+
+  @override
+  String get apiErrorOffline =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get apiErrorSessionExpired =>
+      'Your login has expired. Please log in again.';
+
+  @override
+  String get apiErrorForbidden =>
+      'You do not have permission to do this. Contact an administrator if you need access.';
+
+  @override
+  String get apiErrorNotFound =>
+      'We could not find what you were looking for. Refresh the page and try again.';
+
+  @override
+  String get apiErrorConflict =>
+      'This information already exists or was changed by someone else. Refresh the page and look again.';
+
+  @override
+  String get apiErrorFileTooLarge =>
+      'The file is too big. Choose a smaller file or photo (maximum 5 MB).';
+
+  @override
+  String get apiErrorInvalidInput =>
+      'Some of the information is wrong. Please check it and try again.';
+
+  @override
+  String get apiErrorTooManyRequests =>
+      'Too many attempts. Please wait a little and try again.';
+
+  @override
+  String get apiErrorServer =>
+      'Something went wrong on our server. Please try again in a little while.';
+
+  @override
+  String get apiErrorUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get phoneFieldSelectCountry => 'Select country';
+
+  @override
+  String get phoneFieldSearchCountry => 'Search by country name or code';
+
+  @override
+  String get phoneFieldNoCountry => 'No country found';
+
+  @override
+  String get phoneFieldSectionFrequent => 'Frequently used countries';
+
+  @override
+  String get phoneFieldSectionAll => 'All countries';
+
+  @override
+  String phoneFieldCountrySemantics(Object country, Object dialCode) {
+    return 'Country: $country, code $dialCode. Tap to change';
+  }
+
+  @override
+  String get phoneFieldInvalid =>
+      'This number is not valid. Check the country and the digits and type it again, or enter the full number starting with +.';
+
+  @override
+  String get phoneFieldPossibleWarning =>
+      'This number does not match a known number range. If it is correct you can continue; otherwise please double-check it.';
+
+  @override
+  String get phoneDisplayCall => 'Call';
+
+  @override
+  String get phoneDisplayWhatsapp => 'WhatsApp';
+
+  @override
+  String get phoneDisplayCopy => 'Copy number';
+
+  @override
+  String get phoneDisplayCopied => 'Copied';
+
+  @override
+  String get phoneDisplayOpenFailed => 'Could not open the dialer or WhatsApp.';
+
+  @override
+  String phoneDisplayCallAria(Object number) {
+    return 'Call $number';
+  }
+
+  @override
+  String phoneDisplayWhatsappAria(Object number) {
+    return 'Message $number on WhatsApp';
+  }
 }
