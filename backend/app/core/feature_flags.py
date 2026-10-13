@@ -59,6 +59,43 @@ _FLAGS = (
         False,
         "Five-area member navigation, 'my status' home, language switch in header",
     ),
+    FlagDef("map_wizard", False, "Plot map wizard: step header, tile gate, layers sheet and legend v2 (Batch 4)"),
+    FlagDef(
+        "admin_console",
+        False,
+        "Admin 'today's work' landing, merged applications queue, search UI, notices + events "
+        "page, phone-fix page and canned reject reasons (Batch 5)",
+    ),
+    FlagDef(
+        "admin_bulk_verify",
+        False,
+        "Bulk approve on payment verifications; the bulk endpoint answers 404 while off (Batch 5)",
+    ),
+    FlagDef(
+        "fee_wizard",
+        False,
+        "Fee-rate wizard at the top of fee settings; history and calculator move to Advanced (Batch 5)",
+    ),
+    FlagDef(
+        "login_by_phone",
+        False,
+        "Log in with mobile number or member email as well as member ID (Batch 6)",
+    ),
+    FlagDef(
+        "ui_a11y_v2",
+        False,
+        "Accessibility v2: 16 px body text, text-size setting, 48 px targets, plain dialogs (Batch 7)",
+    ),
+    FlagDef(
+        "data_saver",
+        False,
+        "Data-saver setting: map tile gate and tap-to-load images (Batch 7)",
+    ),
+    FlagDef(
+        "net_status_banner",
+        False,
+        "Offline / slow-network banner (Batch 7)",
+    ),
 )
 
 FEATURE_FLAGS: dict[str, FlagDef] = {flag.key: flag for flag in _FLAGS}

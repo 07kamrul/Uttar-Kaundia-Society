@@ -5,6 +5,8 @@ class BoundaryEditorState extends Equatable {
     this.status = EditorStatus.loading,
     this.vertices = const [],
     this.undoStack = const [],
+    this.redoStack = const [],
+    this.step = EditorStep.adjust,
     this.properties = const [],
     this.availableProperties = const [],
     this.boundaries = const [],
@@ -30,6 +32,12 @@ class BoundaryEditorState extends Equatable {
 
   /// Previous vertex lists for undo.
   final List<List<LatLng>> undoStack;
+
+  /// Shapes taken back by undo, newest last (map_wizard redo).
+  final List<List<LatLng>> redoStack;
+
+  /// Wizard step. The legacy single-screen editor stays on [EditorStep.adjust].
+  final EditorStep step;
 
   /// All own plots (picker shows the full list when nothing is filtered).
   final List<OwnProperty> properties;
@@ -63,6 +71,8 @@ class BoundaryEditorState extends Equatable {
 
   bool get canUndo => undoStack.isNotEmpty;
 
+  bool get canRedo => redoStack.isNotEmpty;
+
   bool get canSave =>
       selectedPropertyId != null &&
       validation.canSave &&
@@ -73,6 +83,8 @@ class BoundaryEditorState extends Equatable {
     List<LatLng>? vertices,
     bool clearVertices = false,
     List<List<LatLng>>? undoStack,
+    List<List<LatLng>>? redoStack,
+    EditorStep? step,
     List<OwnProperty>? properties,
     List<OwnProperty>? availableProperties,
     List<PlotBoundary>? boundaries,
@@ -87,6 +99,8 @@ class BoundaryEditorState extends Equatable {
       status: status ?? this.status,
       vertices: clearVertices ? const [] : (vertices ?? this.vertices),
       undoStack: undoStack ?? this.undoStack,
+      redoStack: redoStack ?? this.redoStack,
+      step: step ?? this.step,
       properties: properties ?? this.properties,
       availableProperties: availableProperties ?? this.availableProperties,
       boundaries: boundaries ?? this.boundaries,
@@ -104,6 +118,8 @@ class BoundaryEditorState extends Equatable {
         status,
         vertices,
         undoStack,
+        redoStack,
+        step,
         properties,
         availableProperties,
         boundaries,

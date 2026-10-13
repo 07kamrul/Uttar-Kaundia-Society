@@ -37,6 +37,8 @@ class PlotMapCanvas extends StatelessWidget {
     required this.onTap,
     required this.onCameraChanged,
     this.tileProvider,
+    this.tilesRequested = true,
+    this.simplified = false,
   });
 
   final MapController controller;
@@ -55,16 +57,27 @@ class PlotMapCanvas extends StatelessWidget {
   /// Overrides the network tile provider (tests).
   final TileProvider? tileProvider;
 
+  /// map_wizard data-saver start: false draws no basemap tiles at all, only
+  /// the member polygons and the society outline on a plain background.
+  final bool tilesRequested;
+
+  /// map_wizard: three-colour polygons, rejected shapes hidden.
+  final bool simplified;
+
   @override
   Widget build(BuildContext context) {
     final area = society?.padded(kMapBoundsPadding);
     final landLayer = mode.landLayer;
     final collection = landCollection;
     final isStreet = basemap == MapLayer.street;
+    final scheme = Theme.of(context).colorScheme;
 
     return FlutterMap(
       mapController: controller,
       options: MapOptions(
+        backgroundColor: tilesRequested
+            ? const Color(0xFFE0E0E0)
+            : scheme.surfaceContainerHighest,
         initialCenter: const LatLng(
           AppConfig.societyCenterLat,
           AppConfig.societyCenterLng,
@@ -87,18 +100,30 @@ class PlotMapCanvas extends StatelessWidget {
         onPositionChanged: (camera, _) => onCameraChanged(camera),
       ),
       children: [
-        TileLayer(
-          urlTemplate:
-              isStreet ? AppConfig.mapTileUrl : AppConfig.satelliteTileUrl,
-          maxZoom: kMapMaxZoom,
-          tileProvider: tileProvider,
-          userAgentPackageName: 'bd.kaundia.app',
-        ),
+        if (tilesRequested)
+          TileLayer(
+            urlTemplate:
+                isStreet ? AppConfig.mapTileUrl : AppConfig.satelliteTileUrl,
+            maxZoom: kMapMaxZoom,
+            tileProvider: tileProvider,
+            userAgentPackageName: 'bd.kaundia.app',
+          )
+        else if (society != null)
+          PolygonLayer(polygons: [
+            Polygon(
+              points: society!.corners,
+              color: Colors.transparent,
+              borderColor: scheme.primary,
+              borderStrokeWidth: 2,
+              pattern: StrokePattern.dashed(segments: const [8, 6]),
+            ),
+          ]),
         if (mode == MapMode.boundaries)
           BoundaryPolygonLayer(
             features: features,
             query: boundaryQuery,
             highlightedId: highlightedBoundaryId,
+            simplified: simplified,
           ),
         if (landLayer != null && collection != null)
           LandPolygonLayer(
@@ -117,13 +142,14 @@ class PlotMapCanvas extends StatelessWidget {
               child: const _MyLocationDot(),
             ),
           ]),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              isStreet ? 'OpenStreetMap contributors' : 'Esri World Imagery',
-            ),
-          ],
-        ),
+        if (tilesRequested)
+          RichAttributionWidget(
+            attributions: [
+              TextSourceAttribution(
+                isStreet ? 'OpenStreetMap contributors' : 'Esri World Imagery',
+              ),
+            ],
+          ),
       ],
     );
   }

@@ -11,12 +11,17 @@ from app.models.installment_payment import PAYMENT_STATUS_PENDING
 class CostSharePayment(Base):
     """A member's self-reported payment toward a society-cost share. Mirrors
     InstallmentPayment: it only increases share.amount_paid once a committee
-    member verifies the transaction."""
+    member verifies the transaction.
+
+    One transfer can pay several shares (and an installment) for the same
+    member, so the live-reference index is per share; ownership of a reference
+    across members is enforced in the service."""
 
     __tablename__ = "cost_share_payments"
     __table_args__ = (
         Index(
-            "uq_cost_share_payments_method_ref",
+            "uq_cost_share_payments_share_method_ref",
+            "share_id",
             "method",
             "transaction_ref",
             unique=True,

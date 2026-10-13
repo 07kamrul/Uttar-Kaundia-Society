@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 
 import '../../../domain/dag_number.dart';
+import '../../../domain/map_legend.dart';
 import '../../../domain/plot_boundary_entities.dart';
 import '../boundary_status_style.dart';
 
@@ -14,11 +15,16 @@ class BoundaryPolygonLayer extends StatefulWidget {
     required this.features,
     this.query = '',
     this.highlightedId,
+    this.simplified = false,
   });
 
   final List<BoundaryFeature> features;
   final String query;
   final String? highlightedId;
+
+  /// map_wizard: three legend colours; rejected, withdrawn and superseded
+  /// shapes are not drawn at all.
+  final bool simplified;
 
   static final RegExp _whitespace = RegExp(r'\s');
 
@@ -43,6 +49,7 @@ class _BoundaryPolygonLayerState extends State<BoundaryPolygonLayer> {
     super.didUpdateWidget(old);
     if (!identical(old.features, widget.features) ||
         old.query != widget.query ||
+        old.simplified != widget.simplified ||
         old.highlightedId != widget.highlightedId) {
       _polygons = null;
     }
@@ -53,18 +60,27 @@ class _BoundaryPolygonLayerState extends State<BoundaryPolygonLayer> {
     return [
       for (final f in widget.features)
         if (f.points.isNotEmpty &&
-            BoundaryPolygonLayer.matches(f, widget.query))
+            BoundaryPolygonLayer.matches(f, widget.query) &&
+            (!widget.simplified ||
+                legendKindFor(f.status, isMine: f.isMine) != null))
           _polygon(context, f, primary),
     ];
   }
 
   Polygon _polygon(BuildContext context, BoundaryFeature f, Color primary) {
-    final (fill, stroke) = BoundaryStatusStyle.colorsFor(
-      context,
-      status: f.status,
-      isMine: f.isMine,
-    );
-    final isProposal = f.isMine && f.status != BoundaryStatus.approved;
+    final (fill, stroke) = widget.simplified
+        ? BoundaryStatusStyle.legendColors(
+            context,
+            legendKindFor(f.status, isMine: f.isMine)!,
+          )
+        : BoundaryStatusStyle.colorsFor(
+            context,
+            status: f.status,
+            isMine: f.isMine,
+          );
+    final isProposal = widget.simplified
+        ? legendDashed(f.status, isMine: f.isMine)
+        : f.isMine && f.status != BoundaryStatus.approved;
     final isHighlighted = f.boundaryId == widget.highlightedId;
     return Polygon(
       points: f.points,

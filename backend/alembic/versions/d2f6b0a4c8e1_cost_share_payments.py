@@ -44,9 +44,9 @@ def upgrade() -> None:
     op.create_index('ix_cost_share_payments_share_id', 'cost_share_payments', ['share_id'])
     op.create_index('ix_cost_share_payments_status_created', 'cost_share_payments', ['status', 'created_at'])
     op.create_index(
-        'uq_cost_share_payments_method_ref',
+        'uq_cost_share_payments_share_method_ref',
         'cost_share_payments',
-        ['method', 'transaction_ref'],
+        ['share_id', 'method', 'transaction_ref'],
         unique=True,
         postgresql_where=sa.text("status <> 'rejected'"),
         sqlite_where=sa.text("status <> 'rejected'"),
@@ -54,7 +54,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index('uq_cost_share_payments_method_ref', table_name='cost_share_payments')
+    op.drop_index('uq_cost_share_payments_share_method_ref', table_name='cost_share_payments')
     op.drop_index('ix_cost_share_payments_status_created', table_name='cost_share_payments')
     op.drop_index('ix_cost_share_payments_share_id', table_name='cost_share_payments')
     op.drop_index('ix_cost_share_payments_member_id', table_name='cost_share_payments')

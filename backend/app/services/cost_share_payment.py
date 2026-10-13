@@ -54,13 +54,24 @@ async def pending_sums_by_share(db: AsyncSession, share_ids: list[int]) -> dict[
     return {share_id: Decimal(str(total)) for share_id, total in rows.all()}
 
 
-async def _ensure_unique_reference(db: AsyncSession, method: str, reference: str) -> None:
-    for model in (CostSharePayment, InstallmentPayment):
+async def _ensure_unique_reference(
+    db: AsyncSession, member_id: int, share_id: int, method: str, reference: str
+) -> None:
+    """A live reference may be reused by the same member (one transfer can pay an
+    installment and several shares) but never by another member, and never twice
+    for the same share."""
+    blockers = (
+        (CostSharePayment, CostSharePayment.member_id != member_id),
+        (CostSharePayment, CostSharePayment.share_id == share_id),
+        (InstallmentPayment, InstallmentPayment.member_id != member_id),
+    )
+    for model, condition in blockers:
         found = await db.execute(
             select(model.id).where(
                 model.method == method,
                 model.transaction_ref == reference,
                 model.status != PAYMENT_STATUS_REJECTED,
+                condition,
             )
         )
         if found.first() is not None:
@@ -98,7 +109,7 @@ async def submit_payment(
         raise _bad_request("Payment date cannot be in the future.")
     canonical_method = await _validate_method(db, method)
     reference = transaction_ref.strip().upper()
-    await _ensure_unique_reference(db, canonical_method, reference)
+    await _ensure_unique_reference(db, member.id, share.id, canonical_method, reference)
 
     pending = (await pending_sums_by_share(db, [share.id])).get(share.id, ZERO)
     remaining = share.amount_due - share.amount_paid - pending

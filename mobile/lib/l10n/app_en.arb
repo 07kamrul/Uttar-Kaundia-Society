@@ -2650,5 +2650,121 @@
   "apiErrorAmountExceedsRemaining": "The amount is more than what is left to pay.",
   "apiErrorFeatureDisabled": "This feature is not available right now.",
   "apiErrorInvalidBdMobile": "Enter a valid Bangladeshi mobile number.",
-  "mpayStatusRejectedShort": "Rejected"
+  "mpayStatusRejectedShort": "Rejected",
+  "mapWizardMoreLayers": "More layers",
+  "mapWizardLayersTitle": "Map layers",
+  "mapWizardLayerMine": "My land",
+  "mapWizardLayerBds": "Government mouza map (BDS)",
+  "mapWizardLayerRajuk": "RAJUK RS plots",
+  "mapWizardLayerSatellite": "Satellite",
+  "mapWizardShowMap": "Show the map",
+  "mapWizardShowMapHint": "Uses internet data",
+  "mapWizardLegendApproved": "Approved",
+  "mapWizardLegendMine": "Mine",
+  "mapWizardLegendPending": "Waiting",
+  "mapWizardDisputeNote": "⚠ Under dispute",
+  "mapWizardShortNotice": "This is an approximate boundary — not a substitute for the government survey or the deed.",
+  "mapWizardNoticeMore": "Details",
+  "mapWizardHelpTooltip": "Help",
+  "mapWizardTourAgain": "Show the tour again",
+  "mapWizardTourSkip": "Skip",
+  "mapWizardTourNext": "Next",
+  "mapWizardTourDone": "Got it",
+  "mapWizardTourCounter": "{n} of {total}",
+  "@mapWizardTourCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardTourLayers": "Tap here for the government mouza map, RAJUK plots and satellite.",
+  "mapWizardTourLegend": "Colours are explained here: green approved, blue yours, amber waiting.",
+  "mapWizardTourDraw": "Tap here to draw your plot boundary.",
+  "mapWizardTourHelp": "Need help? Tap ? — you can replay this tour from there.",
+  "mapWizardStepHeader": "Step {n} of 3 — {title}",
+  "@mapWizardStepHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardStepFind": "Find your plot",
+  "mapWizardStepAdjust": "Set the boundary",
+  "mapWizardStepSubmit": "Submit",
+  "mapWizardSearching": "Looking for the plot…",
+  "mapWizardNoDagOnPlot": "This property has no RS dag number. Search another plot or draw it yourself.",
+  "mapWizardFoundOne": "The plot is marked on the map.",
+  "mapWizardFoundMany": "{count} plots found — choose yours.",
+  "@mapWizardFoundMany": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardLookupFailed": "Could not look up the plot. Try again or draw it yourself.",
+  "mapWizardCandidate": "RS plot {dag} · sheet {sheet}",
+  "@mapWizardCandidate": {
+    "placeholders": {
+      "dag": {
+        "type": "String"
+      },
+      "sheet": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardCandidateNoSheet": "RS plot {dag}",
+  "@mapWizardCandidateNoSheet": {
+    "placeholders": {
+      "dag": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardThisIsMine": "This is my plot",
+  "mapWizardOtherDag": "Search another plot",
+  "mapWizardNotFoundDraw": "Can't find it — draw it myself",
+  "mapWizardDagFieldLabel": "RS dag number",
+  "mapWizardSearchButton": "Search",
+  "mapWizardStartFromDag": "Start from the plot",
+  "mapWizardDrawMyself": "Draw it myself",
+  "mapWizardUndoText": "Undo one step",
+  "mapWizardRedoText": "Redo",
+  "mapWizardClearAll": "Clear all and start again",
+  "mapWizardNext": "Next",
+  "mapWizardBack": "Back",
+  "mapWizardDeclaredLand": "Declared land: {amount} shotangsho",
+  "@mapWizardDeclaredLand": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardSummaryProperty": "Property",
+  "mapWizardSummaryDag": "Dag",
+  "mapWizardSummaryArea": "Drawn area",
+  "mapWizardSummaryMatch": "Match with the RS plot",
+  "mapWizardMatchValue": "{pct}% (RS plot {dag})",
+  "@mapWizardMatchValue": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "dag": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardMatchLow": "Low match — the office will check.",
+  "mapWizardNoMatch": "There is no RS plot to compare with."
 }

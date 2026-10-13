@@ -6,6 +6,7 @@ import '../../../domain/land_entities.dart';
 import '../../bloc/land_map_bloc.dart';
 import '../../bloc/my_location_cubit.dart';
 import '../../bloc/plot_map_bloc.dart';
+import '../short_disclaimer.dart';
 import 'map_disclaimer.dart';
 import 'map_legend.dart';
 import 'map_status_chip.dart';
@@ -23,7 +24,20 @@ class PlotMapTopOverlay extends StatelessWidget {
     required this.onLocate,
     required this.onDraw,
     required this.onModeChanged,
+    this.wizard = false,
+    this.onLayers,
+    this.onTourAgain,
+    this.layersKey,
+    this.helpKey,
+    this.drawKey,
   });
+
+  final bool wizard;
+  final VoidCallback? onLayers;
+  final VoidCallback? onTourAgain;
+  final GlobalKey? layersKey;
+  final GlobalKey? helpKey;
+  final GlobalKey? drawKey;
 
   final TextEditingController searchController;
   final bool canDraw;
@@ -65,6 +79,12 @@ class PlotMapTopOverlay extends StatelessWidget {
               onDraw: onDraw,
               onModeChanged: onModeChanged,
               notices: notices,
+              wizard: wizard,
+              onLayers: onLayers,
+              onTourAgain: onTourAgain,
+              layersKey: layersKey,
+              helpKey: helpKey,
+              drawKey: drawKey,
             );
           },
         );
@@ -101,7 +121,14 @@ class PlotMapBottomOverlay extends StatelessWidget {
     required this.onToggleBasemap,
     required this.onRetryBoundaries,
     required this.onRetryLand,
+    this.wizard = false,
+    this.legendKey,
   });
+
+  /// map_wizard: three-item legend, no basemap button (it moved into the
+  /// layers sheet) and the short notice.
+  final bool wizard;
+  final GlobalKey? legendKey;
 
   final MapLayer basemap;
   final VoidCallback onToggleBasemap;
@@ -155,22 +182,29 @@ class PlotMapBottomOverlay extends StatelessWidget {
             Expanded(
               child: Align(
                 alignment: Alignment.bottomLeft,
-                child: isBoundaries ? const MapLegend() : const SizedBox(),
+                child: isBoundaries
+                    ? KeyedSubtree(
+                        key: legendKey,
+                        child: MapLegend(simplified: wizard),
+                      )
+                    : const SizedBox(),
               ),
             ),
-            const SizedBox(width: 8),
-            FloatingActionButton.small(
-              heroTag: 'plot_map_basemap',
-              tooltip: basemap == MapLayer.street
-                  ? loc.boundaryLayerSatellite
-                  : loc.boundaryLayerStreet,
-              onPressed: onToggleBasemap,
-              child: Icon(
-                basemap == MapLayer.street
-                    ? Icons.satellite_alt_outlined
-                    : Icons.map_outlined,
+            if (!wizard) ...[
+              const SizedBox(width: 8),
+              FloatingActionButton.small(
+                heroTag: 'plot_map_basemap',
+                tooltip: basemap == MapLayer.street
+                    ? loc.boundaryLayerSatellite
+                    : loc.boundaryLayerStreet,
+                onPressed: onToggleBasemap,
+                child: Icon(
+                  basemap == MapLayer.street
+                      ? Icons.satellite_alt_outlined
+                      : Icons.map_outlined,
+                ),
               ),
-            ),
+            ],
           ],
         ),
         if (status != null) ...[
@@ -178,7 +212,7 @@ class PlotMapBottomOverlay extends StatelessWidget {
           Center(child: status),
         ],
         const SizedBox(height: 8),
-        const MapDisclaimer(),
+        if (wizard) const ShortDisclaimer() else const MapDisclaimer(),
       ],
     );
   }

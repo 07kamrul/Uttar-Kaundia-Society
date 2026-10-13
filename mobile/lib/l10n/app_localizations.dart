@@ -12439,6 +12439,336 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'বাতিল'**
   String get mpayStatusRejectedShort;
+
+  /// No description provided for @mapWizardMoreLayers.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরও লেয়ার'**
+  String get mapWizardMoreLayers;
+
+  /// No description provided for @mapWizardLayersTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'মানচিত্রের লেয়ার'**
+  String get mapWizardLayersTitle;
+
+  /// No description provided for @mapWizardLayerMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার জমি'**
+  String get mapWizardLayerMine;
+
+  /// No description provided for @mapWizardLayerBds.
+  ///
+  /// In bn, this message translates to:
+  /// **'সরকারি মৌজা ম্যাপ (BDS)'**
+  String get mapWizardLayerBds;
+
+  /// No description provided for @mapWizardLayerRajuk.
+  ///
+  /// In bn, this message translates to:
+  /// **'রাজউক RS দাগ'**
+  String get mapWizardLayerRajuk;
+
+  /// No description provided for @mapWizardLayerSatellite.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্যাটেলাইট'**
+  String get mapWizardLayerSatellite;
+
+  /// No description provided for @mapWizardShowMap.
+  ///
+  /// In bn, this message translates to:
+  /// **'মানচিত্র দেখুন'**
+  String get mapWizardShowMap;
+
+  /// No description provided for @mapWizardShowMapHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'ইন্টারনেট ডেটা খরচ হবে'**
+  String get mapWizardShowMapHint;
+
+  /// No description provided for @mapWizardLegendApproved.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদিত'**
+  String get mapWizardLegendApproved;
+
+  /// No description provided for @mapWizardLegendMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার'**
+  String get mapWizardLegendMine;
+
+  /// No description provided for @mapWizardLegendPending.
+  ///
+  /// In bn, this message translates to:
+  /// **'অপেক্ষায়'**
+  String get mapWizardLegendPending;
+
+  /// No description provided for @mapWizardDisputeNote.
+  ///
+  /// In bn, this message translates to:
+  /// **'⚠ বিরোধ চলছে'**
+  String get mapWizardDisputeNote;
+
+  /// No description provided for @mapWizardShortNotice.
+  ///
+  /// In bn, this message translates to:
+  /// **'এটি আনুমানিক সীমানা — সরকারি জরিপ বা দলিলের বিকল্প নয়।'**
+  String get mapWizardShortNotice;
+
+  /// No description provided for @mapWizardNoticeMore.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিস্তারিত'**
+  String get mapWizardNoticeMore;
+
+  /// No description provided for @mapWizardHelpTooltip.
+  ///
+  /// In bn, this message translates to:
+  /// **'সাহায্য'**
+  String get mapWizardHelpTooltip;
+
+  /// No description provided for @mapWizardTourAgain.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবার দেখুন'**
+  String get mapWizardTourAgain;
+
+  /// No description provided for @mapWizardTourSkip.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাদ দিন'**
+  String get mapWizardTourSkip;
+
+  /// No description provided for @mapWizardTourNext.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরের'**
+  String get mapWizardTourNext;
+
+  /// No description provided for @mapWizardTourDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'বুঝেছি'**
+  String get mapWizardTourDone;
+
+  /// No description provided for @mapWizardTourCounter.
+  ///
+  /// In bn, this message translates to:
+  /// **'{n} / {total}'**
+  String mapWizardTourCounter(String n, String total);
+
+  /// No description provided for @mapWizardTourLayers.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখানে চাপলে সরকারি মৌজা ম্যাপ, রাজউক দাগ ও স্যাটেলাইট দেখতে পারবেন।'**
+  String get mapWizardTourLayers;
+
+  /// No description provided for @mapWizardTourLegend.
+  ///
+  /// In bn, this message translates to:
+  /// **'রঙের অর্থ এখানে দেখুন: সবুজ অনুমোদিত, নীল আপনার, হলুদ অপেক্ষায়।'**
+  String get mapWizardTourLegend;
+
+  /// No description provided for @mapWizardTourDraw.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিজের জমির সীমানা আঁকতে এখানে চাপুন।'**
+  String get mapWizardTourDraw;
+
+  /// No description provided for @mapWizardTourHelp.
+  ///
+  /// In bn, this message translates to:
+  /// **'সাহায্য লাগলে এই ? বোতাম চাপুন; এখান থেকে এই পরিচিতি আবার দেখা যাবে।'**
+  String get mapWizardTourHelp;
+
+  /// No description provided for @mapWizardStepHeader.
+  ///
+  /// In bn, this message translates to:
+  /// **'ধাপ {n} / ৩ — {title}'**
+  String mapWizardStepHeader(String n, String title);
+
+  /// No description provided for @mapWizardStepFind.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ খুঁজুন'**
+  String get mapWizardStepFind;
+
+  /// No description provided for @mapWizardStepAdjust.
+  ///
+  /// In bn, this message translates to:
+  /// **'সীমানা ঠিক করুন'**
+  String get mapWizardStepAdjust;
+
+  /// No description provided for @mapWizardStepSubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা দিন'**
+  String get mapWizardStepSubmit;
+
+  /// No description provided for @mapWizardSearching.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ খোঁজা হচ্ছে…'**
+  String get mapWizardSearching;
+
+  /// No description provided for @mapWizardNoDagOnPlot.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই সম্পত্তির আরএস দাগ নম্বর দেওয়া নেই। অন্য দাগ খুঁজুন অথবা নিজে আঁকুন।'**
+  String get mapWizardNoDagOnPlot;
+
+  /// No description provided for @mapWizardFoundOne.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগটি মানচিত্রে চিহ্নিত করা হয়েছে।'**
+  String get mapWizardFoundOne;
+
+  /// No description provided for @mapWizardFoundMany.
+  ///
+  /// In bn, this message translates to:
+  /// **'{count}টি দাগ পাওয়া গেছে — আপনারটি বেছে নিন।'**
+  String mapWizardFoundMany(String count);
+
+  /// No description provided for @mapWizardLookupFailed.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ খোঁজা যায়নি। আবার চেষ্টা করুন বা নিজে আঁকুন।'**
+  String get mapWizardLookupFailed;
+
+  /// No description provided for @mapWizardCandidate.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগ {dag} · শীট {sheet}'**
+  String mapWizardCandidate(String dag, String sheet);
+
+  /// No description provided for @mapWizardCandidateNoSheet.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগ {dag}'**
+  String mapWizardCandidateNoSheet(String dag);
+
+  /// No description provided for @mapWizardThisIsMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'এটাই আমার দাগ'**
+  String get mapWizardThisIsMine;
+
+  /// No description provided for @mapWizardOtherDag.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য দাগ খুঁজুন'**
+  String get mapWizardOtherDag;
+
+  /// No description provided for @mapWizardNotFoundDraw.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ পাওয়া যায়নি — নিজে আঁকুন'**
+  String get mapWizardNotFoundDraw;
+
+  /// No description provided for @mapWizardDagFieldLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগ নম্বর'**
+  String get mapWizardDagFieldLabel;
+
+  /// No description provided for @mapWizardSearchButton.
+  ///
+  /// In bn, this message translates to:
+  /// **'খুঁজুন'**
+  String get mapWizardSearchButton;
+
+  /// No description provided for @mapWizardStartFromDag.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ থেকে শুরু করুন'**
+  String get mapWizardStartFromDag;
+
+  /// No description provided for @mapWizardDrawMyself.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিজে আঁকুন'**
+  String get mapWizardDrawMyself;
+
+  /// No description provided for @mapWizardUndoText.
+  ///
+  /// In bn, this message translates to:
+  /// **'এক ধাপ পেছনে'**
+  String get mapWizardUndoText;
+
+  /// No description provided for @mapWizardRedoText.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবার করুন'**
+  String get mapWizardRedoText;
+
+  /// No description provided for @mapWizardClearAll.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব মুছে নতুন করে'**
+  String get mapWizardClearAll;
+
+  /// No description provided for @mapWizardNext.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরবর্তী'**
+  String get mapWizardNext;
+
+  /// No description provided for @mapWizardBack.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেছনে'**
+  String get mapWizardBack;
+
+  /// No description provided for @mapWizardDeclaredLand.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঘোষিত জমি: {amount} শতাংশ'**
+  String mapWizardDeclaredLand(String amount);
+
+  /// No description provided for @mapWizardSummaryProperty.
+  ///
+  /// In bn, this message translates to:
+  /// **'সম্পত্তি'**
+  String get mapWizardSummaryProperty;
+
+  /// No description provided for @mapWizardSummaryDag.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ'**
+  String get mapWizardSummaryDag;
+
+  /// No description provided for @mapWizardSummaryArea.
+  ///
+  /// In bn, this message translates to:
+  /// **'আঁকা এলাকা'**
+  String get mapWizardSummaryArea;
+
+  /// No description provided for @mapWizardSummaryMatch.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরএস দাগের সাথে মিল'**
+  String get mapWizardSummaryMatch;
+
+  /// No description provided for @mapWizardMatchValue.
+  ///
+  /// In bn, this message translates to:
+  /// **'{pct}% (আরএস দাগ {dag})'**
+  String mapWizardMatchValue(String pct, String dag);
+
+  /// No description provided for @mapWizardMatchLow.
+  ///
+  /// In bn, this message translates to:
+  /// **'মিল কম — অফিস যাচাই করবে।'**
+  String get mapWizardMatchLow;
+
+  /// No description provided for @mapWizardNoMatch.
+  ///
+  /// In bn, this message translates to:
+  /// **'তুলনা করার মতো আরএস দাগ নেই।'**
+  String get mapWizardNoMatch;
 }
 
 class _AppLocalizationsDelegate

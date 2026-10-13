@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../l10n/app_localizations.dart';
+import '../../../domain/map_legend.dart';
 import '../../../domain/plot_boundary_entities.dart';
 import '../boundary_status_style.dart';
 
 /// Collapsible legend card for the member boundary view (open by default on
 /// wide screens, collapsed on phones — mirrors Angular `legendOpen`).
 class MapLegend extends StatefulWidget {
-  const MapLegend({super.key, this.initiallyOpen});
+  const MapLegend({super.key, this.initiallyOpen, this.simplified = false});
 
   /// Overrides the width-based default (tests).
   final bool? initiallyOpen;
+
+  /// map_wizard: three colours, each with an icon and a word (approved /
+  /// mine / waiting) instead of the five-status list.
+  final bool simplified;
 
   /// Tablet breakpoint at which the legend starts expanded.
   static const double openByDefaultWidth = 768;
@@ -36,6 +41,12 @@ class _MapLegendState extends State<MapLegend> {
       (loc.plotMapStatusPending, BoundaryStatus.pendingReview, false),
       (loc.plotMapStatusRejected, BoundaryStatus.rejected, false),
       (loc.plotMapStatusDisputed, BoundaryStatus.disputed, false),
+    ];
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final simple = [
+      (MapLegendKind.approved, Icons.check_circle, loc.mapWizardLegendApproved),
+      (MapLegendKind.mine, Icons.circle, loc.mapWizardLegendMine),
+      (MapLegendKind.pending, Icons.hourglass_top, loc.mapWizardLegendPending),
     ];
 
     return Material(
@@ -83,18 +94,38 @@ class _MapLegendState extends State<MapLegend> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final (label, status, mine) in items)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 3),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _Swatch(status: status, isMine: mine),
-                          const SizedBox(width: 8),
-                          Text(label, style: const TextStyle(fontSize: 12.5)),
-                        ],
+                  if (widget.simplified)
+                    for (final (kind, icon, label) in simple)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              icon,
+                              size: 18,
+                              color: Color(
+                                dark ? kind.darkArgb : kind.lightArgb,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(label, style: const TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      )
+                  else
+                    for (final (label, status, mine) in items)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _Swatch(status: status, isMine: mine),
+                            const SizedBox(width: 8),
+                            Text(label, style: const TextStyle(fontSize: 12.5)),
+                          ],
+                        ),
                       ),
-                    ),
                 ],
               ),
             ),

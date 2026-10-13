@@ -10,6 +10,7 @@ class AppPreferences {
   static const _themeKey = 'app_theme_mode'; // system|light|dark
   static const _langKey = 'krmf_lang'; // bn (default) | en
   static const _draftKey = 'ukams_registration_draft';
+  static const _mapTourKey = 'krmf_map_tour_v1';
 
   String get themeMode {
     final v = _prefs.getString(_themeKey);
@@ -31,4 +32,9 @@ class AppPreferences {
   Future<void> setRegistrationDraft(String json) => _prefs.setString(_draftKey, json);
 
   Future<void> clearRegistrationDraft() => _prefs.remove(_draftKey);
+
+  /// The first-time tour of the plot map (map_wizard) was seen or skipped.
+  bool get mapTourDone => _prefs.getBool(_mapTourKey) ?? false;
+
+  Future<void> setMapTourDone(bool done) => _prefs.setBool(_mapTourKey, done);
 }

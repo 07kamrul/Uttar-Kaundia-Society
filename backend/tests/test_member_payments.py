@@ -214,25 +214,112 @@ async def test_submit_errors(client: AsyncClient, db_session) -> None:
     assert (r.status_code, r.json()["detail"]["code"]) == (422, "AMOUNT_EXCEEDS_REMAINING")
 
 
-async def test_duplicate_reference_within_and_across_tables(client: AsyncClient, db_session) -> None:
+async def test_same_share_same_reference_twice_is_duplicate(client: AsyncClient, db_session) -> None:
     member = await _setup(db_session)
     share = await _seed_share(db_session, member)
-    due = await _seed_due(db_session, member, [1, 2])
     headers = _member_headers(member)
 
     assert (
         await client.post(SUBMIT, data=_form(share.id, amount="100", ref="DUP12345"), headers=headers)
     ).status_code == 201
     r = await client.post(SUBMIT, data=_form(share.id, amount="100", ref="dup12345"), headers=headers)
+
     assert (r.status_code, r.json()["detail"]["code"]) == (409, "DUPLICATE_TRANSACTION_REF")
 
-    r = await client.post(INST, data=_inst_form(due[0].id, "DUP12345"), headers=headers)
+
+async def test_one_transfer_can_pay_an_installment_and_several_shares(
+    client: AsyncClient, db_session
+) -> None:
+    """One bKash/bank transfer often covers an installment plus several cost
+    shares, so the same member may reuse one live reference across both tables
+    and across shares."""
+    member = await _setup(db_session)
+    share_a = await _seed_share(db_session, member, title="রাস্তা")
+    share_b = await _seed_share(db_session, member, title="ড্রেন")
+    due = await _seed_due(db_session, member, [1])
+    headers = _member_headers(member)
+
+    first = await client.post(SUBMIT, data=_form(share_a.id, amount="100", ref="ONE12345"), headers=headers)
+    second = await client.post(SUBMIT, data=_form(share_b.id, amount="200", ref="ONE12345"), headers=headers)
+    third = await client.post(INST, data=_inst_form(due[0].id, "one12345"), headers=headers)
+
+    assert (first.status_code, second.status_code, third.status_code) == (201, 201, 201), (
+        first.text, second.text, third.text,
+    )
+
+
+async def test_installment_first_then_shares_with_one_reference(client: AsyncClient, db_session) -> None:
+    member = await _setup(db_session)
+    share_a = await _seed_share(db_session, member, title="রাস্তা")
+    share_b = await _seed_share(db_session, member, title="ড্রেন")
+    due = await _seed_due(db_session, member, [1])
+    headers = _member_headers(member)
+
+    assert (await client.post(INST, data=_inst_form(due[0].id, "ONE54321"), headers=headers)).status_code == 201
+    for share in (share_a, share_b):
+        r = await client.post(SUBMIT, data=_form(share.id, amount="100", ref="ONE54321"), headers=headers)
+        assert r.status_code == 201, r.text
+
+
+async def test_reference_held_live_by_another_member_is_duplicate(client: AsyncClient, db_session) -> None:
+    owner = await _setup(db_session)
+    other = await _seed_member(db_session, "other-ref@example.com")
+    owner_share = await _seed_share(db_session, owner)
+    other_share = await _seed_share(db_session, other)
+    owner_due = await _seed_due(db_session, owner, [1])
+    other_due = await _seed_due(db_session, other, [2])
+    owner_headers, other_headers = _member_headers(owner), _member_headers(other)
+    assert (
+        await client.post(SUBMIT, data=_form(owner_share.id, amount="100", ref="OWN12345"), headers=owner_headers)
+    ).status_code == 201
+    assert (
+        await client.post(INST, data=_inst_form(owner_due[0].id, "OWN54321"), headers=owner_headers)
+    ).status_code == 201
+
+    # A cost-share ref blocks the other member in both tables ...
+    r = await client.post(SUBMIT, data=_form(other_share.id, amount="100", ref="OWN12345"), headers=other_headers)
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "DUPLICATE_TRANSACTION_REF")
+    r = await client.post(INST, data=_inst_form(other_due[0].id, "OWN12345"), headers=other_headers)
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "DUPLICATE_TRANSACTION_REF")
+    # ... and so does an installment ref.
+    r = await client.post(SUBMIT, data=_form(other_share.id, amount="100", ref="OWN54321"), headers=other_headers)
+    assert (r.status_code, r.json()["detail"]["code"]) == (409, "DUPLICATE_TRANSACTION_REF")
+    r = await client.post(INST, data=_inst_form(other_due[0].id, "OWN54321"), headers=other_headers)
     assert r.status_code == 409
-    assert r.json()["detail"]["code"] == "DUPLICATE_TRANSACTION_REF"
+
+
+async def test_installment_reference_stays_unique_among_installment_payments(
+    client: AsyncClient, db_session
+) -> None:
+    member = await _setup(db_session)
+    due = await _seed_due(db_session, member, [1, 2])
+    headers = _member_headers(member)
 
     assert (await client.post(INST, data=_inst_form(due[0].id, "INS12345"), headers=headers)).status_code == 201
-    r = await client.post(SUBMIT, data=_form(share.id, amount="100", ref="INS12345"), headers=headers)
-    assert (r.status_code, r.json()["detail"]["code"]) == (409, "DUPLICATE_TRANSACTION_REF")
+    r = await client.post(INST, data=_inst_form(due[1].id, "INS12345"), headers=headers)
+
+    assert r.status_code == 409
+
+
+async def test_rejected_shared_reference_is_released(client: AsyncClient, db_session, admin_user) -> None:
+    member = await _setup(db_session)
+    share = await _seed_share(db_session, member)
+    other = await _seed_member(db_session, "released@example.com")
+    other_share = await _seed_share(db_session, other)
+    headers = _member_headers(member)
+    pid = (
+        await client.post(SUBMIT, data=_form(share.id, amount="100", ref="REL12345"), headers=headers)
+    ).json()["id"]
+    admin_headers = await _admin_headers_login(client)
+    await client.post(
+        f"/api/admin/cost-share-payments/{pid}/reject", json={"reason": "no such trx"}, headers=admin_headers
+    )
+
+    r = await client.post(
+        SUBMIT, data=_form(other_share.id, amount="100", ref="REL12345"), headers=_member_headers(other)
+    )
+
+    assert r.status_code == 201, r.text
 
 
 async def test_admin_account_cannot_submit(client: AsyncClient, db_session, admin_user) -> None:

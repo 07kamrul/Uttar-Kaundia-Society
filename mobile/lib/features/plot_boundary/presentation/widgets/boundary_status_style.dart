@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/map_legend.dart';
 import '../../domain/plot_boundary_entities.dart';
 
 /// Status colours for map polygons and badges, theme-aware (light/dark).
@@ -29,6 +30,13 @@ class BoundaryStatusStyle {
         _pair(context, const Color(0xFF616161), const Color(0xFF9E9E9E)),
     };
   }
+
+  /// map_wizard: the three legend colours (approved / mine / waiting).
+  static (Color fill, Color stroke) legendColors(
+    BuildContext context,
+    MapLegendKind kind,
+  ) =>
+      _pair(context, Color(kind.lightArgb), Color(kind.darkArgb));
 
   static (Color, Color) _pair(BuildContext context, Color light, Color dark) =>
       Theme.of(context).brightness == Brightness.dark

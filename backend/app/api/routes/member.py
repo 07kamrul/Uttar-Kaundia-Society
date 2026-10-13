@@ -24,6 +24,8 @@ from app.core.deps import (
     get_current_member,
     get_current_member_detail,
 )
+from app.core.feature_flags import is_enabled
+from app.core.password_policy import check_new_password
 from app.core.security import (
     ADMIN_ROLES,
     create_access_token,
@@ -46,7 +48,7 @@ from app.schemas.property_request import (
     PropertyRequestOut,
     PropertyRequestPayload,
 )
-from app.schemas.auth import ChangePasswordRequest, ChangePasswordResponse, validate_new_password
+from app.schemas.auth import ChangePasswordRequest, ChangePasswordResponse
 from app.schemas.installment import InstallmentOut
 from app.schemas.member import MemberDetail, MemberProfileUpdate
 from app.schemas.picnic_payment import PicnicPaymentIn, PicnicPaymentOut
@@ -298,11 +300,19 @@ async def change_password(
             },
         )
 
-    errors = validate_new_password(payload.current_password, payload.new_password)
-    if errors:
+    issue = check_new_password(
+        payload.current_password,
+        payload.new_password,
+        policy_v2=await is_enabled(db, "password_policy_v2"),
+    )
+    if issue is not None:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail={"message": next(iter(errors.values())), "errors": errors},
+            detail={
+                "message": issue.message,
+                "errors": {"new_password": issue.message},
+                "code": issue.code,
+            },
         )
 
     credential.password_hash = await hash_password_async(payload.new_password)

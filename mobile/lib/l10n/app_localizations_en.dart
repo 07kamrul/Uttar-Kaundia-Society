@@ -6731,4 +6731,189 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mpayStatusRejectedShort => 'Rejected';
+
+  @override
+  String get mapWizardMoreLayers => 'More layers';
+
+  @override
+  String get mapWizardLayersTitle => 'Map layers';
+
+  @override
+  String get mapWizardLayerMine => 'My land';
+
+  @override
+  String get mapWizardLayerBds => 'Government mouza map (BDS)';
+
+  @override
+  String get mapWizardLayerRajuk => 'RAJUK RS plots';
+
+  @override
+  String get mapWizardLayerSatellite => 'Satellite';
+
+  @override
+  String get mapWizardShowMap => 'Show the map';
+
+  @override
+  String get mapWizardShowMapHint => 'Uses internet data';
+
+  @override
+  String get mapWizardLegendApproved => 'Approved';
+
+  @override
+  String get mapWizardLegendMine => 'Mine';
+
+  @override
+  String get mapWizardLegendPending => 'Waiting';
+
+  @override
+  String get mapWizardDisputeNote => '⚠ Under dispute';
+
+  @override
+  String get mapWizardShortNotice =>
+      'This is an approximate boundary — not a substitute for the government survey or the deed.';
+
+  @override
+  String get mapWizardNoticeMore => 'Details';
+
+  @override
+  String get mapWizardHelpTooltip => 'Help';
+
+  @override
+  String get mapWizardTourAgain => 'Show the tour again';
+
+  @override
+  String get mapWizardTourSkip => 'Skip';
+
+  @override
+  String get mapWizardTourNext => 'Next';
+
+  @override
+  String get mapWizardTourDone => 'Got it';
+
+  @override
+  String mapWizardTourCounter(String n, String total) {
+    return '$n of $total';
+  }
+
+  @override
+  String get mapWizardTourLayers =>
+      'Tap here for the government mouza map, RAJUK plots and satellite.';
+
+  @override
+  String get mapWizardTourLegend =>
+      'Colours are explained here: green approved, blue yours, amber waiting.';
+
+  @override
+  String get mapWizardTourDraw => 'Tap here to draw your plot boundary.';
+
+  @override
+  String get mapWizardTourHelp =>
+      'Need help? Tap ? — you can replay this tour from there.';
+
+  @override
+  String mapWizardStepHeader(String n, String title) {
+    return 'Step $n of 3 — $title';
+  }
+
+  @override
+  String get mapWizardStepFind => 'Find your plot';
+
+  @override
+  String get mapWizardStepAdjust => 'Set the boundary';
+
+  @override
+  String get mapWizardStepSubmit => 'Submit';
+
+  @override
+  String get mapWizardSearching => 'Looking for the plot…';
+
+  @override
+  String get mapWizardNoDagOnPlot =>
+      'This property has no RS dag number. Search another plot or draw it yourself.';
+
+  @override
+  String get mapWizardFoundOne => 'The plot is marked on the map.';
+
+  @override
+  String mapWizardFoundMany(String count) {
+    return '$count plots found — choose yours.';
+  }
+
+  @override
+  String get mapWizardLookupFailed =>
+      'Could not look up the plot. Try again or draw it yourself.';
+
+  @override
+  String mapWizardCandidate(String dag, String sheet) {
+    return 'RS plot $dag · sheet $sheet';
+  }
+
+  @override
+  String mapWizardCandidateNoSheet(String dag) {
+    return 'RS plot $dag';
+  }
+
+  @override
+  String get mapWizardThisIsMine => 'This is my plot';
+
+  @override
+  String get mapWizardOtherDag => 'Search another plot';
+
+  @override
+  String get mapWizardNotFoundDraw => 'Can\'t find it — draw it myself';
+
+  @override
+  String get mapWizardDagFieldLabel => 'RS dag number';
+
+  @override
+  String get mapWizardSearchButton => 'Search';
+
+  @override
+  String get mapWizardStartFromDag => 'Start from the plot';
+
+  @override
+  String get mapWizardDrawMyself => 'Draw it myself';
+
+  @override
+  String get mapWizardUndoText => 'Undo one step';
+
+  @override
+  String get mapWizardRedoText => 'Redo';
+
+  @override
+  String get mapWizardClearAll => 'Clear all and start again';
+
+  @override
+  String get mapWizardNext => 'Next';
+
+  @override
+  String get mapWizardBack => 'Back';
+
+  @override
+  String mapWizardDeclaredLand(String amount) {
+    return 'Declared land: $amount shotangsho';
+  }
+
+  @override
+  String get mapWizardSummaryProperty => 'Property';
+
+  @override
+  String get mapWizardSummaryDag => 'Dag';
+
+  @override
+  String get mapWizardSummaryArea => 'Drawn area';
+
+  @override
+  String get mapWizardSummaryMatch => 'Match with the RS plot';
+
+  @override
+  String mapWizardMatchValue(String pct, String dag) {
+    return '$pct% (RS plot $dag)';
+  }
+
+  @override
+  String get mapWizardMatchLow => 'Low match — the office will check.';
+
+  @override
+  String get mapWizardNoMatch => 'There is no RS plot to compare with.';
 }

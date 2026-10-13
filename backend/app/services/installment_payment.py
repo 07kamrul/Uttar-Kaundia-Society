@@ -123,7 +123,9 @@ async def _load_payable_installments(
     return sorted(installments, key=lambda i: (i.year, i.month))
 
 
-async def _ensure_unique_reference(db: AsyncSession, method: str, transaction_ref: str) -> None:
+async def _ensure_unique_reference(
+    db: AsyncSession, member_id: int, method: str, transaction_ref: str
+) -> None:
     existing = await db.execute(
         select(InstallmentPayment.id).where(
             InstallmentPayment.method == method,
@@ -136,12 +138,15 @@ async def _ensure_unique_reference(db: AsyncSession, method: str, transaction_re
             status_code=status.HTTP_409_CONFLICT,
             detail="This transaction ID has already been submitted.",
         )
-    # The same transaction must not back a live cost-share payment either.
+    # One transfer can pay a member's installments and cost shares together, so
+    # a live cost-share payment only blocks the reference when it belongs to
+    # another member.
     in_cost_shares = await db.execute(
         select(CostSharePayment.id).where(
             CostSharePayment.method == method,
             CostSharePayment.transaction_ref == transaction_ref,
             CostSharePayment.status != PAYMENT_STATUS_REJECTED,
+            CostSharePayment.member_id != member_id,
         )
     )
     if in_cost_shares.first() is not None:
@@ -172,7 +177,7 @@ async def submit_payment(
     canonical_method = await _validate_method(db, method)
     reference = transaction_ref.strip().upper()
     installments = await _load_payable_installments(db, member.id, installment_ids)
-    await _ensure_unique_reference(db, canonical_method, reference)
+    await _ensure_unique_reference(db, member.id, canonical_method, reference)
 
     payment = InstallmentPayment(
         member_id=member.id,

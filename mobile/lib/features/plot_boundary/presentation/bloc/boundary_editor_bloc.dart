@@ -17,6 +17,12 @@ part 'boundary_editor_state.dart';
 
 enum EditorStatus { loading, ready, saving, saved, failure }
 
+/// The three screens of the map_wizard editor ("ধাপ n / ৩").
+enum EditorStep { find, adjust, submit }
+
+/// Undo/redo keeps at most this many snapshots in the wizard.
+const int kEditorHistoryLimit = 50;
+
 class BoundaryEditorBloc
     extends Bloc<BoundaryEditorEvent, BoundaryEditorState> {
   BoundaryEditorBloc({
@@ -24,15 +30,25 @@ class BoundaryEditorBloc
     GetMyBoundaries? getMyBoundaries,
     SaveBoundary? saveBoundary,
     SocietyBbox? society,
+    bool wizard = false,
   })  : _injectedProperties = getMyProperties,
         _injectedBoundaries = getMyBoundaries,
         _injectedSave = saveBoundary,
-        super(BoundaryEditorState(society: society)) {
+        _wizard = wizard,
+        super(BoundaryEditorState(
+          society: society,
+          step: wizard ? EditorStep.find : EditorStep.adjust,
+        )) {
     on<EditorStarted>(_onStarted);
     on<EditorVertexAdded>(_onVertexAdded);
     on<EditorVertexMoved>(_onVertexMoved);
+    on<EditorVertexMoveStarted>(_onVertexMoveStarted);
+    on<EditorVertexMoveEnded>((_, __) => _dragging = false);
     on<EditorVertexRemoved>(_onVertexRemoved);
     on<EditorUndoPressed>(_onUndo);
+    on<EditorRedoPressed>(_onRedo);
+    on<EditorPrefilledFromDag>(_onPrefilled);
+    on<EditorStepChanged>((e, emit) => emit(state.copyWith(step: e.step)));
     on<EditorCleared>(_onClear);
     on<EditorPropertyChanged>(_onPropertyChanged);
     on<EditorExistingLoaded>(_onExistingLoaded);
@@ -42,6 +58,24 @@ class BoundaryEditorBloc
   final GetMyProperties? _injectedProperties;
   final GetMyBoundaries? _injectedBoundaries;
   final SaveBoundary? _injectedSave;
+
+  /// map_wizard: three steps, bounded history, one undo step per drag.
+  final bool _wizard;
+  bool _dragging = false;
+
+  /// Undo/redo cap; null (legacy editor) keeps everything.
+  int? get _historyLimit => _wizard ? kEditorHistoryLimit : null;
+
+  List<List<LatLng>> _pushed(List<List<LatLng>> stack, List<LatLng> snapshot) {
+    final next = [...stack, snapshot];
+    final limit = _historyLimit;
+    return limit != null && next.length > limit
+        ? next.sublist(next.length - limit)
+        : next;
+  }
+
+  static bool _hasAnyDag(OwnProperty p) =>
+      (p.rsDag ?? '').trim().isNotEmpty || (p.csDag ?? '').trim().isNotEmpty;
 
   // Lazily resolved DI defaults so tests can inject without a GetIt setup.
   late final GetMyProperties _getMyProperties = _injectedProperties ??
@@ -74,12 +108,20 @@ class BoundaryEditorBloc
       } else if (available.isNotEmpty) {
         selected = available.first.propertyId;
       }
+      final selectedProperty = [
+        for (final p in properties)
+          if (p.propertyId == selected) p,
+      ].firstOrNull;
+      // A plot with no dag number cannot be looked up: draw it freehand.
+      final skipFind = event.editing != null ||
+          (selectedProperty != null && !_hasAnyDag(selectedProperty));
       emit(state.copyWith(
         status: EditorStatus.ready,
         properties: properties,
         availableProperties: available,
         boundaries: boundaries,
         selectedPropertyId: selected,
+        step: _wizard && skipFind ? EditorStep.adjust : null,
         clearFailure: true,
       ));
       if (event.editing != null) {
@@ -119,8 +161,21 @@ class BoundaryEditorBloc
     if (state.vertices.length >= BoundaryValidation.maxVertices) return;
     emit(state.copyWith(
       vertices: [...state.vertices, event.point],
-      undoStack: [...state.undoStack, state.vertices],
+      undoStack: _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
       clearFailure: true,
+    ));
+  }
+
+  void _onVertexMoveStarted(
+    EditorVertexMoveStarted event,
+    Emitter<BoundaryEditorState> emit,
+  ) {
+    if (event.index < 0 || event.index >= state.vertices.length) return;
+    _dragging = true;
+    emit(state.copyWith(
+      undoStack: _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
     ));
   }
 
@@ -132,7 +187,12 @@ class BoundaryEditorBloc
     final next = [...state.vertices];
     next[event.index] = event.point;
     emit(state.copyWith(
-        vertices: next, undoStack: [...state.undoStack, state.vertices]));
+      vertices: next,
+      undoStack: _dragging
+          ? state.undoStack
+          : _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
+    ));
   }
 
   void _onVertexRemoved(
@@ -142,7 +202,10 @@ class BoundaryEditorBloc
     if (event.index < 0 || event.index >= state.vertices.length) return;
     final next = [...state.vertices]..removeAt(event.index);
     emit(state.copyWith(
-        vertices: next, undoStack: [...state.undoStack, state.vertices]));
+      vertices: next,
+      undoStack: _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
+    ));
   }
 
   void _onUndo(
@@ -154,6 +217,35 @@ class BoundaryEditorBloc
     emit(state.copyWith(
       vertices: stack.removeLast(),
       undoStack: stack,
+      redoStack: _pushed(state.redoStack, state.vertices),
+    ));
+  }
+
+  void _onRedo(
+    EditorRedoPressed event,
+    Emitter<BoundaryEditorState> emit,
+  ) {
+    final stack = [...state.redoStack];
+    if (stack.isEmpty) return;
+    emit(state.copyWith(
+      vertices: stack.removeLast(),
+      redoStack: stack,
+      undoStack: _pushed(state.undoStack, state.vertices),
+    ));
+  }
+
+  void _onPrefilled(
+    EditorPrefilledFromDag event,
+    Emitter<BoundaryEditorState> emit,
+  ) {
+    final ring = [...event.ring];
+    if (ring.length > 1 && ring.first == ring.last) ring.removeLast();
+    if (ring.length < 3) return;
+    emit(state.copyWith(
+      vertices: ring,
+      undoStack: _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
+      clearFailure: true,
     ));
   }
 
@@ -165,7 +257,8 @@ class BoundaryEditorBloc
     emit(state.copyWith(
       vertices: const [],
       clearVertices: true,
-      undoStack: [...state.undoStack, state.vertices],
+      undoStack: _pushed(state.undoStack, state.vertices),
+      redoStack: const [],
     ));
   }
 

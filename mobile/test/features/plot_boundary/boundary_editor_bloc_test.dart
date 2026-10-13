@@ -337,6 +337,227 @@ void main() {
       expect(bloc.state.canSave, isFalse);
     });
   });
+
+  group('map_wizard: redo, prefill and steps', () {
+    BoundaryEditorBloc buildWizard() => BoundaryEditorBloc(
+          getMyProperties: GetMyProperties(repo),
+          getMyBoundaries: GetMyBoundaries(repo),
+          saveBoundary: SaveBoundary(repo),
+          wizard: true,
+        );
+
+    Future<BoundaryEditorBloc> started(BoundaryEditorBloc b,
+        {PlotBoundary? editing}) async {
+      b.add(EditorStarted(editing: editing));
+      await b.stream.firstWhere((s) => s.status == EditorStatus.ready);
+      return b;
+    }
+
+    const a = LatLng(23.80, 90.40);
+    const b2 = LatLng(23.81, 90.40);
+    const c = LatLng(23.81, 90.41);
+
+    test('undo moves the shape to the redo stack and redo brings it back',
+        () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc
+        ..add(const EditorVertexAdded(a))
+        ..add(const EditorVertexAdded(b2));
+      await pumpEventQueue();
+
+      bloc.add(const EditorUndoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.vertices, [a]);
+      expect(bloc.state.canRedo, isTrue);
+      expect(bloc.state.canUndo, isTrue, reason: 'undo clears nothing else');
+
+      bloc.add(const EditorRedoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.vertices, [a, b2]);
+      expect(bloc.state.canRedo, isFalse);
+    });
+
+    test('any new edit clears the redo stack', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc
+        ..add(const EditorVertexAdded(a))
+        ..add(const EditorVertexAdded(b2))
+        ..add(const EditorUndoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.canRedo, isTrue);
+
+      bloc.add(const EditorVertexAdded(c));
+      await pumpEventQueue();
+      expect(bloc.state.vertices, [a, c]);
+      expect(bloc.state.canRedo, isFalse);
+
+      bloc
+        ..add(const EditorUndoPressed())
+        ..add(const EditorCleared());
+      await pumpEventQueue();
+      expect(bloc.state.canRedo, isFalse, reason: 'clear is an edit too');
+    });
+
+    test('redo with nothing to redo is a no-op', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      final before = bloc.state;
+      bloc.add(const EditorRedoPressed());
+      await pumpEventQueue();
+      expect(bloc.state, before);
+    });
+
+    test('a pre-filled RS ring becomes the shape and can be undone', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc
+        ..add(const EditorVertexAdded(a))
+        ..add(EditorPrefilledFromDag([a, b2, c, a])); // closed ring
+      await pumpEventQueue();
+
+      expect(bloc.state.vertices, [a, b2, c],
+          reason: 'the closing vertex is dropped (open ring)');
+      expect(bloc.state.canRedo, isFalse);
+
+      bloc.add(const EditorUndoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.vertices, [a], reason: 'undo goes back to before');
+      bloc.add(const EditorRedoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.vertices, [a, b2, c]);
+    });
+
+    test('pre-filling clears a pending redo and ignores an empty ring',
+        () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc
+        ..add(const EditorVertexAdded(a))
+        ..add(const EditorUndoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.canRedo, isTrue);
+
+      bloc.add(const EditorPrefilledFromDag([]));
+      await pumpEventQueue();
+      expect(bloc.state.canRedo, isTrue, reason: 'empty ring ignored');
+
+      bloc.add(EditorPrefilledFromDag([a, b2, c]));
+      await pumpEventQueue();
+      expect(bloc.state.canRedo, isFalse);
+    });
+
+    test('history keeps at most 50 snapshots', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      for (var i = 0; i < 60; i++) {
+        bloc.add(EditorVertexAdded(LatLng(23.80 + i * 0.0001, 90.40)));
+      }
+      await pumpEventQueue();
+      expect(bloc.state.vertices, hasLength(60));
+      expect(bloc.state.undoStack, hasLength(50));
+
+      for (var i = 0; i < 50; i++) {
+        bloc.add(const EditorUndoPressed());
+      }
+      await pumpEventQueue();
+      expect(bloc.state.vertices, hasLength(10));
+      expect(bloc.state.redoStack, hasLength(50));
+    });
+
+    test('a whole vertex drag is a single undo step', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc
+        ..add(const EditorVertexAdded(a))
+        ..add(const EditorVertexAdded(b2))
+        ..add(const EditorVertexAdded(c));
+      await pumpEventQueue();
+      final before = bloc.state.undoStack.length;
+
+      bloc
+        ..add(const EditorVertexMoveStarted(1))
+        ..add(const EditorVertexMoved(1, LatLng(23.811, 90.401)))
+        ..add(const EditorVertexMoved(1, LatLng(23.812, 90.402)))
+        ..add(const EditorVertexMoved(1, LatLng(23.813, 90.403)))
+        ..add(const EditorVertexMoveEnded());
+      await pumpEventQueue();
+      expect(bloc.state.vertices[1], const LatLng(23.813, 90.403));
+      expect(bloc.state.undoStack.length, before + 1);
+
+      bloc.add(const EditorUndoPressed());
+      await pumpEventQueue();
+      expect(bloc.state.vertices[1], b2, reason: 'one undo restores the vertex');
+    });
+
+    test('wizard starts at the find step; the legacy editor does not',
+        () async {
+      final wizard = await started(buildWizard());
+      addTearDown(wizard.close);
+      expect(wizard.state.step, EditorStep.find);
+
+      final legacy = await started(build());
+      addTearDown(legacy.close);
+      expect(legacy.state.step, EditorStep.adjust);
+    });
+
+    test('editing an existing boundary skips the find step', () async {
+      final bloc = await started(
+        buildWizard(),
+        editing: PlotBoundary(
+          id: 'b1',
+          propertyId: 'p1',
+          status: BoundaryStatus.approved,
+          points: _square,
+          isMine: true,
+        ),
+      );
+      addTearDown(bloc.close);
+      await pumpEventQueue();
+      expect(bloc.state.step, EditorStep.adjust);
+      expect(bloc.state.vertices, _square);
+    });
+
+    test('a plot with no dag number at all skips straight to free drawing',
+        () async {
+      when(() => repo.getMyProperties()).thenAnswer((_) async => [
+            const OwnProperty(propertyId: 'p9'),
+          ]);
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      expect(bloc.state.step, EditorStep.adjust);
+    });
+
+    test('steps are changed explicitly', () async {
+      final bloc = await started(buildWizard());
+      addTearDown(bloc.close);
+      bloc.add(const EditorStepChanged(EditorStep.submit));
+      await pumpEventQueue();
+      expect(bloc.state.step, EditorStep.submit);
+      bloc.add(const EditorStepChanged(EditorStep.find));
+      await pumpEventQueue();
+      expect(bloc.state.step, EditorStep.find);
+    });
+
+    test('legacy editor: history is unbounded and a drag still logs each move',
+        () async {
+      final bloc = await started(build());
+      addTearDown(bloc.close);
+      for (var i = 0; i < 60; i++) {
+        bloc.add(EditorVertexAdded(LatLng(23.80 + i * 0.0001, 90.40)));
+      }
+      await pumpEventQueue();
+      expect(bloc.state.undoStack, hasLength(60));
+
+      final before = bloc.state.undoStack.length;
+      bloc
+        ..add(const EditorVertexMoved(1, LatLng(23.81, 90.41)))
+        ..add(const EditorVertexMoved(1, LatLng(23.82, 90.42)));
+      await pumpEventQueue();
+      expect(bloc.state.undoStack.length, before + 2);
+    });
+  });
 }
 
 ApiException _dioError(int status, Object? data) {

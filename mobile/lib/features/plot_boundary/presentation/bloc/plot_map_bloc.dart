@@ -9,6 +9,7 @@ import '../../../../core/network/api_exception.dart';
 import '../../data/plot_boundary_repository_impl.dart';
 import '../../domain/dag_number.dart';
 import '../../domain/geo.dart';
+import '../../domain/map_tile_session.dart';
 import '../../domain/plot_boundary_entities.dart';
 import '../../domain/plot_boundary_failure.dart';
 import '../../domain/plot_boundary_repository.dart';
@@ -23,16 +24,21 @@ class PlotMapBloc extends Bloc<PlotMapEvent, PlotMapState> {
     GetPlotMap? getPlotMap,
     GetBoundaryOwner? getBoundaryOwner,
     Duration debounce = const Duration(milliseconds: 300),
+    bool tilesRequested = true,
   })  : _debounce = debounce,
         _injectedGetPlotMap = getPlotMap,
         _injectedGetOwner = getBoundaryOwner,
-        super(const PlotMapState()) {
+        super(PlotMapState(tilesRequested: tilesRequested)) {
     on<PlotMapMoved>(_onMapMoved);
     on<PlotMapRefreshRequested>(_onRefresh);
     on<PlotMapLayerChanged>(_onLayerChanged);
     on<PlotMapBoundarySelected>(_onBoundarySelected);
     on<PlotMapOwnerRequested>(_onOwnerRequested);
     on<PlotMapSearchRequested>(_onSearch);
+    on<PlotMapTilesRequested>(_onTilesRequested);
+    on<PlotMapTileGateSet>(
+      (e, emit) => emit(state.copyWith(tilesRequested: e.requested)),
+    );
   }
 
   final Duration _debounce;
@@ -97,6 +103,14 @@ class PlotMapBloc extends Bloc<PlotMapEvent, PlotMapState> {
         failureKind: PlotBoundaryFailureKind.other,
       ));
     }
+  }
+
+  void _onTilesRequested(
+    PlotMapTilesRequested event,
+    Emitter<PlotMapState> emit,
+  ) {
+    MapTileSession.remember();
+    if (!state.tilesRequested) emit(state.copyWith(tilesRequested: true));
   }
 
   void _onLayerChanged(

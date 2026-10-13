@@ -28,7 +28,11 @@ class BoundaryOwnerSheet extends StatelessWidget {
     required this.onReport,
     required this.onRetry,
     this.reported = false,
+    this.wizard = false,
   });
+
+  /// map_wizard: a disputed shape shows "⚠ বিরোধ চলছে" under its status.
+  final bool wizard;
 
   final OwnerLoadStatus status;
 
@@ -122,6 +126,18 @@ class BoundaryOwnerSheet extends StatelessWidget {
                     label: _statusLabel(context, feature!.status),
                   ),
                 ],
+              ),
+            ),
+          if (wizard && feature?.status == BoundaryStatus.disputed)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                loc.mapWizardDisputeNote,
+                key: const Key('disputeNote'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           const SizedBox(height: 8),

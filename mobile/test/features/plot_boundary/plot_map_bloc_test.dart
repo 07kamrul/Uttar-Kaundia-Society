@@ -6,6 +6,7 @@ import 'package:kaundia_app/features/plot_boundary/domain/geo.dart';
 import 'package:kaundia_app/features/plot_boundary/domain/plot_boundary_entities.dart';
 import 'package:kaundia_app/features/plot_boundary/domain/plot_boundary_failure.dart';
 import 'package:kaundia_app/features/plot_boundary/domain/plot_boundary_repository.dart';
+import 'package:kaundia_app/features/plot_boundary/domain/map_tile_session.dart';
 import 'package:kaundia_app/features/plot_boundary/presentation/bloc/plot_map_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -237,5 +238,57 @@ void main() {
       wait: const Duration(milliseconds: 50),
       verify: (b) => expect(b.state.highlightedBoundaryId, isNull),
     );
+  });
+
+  group('map_wizard tile gate', () {
+    test('tiles are requested by default (flag off: unchanged)', () {
+      expect(build().state.tilesRequested, isTrue);
+    });
+
+    blocTest<PlotMapBloc, PlotMapState>(
+      'with the gate on, tiles stay off until the member asks for the map',
+      build: () => PlotMapBloc(
+        getPlotMap: GetPlotMap(repo),
+        getBoundaryOwner: GetBoundaryOwner(repo),
+        debounce: Duration.zero,
+        tilesRequested: false,
+      ),
+      act: (b) => b.add(const PlotMapTilesRequested()),
+      expect: () => [
+        isA<PlotMapState>().having((s) => s.tilesRequested, 'tiles', isTrue),
+      ],
+      verify: (b) => expect(b.state.tilesRequested, isTrue),
+    );
+
+    test('the gate starts closed and asking twice changes nothing', () async {
+      final b = PlotMapBloc(
+        getPlotMap: GetPlotMap(repo),
+        getBoundaryOwner: GetBoundaryOwner(repo),
+        debounce: Duration.zero,
+        tilesRequested: false,
+      );
+      addTearDown(b.close);
+      expect(b.state.tilesRequested, isFalse);
+      b.add(const PlotMapTilesRequested());
+      b.add(const PlotMapTilesRequested());
+      await pumpEventQueue();
+      expect(b.state.tilesRequested, isTrue);
+    });
+
+    test('requesting tiles remembers the choice for the session', () async {
+      MapTileSession.reset();
+      final b = PlotMapBloc(
+        getPlotMap: GetPlotMap(repo),
+        getBoundaryOwner: GetBoundaryOwner(repo),
+        debounce: Duration.zero,
+        tilesRequested: false,
+      );
+      addTearDown(b.close);
+      expect(MapTileSession.ok, isFalse);
+      b.add(const PlotMapTilesRequested());
+      await pumpEventQueue();
+      expect(MapTileSession.ok, isTrue);
+      MapTileSession.reset();
+    });
   });
 }

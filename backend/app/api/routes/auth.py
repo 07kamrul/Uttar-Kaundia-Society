@@ -7,6 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.feature_flags import is_enabled
+from app.core.password_policy import check_new_password
 from app.core.rate_limit import SlidingWindowRateLimiter
 from app.core.permissions import ROLE_DEFAULT_PERMISSIONS, get_effective_permissions
 from app.core.deps import AccountActor, get_account_actor
@@ -32,7 +34,6 @@ from app.schemas.auth import (
     ResetPasswordOK,
     ResetPasswordRequest,
     TokenResponse,
-    validate_new_password,
 )
 from app.services.audit import record_audit
 from app.services.email import send_email
@@ -281,9 +282,11 @@ async def forgot_password(
 async def reset_password(
     payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)
 ) -> ResetPasswordOK:
-    if errors := validate_new_password("", payload.new_password):
+    policy_v2 = await is_enabled(db, "password_policy_v2")
+    if issue := check_new_password("", payload.new_password, policy_v2=policy_v2):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"errors": errors}
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"errors": {"new_password": issue.message}, "code": issue.code},
         )
 
     row = (

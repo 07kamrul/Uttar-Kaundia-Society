@@ -22,6 +22,12 @@ class MapTopBar extends StatelessWidget {
     required this.onDraw,
     required this.onModeChanged,
     this.notices = const [],
+    this.wizard = false,
+    this.onLayers,
+    this.onTourAgain,
+    this.layersKey,
+    this.helpKey,
+    this.drawKey,
   });
 
   final MapMode mode;
@@ -38,6 +44,16 @@ class MapTopBar extends StatelessWidget {
 
   /// Short warnings under the tabs (dag not found, location error...).
   final List<String> notices;
+
+  /// map_wizard: "আরও লেয়ার" and a "?" menu replace the mode tabs.
+  final bool wizard;
+  final VoidCallback? onLayers;
+  final VoidCallback? onTourAgain;
+
+  /// Coach-mark targets of the first-time tour.
+  final GlobalKey? layersKey;
+  final GlobalKey? helpKey;
+  final GlobalKey? drawKey;
 
   /// Below this width the draw button collapses to an icon.
   static const double _wideLayoutWidth = 420;
@@ -76,27 +92,118 @@ class MapTopBar extends StatelessWidget {
             ),
             if (showDraw) ...[
               const SizedBox(width: 8),
-              wide
-                  ? FilledButton.icon(
-                      onPressed: onDraw,
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(48, 48),
+              KeyedSubtree(
+                key: drawKey,
+                child: wide
+                    ? FilledButton.icon(
+                        onPressed: onDraw,
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                        ),
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: Text(loc.plotMapDrawOpen),
+                      )
+                    : _RoundButton(
+                        tooltip: loc.plotMapDrawOpen,
+                        filled: true,
+                        onPressed: onDraw,
+                        child: const Icon(Icons.edit_outlined, size: 20),
                       ),
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: Text(loc.plotMapDrawOpen),
-                    )
-                  : _RoundButton(
-                      tooltip: loc.plotMapDrawOpen,
-                      filled: true,
-                      onPressed: onDraw,
-                      child: const Icon(Icons.edit_outlined, size: 20),
-                    ),
+              ),
             ],
           ],
         ),
         const SizedBox(height: 8),
-        MapModeTabs(mode: mode, onChanged: onModeChanged),
+        if (wizard)
+          _WizardBar(
+            onLayers: onLayers,
+            onTourAgain: onTourAgain,
+            layersKey: layersKey,
+            helpKey: helpKey,
+          )
+        else
+          MapModeTabs(mode: mode, onChanged: onModeChanged),
         for (final notice in notices) _Notice(text: notice),
+      ],
+    );
+  }
+}
+
+/// map_wizard: one "আরও লেয়ার" button and the "?" help menu.
+class _WizardBar extends StatelessWidget {
+  const _WizardBar({
+    this.onLayers,
+    this.onTourAgain,
+    this.layersKey,
+    this.helpKey,
+  });
+
+  final VoidCallback? onLayers;
+  final VoidCallback? onTourAgain;
+  final GlobalKey? layersKey;
+  final GlobalKey? helpKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(
+          child: KeyedSubtree(
+            key: layersKey,
+            child: Material(
+              elevation: 3,
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                key: const Key('moreLayersButton'),
+                borderRadius: BorderRadius.circular(16),
+                onTap: onLayers,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.layers_outlined, color: scheme.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        loc.mapWizardMoreLayers,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        KeyedSubtree(
+          key: helpKey,
+          child: Material(
+            elevation: 3,
+            color: scheme.surface,
+            shape: const CircleBorder(),
+            child: PopupMenuButton<int>(
+              key: const Key('mapHelpMenu'),
+              tooltip: loc.mapWizardHelpTooltip,
+              icon: const Icon(Icons.help_outline),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              onSelected: (_) => onTourAgain?.call(),
+              itemBuilder: (_) => [
+                PopupMenuItem<int>(
+                  value: 0,
+                  height: 48,
+                  child: Text(loc.mapWizardTourAgain),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

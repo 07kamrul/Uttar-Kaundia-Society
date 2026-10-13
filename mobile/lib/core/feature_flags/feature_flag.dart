@@ -13,7 +13,19 @@ enum FeatureFlag {
   navMergedEntries('nav_merged_entries'),
   navAdvancedSection('nav_advanced_section'),
   payMergedPage('pay_merged_page'),
-  navFiveAreas('nav_five_areas');
+  navFiveAreas('nav_five_areas'),
+  // Batch 4: plot map wizard.
+  mapWizard('map_wizard'),
+  // Batch 5: admin console. feeWizard is Angular-only for now.
+  adminConsole('admin_console'),
+  adminBulkVerify('admin_bulk_verify'),
+  feeWizard('fee_wizard'),
+  // Batch 6: login by mobile / member email (password_policy_v2 is above).
+  loginByPhone('login_by_phone'),
+  // Batch 7: accessibility, data saver, network banner.
+  uiA11yV2('ui_a11y_v2'),
+  dataSaver('data_saver'),
+  netStatusBanner('net_status_banner');
 
   const FeatureFlag(this.key);
 

@@ -16,6 +16,7 @@ class PlotMapState extends Equatable {
     this.owner,
     this.ownerFailureKind,
     this.failureKind,
+    this.tilesRequested = true,
   });
 
   final PlotMapStatus status;
@@ -31,6 +32,11 @@ class PlotMapState extends Equatable {
   /// Set when the owner lookup fails (rate limit, not approved, network...).
   final PlotBoundaryFailureKind? ownerFailureKind;
   final PlotBoundaryFailureKind? failureKind;
+
+  /// map_wizard data-saver start: false until the member taps "মানচিত্র
+  /// দেখুন", so no basemap tile is downloaded before then. Always true with
+  /// the flag off.
+  final bool tilesRequested;
 
   BoundaryFeature? get selectedFeature {
     final id = selectedBoundaryId;
@@ -57,6 +63,7 @@ class PlotMapState extends Equatable {
     bool clearOwnerFailure = false,
     PlotBoundaryFailureKind? failureKind,
     bool clearFailure = false,
+    bool? tilesRequested,
   }) {
     return PlotMapState(
       status: status ?? this.status,
@@ -75,6 +82,7 @@ class PlotMapState extends Equatable {
           ? null
           : (ownerFailureKind ?? this.ownerFailureKind),
       failureKind: clearFailure ? null : (failureKind ?? this.failureKind),
+      tilesRequested: tilesRequested ?? this.tilesRequested,
     );
   }
 
@@ -90,5 +98,6 @@ class PlotMapState extends Equatable {
         owner,
         ownerFailureKind,
         failureKind,
+        tilesRequested,
       ];
 }

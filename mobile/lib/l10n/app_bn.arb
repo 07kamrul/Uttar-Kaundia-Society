@@ -2151,5 +2151,121 @@
   "apiErrorAmountExceedsRemaining": "পরিমাণ বাকি টাকার চেয়ে বেশি।",
   "apiErrorFeatureDisabled": "এই সুবিধা এখন চালু নেই।",
   "apiErrorInvalidBdMobile": "সঠিক বাংলাদেশি মোবাইল নম্বর দিন।",
-  "mpayStatusRejectedShort": "বাতিল"
+  "mpayStatusRejectedShort": "বাতিল",
+  "mapWizardMoreLayers": "আরও লেয়ার",
+  "mapWizardLayersTitle": "মানচিত্রের লেয়ার",
+  "mapWizardLayerMine": "আমার জমি",
+  "mapWizardLayerBds": "সরকারি মৌজা ম্যাপ (BDS)",
+  "mapWizardLayerRajuk": "রাজউক RS দাগ",
+  "mapWizardLayerSatellite": "স্যাটেলাইট",
+  "mapWizardShowMap": "মানচিত্র দেখুন",
+  "mapWizardShowMapHint": "ইন্টারনেট ডেটা খরচ হবে",
+  "mapWizardLegendApproved": "অনুমোদিত",
+  "mapWizardLegendMine": "আমার",
+  "mapWizardLegendPending": "অপেক্ষায়",
+  "mapWizardDisputeNote": "⚠ বিরোধ চলছে",
+  "mapWizardShortNotice": "এটি আনুমানিক সীমানা — সরকারি জরিপ বা দলিলের বিকল্প নয়।",
+  "mapWizardNoticeMore": "বিস্তারিত",
+  "mapWizardHelpTooltip": "সাহায্য",
+  "mapWizardTourAgain": "আবার দেখুন",
+  "mapWizardTourSkip": "বাদ দিন",
+  "mapWizardTourNext": "পরের",
+  "mapWizardTourDone": "বুঝেছি",
+  "mapWizardTourCounter": "{n} / {total}",
+  "@mapWizardTourCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardTourLayers": "এখানে চাপলে সরকারি মৌজা ম্যাপ, রাজউক দাগ ও স্যাটেলাইট দেখতে পারবেন।",
+  "mapWizardTourLegend": "রঙের অর্থ এখানে দেখুন: সবুজ অনুমোদিত, নীল আপনার, হলুদ অপেক্ষায়।",
+  "mapWizardTourDraw": "নিজের জমির সীমানা আঁকতে এখানে চাপুন।",
+  "mapWizardTourHelp": "সাহায্য লাগলে এই ? বোতাম চাপুন; এখান থেকে এই পরিচিতি আবার দেখা যাবে।",
+  "mapWizardStepHeader": "ধাপ {n} / ৩ — {title}",
+  "@mapWizardStepHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardStepFind": "দাগ খুঁজুন",
+  "mapWizardStepAdjust": "সীমানা ঠিক করুন",
+  "mapWizardStepSubmit": "জমা দিন",
+  "mapWizardSearching": "দাগ খোঁজা হচ্ছে…",
+  "mapWizardNoDagOnPlot": "এই সম্পত্তির আরএস দাগ নম্বর দেওয়া নেই। অন্য দাগ খুঁজুন অথবা নিজে আঁকুন।",
+  "mapWizardFoundOne": "দাগটি মানচিত্রে চিহ্নিত করা হয়েছে।",
+  "mapWizardFoundMany": "{count}টি দাগ পাওয়া গেছে — আপনারটি বেছে নিন।",
+  "@mapWizardFoundMany": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardLookupFailed": "দাগ খোঁজা যায়নি। আবার চেষ্টা করুন বা নিজে আঁকুন।",
+  "mapWizardCandidate": "আরএস দাগ {dag} · শীট {sheet}",
+  "@mapWizardCandidate": {
+    "placeholders": {
+      "dag": {
+        "type": "String"
+      },
+      "sheet": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardCandidateNoSheet": "আরএস দাগ {dag}",
+  "@mapWizardCandidateNoSheet": {
+    "placeholders": {
+      "dag": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardThisIsMine": "এটাই আমার দাগ",
+  "mapWizardOtherDag": "অন্য দাগ খুঁজুন",
+  "mapWizardNotFoundDraw": "দাগ পাওয়া যায়নি — নিজে আঁকুন",
+  "mapWizardDagFieldLabel": "আরএস দাগ নম্বর",
+  "mapWizardSearchButton": "খুঁজুন",
+  "mapWizardStartFromDag": "দাগ থেকে শুরু করুন",
+  "mapWizardDrawMyself": "নিজে আঁকুন",
+  "mapWizardUndoText": "এক ধাপ পেছনে",
+  "mapWizardRedoText": "আবার করুন",
+  "mapWizardClearAll": "সব মুছে নতুন করে",
+  "mapWizardNext": "পরবর্তী",
+  "mapWizardBack": "পেছনে",
+  "mapWizardDeclaredLand": "ঘোষিত জমি: {amount} শতাংশ",
+  "@mapWizardDeclaredLand": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardSummaryProperty": "সম্পত্তি",
+  "mapWizardSummaryDag": "দাগ",
+  "mapWizardSummaryArea": "আঁকা এলাকা",
+  "mapWizardSummaryMatch": "আরএস দাগের সাথে মিল",
+  "mapWizardMatchValue": "{pct}% (আরএস দাগ {dag})",
+  "@mapWizardMatchValue": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      },
+      "dag": {
+        "type": "String"
+      }
+    }
+  },
+  "mapWizardMatchLow": "মিল কম — অফিস যাচাই করবে।",
+  "mapWizardNoMatch": "তুলনা করার মতো আরএস দাগ নেই।"
 }

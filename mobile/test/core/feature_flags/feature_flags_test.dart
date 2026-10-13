@@ -41,8 +41,31 @@ void main() {
           'nav_advanced_section',
           'pay_merged_page',
           'nav_five_areas',
+          // Batches 4-7.
+          'map_wizard',
+          'admin_console',
+          'admin_bulk_verify',
+          'fee_wizard',
+          'login_by_phone',
+          'ui_a11y_v2',
+          'data_saver',
+          'net_status_banner',
         },
       );
+    });
+
+    test('keys are unique and the new flags map to their enum names', () {
+      final keys = FeatureFlag.values.map((f) => f.key).toList();
+      expect(keys.toSet().length, keys.length);
+      expect(FeatureFlag.mapWizard.key, 'map_wizard');
+      expect(FeatureFlag.adminConsole.key, 'admin_console');
+      expect(FeatureFlag.adminBulkVerify.key, 'admin_bulk_verify');
+      expect(FeatureFlag.feeWizard.key, 'fee_wizard');
+      expect(FeatureFlag.loginByPhone.key, 'login_by_phone');
+      expect(FeatureFlag.passwordPolicyV2.key, 'password_policy_v2');
+      expect(FeatureFlag.uiA11yV2.key, 'ui_a11y_v2');
+      expect(FeatureFlag.dataSaver.key, 'data_saver');
+      expect(FeatureFlag.netStatusBanner.key, 'net_status_banner');
     });
   });
 

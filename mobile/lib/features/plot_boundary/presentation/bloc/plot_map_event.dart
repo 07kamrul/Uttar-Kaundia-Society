@@ -49,3 +49,17 @@ final class PlotMapSearchRequested extends PlotMapEvent {
   @override
   List<Object?> get props => [query];
 }
+
+/// "মানচিত্র দেখুন": the member agreed to download basemap tiles (map_wizard).
+final class PlotMapTilesRequested extends PlotMapEvent {
+  const PlotMapTilesRequested();
+}
+
+/// The page decides whether the basemap starts on (map_wizard only): off
+/// until "মানচিত্র দেখুন", or on when the member already agreed this session.
+final class PlotMapTileGateSet extends PlotMapEvent {
+  const PlotMapTileGateSet({required this.requested});
+  final bool requested;
+  @override
+  List<Object?> get props => [requested];
+}

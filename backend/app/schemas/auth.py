@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from app.core.password_policy import MIN_PASSWORD_LENGTH, check_new_password  # noqa: F401
+
 
 class AdminLoginRequest(BaseModel):
     email: str
@@ -45,9 +47,6 @@ class MediaTokenResponse(BaseModel):
     expires_in: int
 
 
-MIN_PASSWORD_LENGTH = 8
-
-
 class ChangePasswordResponse(BaseModel):
     """Fresh tokens for the caller: changing the password revokes every
     earlier token (token_version bump), including the one used for the call."""
@@ -62,12 +61,11 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
-def validate_new_password(current_password: str, new_password: str) -> dict[str, str]:
-    """Return field-level errors for a proposed new password (empty when valid)."""
-    if len(new_password) < MIN_PASSWORD_LENGTH or not any(c.isdigit() for c in new_password):
-        return {
-            "new_password": f"Password must be at least {MIN_PASSWORD_LENGTH} characters and include a number"
-        }
-    if new_password == current_password:
-        return {"new_password": "New password must be different from the current password"}
-    return {}
+def validate_new_password(
+    current_password: str, new_password: str, *, policy_v2: bool = False
+) -> dict[str, str]:
+    """Return field-level errors for a proposed new password (empty when valid).
+
+    Routes that also need the machine code call ``check_new_password`` directly."""
+    issue = check_new_password(current_password, new_password, policy_v2=policy_v2)
+    return {} if issue is None else {"new_password": issue.message}

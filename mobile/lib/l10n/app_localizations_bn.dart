@@ -6712,4 +6712,189 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get mpayStatusRejectedShort => 'বাতিল';
+
+  @override
+  String get mapWizardMoreLayers => 'আরও লেয়ার';
+
+  @override
+  String get mapWizardLayersTitle => 'মানচিত্রের লেয়ার';
+
+  @override
+  String get mapWizardLayerMine => 'আমার জমি';
+
+  @override
+  String get mapWizardLayerBds => 'সরকারি মৌজা ম্যাপ (BDS)';
+
+  @override
+  String get mapWizardLayerRajuk => 'রাজউক RS দাগ';
+
+  @override
+  String get mapWizardLayerSatellite => 'স্যাটেলাইট';
+
+  @override
+  String get mapWizardShowMap => 'মানচিত্র দেখুন';
+
+  @override
+  String get mapWizardShowMapHint => 'ইন্টারনেট ডেটা খরচ হবে';
+
+  @override
+  String get mapWizardLegendApproved => 'অনুমোদিত';
+
+  @override
+  String get mapWizardLegendMine => 'আমার';
+
+  @override
+  String get mapWizardLegendPending => 'অপেক্ষায়';
+
+  @override
+  String get mapWizardDisputeNote => '⚠ বিরোধ চলছে';
+
+  @override
+  String get mapWizardShortNotice =>
+      'এটি আনুমানিক সীমানা — সরকারি জরিপ বা দলিলের বিকল্প নয়।';
+
+  @override
+  String get mapWizardNoticeMore => 'বিস্তারিত';
+
+  @override
+  String get mapWizardHelpTooltip => 'সাহায্য';
+
+  @override
+  String get mapWizardTourAgain => 'আবার দেখুন';
+
+  @override
+  String get mapWizardTourSkip => 'বাদ দিন';
+
+  @override
+  String get mapWizardTourNext => 'পরের';
+
+  @override
+  String get mapWizardTourDone => 'বুঝেছি';
+
+  @override
+  String mapWizardTourCounter(String n, String total) {
+    return '$n / $total';
+  }
+
+  @override
+  String get mapWizardTourLayers =>
+      'এখানে চাপলে সরকারি মৌজা ম্যাপ, রাজউক দাগ ও স্যাটেলাইট দেখতে পারবেন।';
+
+  @override
+  String get mapWizardTourLegend =>
+      'রঙের অর্থ এখানে দেখুন: সবুজ অনুমোদিত, নীল আপনার, হলুদ অপেক্ষায়।';
+
+  @override
+  String get mapWizardTourDraw => 'নিজের জমির সীমানা আঁকতে এখানে চাপুন।';
+
+  @override
+  String get mapWizardTourHelp =>
+      'সাহায্য লাগলে এই ? বোতাম চাপুন; এখান থেকে এই পরিচিতি আবার দেখা যাবে।';
+
+  @override
+  String mapWizardStepHeader(String n, String title) {
+    return 'ধাপ $n / ৩ — $title';
+  }
+
+  @override
+  String get mapWizardStepFind => 'দাগ খুঁজুন';
+
+  @override
+  String get mapWizardStepAdjust => 'সীমানা ঠিক করুন';
+
+  @override
+  String get mapWizardStepSubmit => 'জমা দিন';
+
+  @override
+  String get mapWizardSearching => 'দাগ খোঁজা হচ্ছে…';
+
+  @override
+  String get mapWizardNoDagOnPlot =>
+      'এই সম্পত্তির আরএস দাগ নম্বর দেওয়া নেই। অন্য দাগ খুঁজুন অথবা নিজে আঁকুন।';
+
+  @override
+  String get mapWizardFoundOne => 'দাগটি মানচিত্রে চিহ্নিত করা হয়েছে।';
+
+  @override
+  String mapWizardFoundMany(String count) {
+    return '$countটি দাগ পাওয়া গেছে — আপনারটি বেছে নিন।';
+  }
+
+  @override
+  String get mapWizardLookupFailed =>
+      'দাগ খোঁজা যায়নি। আবার চেষ্টা করুন বা নিজে আঁকুন।';
+
+  @override
+  String mapWizardCandidate(String dag, String sheet) {
+    return 'আরএস দাগ $dag · শীট $sheet';
+  }
+
+  @override
+  String mapWizardCandidateNoSheet(String dag) {
+    return 'আরএস দাগ $dag';
+  }
+
+  @override
+  String get mapWizardThisIsMine => 'এটাই আমার দাগ';
+
+  @override
+  String get mapWizardOtherDag => 'অন্য দাগ খুঁজুন';
+
+  @override
+  String get mapWizardNotFoundDraw => 'দাগ পাওয়া যায়নি — নিজে আঁকুন';
+
+  @override
+  String get mapWizardDagFieldLabel => 'আরএস দাগ নম্বর';
+
+  @override
+  String get mapWizardSearchButton => 'খুঁজুন';
+
+  @override
+  String get mapWizardStartFromDag => 'দাগ থেকে শুরু করুন';
+
+  @override
+  String get mapWizardDrawMyself => 'নিজে আঁকুন';
+
+  @override
+  String get mapWizardUndoText => 'এক ধাপ পেছনে';
+
+  @override
+  String get mapWizardRedoText => 'আবার করুন';
+
+  @override
+  String get mapWizardClearAll => 'সব মুছে নতুন করে';
+
+  @override
+  String get mapWizardNext => 'পরবর্তী';
+
+  @override
+  String get mapWizardBack => 'পেছনে';
+
+  @override
+  String mapWizardDeclaredLand(String amount) {
+    return 'ঘোষিত জমি: $amount শতাংশ';
+  }
+
+  @override
+  String get mapWizardSummaryProperty => 'সম্পত্তি';
+
+  @override
+  String get mapWizardSummaryDag => 'দাগ';
+
+  @override
+  String get mapWizardSummaryArea => 'আঁকা এলাকা';
+
+  @override
+  String get mapWizardSummaryMatch => 'আরএস দাগের সাথে মিল';
+
+  @override
+  String mapWizardMatchValue(String pct, String dag) {
+    return '$pct% (আরএস দাগ $dag)';
+  }
+
+  @override
+  String get mapWizardMatchLow => 'মিল কম — অফিস যাচাই করবে।';
+
+  @override
+  String get mapWizardNoMatch => 'তুলনা করার মতো আরএস দাগ নেই।';
 }
