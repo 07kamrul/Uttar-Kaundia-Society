@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.config_list_item import ConfigListItem
+from app.models.cost_share_payment import CostSharePayment
 from app.models.installment import Installment, InstallmentStatus
 from app.models.installment_payment import (
     PAYMENT_STATUS_APPROVED,
@@ -134,6 +135,22 @@ async def _ensure_unique_reference(db: AsyncSession, method: str, transaction_re
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="This transaction ID has already been submitted.",
+        )
+    # The same transaction must not back a live cost-share payment either.
+    in_cost_shares = await db.execute(
+        select(CostSharePayment.id).where(
+            CostSharePayment.method == method,
+            CostSharePayment.transaction_ref == transaction_ref,
+            CostSharePayment.status != PAYMENT_STATUS_REJECTED,
+        )
+    )
+    if in_cost_shares.first() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "DUPLICATE_TRANSACTION_REF",
+                "message": "This transaction ID has already been submitted.",
+            },
         )
 
 

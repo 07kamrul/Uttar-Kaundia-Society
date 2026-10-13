@@ -30,7 +30,9 @@ from app.api.routes import (
     other_fees,
     finance,
     governance,
+    helpline,
     installment_payments,
+    member_payments,
     member,
     member_governance,
     membership_appeal,
@@ -189,6 +191,8 @@ app.include_router(amendments.router, prefix=api_router_prefix)
 app.include_router(registers.router, prefix=api_router_prefix)
 app.include_router(cache_admin.router, prefix=api_router_prefix)
 app.include_router(feature_flags.router, prefix=api_router_prefix)
+app.include_router(member_payments.router, prefix=api_router_prefix)
+app.include_router(helpline.router, prefix=api_router_prefix)
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 
