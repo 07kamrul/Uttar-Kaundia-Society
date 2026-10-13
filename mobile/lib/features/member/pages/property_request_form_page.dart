@@ -8,6 +8,7 @@ import '../../../core/layout/responsive.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/phone_field.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../data/member_repository.dart';
 import '../presentation/bloc/property_request_form_bloc.dart';
@@ -271,7 +272,12 @@ class _CoOwnersCard extends StatelessWidget {
         children: [
           for (var i = 0; i < state.coOwners.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
-            _CoOwnerRow(index: i, row: state.coOwners[i], bloc: bloc),
+            _CoOwnerRow(
+              index: i,
+              row: state.coOwners[i],
+              bloc: bloc,
+              phoneInvalid: state.coOwnerPhoneInvalid(i),
+            ),
           ],
           if (state.coOwnersInvalid) _ErrorText(loc.memberPropertyRequestsCoOwnerNameRequired),
           AddItemButton(
@@ -286,11 +292,19 @@ class _CoOwnersCard extends StatelessWidget {
 }
 
 class _CoOwnerRow extends StatelessWidget {
-  const _CoOwnerRow({required this.index, required this.row, required this.bloc});
+  const _CoOwnerRow({
+    required this.index,
+    required this.row,
+    required this.bloc,
+    required this.phoneInvalid,
+  });
 
   final int index;
   final FormCoOwnerRow row;
   final PropertyRequestFormBloc bloc;
+
+  /// Submit was attempted and this row's phone cannot exist.
+  final bool phoneInvalid;
 
   @override
   Widget build(BuildContext context) {
@@ -310,11 +324,10 @@ class _CoOwnerRow extends StatelessWidget {
                 onChanged: (v) =>
                     bloc.add(PropertyRequestFormCoOwnerChanged(index, row.copyWith(ownerName: v))),
               ),
-              SyncedTextField(
+              PhoneField(
                 label: loc.memberProfileMobileLabel,
                 value: row.ownerPhone,
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
+                errorText: phoneInvalid ? loc.phoneFieldInvalid : null,
                 onChanged: (v) =>
                     bloc.add(PropertyRequestFormCoOwnerChanged(index, row.copyWith(ownerPhone: v))),
               ),

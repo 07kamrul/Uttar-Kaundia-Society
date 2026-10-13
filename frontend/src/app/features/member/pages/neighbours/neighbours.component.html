@@ -179,7 +179,7 @@
                           {{ 'member.neighbours.contactHidden' | translate }}
                         </span>
                       } @else {
-                        <span class="mobile-text">{{ digits(row.owner.mobile) }}</span>
+                        <span class="mobile-text">{{ row.owner.mobile | phoneText }}</span>
                       }
                     </dd>
                   </div>

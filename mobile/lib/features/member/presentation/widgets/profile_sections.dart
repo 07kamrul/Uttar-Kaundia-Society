@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/phone/phone.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/attachment_viewer.dart';
+import '../../../../shared/widgets/phone_display.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/member_entities.dart';
 import 'member_ui.dart';
@@ -108,9 +110,37 @@ class ProfileIdentityCard extends StatelessWidget {
           spacing: 14,
           runSpacing: 4,
           children: [
-            MetaChip(icon: Icons.phone_outlined, text: profile.mobile),
+            _PhoneMeta(profile.mobile),
             if ((profile.email ?? '').isNotEmpty) MetaChip(icon: Icons.email_outlined, text: profile.email!),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Header phone line: muted icon + formatted number with compact call /
+/// WhatsApp / copy actions.
+class _PhoneMeta extends StatelessWidget {
+  const _PhoneMeta(this.phone);
+
+  final String phone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.phone_outlined, size: 15, color: muted),
+        const SizedBox(width: 4),
+        Flexible(
+          child: PhoneDisplay(
+            phone,
+            compact: true,
+            style: theme.textTheme.bodySmall?.copyWith(color: muted),
+          ),
         ),
       ],
     );
@@ -249,6 +279,7 @@ class _PropertyBlock extends StatelessWidget {
     final loc = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final p = property;
+    final lang = Localizations.localeOf(context).languageCode;
     final fields = [
       ProfileField(
         loc.memberProfilePropertyTypesLabel,
@@ -265,7 +296,9 @@ class _PropertyBlock extends StatelessWidget {
       if (p.coOwners.isNotEmpty)
         ProfileField(
           loc.memberProfileCoOwnerLabel,
-          p.coOwners.map((c) => '${c.ownerName} (${c.ownerPhone})').join(', '),
+          p.coOwners
+              .map((c) => '${c.ownerName} (${formatPhoneInternational(c.ownerPhone, lang: lang)})')
+              .join(', '),
           Icons.group_outlined,
         ),
     ].where((f) => f.isPresent);

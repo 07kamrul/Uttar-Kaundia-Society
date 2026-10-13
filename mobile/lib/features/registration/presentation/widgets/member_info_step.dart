@@ -102,15 +102,12 @@ class _PersonalFields extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         RegFieldPair(
-          first: RegTextField(
+          first: RegPhoneField(
             label: l10n.registrationMemberInfoMobileLabel,
             required: true,
             value: f.mobile,
-            prefixIcon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
             autofillHints: const [AutofillHints.telephoneNumber],
             error: err(RegErrorKind.mobileRequired) ?? err(RegErrorKind.mobileInvalid),
-            hint: '+8801XXXXXXXXX',
             onChanged: (v) => change(MemberField.mobile, v),
           ),
           second: RegTextField(

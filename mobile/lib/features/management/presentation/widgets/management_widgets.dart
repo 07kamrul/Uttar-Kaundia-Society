@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/layout/responsive.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/phone_display.dart';
 import '../../../../shared/widgets/widgets.dart';
 
 export 'management_record_widgets.dart';
@@ -62,11 +63,32 @@ class InfoRow extends StatelessWidget {
       {super.key,
       required this.label,
       required this.value,
-      this.expanded = false});
+      this.expanded = false,
+      this.valueWidget});
+
+  /// Phone number row: formatted number with call / WhatsApp / copy actions
+  /// (icon-only when [compact]); blank numbers show the usual dash.
+  factory InfoRow.phone({
+    Key? key,
+    required String label,
+    required String? phone,
+    bool compact = false,
+  }) {
+    final blank = (phone ?? '').trim().isEmpty;
+    return InfoRow(
+      key: key,
+      label: label,
+      value: phone ?? '',
+      valueWidget: blank ? null : PhoneDisplay(phone, compact: compact),
+    );
+  }
 
   final String label;
   final String value;
   final bool expanded;
+
+  /// Replaces the plain [value] text (e.g. a [PhoneDisplay]).
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +99,11 @@ class InfoRow extends StatelessWidget {
         color: theme.colorScheme.onSurfaceVariant,
       ),
     );
-    final valueText = Text(
-      value.trim().isEmpty ? '—' : value,
-      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-    );
+    final valueText = valueWidget ??
+        Text(
+          value.trim().isEmpty ? '—' : value,
+          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+        );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: expanded

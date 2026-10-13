@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/phone_field.dart';
 
 /// Small form primitives for the registration wizard. All user-visible strings
 /// come from ARB via [AppLocalizations]; widgets dispatch changes upward and
@@ -157,6 +158,46 @@ class _RegTextFieldState extends State<RegTextField> {
             prefixIcon: widget.prefixIcon == null ? null : Icon(widget.prefixIcon, size: 20),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// International phone field in the wizard's label-above style. Value and
+/// callback carry E.164; [error] is the bloc-driven message (required/invalid).
+class RegPhoneField extends StatelessWidget {
+  const RegPhoneField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.required = false,
+    this.error,
+    this.autofillHints,
+  });
+
+  final String label;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final bool required;
+  final String? error;
+  final Iterable<String>? autofillHints;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _LabelText(text: label, required: required),
+        const SizedBox(height: 6),
+        PhoneField(
+          value: value,
+          onChanged: onChanged,
+          errorText: (error?.isNotEmpty ?? false) ? error : null,
+          autofillHints: autofillHints,
+          dense: true,
         ),
       ],
     );

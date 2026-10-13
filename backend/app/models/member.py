@@ -51,6 +51,8 @@ class Member(Base):
     occupation: Mapped[str] = mapped_column(String(255), nullable=False)
     nid: Mapped[str] = mapped_column(String(64), nullable=False)
     mobile: Mapped[str] = mapped_column(String(32), nullable=False)
+    # Value as originally stored before the E.164 phone migration (or a fix).
+    mobile_raw: Mapped[str | None] = mapped_column(String(64), nullable=True)
     gender: Mapped[str] = mapped_column(String(16), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
 
@@ -72,6 +74,7 @@ class Member(Base):
     urgent_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     urgent_contact_relation: Mapped[str | None] = mapped_column(String(128), nullable=True)
     urgent_contact_mobile: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    urgent_contact_mobile_raw: Mapped[str | None] = mapped_column(String(64), nullable=True)
     urgent_contact_address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Payment

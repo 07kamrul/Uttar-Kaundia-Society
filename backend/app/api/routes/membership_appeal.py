@@ -68,6 +68,7 @@ from app.models.membership_appeal import (
     WAIVER_STATUS_REJECTED,
     WAIVER_TYPES,
 )
+from app.schemas.common import validate_required_phone
 from app.services.audit import record_audit
 from app.services.email import send_email, send_with_retries
 from app.services.governance import (
@@ -117,6 +118,8 @@ class ApplicationCreate(BaseModel):
     address_division: str | None = None
     ownership_type: str
     consent: bool
+
+    _validate_mobile = field_validator("mobile")(validate_required_phone)
 
     @field_validator("consent")
     @classmethod

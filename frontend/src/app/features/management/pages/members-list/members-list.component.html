@@ -39,7 +39,7 @@
             <tr>
               <td [attr.data-label]="'admin.membersList.tableHeaders.memberId' | translate">{{ m.memberId ?? '—' }}</td>
               <td [attr.data-label]="'admin.membersList.tableHeaders.name' | translate">{{ m.fullName }}</td>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate">{{ m.mobile }}</td>
+              <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate"><app-phone-link [value]="m.mobile" /></td>
               <td [attr.data-label]="'admin.membersList.tableHeaders.status' | translate">
                 <span
                   class="status-badge"

@@ -14,12 +14,13 @@ import type { SocietyCostSummary } from '../../../../core/services/society-cost.
 import type { SubmissionSummary } from '../../../../core/models/admin.model';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })

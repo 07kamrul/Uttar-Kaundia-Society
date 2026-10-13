@@ -18,6 +18,7 @@ import type { MemberProfile } from '../../../../../core/models/admin.model';
 import { SectionLoaderComponent } from '../../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../../shared/icon/icon.component';
 import { monthNameKey } from '../../../../../shared/constants/months';
+import { PhoneLinkComponent } from '../../../../../shared/phone/phone-link.component';
 
 interface AddressParts {
   house?: string;
@@ -39,7 +40,7 @@ function joinAddress(a: AddressParts): string {
   selector: 'app-member-detail-drawer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, TranslatePipe, IconComponent, SectionLoaderComponent],
+  imports: [DatePipe, TranslatePipe, IconComponent, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './member-detail-drawer.component.html',
 })
 export class MemberDetailDrawerComponent implements OnChanges, OnDestroy {

@@ -29,9 +29,9 @@
           </div>
           <div class="profile-hero-contact">
             @if (profile.mobile) {
-              <a class="profile-contact-chip" [href]="'tel:' + profile.mobile">
-                <app-icon name="phone" [size]="13" /> {{ profile.mobile }}
-              </a>
+              <span class="profile-contact-chip">
+                <app-icon name="phone" [size]="13" /> <app-phone-link [value]="profile.mobile" />
+              </span>
             }
             @if (profile.email) {
               <a class="profile-contact-chip" [href]="'mailto:' + profile.email">
@@ -166,7 +166,7 @@
         <div class="profile-rows">
           <div class="profile-row profile-row-stack">
             <span class="profile-row-label">{{ 'member.profile.mobileLabel' | translate }}</span>
-            <span class="profile-row-value">@if (profile.mobile) {<a class="profile-link" [href]="'tel:' + profile.mobile">{{ profile.mobile }}</a>} @else {—}</span>
+            <span class="profile-row-value">@if (profile.mobile) {<app-phone-link [value]="profile.mobile" />} @else {—}</span>
           </div>
           <div class="profile-row profile-row-stack">
             <span class="profile-row-label">{{ 'member.profile.emailLabel' | translate }}</span>
@@ -240,7 +240,7 @@
         <div class="profile-rows">
           <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.nameLabel' | translate }}</span><span class="profile-row-value">{{ profile.urgentContactName || '—' }}</span></div>
           <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.relationLabel' | translate }}</span><span class="profile-row-value">{{ profile.urgentContactRelation || '—' }}</span></div>
-          <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.mobileLabel' | translate }}</span><span class="profile-row-value">@if (profile.urgentContactMobile) {<a class="profile-link" [href]="'tel:' + profile.urgentContactMobile">{{ profile.urgentContactMobile }}</a>} @else {—}</span></div>
+          <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.mobileLabel' | translate }}</span><span class="profile-row-value">@if (profile.urgentContactMobile) {<app-phone-link [value]="profile.urgentContactMobile" />} @else {—}</span></div>
           <div class="profile-row profile-row-stack">
             <span class="profile-row-label">{{ 'member.profile.addressLabel' | translate }}</span>
             <span class="profile-row-value profile-row-value-wrap">{{ profile.urgentContactAddress || '—' }}</span>
@@ -303,7 +303,7 @@
               <div class="profile-rows">
                 <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.nameLabel' | translate }}</span><span class="profile-row-value">{{ nominee.name || '—' }}</span></div>
                 <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.relationLabel' | translate }}</span><span class="profile-row-value">{{ nominee.relation || '—' }}</span></div>
-                <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.mobileLabel' | translate }}</span><span class="profile-row-value">@if (nominee.mobile) {<a class="profile-link" [href]="'tel:' + nominee.mobile">{{ nominee.mobile }}</a>} @else {—}</span></div>
+                <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.mobileLabel' | translate }}</span><span class="profile-row-value">@if (nominee.mobile) {<app-phone-link [value]="nominee.mobile" />} @else {—}</span></div>
                 <div class="profile-row profile-row-stack">
                   <span class="profile-row-label">{{ 'member.profile.addressLabel' | translate }}</span>
                   <span class="profile-row-value profile-row-value-wrap">{{ nominee.address || '—' }}</span>
@@ -362,7 +362,7 @@
                 <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.myShareQuantityLabel' | translate }}</span><span class="profile-row-value">{{ property.myShareQuantity || '—' }}</span></div>
                 <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.ownershipLabel' | translate }}</span><span class="profile-row-value">{{ property.ownership || '—' }}</span></div>
                 @for (owner of property.coOwners; track owner.id) {
-                  <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.coOwnerLabel' | translate }}</span><span class="profile-row-value">{{ owner.ownerName }} ({{ owner.ownerPhone }})</span></div>
+                  <div class="profile-row"><span class="profile-row-label">{{ 'member.profile.coOwnerLabel' | translate }}</span><span class="profile-row-value">{{ owner.ownerName }} (<app-phone-link [value]="owner.ownerPhone" />)</span></div>
                 }
                 @for (doc of property.applicableDocs; track doc.id) {
                   <div class="profile-row profile-row-stack">

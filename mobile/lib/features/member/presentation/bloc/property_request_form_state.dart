@@ -126,8 +126,23 @@ class PropertyRequestFormState extends Equatable {
   bool get ownershipMissing => submitAttempted && ownership.trim().isEmpty;
   bool get coOwnersInvalid =>
       submitAttempted &&
-      coOwners.any(
-          (c) => c.ownerName.trim().isEmpty || c.ownerPhone.trim().isEmpty);
+      coOwners.any((c) =>
+          c.ownerName.trim().isEmpty ||
+          c.ownerPhone.trim().isEmpty ||
+          _isImpossiblePhone(c.ownerPhone));
+
+  /// True when row [index] holds a phone that cannot exist (possible-but-unknown
+  /// numbers only warn in the field and never block).
+  bool coOwnerPhoneInvalid(int index) =>
+      submitAttempted &&
+      index >= 0 &&
+      index < coOwners.length &&
+      coOwners[index].ownerPhone.trim().isNotEmpty &&
+      _isImpossiblePhone(coOwners[index].ownerPhone);
+
+  static bool _isImpossiblePhone(String phone) =>
+      phoneErrorKind(phone, required: false) == PhoneErrorKind.invalid;
+
   bool get docsInvalid =>
       submitAttempted && newDocs.any((d) => d.isIncomplete || d.error != null);
 

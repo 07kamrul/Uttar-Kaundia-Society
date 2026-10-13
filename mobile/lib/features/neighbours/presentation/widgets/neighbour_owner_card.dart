@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/phone_display.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/neighbour_entities.dart';
 
@@ -56,7 +57,16 @@ class NeighbourOwnerCard extends StatelessWidget {
             _InfoLine(
               icon: Icons.phone_outlined,
               label: loc.memberNeighboursTableMobile,
-              value: digits(owner.mobile ?? ''),
+              value: '',
+              // Call / WhatsApp live in the buttons below; here only the
+              // formatted number and a copy shortcut.
+              valueWidget: PhoneDisplay(
+                owner.mobile,
+                compact: true,
+                actions: PhoneActions.copyOnly,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
             )
           else
             Row(
@@ -141,11 +151,19 @@ class NeighbourOwnerCard extends StatelessWidget {
 }
 
 class _InfoLine extends StatelessWidget {
-  const _InfoLine({required this.icon, required this.label, required this.value});
+  const _InfoLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueWidget,
+  });
 
   final IconData icon;
   final String label;
   final String value;
+
+  /// Replaces [value] (e.g. a phone number with its copy button).
+  final Widget? valueWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -159,21 +177,34 @@ class _InfoLine extends StatelessWidget {
           Icon(icon, size: 16, color: muted),
           const SizedBox(width: 6),
           Expanded(
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$label: ',
-                    style: theme.textTheme.bodySmall?.copyWith(color: muted),
+            child: valueWidget != null
+                ? Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '$label: ',
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(color: muted),
+                      ),
+                      valueWidget!,
+                    ],
+                  )
+                : Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$label: ',
+                          style:
+                              theme.textTheme.bodySmall?.copyWith(color: muted),
+                        ),
+                        TextSpan(
+                          text: value,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ),
-                  TextSpan(
-                    text: value,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

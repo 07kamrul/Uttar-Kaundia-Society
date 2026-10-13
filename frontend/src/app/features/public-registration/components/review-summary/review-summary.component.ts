@@ -1,12 +1,13 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 
 @Component({
   selector: 'app-review-summary',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslatePipe],
+  imports: [ReactiveFormsModule, TranslatePipe, PhoneTextPipe],
   templateUrl: './review-summary.component.html',
 })
 export class ReviewSummaryComponent {

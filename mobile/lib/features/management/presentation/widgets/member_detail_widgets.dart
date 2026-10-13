@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/layout/responsive.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/phone_display.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/admin_entities.dart';
 import 'management_widgets.dart';
@@ -120,7 +121,7 @@ class MemberContactCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InfoRow(label: loc.adminMemberDetailFMobile, value: p.mobile),
+          InfoRow.phone(label: loc.adminMemberDetailFMobile, phone: p.mobile),
           InfoRow(label: loc.adminMemberDetailFEmail, value: p.email),
           InfoRow(
             label: loc.adminMemberDetailFPresentAddress,
@@ -136,13 +137,17 @@ class MemberContactCard extends StatelessWidget {
                 p.permanentDivision),
             expanded: true,
           ),
-          if (urgent != null && urgent.isNotEmpty)
+          if (urgent != null && urgent.isNotEmpty) ...[
             InfoRow(
               label: loc.adminMemberDetailFUrgentContact,
-              value:
-                  '$urgent (${p.urgentContactRelation}) · ${p.urgentContactMobile}',
+              value: '$urgent (${p.urgentContactRelation})',
               expanded: true,
             ),
+            InfoRow.phone(
+              label: loc.adminMemberDetailFMobile,
+              phone: p.urgentContactMobile,
+            ),
+          ],
         ],
       ),
     );
@@ -348,10 +353,12 @@ class MemberNomineesCard extends StatelessWidget {
                     leading: ManagementAvatar(name: n.name, radius: 16),
                     title: Text(n.name,
                         maxLines: 2, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(
-                      [n.relation, n.mobile]
-                          .where((e) => e.isNotEmpty)
-                          .join(' · '),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (n.relation.isNotEmpty) Text(n.relation),
+                        PhoneDisplay(n.mobile, compact: true),
+                      ],
                     ),
                   ),
               ],

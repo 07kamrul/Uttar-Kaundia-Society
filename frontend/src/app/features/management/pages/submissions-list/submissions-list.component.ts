@@ -6,12 +6,13 @@ import { AdminService } from '../../../../core/services/admin.service';
 import type { SubmissionStatus, SubmissionSummary } from '../../../../core/models/admin.model';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 @Component({
   selector: 'app-submissions-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './submissions-list.component.html',
 })
 export class SubmissionsListComponent implements OnInit {

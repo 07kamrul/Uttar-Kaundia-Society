@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/phone_display.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../../member/domain/finance_entities.dart' show toBanglaDigits;
 import '../../domain/plot_boundary_entities.dart';
@@ -125,8 +126,7 @@ class BoundaryOwnerSheet extends StatelessWidget {
             ),
           const SizedBox(height: 8),
           if (showContact) ...[
-            _line(context, Icons.phone_outlined, loc.boundaryMobile,
-                formatDigits(context, mobile)),
+            _phoneLine(context, loc.boundaryMobile, mobile),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -238,6 +238,33 @@ class BoundaryOwnerSheet extends StatelessWidget {
         ? formatDigits(context, o.areaShotangsho!.toStringAsFixed(2))
         : '—';
     return '${loc.boundaryAreaValues(sqm, sho)} (${loc.boundaryAreaEstimateTag})';
+  }
+
+  /// Formatted number with a copy shortcut; Call / WhatsApp are the sheet's own
+  /// buttons below.
+  Widget _phoneLine(BuildContext context, String label, String phone) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(Icons.phone_outlined, size: 16, color: muted),
+          const SizedBox(width: 6),
+          Text('$label: ',
+              style: theme.textTheme.bodySmall?.copyWith(color: muted)),
+          Expanded(
+            child: PhoneDisplay(
+              phone,
+              compact: true,
+              actions: PhoneActions.copyOnly,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _line(

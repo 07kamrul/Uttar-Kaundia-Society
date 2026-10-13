@@ -34,6 +34,7 @@ from app.schemas.fee_settings import FeeSettingCreate, FeeSettingOut
 from app.schemas.installment import InstallmentCreate, InstallmentOut, InstallmentUpdate
 from app.models.audit_log import AuditLog
 from app.services.audit import record_audit
+from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
 from app.services.registration_installment import add_registration_installment
 from app.schemas.member import (
     ApproveResponse,
@@ -91,6 +92,7 @@ _ATTACHMENT_TARGETS = {
 @router.get("/submissions", response_model=list[MemberSummary])
 async def list_submissions(
     status_filter: MemberStatus | None = Query(default=None, alias="status"),
+    search: str | None = Query(default=None, max_length=SEARCH_MAX_LENGTH),
     limit: int | None = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -99,6 +101,9 @@ async def list_submissions(
     query = select(Member).options(load_only(*_SUMMARY_COLUMNS))
     if status_filter is not None:
         query = query.where(Member.status == status_filter)
+    search_clause = member_search_clause(search)
+    if search_clause is not None:
+        query = query.where(search_clause)
     query = query.order_by(Member.created_at.desc(), Member.id.desc())
     if offset:
         query = query.offset(offset)
@@ -590,14 +595,17 @@ async def cancel_property_request(
 
 @router.get("/members", response_model=list[MemberSummary])
 async def list_members(
+    search: str | None = Query(default=None, max_length=SEARCH_MAX_LENGTH),
     limit: int | None = Query(default=None, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
     _admin: AdminUser = Depends(require_permission("member.view_all")),
 ) -> list[MemberSummary]:
-    query = select(Member).options(load_only(*_SUMMARY_COLUMNS)).order_by(
-        Member.created_at.desc(), Member.id.desc()
-    )
+    query = select(Member).options(load_only(*_SUMMARY_COLUMNS))
+    search_clause = member_search_clause(search)
+    if search_clause is not None:
+        query = query.where(search_clause)
+    query = query.order_by(Member.created_at.desc(), Member.id.desc())
     if offset:
         query = query.offset(offset)
     if limit is not None:

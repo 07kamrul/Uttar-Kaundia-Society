@@ -13,6 +13,7 @@ import {
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { formatPhone } from '../../../../shared/phone/phone-format';
 
 @Component({
   selector: 'app-property-requests',
@@ -131,7 +132,9 @@ export class PropertyRequestsComponent implements OnInit {
     if (p.coOwners.length) {
       add(
         'member.profile.coOwnerLabel',
-        p.coOwners.map((c) => `${c.ownerName} (${c.ownerPhone})`).join(', '),
+        p.coOwners
+          .map((c) => `${c.ownerName} (${formatPhone(c.ownerPhone, this.translate.currentLang() === 'en' ? 'en' : 'bn')})`)
+          .join(', '),
       );
     }
     if (p.docs.length) {

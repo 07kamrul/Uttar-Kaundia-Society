@@ -13,6 +13,7 @@ import {
   FeeWaiver,
   SlaInfo,
 } from '../../../../core/services/governance.service';
+import { PhoneInputComponent } from '../../../../shared/phone-input/phone-input.component';
 
 type Tab = 'applications' | 'appeals' | 'waivers' | 'notices';
 
@@ -31,7 +32,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-membership',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, FormsModule, IconComponent],
+  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, FormsModule, IconComponent, PhoneInputComponent],
   template: `
     <div class="page-container">
       <header class="gov-hero">
@@ -92,7 +93,17 @@ function saveBlob(blob: Blob, filename: string): void {
                 <div class="field-row">
                   <div class="field">
                     <label for="mobile">{{ 'membershipGov.apply.mobile' | translate }}</label>
-                    <input id="mobile" class="field-control" name="mobile" [(ngModel)]="apply.mobile" required />
+                    <app-phone-input
+                      inputId="mobile"
+                      name="mobile"
+                      [(ngModel)]="apply.mobile"
+                      #mobileModel="ngModel"
+                      [invalid]="!!(mobileModel.errors?.['phoneInvalid'] && mobileModel.touched)"
+                      required
+                    />
+                    @if (mobileModel.errors?.['phoneInvalid'] && mobileModel.touched) {
+                      <p class="field-error">{{ 'phoneInput.invalid' | translate }}</p>
+                    }
                   </div>
                   <div class="field">
                     <label for="email">{{ 'membershipGov.apply.email' | translate }}</label>

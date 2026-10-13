@@ -223,13 +223,10 @@ class _ContactFields extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         RegFieldPair(
-          first: RegTextField(
+          first: RegPhoneField(
             label: mobileLabel,
             required: true,
             value: mobile,
-            prefixIcon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-            hint: '+8801XXXXXXXXX',
             error: mobileError,
             onChanged: onMobile,
           ),

@@ -27,8 +27,9 @@ import { MyDataPanelComponent } from './my-data-panel.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneInputComponent } from '../../../../shared/phone-input/phone-input.component';
-import { isValidInternationalPhone } from '../../../../shared/phone-input/phone-number';
+import { isPossibleInternationalPhone } from '../../../../shared/phone-input/phone-number';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
   'fullName',
@@ -65,6 +66,7 @@ const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
     RouterLink,
     IconComponent,
     PhoneInputComponent,
+    PhoneLinkComponent,
     ConfirmModalComponent,
     MyDataPanelComponent,
   ],
@@ -534,7 +536,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   saveProfile(): void {
     if (!this.profile) return;
-    if (this.draft.mobile && !isValidInternationalPhone(this.draft.mobile)) {
+    if (this.draft.mobile && !isPossibleInternationalPhone(this.draft.mobile)) {
       this.saveError = this.translate.instant('member.profile.mobileInvalid');
       return;
     }

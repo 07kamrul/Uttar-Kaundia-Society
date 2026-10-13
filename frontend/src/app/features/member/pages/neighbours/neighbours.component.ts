@@ -25,6 +25,7 @@ import {
   type NeighbourOwnPlot,
   type NeighbourOwner,
 } from '../../../../core/models/neighbour.model';
+import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 
 const ERROR_KEYS = {
   approvedOnly: 'member.neighbours.approvedOnly',
@@ -115,7 +116,7 @@ export function ownerInitials(name: string): string {
   selector: 'app-member-neighbours',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, NgTemplateOutlet],
+  imports: [TranslatePipe, IconComponent, NgTemplateOutlet, PhoneTextPipe],
   templateUrl: './neighbours.component.html',
   styleUrl: './neighbours.component.scss',
 })

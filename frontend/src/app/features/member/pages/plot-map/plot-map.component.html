@@ -265,7 +265,7 @@
             @if (ownerContactLinks(owner).tel; as telHrefValue) {
               <a class="toolbar-btn contact-link call-link" [href]="telHrefValue">
                 <app-icon name="phone" [size]="16" />
-                <span class="btn-label">{{ digits(owner.mobile) }}</span>
+                <span class="btn-label">{{ owner.mobile | phoneText }}</span>
               </a>
             }
             @if (ownerContactLinks(owner).wa; as waHrefValue) {

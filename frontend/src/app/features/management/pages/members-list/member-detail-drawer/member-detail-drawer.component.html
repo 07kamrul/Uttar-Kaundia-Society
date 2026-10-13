@@ -55,14 +55,14 @@
           <section class="drawer-section">
             <h3>{{ 'admin.memberDetail.sections.contact' | translate }}</h3>
             <dl class="drawer-grid">
-              <div><dt>{{ 'admin.memberDetail.f.mobile' | translate }}</dt><dd>{{ p.mobile }}</dd></div>
+              <div><dt>{{ 'admin.memberDetail.f.mobile' | translate }}</dt><dd><app-phone-link [value]="p.mobile" /></dd></div>
               <div><dt>{{ 'admin.memberDetail.f.email' | translate }}</dt><dd>{{ p.email }}</dd></div>
               <div class="span-2"><dt>{{ 'admin.memberDetail.f.presentAddress' | translate }}</dt><dd>{{ presentAddress(p) || '—' }}</dd></div>
               <div class="span-2"><dt>{{ 'admin.memberDetail.f.permanentAddress' | translate }}</dt><dd>{{ permanentAddress(p) || '—' }}</dd></div>
               @if (p.urgentContactName) {
                 <div class="span-2">
                   <dt>{{ 'admin.memberDetail.f.urgentContact' | translate }}</dt>
-                  <dd>{{ p.urgentContactName }} ({{ p.urgentContactRelation }}) · {{ p.urgentContactMobile }}</dd>
+                  <dd>{{ p.urgentContactName }} ({{ p.urgentContactRelation }}) · <app-phone-link [value]="p.urgentContactMobile" /></dd>
                 </div>
               }
             </dl>
@@ -113,7 +113,7 @@
               <dl class="drawer-grid drawer-card">
                 <div><dt>{{ 'admin.memberDetail.f.name' | translate }}</dt><dd>{{ n.name }}</dd></div>
                 <div><dt>{{ 'admin.memberDetail.f.nomineeRelation' | translate }}</dt><dd>{{ n.relation }}</dd></div>
-                <div><dt>{{ 'admin.memberDetail.f.nomineeMobile' | translate }}</dt><dd>{{ n.mobile }}</dd></div>
+                <div><dt>{{ 'admin.memberDetail.f.nomineeMobile' | translate }}</dt><dd><app-phone-link [value]="n.mobile" /></dd></div>
               </dl>
             } @empty {
               <p class="drawer-empty">{{ 'admin.memberDetail.noNominees' | translate }}</p>

@@ -145,9 +145,10 @@ class _SubmissionCard extends StatelessWidget {
         ),
       ],
       children: [
-        InfoRow(
+        InfoRow.phone(
             label: loc.adminSubmissionsListTableHeadersMobile,
-            value: s.mobile),
+            phone: s.mobile,
+            compact: true),
         InfoRow(
           label: loc.adminSubmissionsListTableHeadersDate,
           value:

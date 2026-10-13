@@ -45,8 +45,8 @@
           <div class="applicant-meta-row">
             <span class="applicant-meta-item"
               >{{ 'admin.submissionDetail.fields.mobile' | translate }}:
-              {{ submission.mobile }}</span
-            >
+              <app-phone-link [value]="submission.mobile"
+            /></span>
             <span class="applicant-meta-item">NID: {{ submission.nid }}</span>
             <span class="applicant-meta-item">
               Date: {{ submission.createdAt | date: 'dd/MM/yyyy' }}
@@ -455,31 +455,7 @@
                       'admin.submissionDetail.fields.mobile' | translate
                     }}</span>
                     @if (displayValue(emergency.mobile); as mobile) {
-                      <div class="ds-field-value-row">
-                        <a class="ds-field-value ds-mono ds-link" [href]="telHref(mobile)">{{
-                          mobile
-                        }}</a>
-                        <a
-                          class="ds-icon-btn no-print"
-                          [href]="telHref(mobile)"
-                          [attr.aria-label]="'admin.submissionDetail.call' | translate"
-                          [title]="'admin.submissionDetail.call' | translate"
-                        >
-                          <app-icon name="phone" [size]="14"></app-icon>
-                        </a>
-                        <button
-                          type="button"
-                          class="ds-icon-btn no-print"
-                          [attr.aria-label]="'admin.submissionDetail.copyValue' | translate"
-                          [title]="'admin.submissionDetail.copyValue' | translate"
-                          (click)="copyText('emergency-mobile', mobile)"
-                        >
-                          <app-icon
-                            [name]="isCopied('emergency-mobile', mobile) ? 'check-circle' : 'copy'"
-                            [size]="14"
-                          ></app-icon>
-                        </button>
-                      </div>
+                      <app-phone-link class="ds-field-value" [value]="mobile" />
                     } @else {
                       <span class="ds-field-value ds-empty">{{ emptyValue() }}</span>
                     }
@@ -943,35 +919,7 @@
                         'admin.submissionDetail.fields.mobile' | translate
                       }}</span>
                       @if (displayValue(nominee.mobile); as mobile) {
-                        <div class="ds-field-value-row">
-                          <a class="ds-field-value ds-mono ds-link" [href]="telHref(mobile)">{{
-                            mobile
-                          }}</a>
-                          <a
-                            class="ds-icon-btn no-print"
-                            [href]="telHref(mobile)"
-                            [attr.aria-label]="'admin.submissionDetail.call' | translate"
-                            [title]="'admin.submissionDetail.call' | translate"
-                          >
-                            <app-icon name="phone" [size]="14"></app-icon>
-                          </a>
-                          <button
-                            type="button"
-                            class="ds-icon-btn no-print"
-                            [attr.aria-label]="'admin.submissionDetail.copyValue' | translate"
-                            [title]="'admin.submissionDetail.copyValue' | translate"
-                            (click)="copyText('nominee-mobile-' + nominee.id, mobile)"
-                          >
-                            <app-icon
-                              [name]="
-                                isCopied('nominee-mobile-' + nominee.id, mobile)
-                                  ? 'check-circle'
-                                  : 'copy'
-                              "
-                              [size]="14"
-                            ></app-icon>
-                          </button>
-                        </div>
+                        <app-phone-link class="ds-field-value" [value]="mobile" />
                       } @else {
                         <span class="ds-field-value ds-empty">{{ emptyValue() }}</span>
                       }

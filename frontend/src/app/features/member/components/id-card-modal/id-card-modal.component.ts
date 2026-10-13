@@ -12,6 +12,7 @@ import QRCode from 'qrcode';
 import { MemberProfile, MemberService } from '../../../../core/services/member.service';
 import { AttachmentService } from '../../../../core/services/attachment.service';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { formatPhone } from '../../../../shared/phone/phone-format';
 
 /**
  * Fixed print-style palette (independent of the light/dark theme) so the card
@@ -303,7 +304,7 @@ export class IdCardModalComponent implements OnInit {
     // Detail grid: 2 columns, gold accent bars
     const cells: { x: number; y: number; label: string; value: string; wide?: boolean }[] = [
       { x: 296, y: 296, label: this.instant('idCard.dob'), value: this.formatDate(profile.dob) },
-      { x: 660, y: 296, label: this.instant('idCard.mobile'), value: profile.mobile || '—' },
+      { x: 660, y: 296, label: this.instant('idCard.mobile'), value: this.phoneText(profile.mobile) },
       { x: 296, y: 372, label: this.instant('idCard.nid'), value: profile.nid || '—' },
       { x: 660, y: 372, label: this.instant('idCard.address'), value: this.shortAddress(profile), wide: true },
     ];
@@ -415,11 +416,11 @@ export class IdCardModalComponent implements OnInit {
       { label: this.instant('idCard.nid'), value: profile.nid || '—' },
     ]);
     yL = section(colL.x, colL.right, yL, this.instant('idCard.sectionContact'), [
-      { label: this.instant('idCard.mobile'), value: profile.mobile || '—' },
+      { label: this.instant('idCard.mobile'), value: this.phoneText(profile.mobile) },
       {
         label: this.instant('idCard.emergency'),
         value: profile.urgentContactMobile
-          ? `${profile.urgentContactName ? profile.urgentContactName + ' · ' : ''}${profile.urgentContactMobile}`
+          ? this.emergencyText(profile)
           : '—',
       },
     ]);
@@ -554,6 +555,19 @@ export class IdCardModalComponent implements OnInit {
 
   private initialOf(name: string): string {
     return (name || '').trim().charAt(0) || 'স';
+  }
+
+  /** Text-only phone for the card (no links): international format, '—' when empty. */
+  phoneText(value: string | null | undefined): string {
+    const lang = this.translate.currentLang() === 'en' ? 'en' : 'bn';
+    return formatPhone(value, lang) || '—';
+  }
+
+  /** "Name · +880 …" for the emergency contact line; '—' without a number. */
+  emergencyText(profile: MemberProfile): string {
+    if (!profile.urgentContactMobile) return '—';
+    const name = profile.urgentContactName ? `${profile.urgentContactName} · ` : '';
+    return `${name}${this.phoneText(profile.urgentContactMobile)}`;
   }
 
   shortAddress(profile: MemberProfile): string {

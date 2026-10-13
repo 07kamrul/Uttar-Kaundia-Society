@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/phone/phone.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/admin_entities.dart';
 import 'management_widgets.dart';
@@ -43,6 +44,7 @@ class PropertyRequestPayloadTile extends StatelessWidget {
     final theme = Theme.of(context);
     final p = payload;
     final types = _types(p);
+    final lang = Localizations.localeOf(context).languageCode;
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       shape: const Border(),
@@ -90,7 +92,8 @@ class PropertyRequestPayloadTile extends StatelessWidget {
           InfoRow(
             label: loc.adminPropertyRequestsPayloadCoOwners,
             value: p.coOwners
-                .map((c) => '${c.ownerName} (${c.ownerPhone})')
+                .map((c) =>
+                    '${c.ownerName} (${formatPhoneInternational(c.ownerPhone, lang: lang)})')
                 .join(', '),
             expanded: true,
           ),

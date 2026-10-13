@@ -12,7 +12,7 @@
     <div class="grid-2" style="font-size:0.875rem">
       <div><strong>{{ 'registration.review.nameLabel' | translate }}:</strong> {{ form.get('fullName')?.value || '—' }}</div>
       <div><strong>{{ 'registration.review.fatherOrHusbandLabel' | translate }}:</strong> {{ form.get('fatherOrHusband')?.value || '—' }}</div>
-      <div><strong>{{ 'registration.review.mobileLabel' | translate }}:</strong> {{ form.get('mobile')?.value || '—' }}</div>
+      <div><strong>{{ 'registration.review.mobileLabel' | translate }}:</strong> {{ (form.get('mobile')?.value | phoneText) || '—' }}</div>
       <div><strong>{{ 'registration.review.emailLabel' | translate }}:</strong> {{ form.get('email')?.value || '—' }}</div>
     </div>
   </div>

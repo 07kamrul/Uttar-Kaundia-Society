@@ -97,6 +97,16 @@ void main() {
     expect(find.text("WhatsApp couldn't be opened."), findsOneWidget);
   });
 
+  testWidgets('shows the formatted international number with a copy shortcut', (tester) async {
+    await tester.pumpWidget(_harness(data, _FakeLauncher()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('+880 1712-345678'), findsOneWidget);
+    expect(find.byKey(const Key('phoneDisplayCopy')), findsOneWidget);
+    expect(find.byKey(const Key('phoneDisplayCall')), findsNothing,
+        reason: 'call and WhatsApp stay in the card buttons');
+  });
+
   testWidgets('empty state text when no owners', (tester) async {
     await tester
         .pumpWidget(_harness(directory([ownGroup('12')]), _FakeLauncher()));

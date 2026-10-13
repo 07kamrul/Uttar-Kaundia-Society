@@ -112,6 +112,35 @@ describe('SubmissionDetailComponent (OnPush + memoized derived values)', () => {
     expect(component.nomineeShareWarning).toBe(false);
   });
 
+  it('shows every mobile through the phone link: international text, tel:+E.164 and a WhatsApp link', () => {
+    const fixture = create();
+    const root = fixture.nativeElement as HTMLElement;
+    const links = root.querySelectorAll('app-phone-link');
+    // applicant meta row + emergency contact + two nominees
+    expect(links.length).toBe(4);
+    const tel = [...root.querySelectorAll<HTMLAnchorElement>('app-phone-link a[href^="tel:"]')].map((a) =>
+      a.getAttribute('href'),
+    );
+    expect(tel).toContain('tel:+8801711111111');
+    expect(tel).toContain('tel:+8801933333333');
+    expect(root.querySelector('a[href="https://wa.me/8801933333333"]')).not.toBeNull();
+    expect(root.textContent).not.toContain('01711111111');
+  });
+
+  it('copies the E.164 number from the phone link, not the raw stored value', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    try {
+      const fixture = create();
+      const button = fixture.nativeElement.querySelector('app-phone-link button.phone-link-copy') as HTMLButtonElement;
+      button.click();
+      await fixture.whenStable();
+      expect(writeText).toHaveBeenCalledWith('+8801711111111');
+    } finally {
+      Reflect.deleteProperty(navigator, 'clipboard');
+    }
+  });
+
   it('returns identical references for repeated derived reads', () => {
     const component = create().componentInstance;
     const first = component.emergencyContact;

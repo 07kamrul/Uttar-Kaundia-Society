@@ -22,6 +22,8 @@ from app.services.normalization import (
     normalize_email,
     normalize_mobile,
     normalize_nid,
+    phone_tail_digits,
+    same_phone,
 )
 from app.services.storage import save_upload_file, slugify_path_segment
 
@@ -30,6 +32,9 @@ router = APIRouter(tags=["submissions"])
 # Statuses that still block a resubmission with the same identifier. A
 # REJECTED applicant is free to re-apply.
 _BLOCKING_STATUSES = (MemberStatus.PENDING, MemberStatus.APPROVED)
+
+# Trailing digits compared when looking for non-canonically stored phones.
+_PHONE_TAIL_LENGTH = 9
 
 
 async def _reject_duplicate_submission(
@@ -43,17 +48,30 @@ async def _reject_duplicate_submission(
     in migration d4e6f8a0b2c4 are the actual safety net for that, and
     `create_submission` catches the resulting IntegrityError as a fallback.
     """
+    # Stored values come in several forms (E.164, legacy "01712345678", or
+    # hand-typed with separators until the phone migration has run), so besides
+    # the exact variants the SQL also pulls rows whose digits end the same way;
+    # each candidate is then confirmed by comparing normalised E.164 values.
+    tail = phone_tail_digits(mobile, _PHONE_TAIL_LENGTH)
     result = await db.execute(
-        select(Member.status).where(
+        select(Member.status, Member.nid, Member.email, Member.mobile).where(
             Member.status.in_(_BLOCKING_STATUSES),
             or_(
                 Member.nid == nid,
                 Member.mobile.in_(mobile_lookup_variants(mobile)),
+                Member.mobile.like(f"%{tail}"),
                 Member.email == email,
             ),
         )
     )
-    matched_statuses = set(result.scalars().all())
+    matched_statuses = {
+        row.status
+        for row in result.all()
+        if row.nid == nid
+        or row.email == email
+        or row.mobile in mobile_lookup_variants(mobile)
+        or same_phone(row.mobile, mobile)
+    }
     if not matched_statuses:
         return
     if MemberStatus.APPROVED in matched_statuses:

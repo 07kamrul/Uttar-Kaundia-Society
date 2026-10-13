@@ -143,7 +143,7 @@
             <tr>
               <td [attr.data-label]="'admin.dashboard.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
               <td [attr.data-label]="'admin.dashboard.tableHeaders.applicant' | translate">{{ s.fullName }}</td>
-              <td [attr.data-label]="'admin.dashboard.tableHeaders.mobile' | translate">{{ s.mobile }}</td>
+              <td [attr.data-label]="'admin.dashboard.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" /></td>
               <td [attr.data-label]="'admin.dashboard.tableHeaders.properties' | translate">{{ s.propertiesCount ?? '—' }}{{ 'admin.dashboard.propertiesUnit' | translate }}</td>
               <td [attr.data-label]="'admin.dashboard.tableHeaders.submittedDate' | translate">{{ s.createdAt | date: 'yyyy-MM-dd' }}</td>
               <td [attr.data-label]="'admin.dashboard.detailsLink' | translate">

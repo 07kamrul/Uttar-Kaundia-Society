@@ -5,7 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/layout/responsive.dart';
+import '../../../../core/phone/phone.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/phone_field.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/member_entities.dart';
 import '../bloc/profile_bloc.dart';
@@ -40,11 +42,15 @@ const _contactKeys = [
   'urgentContactMobile', 'urgentContactAddress',
 ];
 
+/// Contact fields edited with the international [PhoneField] (value is E.164).
+const _phoneKeys = ['mobile', 'urgentContactMobile'];
+
 class _ProfileEditViewState extends State<ProfileEditView> {
   late final Map<String, TextEditingController> _controllers = {
     for (final key in [..._personalKeys, ..._permanentKeys, ..._currentKeys, ..._contactKeys])
-      key: TextEditingController(text: _initial(key)),
+      if (!_phoneKeys.contains(key)) key: TextEditingController(text: _initial(key)),
   };
+  late final Map<String, String> _phones = {for (final key in _phoneKeys) key: _initial(key) ?? ''};
   String? _photoPath;
   late bool _showInNeighbourDirectory = widget.profile.showInNeighbourDirectory;
 
@@ -87,7 +93,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     super.dispose();
   }
 
-  String _text(String key) => _controllers[key]!.text;
+  String _text(String key) => _phones[key] ?? _controllers[key]!.text;
 
   String? _emptyToNull(String v) => v.trim().isEmpty ? null : v.trim();
 
@@ -127,8 +133,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     final loc = AppLocalizations.of(context);
     final bloc = context.read<ProfileBloc>();
     _syncDraft(context);
-    final mobile = _text('mobile').trim();
-    if (mobile.isNotEmpty && !RegExp(r'^\+[1-9]\d{6,14}$').hasMatch(mobile)) {
+    final hasInvalidPhone = _phoneKeys
+        .any((key) => phoneErrorKind(_text(key), required: false) == PhoneErrorKind.invalid);
+    if (hasInvalidPhone) {
       showAppToast(context, loc.memberProfileMobileInvalid, error: true);
       return;
     }
@@ -245,6 +252,17 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   }
 
   Widget _field(String key, AppLocalizations loc) {
+    if (_phoneKeys.contains(key)) {
+      return PhoneField(
+        key: ValueKey('profilePhone-$key'),
+        label: _labelFor(key, loc),
+        value: _phones[key] ?? '',
+        onChanged: (v) {
+          _phones[key] = v;
+          _syncDraft(context);
+        },
+      );
+    }
     final isLast = key == _contactKeys.last;
     return TextField(
       controller: _controllers[key],
@@ -261,7 +279,6 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   }
 
   TextInputType _keyboardFor(String key) => switch (key) {
-        'mobile' || 'urgentContactMobile' => TextInputType.phone,
         'email' => TextInputType.emailAddress,
         'nid' => TextInputType.number,
         'dob' => TextInputType.datetime,
@@ -277,11 +294,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         'occupation' => Icons.work_outline,
         'nid' => Icons.badge_outlined,
         'gender' => Icons.wc_outlined,
-        'mobile' => Icons.phone_outlined,
         'email' => Icons.email_outlined,
         'urgentContactName' => Icons.contact_emergency_outlined,
         'urgentContactRelation' => Icons.people_outline,
-        'urgentContactMobile' => Icons.phone_in_talk_outlined,
         'permanentHouse' || 'currentHouse' || 'urgentContactAddress' => Icons.home_outlined,
         'permanentRoad' || 'currentRoad' => Icons.signpost_outlined,
         'permanentPostOffice' || 'currentPostOffice' => Icons.local_post_office_outlined,

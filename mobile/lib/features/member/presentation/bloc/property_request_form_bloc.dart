@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../../core/phone/phone.dart';
 import '../../../../shared/utils/file_utils.dart';
 import '../../data/member_repository.dart';
 import '../../domain/member_entities.dart';

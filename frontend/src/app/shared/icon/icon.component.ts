@@ -41,7 +41,8 @@ export type IconName =
   | 'id-card'
   | 'receipt'
   | 'chart'
-  | 'layers';
+  | 'layers'
+  | 'whatsapp';
 
 const ICON_PATHS: Record<IconName, string> = {
   dashboard:
@@ -97,6 +98,8 @@ const ICON_PATHS: Record<IconName, string> = {
     '<path d="M6 3h12v18l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5z"/><path d="M9 8h6M9 11.5h6M9 15h4"/>',
   chart: '<path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/><circle cx="20" cy="7" r="1.3"/>',
   layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m4.5 12.5 7.5 4.2 7.5-4.2"/><path d="m4.5 16.5 7.5 4.2 7.5-4.2"/>',
+  whatsapp:
+    '<path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z"/><path d="M9.2 8.8c0 3 2.6 5.8 5.8 6l1-1.4-2-1-.9.8a4 4 0 0 1-1.8-1.8l.8-.9-1-2z"/>',
 };
 
 const SAFE_ICON_HTML = new Map<IconName, SafeHtml>();

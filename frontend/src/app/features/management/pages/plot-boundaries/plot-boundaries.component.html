@@ -236,7 +236,7 @@
                   <app-icon name="phone" [size]="13" />
                   {{ 'admin.plotBoundaries.table.mobile' | translate }}
                 </dt>
-                <dd>{{ digits(sel.memberMobile) }}</dd>
+                <dd><app-phone-link [value]="sel.memberMobile" /></dd>
               </div>
               <div class="fact">
                 <dt>

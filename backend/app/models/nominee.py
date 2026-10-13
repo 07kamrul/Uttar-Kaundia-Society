@@ -15,6 +15,7 @@ class Nominee(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     relation: Mapped[str] = mapped_column(String(128), nullable=False)
     mobile: Mapped[str] = mapped_column(String(32), nullable=False)
+    mobile_raw: Mapped[str | None] = mapped_column(String(64), nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     member: Mapped["Member"] = relationship(back_populates="nominees")

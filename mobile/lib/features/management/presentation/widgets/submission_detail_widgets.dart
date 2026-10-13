@@ -61,6 +61,8 @@ class SubmissionPersonalCard extends StatelessWidget {
               value: s.occupation),
           InfoRow(label: loc.adminSubmissionDetailFieldLabelsNid, value: s.nid),
           InfoRow(label: loc.adminSubmissionDetailFieldsGender, value: s.gender),
+          InfoRow.phone(
+              label: loc.adminSubmissionDetailFieldsMobile, phone: s.mobile),
           InfoRow(label: loc.adminSubmissionDetailFieldsEmail, value: s.email),
           if (s.memberId != null)
             InfoRow(label: loc.adminMemberDetailFMemberId, value: s.memberId!),
@@ -126,9 +128,9 @@ class SubmissionEmergencyCard extends StatelessWidget {
           InfoRow(
               label: loc.adminSubmissionDetailFieldsRelation,
               value: s.urgentContactRelation ?? ''),
-          InfoRow(
+          InfoRow.phone(
               label: loc.adminSubmissionDetailFieldsMobile,
-              value: s.urgentContactMobile ?? ''),
+              phone: s.urgentContactMobile),
           InfoRow(
               label: loc.adminSubmissionDetailFieldsAddress,
               value: s.urgentContactAddress ?? ''),
@@ -592,9 +594,9 @@ class _NomineeTile extends StatelessWidget {
                 InfoRow(
                     label: loc.adminSubmissionDetailFieldsRelation,
                     value: n.relation),
-                InfoRow(
+                InfoRow.phone(
                     label: loc.adminSubmissionDetailFieldsMobile,
-                    value: n.mobile),
+                    phone: n.mobile),
               ],
             ),
           ),

@@ -1,4 +1,4 @@
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { parsePhoneNumberFromString } from 'libphonenumber-js/min';
 import { DEFAULT_PHONE_COUNTRY } from './phone-number';
 
 /**

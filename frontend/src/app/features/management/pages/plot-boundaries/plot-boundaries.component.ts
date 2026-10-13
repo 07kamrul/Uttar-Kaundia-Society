@@ -30,6 +30,7 @@ import type {
   DisputeStatus,
   PolygonGeometry,
 } from '../../../../core/models/plot-boundary.model';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 /** Maps a failed review action to an i18n key (403 vs generic). */
 export function reviewErrorKey(error: unknown): string {
@@ -64,7 +65,7 @@ export interface OverlapInfo {
   selector: 'app-plot-boundaries',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './plot-boundaries.component.html',
   styleUrl: './plot-boundaries.component.scss',
 })

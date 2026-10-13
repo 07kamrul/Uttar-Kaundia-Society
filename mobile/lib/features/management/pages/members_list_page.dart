@@ -196,7 +196,10 @@ class _MemberCard extends StatelessWidget {
         ],
       ],
       children: [
-        InfoRow(label: loc.adminMembersListTableHeadersMobile, value: m.mobile),
+        InfoRow.phone(
+            label: loc.adminMembersListTableHeadersMobile,
+            phone: m.mobile,
+            compact: true),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
           child: Wrap(

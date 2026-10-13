@@ -48,7 +48,7 @@
                     </div>
                     <div class="idcard-field">
                       <dt>{{ 'idCard.mobile' | translate }}</dt>
-                      <dd>{{ p.mobile || '—' }}</dd>
+                      <dd>{{ phoneText(p.mobile) }}</dd>
                     </div>
                     <div class="idcard-field">
                       <dt>{{ 'idCard.nid' | translate }}</dt>
@@ -82,10 +82,10 @@
                   </div>
                   <div class="idcard-section">
                     <h4>{{ 'idCard.sectionContact' | translate }}</h4>
-                    <div class="idcard-row"><span>{{ 'idCard.mobile' | translate }}</span><strong>{{ p.mobile || '—' }}</strong></div>
+                    <div class="idcard-row"><span>{{ 'idCard.mobile' | translate }}</span><strong>{{ phoneText(p.mobile) }}</strong></div>
                     <div class="idcard-row">
                       <span>{{ 'idCard.emergency' | translate }}</span>
-                      <strong>{{ p.urgentContactMobile ? (p.urgentContactName ? p.urgentContactName + ' · ' : '') + p.urgentContactMobile : '—' }}</strong>
+                      <strong>{{ emergencyText(p) }}</strong>
                     </div>
                   </div>
                   <p class="idcard-terms">{{ 'idCard.terms' | translate }}</p>

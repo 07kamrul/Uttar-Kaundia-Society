@@ -46,6 +46,7 @@ import { validateDrawing, type DrawValidation } from './boundary-validation';
 import { readLayerPrefs, writeLayerPrefs } from './layer-prefs';
 import { bestRsMatch, rsArea, rsLabelNumber, snapDistancePx, type RsMatch } from './rs-match';
 import { environment } from '../../../../../environments/environment';
+import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 
 const MOVE_DEBOUNCE_MS = 300;
 // Uttar Kaundia mouza (Savar) — the society's actual location. The earlier
@@ -154,7 +155,7 @@ type DrawStep = 'idle' | 'pick' | 'draw';
   selector: 'app-plot-map',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent, DagInfoDialogComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent, DagInfoDialogComponent, PhoneTextPipe],
   templateUrl: './plot-map.component.html',
   styleUrl: './plot-map.component.scss',
 })

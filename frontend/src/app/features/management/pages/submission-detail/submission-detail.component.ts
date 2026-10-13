@@ -26,12 +26,13 @@ import type {
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent],
+  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './submission-detail.component.html',
 })
 export class SubmissionDetailComponent implements OnInit, OnDestroy {
@@ -298,11 +299,6 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     if (value.includes('একক') || value.includes('single')) return 'single';
     if (value.includes('যৌথ') || value.includes('joint')) return 'joint';
     return 'other';
-  }
-
-  telHref(mobile?: string | null): string {
-    const digits = (mobile ?? '').replace(/[^\d+]/g, '');
-    return digits ? `tel:${digits}` : '';
   }
 
   copyText(scope: string, value?: string | null): void {

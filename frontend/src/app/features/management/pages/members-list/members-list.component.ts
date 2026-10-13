@@ -8,12 +8,13 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { MemberDetailDrawerComponent } from './member-detail-drawer/member-detail-drawer.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 @Component({
   selector: 'app-members-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent],
+  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './members-list.component.html',
 })
 export class MembersListComponent implements OnInit {

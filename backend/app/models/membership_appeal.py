@@ -41,6 +41,7 @@ class MembershipApplication(Base):
     mother_name: Mapped[str] = mapped_column(String(255), nullable=False)
     spouse_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mobile: Mapped[str] = mapped_column(String(32), nullable=False)
+    mobile_raw: Mapped[str | None] = mapped_column(String(64), nullable=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Structured address (same shape as the members table)

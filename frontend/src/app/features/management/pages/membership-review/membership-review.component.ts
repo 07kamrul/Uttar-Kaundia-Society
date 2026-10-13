@@ -9,6 +9,7 @@ import {
   MembershipApplication,
   SlaInfo,
 } from '../../../../core/services/governance.service';
+import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 function saveBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -25,7 +26,7 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-membership-review',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent],
+  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent, PhoneLinkComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -60,7 +61,7 @@ function saveBlob(blob: Blob, filename: string): void {
               @for (app of applications(); track app.id) {
                 <tr [class.overdue]="app.sla.state === 'overdue' && app.status !== 'approved' && app.status !== 'rejected'">
                   <td [attr.data-label]="'membershipReview.no' | translate">{{ app.application_no }}</td>
-                  <td [attr.data-label]="'membershipReview.applicant' | translate">{{ app.full_name }}<br /><span class="muted">{{ app.mobile }}</span></td>
+                  <td [attr.data-label]="'membershipReview.applicant' | translate">{{ app.full_name }}<br /><span class="muted"><app-phone-link [value]="app.mobile" /></span></td>
                   <td [attr.data-label]="'membershipReview.status' | translate">
                     <span class="ds-tag" [attr.data-tone]="statusTone(app.status)">{{ 'membershipGov.statuses.' + app.status | translate }}</span>
                   </td>

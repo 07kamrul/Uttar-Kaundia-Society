@@ -20,6 +20,11 @@ def validate_phone(value: str | None) -> str | None:
     return normalize_mobile(value)
 
 
+def validate_required_phone(value: str) -> str:
+    """Normalise a mandatory phone number to E.164; blank is invalid."""
+    return normalize_mobile(value)
+
+
 def as_utc(value: datetime | None) -> datetime | None:
     """Normalise a client's datetime to UTC.
 
@@ -56,6 +61,9 @@ class Nominee(BaseModel):
 class CoOwner(BaseModel):
     owner_name: str
     owner_phone: str
+
+    # A blank phone stays accepted (co-owners may be listed without one).
+    _validate_owner_phone = field_validator("owner_phone")(validate_phone)
 
 
 class ApplicableDocIn(BaseModel):

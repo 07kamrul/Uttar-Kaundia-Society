@@ -41,6 +41,7 @@ class CoOwner(Base):
     )
     owner_name: Mapped[str] = mapped_column(String(255), nullable=False)
     owner_phone: Mapped[str] = mapped_column(String(32), nullable=False)
+    owner_phone_raw: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     property: Mapped["Property"] = relationship(back_populates="co_owners")
 
