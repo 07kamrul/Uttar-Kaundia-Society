@@ -6516,4 +6516,200 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get apiErrorAbroadAddressRequired =>
       'বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।';
+
+  @override
+  String get mpayTitle => 'পেমেন্ট';
+
+  @override
+  String get mpayMyDue => 'আমার বকেয়া';
+
+  @override
+  String get mpayPaid => 'পরিশোধ করেছি';
+
+  @override
+  String get mpayVerifying => 'যাচাই চলছে';
+
+  @override
+  String get mpayPayNow => 'পেমেন্ট করুন';
+
+  @override
+  String get mpayForWhat => 'কিসের জন্য দিচ্ছেন?';
+
+  @override
+  String get mpayHow => 'কীভাবে দিলেন?';
+
+  @override
+  String get mpaySubmit => 'জমা দিন';
+
+  @override
+  String get mpayNext => 'পরবর্তী';
+
+  @override
+  String get mpayBack => 'পেছনে';
+
+  @override
+  String get mpayTotal => 'মোট';
+
+  @override
+  String get mpayEmpty => 'এখন কোনো বকেয়া নেই';
+
+  @override
+  String get mpayHistoryEmpty => 'কোনো পেমেন্ট নেই';
+
+  @override
+  String get mpayHistoryTitle => 'পেমেন্টের ইতিহাস';
+
+  @override
+  String get mpayLoadMore => 'আরও দেখুন';
+
+  @override
+  String get mpayLoadError => 'পেমেন্টের তথ্য আনা যায়নি';
+
+  @override
+  String get mpayStatusPending => 'যাচাই চলছে';
+
+  @override
+  String get mpayStatusApproved => 'গৃহীত';
+
+  @override
+  String mpayStatusRejected(String reason) {
+    return 'বাতিল — কারণ: $reason';
+  }
+
+  @override
+  String get mpayStatusRecorded => 'জমা হয়েছে';
+
+  @override
+  String get mpayKindAll => 'সব';
+
+  @override
+  String get mpayKindInstallment => 'কিস্তি';
+
+  @override
+  String get mpayKindOtherFee => 'অন্যান্য ফি';
+
+  @override
+  String get mpayKindCostShare => 'খরচের ভাগ';
+
+  @override
+  String get mpayPaidOn => 'পেমেন্টের তারিখ';
+
+  @override
+  String get mpayFeeAmount => 'পরিমাণ (৳)';
+
+  @override
+  String get mpayPicnicExtra => 'অতিরিক্ত জন';
+
+  @override
+  String get mpayRefRequired =>
+      'ট্রানজেকশন আইডি বা রসিদ নম্বর দিন (কমপক্ষে ৪ অক্ষর)';
+
+  @override
+  String get mpayProofTooLarge => 'ফাইল ৫ এমবির বেশি হতে পারবে না';
+
+  @override
+  String get mpaySubmitted => 'পেমেন্ট জমা হয়েছে। যাচাইয়ের অপেক্ষায়।';
+
+  @override
+  String mpayPartial(String ok, String total) {
+    return '$totalটির মধ্যে $okটি জমা হয়েছে';
+  }
+
+  @override
+  String get mpayRetryRest => 'বাকিগুলো আবার চেষ্টা করুন';
+
+  @override
+  String get mpayItemFailed => 'জমা হয়নি';
+
+  @override
+  String get navAreaHome => 'হোম';
+
+  @override
+  String get navAreaPayments => 'পেমেন্ট';
+
+  @override
+  String get navAreaLand => 'আমার জমি';
+
+  @override
+  String get navAreaOrganisation => 'সংগঠন';
+
+  @override
+  String get navAreaProfile => 'আমার প্রোফাইল';
+
+  @override
+  String get navPropertyRequest => 'জমির আবেদন';
+
+  @override
+  String get helpFab => 'সাহায্য দরকার?';
+
+  @override
+  String get helpCall => 'ফোন করুন';
+
+  @override
+  String get helpWhatsapp => 'হোয়াটসঅ্যাপ';
+
+  @override
+  String helpHours(String hours) {
+    return 'সময়: $hours';
+  }
+
+  @override
+  String get homeMyStatus => 'আমার অবস্থা';
+
+  @override
+  String get homeNextStep => 'পরবর্তী ধাপ';
+
+  @override
+  String get homeLatestNotice => 'সর্বশেষ নোটিশ';
+
+  @override
+  String get homeNextEvent => 'পরবর্তী অনুষ্ঠান';
+
+  @override
+  String get homeStatusPending => 'অফিস যাচাই করছে';
+
+  @override
+  String get homeStatusNeedsDag => 'অফিসে দাগ নম্বর দিন';
+
+  @override
+  String homeStatusDues(String amount) {
+    return 'বকেয়া $amount — পেমেন্ট করুন';
+  }
+
+  @override
+  String get homeStatusAllGood => 'সব ঠিক আছে';
+
+  @override
+  String get homeNoNotice => 'কোনো নোটিশ নেই';
+
+  @override
+  String get homeNoEvent => 'কোনো আসন্ন অনুষ্ঠান নেই';
+
+  @override
+  String get homeCardError => 'তথ্য আনা যায়নি';
+
+  @override
+  String get profileDisplay => 'প্রদর্শন';
+
+  @override
+  String get apiErrorShareNotFound => 'এই খরচের ভাগ পাওয়া যায়নি।';
+
+  @override
+  String get apiErrorShareAlreadyPaid => 'এই খরচের ভাগ আগেই পরিশোধ হয়েছে।';
+
+  @override
+  String get apiErrorDuplicateTransactionRef =>
+      'এই ট্রানজেকশন আইডি বা রসিদ নম্বর আগে ব্যবহার হয়েছে।';
+
+  @override
+  String get apiErrorAmountExceedsRemaining => 'পরিমাণ বাকি টাকার চেয়ে বেশি।';
+
+  @override
+  String get apiErrorFeatureDisabled => 'এই সুবিধা এখন চালু নেই।';
+
+  @override
+  String get apiErrorInvalidBdMobile => 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন।';
+
+  @override
+  String get mpayStatusRejectedShort => 'বাতিল';
 }

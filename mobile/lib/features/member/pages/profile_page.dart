@@ -6,12 +6,15 @@ import '../../../core/di/injector.dart';
 import '../../../core/enums/enums.dart';
 import '../../../core/layout/responsive.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../data/member_repository.dart';
 import '../domain/member_entities.dart';
 import '../presentation/bloc/profile_bloc.dart';
 import '../presentation/widgets/member_ui.dart';
+import '../presentation/widgets/display_settings_card.dart';
 import '../presentation/widgets/profile_edit_view.dart';
 import '../presentation/widgets/profile_sections.dart';
 
@@ -125,6 +128,10 @@ class _ProfileView extends StatelessWidget {
           profile: profile,
           status: _statusBadge(profile.memberStatus, loc),
           onEdit: () => bloc.add(const ProfileEditStarted()),
+        ),
+        FeatureFlagBuilder(
+          flag: FeatureFlag.navFiveAreas,
+          builder: (_, on) => on ? const DisplaySettingsCard() : const SizedBox.shrink(),
         ),
         Gutter(
           vertical: 6,

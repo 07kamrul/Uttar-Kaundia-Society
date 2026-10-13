@@ -1,9 +1,15 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/pages/forgot_password_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/reset_password_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/home/home_status_page.dart';
+import '../../features/home/my_land_hub_page.dart';
+import '../../features/home/organisation_hub_page.dart';
+import '../../features/member/domain/merged_payment_entities.dart';
+import '../../features/member/pages/payments_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/management/pages/config_lists_page.dart';
 import '../../features/management/pages/events_management_page.dart';
@@ -44,6 +50,9 @@ import '../../features/settings/shell_page.dart';
 import '../../features/superadmin/pages/audit_log_page.dart';
 import '../../features/superadmin/pages/roles_page.dart';
 import '../di/injector.dart';
+import '../feature_flags/feature_flag.dart';
+import '../feature_flags/feature_flag_builder.dart';
+import '../enums/enums.dart';
 import '../pages/forbidden_page.dart';
 import '../auth/session.dart';
 import 'guards.dart';
@@ -71,7 +80,10 @@ GoRouter buildRouter() {
       ShellRoute(
         builder: (context, state, child) => ShellPage(child: child),
         routes: [
-          GoRoute(path: '/dashboard', builder: (_, __) => const DashboardPage()),
+          GoRoute(path: '/dashboard', builder: (_, __) => const _DashboardSwitch()),
+          GoRoute(path: '/payments', builder: _paymentsBuilder),
+          GoRoute(path: '/my-land', builder: (_, __) => const MyLandHubPage()),
+          GoRoute(path: '/organisation', builder: (_, __) => const OrganisationHubPage()),
           GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
           GoRoute(path: '/installments', builder: (_, __) => const InstallmentsPage()),
           GoRoute(path: '/cost-shares', builder: (_, __) => const CostSharesPage()),
@@ -166,6 +178,35 @@ GoRouter buildRouter() {
         ],
       ),
     ],
+  );
+}
+
+/// nav_five_areas: members get the "আমার অবস্থা" home; everyone else (and the
+/// flag off) keeps the dashboard.
+class _DashboardSwitch extends StatelessWidget {
+  const _DashboardSwitch();
+
+  @override
+  Widget build(BuildContext context) => FeatureFlagBuilder(
+        flag: FeatureFlag.navFiveAreas,
+        builder: (_, on) => on && sl<SessionManager>().session?.landingTier == LandingTier.member
+            ? const HomeStatusPage()
+            : const DashboardPage(),
+      );
+}
+
+/// `/payments?kind=installment|other_fee|cost_share&status=…&fee=picnic`.
+Widget _paymentsBuilder(BuildContext context, GoRouterState state) {
+  final q = state.uri.queryParameters;
+  final status = PaymentItemStatusX.fromApi(q['status']);
+  return PaymentsPage(
+    initialKind: PaymentKindX.fromApi(q['kind']),
+    initialStatus: status == PaymentItemStatus.unknown ? null : status,
+    initialFee: q['fee'],
+    onFiltersChanged: (kind, status) => context.go(Uri(path: '/payments', queryParameters: {
+      if (kind != null) 'kind': kind.apiValue,
+      if (status != null) 'status': status.apiValue,
+    }).toString()),
   );
 }
 

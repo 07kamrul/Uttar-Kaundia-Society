@@ -14,6 +14,7 @@ ApiException _http(int code, {ApiExceptionType type = ApiExceptionType.server, S
     );
 
 void main() {
+  batch2Codes();
   final bn = AppLocalizationsBn();
   final en = AppLocalizationsEn();
 
@@ -112,6 +113,23 @@ void main() {
     test('unknown codes fall back to the status mapping', () {
       expect(apiErrorMessage(bn, coded(409, 'SOMETHING_ELSE')), bn.apiErrorConflict);
       expect(apiErrorMessage(bn, coded(422, 'SOMETHING_ELSE')), bn.apiErrorInvalidInput);
+    });
+  });
+}
+
+void batch2Codes() {
+  final bn = AppLocalizationsBn();
+  group('Batch 2/3 error codes', () {
+    ApiException coded(int status, String code) =>
+        ApiException(type: ApiExceptionType.server, statusCode: status, errorCode: code);
+
+    test('maps each new code to its own message', () {
+      expect(apiErrorMessage(bn, coded(404, 'SHARE_NOT_FOUND')), bn.apiErrorShareNotFound);
+      expect(apiErrorMessage(bn, coded(409, 'SHARE_ALREADY_PAID')), bn.apiErrorShareAlreadyPaid);
+      expect(apiErrorMessage(bn, coded(409, 'DUPLICATE_TRANSACTION_REF')), bn.apiErrorDuplicateTransactionRef);
+      expect(apiErrorMessage(bn, coded(422, 'AMOUNT_EXCEEDS_REMAINING')), bn.apiErrorAmountExceedsRemaining);
+      expect(apiErrorMessage(bn, coded(404, 'FEATURE_DISABLED')), bn.apiErrorFeatureDisabled);
+      expect(apiErrorMessage(bn, coded(422, 'INVALID_BD_MOBILE')), bn.apiErrorInvalidBdMobile);
     });
   });
 }

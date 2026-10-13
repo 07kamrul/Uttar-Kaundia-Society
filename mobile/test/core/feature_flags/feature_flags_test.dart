@@ -39,6 +39,8 @@ void main() {
           'password_policy_v2',
           'nav_merged_entries',
           'nav_advanced_section',
+          'pay_merged_page',
+          'nav_five_areas',
         },
       );
     });

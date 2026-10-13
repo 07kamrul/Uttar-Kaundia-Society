@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../auth/session.dart';
 import '../di/injector.dart';
+import '../feature_flags/feature_flag.dart';
+import '../feature_flags/feature_flag_builder.dart';
 import '../navigation/nav_items.dart';
 
 /// go_router redirect guard, mirroring Angular authGuard + permissionGuard:
@@ -25,9 +27,28 @@ String? appRedirect(BuildContext context, GoRouterState state) {
     if (loc == '/login' || loc == '/register') return null;
   }
 
+  if (flagEnabled(FeatureFlag.payMergedPage)) {
+    final merged = mergedPaymentsRedirect(loc);
+    if (merged != null) return merged;
+  }
+
   final required = _requiredPermissionFor(loc);
   if (required != null && !session.canAny(required)) return '/403';
   return null;
+}
+
+/// With pay_merged_page on, the three old payment routes land on /payments.
+/// Mirrors Angular `payMergedRedirect(kind)` (`?type=picnic` becomes
+/// `?kind=other_fee&fee=picnic`). Null for every other route.
+@visibleForTesting
+String? mergedPaymentsRedirect(String loc) {
+  final path = loc.split('?').first;
+  return switch (path) {
+    '/installments' => '/payments?kind=installment',
+    '/cost-shares' => '/payments?kind=cost_share',
+    '/picnic-payment' => '/payments?kind=other_fee&fee=picnic',
+    _ => null,
+  };
 }
 
 const _publicPrefixes = [
@@ -72,6 +93,8 @@ const _memberPages = [
   '/profile',
   '/installments',
   '/cost-shares',
+  '/payments',
+  '/my-land',
   '/property-requests/new',
   '/picnic-payment',
 ];

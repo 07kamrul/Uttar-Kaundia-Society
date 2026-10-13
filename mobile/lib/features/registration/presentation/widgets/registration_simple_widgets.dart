@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/format/bn_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/registration_bloc.dart';
+import '../../../../shared/widgets/payment_method_widgets.dart' show copyToClipboardWithToast;
 import 'registration_stepper.dart';
 
 /// Small widgets that only the regSimplifiedUi flow shows.
@@ -64,16 +64,6 @@ class RegDraftSavedLine extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Copies [text] and shows a short "কপি হয়েছে" confirmation.
-Future<void> copyToClipboardWithToast(BuildContext context, String text) async {
-  final messenger = ScaffoldMessenger.maybeOf(context);
-  final copied = AppLocalizations.of(context).regPayCopied;
-  await Clipboard.setData(ClipboardData(text: text));
-  messenger
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(copied), duration: const Duration(seconds: 2)));
 }
 
 /// Full-screen confirmation: three plain lines and the reference with a copy button.

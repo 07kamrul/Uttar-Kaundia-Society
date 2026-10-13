@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/auth/session.dart';
 import '../../../core/di/injector.dart';
 import '../../../core/enums/enums.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flags_service.dart';
 import '../../../core/layout/responsive.dart';
 import '../../../core/navigation/nav_items.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../auth/bloc/auth_bloc.dart';
+import 'help_fab.dart';
 import 'settings_bloc.dart';
 
 /// Adaptive navigation shell, items filtered by the resolved permission set:
@@ -30,22 +34,38 @@ class ShellPage extends StatelessWidget {
       // Redirect guard should have caught this; defensive fallback.
       return const Scaffold(body: SizedBox.shrink());
     }
+    final flags = sl.isRegistered<FeatureFlagsService>() ? sl<FeatureFlagsService>() : null;
+    if (flags == null) return _scaffold(context, session, null);
+    // Flags arrive after startup: rebuild the navigation when they do.
+    return ListenableBuilder(
+        listenable: flags, builder: (ctx, _) => _scaffold(ctx, session, flags));
+  }
+
+  Widget _scaffold(BuildContext context, Session session, FeatureFlagsService? flags) {
+    bool on(FeatureFlag f) => flags?.isEnabled(f) ?? false;
+    final member = session.landingTier == LandingTier.member;
     final visible = AppNav.visibleFor(
       landingTier: session.landingTier,
       can: session.can,
+      mergedPayments: on(FeatureFlag.payMergedPage),
     );
+    // Batch 3: members navigate by five areas instead of the long menu.
+    final areas = member && flags != null && on(FeatureFlag.navFiveAreas);
+    final navItems = areas ? AppNav.memberAreas(flags, can: session.can) : visible;
     final currentRoute = GoRouterState.of(context).uri.path;
-    final selected = _selectedIndex(visible, currentRoute);
-    final member = session.landingTier == LandingTier.member;
+    final selected =
+        areas ? _areaIndex(navItems, currentRoute) : _selectedIndex(visible, currentRoute);
+    final help = member && on(FeatureFlag.navMergedEntries) ? const HelpFab() : null;
 
     return switch (context.windowSize) {
       WindowSize.expanded => Scaffold(
-          appBar: _AppBar(visible: visible, showMenu: false),
+          appBar: _AppBar(visible: visible, showMenu: false, areas: areas),
+          floatingActionButton: help,
           body: Row(
             children: [
               SizedBox(
                 width: 280,
-                child: _NavPanel(visible: visible, selected: selected),
+                child: _NavPanel(visible: navItems, selected: selected),
               ),
               const VerticalDivider(width: 1),
               Expanded(child: child),
@@ -53,26 +73,34 @@ class ShellPage extends StatelessWidget {
           ),
         ),
       WindowSize.medium => Scaffold(
-          appBar: _AppBar(visible: visible, showMenu: false),
+          appBar: _AppBar(visible: visible, showMenu: false, areas: areas),
+          floatingActionButton: help,
           body: Row(
             children: [
-              _Rail(visible: visible, selected: selected),
+              _Rail(visible: navItems, selected: selected),
               const VerticalDivider(width: 1),
               Expanded(child: child),
             ],
           ),
         ),
       WindowSize.compact => Scaffold(
-          appBar: _AppBar(visible: visible, showMenu: !member),
+          appBar: _AppBar(visible: visible, showMenu: !member, areas: areas),
+          floatingActionButton: help,
           drawer: member
               ? null
-              : Drawer(child: _NavPanel(visible: visible, selected: selected, popFirst: true)),
-          bottomNavigationBar: member && visible.isNotEmpty
-              ? _BottomBar(visible: visible, selected: selected)
+              : Drawer(child: _NavPanel(visible: navItems, selected: selected, popFirst: true)),
+          bottomNavigationBar: member && navItems.isNotEmpty
+              ? _BottomBar(visible: navItems, selected: selected, areas: areas)
               : null,
           body: child,
         ),
     };
+  }
+
+  /// Sub-pages highlight their parent area (route data.area equivalent).
+  static int _areaIndex(List<NavItem> areas, String currentRoute) {
+    final area = AppNav.areaForRoute(currentRoute);
+    return areas.indexWhere((a) => a.area == area);
   }
 
   static int _selectedIndex(List<NavItem> visible, String currentRoute) {
@@ -83,15 +111,18 @@ class ShellPage extends StatelessWidget {
 }
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.visible, required this.selected});
+  const _BottomBar({required this.visible, required this.selected, this.areas = false});
 
   final List<NavItem> visible;
   final int selected;
 
+  /// Five-area mode: all targets are always shown, no "More" tab.
+  final bool areas;
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final hasMore = visible.length > ShellPage._bottomBarRoutes + 1;
+    final hasMore = !areas && visible.length > ShellPage._bottomBarRoutes + 1;
     final primary = hasMore ? visible.take(ShellPage._bottomBarRoutes).toList() : visible;
     final overflow = hasMore ? visible.skip(ShellPage._bottomBarRoutes).toList() : <NavItem>[];
     // Routes behind "More" highlight the More tab.
@@ -343,10 +374,14 @@ class _NavPanel extends StatelessWidget {
 }
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _AppBar({required this.visible, required this.showMenu});
+  const _AppBar({required this.visible, required this.showMenu, this.areas = false});
 
   final List<NavItem> visible;
   final bool showMenu;
+
+  /// nav_five_areas: "বাংলা | English" switch in place of the language icon,
+  /// theme toggle moved to the profile page.
+  final bool areas;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -367,32 +402,36 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        // Language toggle beside the theme toggle, mirroring the web app bar.
-        IconButton(
-          tooltip: loc.commonLanguage,
-          icon: const Icon(Icons.translate),
-          onPressed: () {
-            final bloc = context.read<SettingsBloc>();
-            bloc.add(SettingsLanguageChanged(bloc.state.languageCode == 'bn' ? 'en' : 'bn'));
-          },
-        ),
-        IconButton(
-          tooltip: loc.commonTheme,
-          icon: Icon(switch (themeMode) {
-            'dark' => Icons.dark_mode_outlined,
-            'light' => Icons.light_mode_outlined,
-            _ => Icons.brightness_auto_outlined,
-          }),
-          onPressed: () {
-            final bloc = context.read<SettingsBloc>();
-            final next = switch (bloc.state.themeMode) {
-              'dark' => 'light',
-              'light' => 'system',
-              _ => 'dark',
-            };
-            bloc.add(SettingsThemeChanged(next));
-          },
-        ),
+        if (areas)
+          const _LanguageSwitch()
+        else ...[
+          // Language toggle beside the theme toggle, mirroring the web app bar.
+          IconButton(
+            tooltip: loc.commonLanguage,
+            icon: const Icon(Icons.translate),
+            onPressed: () {
+              final bloc = context.read<SettingsBloc>();
+              bloc.add(SettingsLanguageChanged(bloc.state.languageCode == 'bn' ? 'en' : 'bn'));
+            },
+          ),
+          IconButton(
+            tooltip: loc.commonTheme,
+            icon: Icon(switch (themeMode) {
+              'dark' => Icons.dark_mode_outlined,
+              'light' => Icons.light_mode_outlined,
+              _ => Icons.brightness_auto_outlined,
+            }),
+            onPressed: () {
+              final bloc = context.read<SettingsBloc>();
+              final next = switch (bloc.state.themeMode) {
+                'dark' => 'light',
+                'light' => 'system',
+                _ => 'dark',
+              };
+              bloc.add(SettingsThemeChanged(next));
+            },
+          ),
+        ],
         if (visible.any((i) => i.route == '/profile'))
           PopupMenuButton<String>(
             tooltip: loc.navProfile,
@@ -422,6 +461,30 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         const SizedBox(width: 4),
       ],
+    );
+  }
+}
+
+/// "বাংলা | English" segmented switch (nav_five_areas).
+class _LanguageSwitch extends StatelessWidget {
+  const _LanguageSwitch();
+
+  @override
+  Widget build(BuildContext context) {
+    final code = context.select<SettingsBloc, String>((b) => b.state.languageCode);
+    return SegmentedButton<String>(
+      key: const Key('languageSwitch'),
+      showSelectedIcon: false,
+      style: const ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      segments: const [
+        ButtonSegment(value: 'bn', label: Text('বাংলা')),
+        ButtonSegment(value: 'en', label: Text('English')),
+      ],
+      selected: {code == 'en' ? 'en' : 'bn'},
+      onSelectionChanged: (s) => context.read<SettingsBloc>().add(SettingsLanguageChanged(s.first)),
     );
   }
 }

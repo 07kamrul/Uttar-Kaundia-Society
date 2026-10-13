@@ -29,11 +29,17 @@ String apiErrorMessage(AppLocalizations l10n, Object error) {
 
 /// Plain-language message for the structured `detail.code` values the server
 /// sends on 422 (PHOTO_REQUIRED, PROPERTY_PROOF_REQUIRED) and 409
-/// (DAG_REQUIRED); null for any other code so the status mapping applies.
+/// (DAG_REQUIRED) and the Batch 2/3 payment and helpline codes; null for any other code so the status mapping applies.
 String? apiErrorCodeMessage(AppLocalizations l10n, String? code) => switch (code) {
       'PHOTO_REQUIRED' => l10n.apiErrorPhotoRequired,
       'PROPERTY_PROOF_REQUIRED' => l10n.apiErrorPropertyProofRequired,
       'DAG_REQUIRED' || 'DAG_REQUIRED_FIELD' => l10n.apiErrorDagRequired,
       'ABROAD_ADDRESS_REQUIRED' => l10n.apiErrorAbroadAddressRequired,
+      'SHARE_NOT_FOUND' => l10n.apiErrorShareNotFound,
+      'SHARE_ALREADY_PAID' => l10n.apiErrorShareAlreadyPaid,
+      'DUPLICATE_TRANSACTION_REF' => l10n.apiErrorDuplicateTransactionRef,
+      'AMOUNT_EXCEEDS_REMAINING' => l10n.apiErrorAmountExceedsRemaining,
+      'FEATURE_DISABLED' => l10n.apiErrorFeatureDisabled,
+      'INVALID_BD_MOBILE' => l10n.apiErrorInvalidBdMobile,
       _ => null,
     };

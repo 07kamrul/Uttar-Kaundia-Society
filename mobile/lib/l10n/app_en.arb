@@ -2374,7 +2374,9 @@
   "dagInfoTitle": "Plot/Dag No. {dag} details",
   "@dagInfoTitle": {
     "placeholders": {
-      "dag": {"type": "String"}
+      "dag": {
+        "type": "String"
+      }
     }
   },
   "dagInfoLandHeading": "Land Information",
@@ -2388,7 +2390,9 @@
   "dagInfoShatangsho": "≈ {value} decimal",
   "@dagInfoShatangsho": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "dagInfoKhatianNo": "Khatian No.",
@@ -2400,8 +2404,12 @@
   "dagInfoSource": "Source: {source} · Collected: {date}",
   "@dagInfoSource": {
     "placeholders": {
-      "source": {"type": "String"},
-      "date": {"type": "String"}
+      "source": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
   "dagInfoClose": "Close",
@@ -2549,5 +2557,98 @@
   "regPickFile": "Choose from gallery or files",
   "regProofAttached": "Attached",
   "regChangeFile": "Change",
-  "apiErrorAbroadAddressRequired": "Enter your address abroad (country, city and address)."
+  "apiErrorAbroadAddressRequired": "Enter your address abroad (country, city and address).",
+  "mpayTitle": "Payments",
+  "mpayMyDue": "My dues",
+  "mpayPaid": "Paid",
+  "mpayVerifying": "Under verification",
+  "mpayPayNow": "Make a payment",
+  "mpayForWhat": "What are you paying for?",
+  "mpayHow": "How did you pay?",
+  "mpaySubmit": "Submit",
+  "mpayNext": "Next",
+  "mpayBack": "Back",
+  "mpayTotal": "Total",
+  "mpayEmpty": "No dues right now",
+  "mpayHistoryEmpty": "No payments yet",
+  "mpayHistoryTitle": "Payment history",
+  "mpayLoadMore": "Show more",
+  "mpayLoadError": "Could not load payments",
+  "mpayStatusPending": "Under verification",
+  "mpayStatusApproved": "Approved",
+  "mpayStatusRejected": "Rejected — reason: {reason}",
+  "@mpayStatusRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "mpayStatusRecorded": "Recorded",
+  "mpayKindAll": "All",
+  "mpayKindInstallment": "Installment",
+  "mpayKindOtherFee": "Other fees",
+  "mpayKindCostShare": "Cost share",
+  "mpayPaidOn": "Payment date",
+  "mpayFeeAmount": "Amount (৳)",
+  "mpayPicnicExtra": "Extra people",
+  "mpayRefRequired": "Enter the transaction ID or receipt number (at least 4 characters)",
+  "mpayProofTooLarge": "The file must not exceed 5 MB",
+  "mpaySubmitted": "Payment submitted. Waiting for verification.",
+  "mpayPartial": "{ok} of {total} submitted",
+  "@mpayPartial": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mpayRetryRest": "Retry the rest",
+  "mpayItemFailed": "Not submitted",
+  "navAreaHome": "Home",
+  "navAreaPayments": "Payments",
+  "navAreaLand": "My land",
+  "navAreaOrganisation": "Organisation",
+  "navAreaProfile": "My profile",
+  "navPropertyRequest": "Property request",
+  "helpFab": "Need help?",
+  "helpCall": "Call",
+  "helpWhatsapp": "WhatsApp",
+  "helpHours": "Hours: {hours}",
+  "@helpHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "homeMyStatus": "My status",
+  "homeNextStep": "Next step",
+  "homeLatestNotice": "Latest notice",
+  "homeNextEvent": "Next event",
+  "homeStatusPending": "The office is verifying",
+  "homeStatusNeedsDag": "Give the plot (dag) number at the office",
+  "homeStatusDues": "Dues {amount} — make a payment",
+  "@homeStatusDues": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeStatusAllGood": "Everything is in order",
+  "homeNoNotice": "No notices",
+  "homeNoEvent": "No upcoming events",
+  "homeCardError": "Could not load",
+  "profileDisplay": "Display",
+  "apiErrorShareNotFound": "This cost share was not found.",
+  "apiErrorShareAlreadyPaid": "This cost share is already paid.",
+  "apiErrorDuplicateTransactionRef": "This transaction ID or receipt number was already used.",
+  "apiErrorAmountExceedsRemaining": "The amount is more than what is left to pay.",
+  "apiErrorFeatureDisabled": "This feature is not available right now.",
+  "apiErrorInvalidBdMobile": "Enter a valid Bangladeshi mobile number.",
+  "mpayStatusRejectedShort": "Rejected"
 }

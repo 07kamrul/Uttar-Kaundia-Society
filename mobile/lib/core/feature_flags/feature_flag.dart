@@ -11,7 +11,9 @@ enum FeatureFlag {
   regSimplifiedUi('reg_simplified_ui'),
   passwordPolicyV2('password_policy_v2'),
   navMergedEntries('nav_merged_entries'),
-  navAdvancedSection('nav_advanced_section');
+  navAdvancedSection('nav_advanced_section'),
+  payMergedPage('pay_merged_page'),
+  navFiveAreas('nav_five_areas');
 
   const FeatureFlag(this.key);
 

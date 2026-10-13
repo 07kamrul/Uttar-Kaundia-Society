@@ -6532,4 +6532,203 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get apiErrorAbroadAddressRequired =>
       'Enter your address abroad (country, city and address).';
+
+  @override
+  String get mpayTitle => 'Payments';
+
+  @override
+  String get mpayMyDue => 'My dues';
+
+  @override
+  String get mpayPaid => 'Paid';
+
+  @override
+  String get mpayVerifying => 'Under verification';
+
+  @override
+  String get mpayPayNow => 'Make a payment';
+
+  @override
+  String get mpayForWhat => 'What are you paying for?';
+
+  @override
+  String get mpayHow => 'How did you pay?';
+
+  @override
+  String get mpaySubmit => 'Submit';
+
+  @override
+  String get mpayNext => 'Next';
+
+  @override
+  String get mpayBack => 'Back';
+
+  @override
+  String get mpayTotal => 'Total';
+
+  @override
+  String get mpayEmpty => 'No dues right now';
+
+  @override
+  String get mpayHistoryEmpty => 'No payments yet';
+
+  @override
+  String get mpayHistoryTitle => 'Payment history';
+
+  @override
+  String get mpayLoadMore => 'Show more';
+
+  @override
+  String get mpayLoadError => 'Could not load payments';
+
+  @override
+  String get mpayStatusPending => 'Under verification';
+
+  @override
+  String get mpayStatusApproved => 'Approved';
+
+  @override
+  String mpayStatusRejected(String reason) {
+    return 'Rejected — reason: $reason';
+  }
+
+  @override
+  String get mpayStatusRecorded => 'Recorded';
+
+  @override
+  String get mpayKindAll => 'All';
+
+  @override
+  String get mpayKindInstallment => 'Installment';
+
+  @override
+  String get mpayKindOtherFee => 'Other fees';
+
+  @override
+  String get mpayKindCostShare => 'Cost share';
+
+  @override
+  String get mpayPaidOn => 'Payment date';
+
+  @override
+  String get mpayFeeAmount => 'Amount (৳)';
+
+  @override
+  String get mpayPicnicExtra => 'Extra people';
+
+  @override
+  String get mpayRefRequired =>
+      'Enter the transaction ID or receipt number (at least 4 characters)';
+
+  @override
+  String get mpayProofTooLarge => 'The file must not exceed 5 MB';
+
+  @override
+  String get mpaySubmitted => 'Payment submitted. Waiting for verification.';
+
+  @override
+  String mpayPartial(String ok, String total) {
+    return '$ok of $total submitted';
+  }
+
+  @override
+  String get mpayRetryRest => 'Retry the rest';
+
+  @override
+  String get mpayItemFailed => 'Not submitted';
+
+  @override
+  String get navAreaHome => 'Home';
+
+  @override
+  String get navAreaPayments => 'Payments';
+
+  @override
+  String get navAreaLand => 'My land';
+
+  @override
+  String get navAreaOrganisation => 'Organisation';
+
+  @override
+  String get navAreaProfile => 'My profile';
+
+  @override
+  String get navPropertyRequest => 'Property request';
+
+  @override
+  String get helpFab => 'Need help?';
+
+  @override
+  String get helpCall => 'Call';
+
+  @override
+  String get helpWhatsapp => 'WhatsApp';
+
+  @override
+  String helpHours(String hours) {
+    return 'Hours: $hours';
+  }
+
+  @override
+  String get homeMyStatus => 'My status';
+
+  @override
+  String get homeNextStep => 'Next step';
+
+  @override
+  String get homeLatestNotice => 'Latest notice';
+
+  @override
+  String get homeNextEvent => 'Next event';
+
+  @override
+  String get homeStatusPending => 'The office is verifying';
+
+  @override
+  String get homeStatusNeedsDag => 'Give the plot (dag) number at the office';
+
+  @override
+  String homeStatusDues(String amount) {
+    return 'Dues $amount — make a payment';
+  }
+
+  @override
+  String get homeStatusAllGood => 'Everything is in order';
+
+  @override
+  String get homeNoNotice => 'No notices';
+
+  @override
+  String get homeNoEvent => 'No upcoming events';
+
+  @override
+  String get homeCardError => 'Could not load';
+
+  @override
+  String get profileDisplay => 'Display';
+
+  @override
+  String get apiErrorShareNotFound => 'This cost share was not found.';
+
+  @override
+  String get apiErrorShareAlreadyPaid => 'This cost share is already paid.';
+
+  @override
+  String get apiErrorDuplicateTransactionRef =>
+      'This transaction ID or receipt number was already used.';
+
+  @override
+  String get apiErrorAmountExceedsRemaining =>
+      'The amount is more than what is left to pay.';
+
+  @override
+  String get apiErrorFeatureDisabled =>
+      'This feature is not available right now.';
+
+  @override
+  String get apiErrorInvalidBdMobile =>
+      'Enter a valid Bangladeshi mobile number.';
+
+  @override
+  String get mpayStatusRejectedShort => 'Rejected';
 }

@@ -1875,7 +1875,9 @@
   "dagInfoTitle": "প্লট/দাগ নাম্বার {dag} তথ্য বিবরণঃ",
   "@dagInfoTitle": {
     "placeholders": {
-      "dag": {"type": "String"}
+      "dag": {
+        "type": "String"
+      }
     }
   },
   "dagInfoLandHeading": "ভূমি তথ্য বিবরণঃ",
@@ -1889,7 +1891,9 @@
   "dagInfoShatangsho": "≈ {value} শতাংশ",
   "@dagInfoShatangsho": {
     "placeholders": {
-      "value": {"type": "String"}
+      "value": {
+        "type": "String"
+      }
     }
   },
   "dagInfoKhatianNo": "খতিয়ান নং",
@@ -1901,8 +1905,12 @@
   "dagInfoSource": "তথ্যসূত্র: {source} · সংগৃহীত: {date}",
   "@dagInfoSource": {
     "placeholders": {
-      "source": {"type": "String"},
-      "date": {"type": "String"}
+      "source": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
     }
   },
   "dagInfoClose": "বন্ধ করুন",
@@ -2050,5 +2058,98 @@
   "regPickFile": "গ্যালারি বা ফাইল থেকে নিন",
   "regProofAttached": "যুক্ত হয়েছে",
   "regChangeFile": "বদলান",
-  "apiErrorAbroadAddressRequired": "বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।"
+  "apiErrorAbroadAddressRequired": "বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।",
+  "mpayTitle": "পেমেন্ট",
+  "mpayMyDue": "আমার বকেয়া",
+  "mpayPaid": "পরিশোধ করেছি",
+  "mpayVerifying": "যাচাই চলছে",
+  "mpayPayNow": "পেমেন্ট করুন",
+  "mpayForWhat": "কিসের জন্য দিচ্ছেন?",
+  "mpayHow": "কীভাবে দিলেন?",
+  "mpaySubmit": "জমা দিন",
+  "mpayNext": "পরবর্তী",
+  "mpayBack": "পেছনে",
+  "mpayTotal": "মোট",
+  "mpayEmpty": "এখন কোনো বকেয়া নেই",
+  "mpayHistoryEmpty": "কোনো পেমেন্ট নেই",
+  "mpayHistoryTitle": "পেমেন্টের ইতিহাস",
+  "mpayLoadMore": "আরও দেখুন",
+  "mpayLoadError": "পেমেন্টের তথ্য আনা যায়নি",
+  "mpayStatusPending": "যাচাই চলছে",
+  "mpayStatusApproved": "গৃহীত",
+  "mpayStatusRejected": "বাতিল — কারণ: {reason}",
+  "@mpayStatusRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "mpayStatusRecorded": "জমা হয়েছে",
+  "mpayKindAll": "সব",
+  "mpayKindInstallment": "কিস্তি",
+  "mpayKindOtherFee": "অন্যান্য ফি",
+  "mpayKindCostShare": "খরচের ভাগ",
+  "mpayPaidOn": "পেমেন্টের তারিখ",
+  "mpayFeeAmount": "পরিমাণ (৳)",
+  "mpayPicnicExtra": "অতিরিক্ত জন",
+  "mpayRefRequired": "ট্রানজেকশন আইডি বা রসিদ নম্বর দিন (কমপক্ষে ৪ অক্ষর)",
+  "mpayProofTooLarge": "ফাইল ৫ এমবির বেশি হতে পারবে না",
+  "mpaySubmitted": "পেমেন্ট জমা হয়েছে। যাচাইয়ের অপেক্ষায়।",
+  "mpayPartial": "{total}টির মধ্যে {ok}টি জমা হয়েছে",
+  "@mpayPartial": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "mpayRetryRest": "বাকিগুলো আবার চেষ্টা করুন",
+  "mpayItemFailed": "জমা হয়নি",
+  "navAreaHome": "হোম",
+  "navAreaPayments": "পেমেন্ট",
+  "navAreaLand": "আমার জমি",
+  "navAreaOrganisation": "সংগঠন",
+  "navAreaProfile": "আমার প্রোফাইল",
+  "navPropertyRequest": "জমির আবেদন",
+  "helpFab": "সাহায্য দরকার?",
+  "helpCall": "ফোন করুন",
+  "helpWhatsapp": "হোয়াটসঅ্যাপ",
+  "helpHours": "সময়: {hours}",
+  "@helpHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "homeMyStatus": "আমার অবস্থা",
+  "homeNextStep": "পরবর্তী ধাপ",
+  "homeLatestNotice": "সর্বশেষ নোটিশ",
+  "homeNextEvent": "পরবর্তী অনুষ্ঠান",
+  "homeStatusPending": "অফিস যাচাই করছে",
+  "homeStatusNeedsDag": "অফিসে দাগ নম্বর দিন",
+  "homeStatusDues": "বকেয়া {amount} — পেমেন্ট করুন",
+  "@homeStatusDues": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "homeStatusAllGood": "সব ঠিক আছে",
+  "homeNoNotice": "কোনো নোটিশ নেই",
+  "homeNoEvent": "কোনো আসন্ন অনুষ্ঠান নেই",
+  "homeCardError": "তথ্য আনা যায়নি",
+  "profileDisplay": "প্রদর্শন",
+  "apiErrorShareNotFound": "এই খরচের ভাগ পাওয়া যায়নি।",
+  "apiErrorShareAlreadyPaid": "এই খরচের ভাগ আগেই পরিশোধ হয়েছে।",
+  "apiErrorDuplicateTransactionRef": "এই ট্রানজেকশন আইডি বা রসিদ নম্বর আগে ব্যবহার হয়েছে।",
+  "apiErrorAmountExceedsRemaining": "পরিমাণ বাকি টাকার চেয়ে বেশি।",
+  "apiErrorFeatureDisabled": "এই সুবিধা এখন চালু নেই।",
+  "apiErrorInvalidBdMobile": "সঠিক বাংলাদেশি মোবাইল নম্বর দিন।",
+  "mpayStatusRejectedShort": "বাতিল"
 }

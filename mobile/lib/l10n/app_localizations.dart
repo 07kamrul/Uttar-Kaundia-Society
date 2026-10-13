@@ -12067,6 +12067,378 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'বিদেশের ঠিকানা (দেশ, শহর ও ঠিকানা) দিন।'**
   String get apiErrorAbroadAddressRequired;
+
+  /// No description provided for @mpayTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্ট'**
+  String get mpayTitle;
+
+  /// No description provided for @mpayMyDue.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার বকেয়া'**
+  String get mpayMyDue;
+
+  /// No description provided for @mpayPaid.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরিশোধ করেছি'**
+  String get mpayPaid;
+
+  /// No description provided for @mpayVerifying.
+  ///
+  /// In bn, this message translates to:
+  /// **'যাচাই চলছে'**
+  String get mpayVerifying;
+
+  /// No description provided for @mpayPayNow.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্ট করুন'**
+  String get mpayPayNow;
+
+  /// No description provided for @mpayForWhat.
+  ///
+  /// In bn, this message translates to:
+  /// **'কিসের জন্য দিচ্ছেন?'**
+  String get mpayForWhat;
+
+  /// No description provided for @mpayHow.
+  ///
+  /// In bn, this message translates to:
+  /// **'কীভাবে দিলেন?'**
+  String get mpayHow;
+
+  /// No description provided for @mpaySubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা দিন'**
+  String get mpaySubmit;
+
+  /// No description provided for @mpayNext.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরবর্তী'**
+  String get mpayNext;
+
+  /// No description provided for @mpayBack.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেছনে'**
+  String get mpayBack;
+
+  /// No description provided for @mpayTotal.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোট'**
+  String get mpayTotal;
+
+  /// No description provided for @mpayEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখন কোনো বকেয়া নেই'**
+  String get mpayEmpty;
+
+  /// No description provided for @mpayHistoryEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'কোনো পেমেন্ট নেই'**
+  String get mpayHistoryEmpty;
+
+  /// No description provided for @mpayHistoryTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্টের ইতিহাস'**
+  String get mpayHistoryTitle;
+
+  /// No description provided for @mpayLoadMore.
+  ///
+  /// In bn, this message translates to:
+  /// **'আরও দেখুন'**
+  String get mpayLoadMore;
+
+  /// No description provided for @mpayLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্টের তথ্য আনা যায়নি'**
+  String get mpayLoadError;
+
+  /// No description provided for @mpayStatusPending.
+  ///
+  /// In bn, this message translates to:
+  /// **'যাচাই চলছে'**
+  String get mpayStatusPending;
+
+  /// No description provided for @mpayStatusApproved.
+  ///
+  /// In bn, this message translates to:
+  /// **'গৃহীত'**
+  String get mpayStatusApproved;
+
+  /// No description provided for @mpayStatusRejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল — কারণ: {reason}'**
+  String mpayStatusRejected(String reason);
+
+  /// No description provided for @mpayStatusRecorded.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়েছে'**
+  String get mpayStatusRecorded;
+
+  /// No description provided for @mpayKindAll.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব'**
+  String get mpayKindAll;
+
+  /// No description provided for @mpayKindInstallment.
+  ///
+  /// In bn, this message translates to:
+  /// **'কিস্তি'**
+  String get mpayKindInstallment;
+
+  /// No description provided for @mpayKindOtherFee.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্যান্য ফি'**
+  String get mpayKindOtherFee;
+
+  /// No description provided for @mpayKindCostShare.
+  ///
+  /// In bn, this message translates to:
+  /// **'খরচের ভাগ'**
+  String get mpayKindCostShare;
+
+  /// No description provided for @mpayPaidOn.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্টের তারিখ'**
+  String get mpayPaidOn;
+
+  /// No description provided for @mpayFeeAmount.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরিমাণ (৳)'**
+  String get mpayFeeAmount;
+
+  /// No description provided for @mpayPicnicExtra.
+  ///
+  /// In bn, this message translates to:
+  /// **'অতিরিক্ত জন'**
+  String get mpayPicnicExtra;
+
+  /// No description provided for @mpayRefRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'ট্রানজেকশন আইডি বা রসিদ নম্বর দিন (কমপক্ষে ৪ অক্ষর)'**
+  String get mpayRefRequired;
+
+  /// No description provided for @mpayProofTooLarge.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফাইল ৫ এমবির বেশি হতে পারবে না'**
+  String get mpayProofTooLarge;
+
+  /// No description provided for @mpaySubmitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্ট জমা হয়েছে। যাচাইয়ের অপেক্ষায়।'**
+  String get mpaySubmitted;
+
+  /// No description provided for @mpayPartial.
+  ///
+  /// In bn, this message translates to:
+  /// **'{total}টির মধ্যে {ok}টি জমা হয়েছে'**
+  String mpayPartial(String ok, String total);
+
+  /// No description provided for @mpayRetryRest.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাকিগুলো আবার চেষ্টা করুন'**
+  String get mpayRetryRest;
+
+  /// No description provided for @mpayItemFailed.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়নি'**
+  String get mpayItemFailed;
+
+  /// No description provided for @navAreaHome.
+  ///
+  /// In bn, this message translates to:
+  /// **'হোম'**
+  String get navAreaHome;
+
+  /// No description provided for @navAreaPayments.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্ট'**
+  String get navAreaPayments;
+
+  /// No description provided for @navAreaLand.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার জমি'**
+  String get navAreaLand;
+
+  /// No description provided for @navAreaOrganisation.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংগঠন'**
+  String get navAreaOrganisation;
+
+  /// No description provided for @navAreaProfile.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার প্রোফাইল'**
+  String get navAreaProfile;
+
+  /// No description provided for @navPropertyRequest.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমির আবেদন'**
+  String get navPropertyRequest;
+
+  /// No description provided for @helpFab.
+  ///
+  /// In bn, this message translates to:
+  /// **'সাহায্য দরকার?'**
+  String get helpFab;
+
+  /// No description provided for @helpCall.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফোন করুন'**
+  String get helpCall;
+
+  /// No description provided for @helpWhatsapp.
+  ///
+  /// In bn, this message translates to:
+  /// **'হোয়াটসঅ্যাপ'**
+  String get helpWhatsapp;
+
+  /// No description provided for @helpHours.
+  ///
+  /// In bn, this message translates to:
+  /// **'সময়: {hours}'**
+  String helpHours(String hours);
+
+  /// No description provided for @homeMyStatus.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার অবস্থা'**
+  String get homeMyStatus;
+
+  /// No description provided for @homeNextStep.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরবর্তী ধাপ'**
+  String get homeNextStep;
+
+  /// No description provided for @homeLatestNotice.
+  ///
+  /// In bn, this message translates to:
+  /// **'সর্বশেষ নোটিশ'**
+  String get homeLatestNotice;
+
+  /// No description provided for @homeNextEvent.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরবর্তী অনুষ্ঠান'**
+  String get homeNextEvent;
+
+  /// No description provided for @homeStatusPending.
+  ///
+  /// In bn, this message translates to:
+  /// **'অফিস যাচাই করছে'**
+  String get homeStatusPending;
+
+  /// No description provided for @homeStatusNeedsDag.
+  ///
+  /// In bn, this message translates to:
+  /// **'অফিসে দাগ নম্বর দিন'**
+  String get homeStatusNeedsDag;
+
+  /// No description provided for @homeStatusDues.
+  ///
+  /// In bn, this message translates to:
+  /// **'বকেয়া {amount} — পেমেন্ট করুন'**
+  String homeStatusDues(String amount);
+
+  /// No description provided for @homeStatusAllGood.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব ঠিক আছে'**
+  String get homeStatusAllGood;
+
+  /// No description provided for @homeNoNotice.
+  ///
+  /// In bn, this message translates to:
+  /// **'কোনো নোটিশ নেই'**
+  String get homeNoNotice;
+
+  /// No description provided for @homeNoEvent.
+  ///
+  /// In bn, this message translates to:
+  /// **'কোনো আসন্ন অনুষ্ঠান নেই'**
+  String get homeNoEvent;
+
+  /// No description provided for @homeCardError.
+  ///
+  /// In bn, this message translates to:
+  /// **'তথ্য আনা যায়নি'**
+  String get homeCardError;
+
+  /// No description provided for @profileDisplay.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রদর্শন'**
+  String get profileDisplay;
+
+  /// No description provided for @apiErrorShareNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই খরচের ভাগ পাওয়া যায়নি।'**
+  String get apiErrorShareNotFound;
+
+  /// No description provided for @apiErrorShareAlreadyPaid.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই খরচের ভাগ আগেই পরিশোধ হয়েছে।'**
+  String get apiErrorShareAlreadyPaid;
+
+  /// No description provided for @apiErrorDuplicateTransactionRef.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই ট্রানজেকশন আইডি বা রসিদ নম্বর আগে ব্যবহার হয়েছে।'**
+  String get apiErrorDuplicateTransactionRef;
+
+  /// No description provided for @apiErrorAmountExceedsRemaining.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরিমাণ বাকি টাকার চেয়ে বেশি।'**
+  String get apiErrorAmountExceedsRemaining;
+
+  /// No description provided for @apiErrorFeatureDisabled.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই সুবিধা এখন চালু নেই।'**
+  String get apiErrorFeatureDisabled;
+
+  /// No description provided for @apiErrorInvalidBdMobile.
+  ///
+  /// In bn, this message translates to:
+  /// **'সঠিক বাংলাদেশি মোবাইল নম্বর দিন।'**
+  String get apiErrorInvalidBdMobile;
+
+  /// No description provided for @mpayStatusRejectedShort.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল'**
+  String get mpayStatusRejectedShort;
 }
 
 class _AppLocalizationsDelegate
