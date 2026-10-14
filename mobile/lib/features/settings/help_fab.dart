@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/di/injector.dart';
 import '../../core/helpline/helpline_repository.dart';
@@ -9,10 +10,18 @@ import '../../shared/utils/external_link_launcher.dart';
 /// "সাহায্য দরকার?" floating button (nav_merged_entries). Invisible until the
 /// society has set a phone or WhatsApp number, so there is never a dead button.
 class HelpFab extends StatefulWidget {
-  const HelpFab({super.key, this.repository, this.launcher = const UrlLauncherExternalLinkLauncher()});
+  const HelpFab({
+    super.key,
+    this.repository,
+    this.launcher = const UrlLauncherExternalLinkLauncher(),
+    this.openHelpDesk,
+  });
 
   final HelplineRepository? repository;
   final ExternalLinkLauncher launcher;
+
+  /// Opens the help desk page; defaults to going to `/emergency-help`. Test seam.
+  final VoidCallback? openHelpDesk;
 
   @override
   State<HelpFab> createState() => _HelpFabState();
@@ -71,6 +80,20 @@ class _HelpFabState extends State<HelpFab> {
                 widget.launcher.open(chat);
               },
             ),
+          ListTile(
+            key: const Key('helpDesk'),
+            leading: const Icon(Icons.warning_amber_outlined),
+            title: Text(l10n.helpDeskTile),
+            onTap: () {
+              Navigator.of(sheet).pop();
+              final open = widget.openHelpDesk;
+              if (open != null) {
+                open();
+              } else {
+                context.go('/emergency-help');
+              }
+            },
+          ),
           const SizedBox(height: 8),
         ],
       ),

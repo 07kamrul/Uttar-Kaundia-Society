@@ -7106,4 +7106,726 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get regHelpStep6 =>
       'Check everything once more. Go back to fix mistakes, then submit.';
+
+  @override
+  String get navElections => 'Elections';
+
+  @override
+  String get navWelfareFund => 'Welfare fund';
+
+  @override
+  String get navComplaints => 'Complaints and help';
+
+  @override
+  String get navLandProtection => 'Land protection complaint';
+
+  @override
+  String get navServiceStandard => 'Service standard';
+
+  @override
+  String get navEmergencyHelp => 'Help desk';
+
+  @override
+  String get navPetitions => 'Special meeting petition';
+
+  @override
+  String get navAmendments => 'Constitution amendments';
+
+  @override
+  String get helpDeskTile => 'Help desk (emergency safety steps)';
+
+  @override
+  String get govLoadError =>
+      'Could not load this. Check your internet and try again.';
+
+  @override
+  String get govErrVoteForbidden =>
+      'You are not eligible to vote in this election. Talk to the committee if you think this is wrong.';
+
+  @override
+  String get govErrVoteConflict =>
+      'Your vote was not taken. Voting is closed, or you already voted for this post. Reopen the page to check.';
+
+  @override
+  String get govErrNominateForbidden =>
+      'You are not eligible to stand in this election. Talk to the committee if you think this is wrong.';
+
+  @override
+  String get govErrNominateConflict =>
+      'Your nomination was not taken. Nominations are closed, or you already nominated for this post.';
+
+  @override
+  String get govErrSignForbidden =>
+      'Only eligible members can sign. Ask the committee if your membership qualifies.';
+
+  @override
+  String get govErrSignConflict =>
+      'Not signed. You already signed, or this petition no longer takes signatures.';
+
+  @override
+  String get govErrSignNotFound =>
+      'No petition has this ID. Check the ID and try again.';
+
+  @override
+  String get govErrPetitionForbidden =>
+      'Only eligible members can file a petition. Talk to the committee if you think this is wrong.';
+
+  @override
+  String get govErrWelfareConflict =>
+      'You already have an application in progress. Apply again after it is decided.';
+
+  @override
+  String get govErrLandMissing =>
+      'Some required fields are empty. Fill them all and submit again.';
+
+  @override
+  String get govErrWithdrawConflict =>
+      'This proposal can no longer be withdrawn. Reopen the page to see its status.';
+
+  @override
+  String get govEmergencySubtitle =>
+      'In danger, safety comes first and paperwork after.';
+
+  @override
+  String get govEmergencyContacts => 'Emergency numbers';
+
+  @override
+  String get govEmergencyCall => 'Call';
+
+  @override
+  String get govEmergencyStepsTitle => 'What to do now';
+
+  @override
+  String get govEmergencyStep1 =>
+      'Move yourself and your family to safety. Call 999 if needed.';
+
+  @override
+  String get govEmergencyStep2 => 'For women and children, call 109.';
+
+  @override
+  String get govEmergencyStep3 =>
+      'Keep photos, videos and the names of witnesses.';
+
+  @override
+  String get govEmergencyStep4 => 'Keep your dag and khatian papers at hand.';
+
+  @override
+  String get govEmergencyStep5 =>
+      'Once you are safe, give the society a written complaint.';
+
+  @override
+  String get govEmergencyFileLand => 'File a land protection complaint';
+
+  @override
+  String get govEmergencyFileComplaint => 'File a general complaint';
+
+  @override
+  String get govComplaintsTitle => 'Complaints';
+
+  @override
+  String get govComplaintsSubtitle =>
+      'Send a complaint and follow it. Acknowledged in 3 working days, first update in 15.';
+
+  @override
+  String get govComplaintsNewTitle => 'New complaint';
+
+  @override
+  String get govComplaintsCategory => 'Type';
+
+  @override
+  String get govComplaintsSubject => 'Subject';
+
+  @override
+  String get govComplaintsDetails => 'Details';
+
+  @override
+  String get govComplaintsSubmit => 'Submit complaint';
+
+  @override
+  String get govComplaintsSuccess => 'Your complaint was submitted.';
+
+  @override
+  String get govComplaintsMine => 'My complaints';
+
+  @override
+  String get govComplaintsEmpty => 'You have not made any complaint yet.';
+
+  @override
+  String get govComplaintsSlaAck => 'Acknowledgement time';
+
+  @override
+  String get govComplaintsSlaUpdate => 'First update time';
+
+  @override
+  String get govComplaintsResolution => 'Resolution';
+
+  @override
+  String get govComplaintsLandLink => 'Land protection form (Annex 3)';
+
+  @override
+  String get govComplaintsEmergencyLink => 'Emergency safety steps';
+
+  @override
+  String get govFieldRequired => 'Please fill this field.';
+
+  @override
+  String get govComplaintStatus_submitted => 'Submitted';
+
+  @override
+  String get govComplaintStatus_acknowledged => 'Acknowledged';
+
+  @override
+  String get govComplaintStatus_investigating => 'Under investigation';
+
+  @override
+  String get govComplaintStatus_resolved => 'Resolved';
+
+  @override
+  String get govComplaintStatus_rejected => 'Rejected';
+
+  @override
+  String get govComplaintStatus_closed => 'Closed';
+
+  @override
+  String get govComplaintStatusOther => 'Other status';
+
+  @override
+  String get govComplaintEvent_submitted => 'Complaint submitted';
+
+  @override
+  String get govComplaintEvent_acknowledged => 'Acknowledged';
+
+  @override
+  String get govComplaintEvent_assigned => 'Assigned';
+
+  @override
+  String get govComplaintEvent_updated => 'Update';
+
+  @override
+  String get govComplaintEvent_resolved => 'Resolved';
+
+  @override
+  String get govComplaintEvent_closed => 'Closed';
+
+  @override
+  String get govComplaintEvent_rejected => 'Rejected';
+
+  @override
+  String get govComplaintEventOther => 'Update';
+
+  @override
+  String get govSla_met => 'On time';
+
+  @override
+  String get govSla_on_track => 'On track';
+
+  @override
+  String get govSla_due_soon => 'Due soon';
+
+  @override
+  String get govSla_overdue => 'Overdue';
+
+  @override
+  String govSlaDays(String state, String days) {
+    return '$state ($days)';
+  }
+
+  @override
+  String get govLandTitle => 'Land protection complaint (Annex 3)';
+
+  @override
+  String get govLandSubtitle => 'Fill this form for land grabbing or threats.';
+
+  @override
+  String get govLandEmergencyTitle => 'If you are in danger, call first';
+
+  @override
+  String get govLandSectionComplainant => 'Complainant';
+
+  @override
+  String get govLandName => 'Name';
+
+  @override
+  String get govLandContact => 'Phone or address';
+
+  @override
+  String get govLandSectionLand => 'Land details';
+
+  @override
+  String get govLandLocation => 'Location of the land';
+
+  @override
+  String get govLandDagNo => 'Dag number';
+
+  @override
+  String get govLandKhatianNo => 'Khatian number';
+
+  @override
+  String get govLandSectionIncident => 'What happened';
+
+  @override
+  String get govLandAccused => 'Accused party';
+
+  @override
+  String get govLandIncidentDate => 'Date of the incident';
+
+  @override
+  String get govLandIncidentDesc => 'Describe what happened';
+
+  @override
+  String get govLandDanger => 'I am in danger right now or do not feel safe';
+
+  @override
+  String get govLandSectionEvidence => 'Evidence';
+
+  @override
+  String get govLandEvidenceFile => 'Evidence file (optional)';
+
+  @override
+  String get govLandPickFile => 'Choose a file';
+
+  @override
+  String get govLandSectionConsent => 'Signature and consent';
+
+  @override
+  String get govLandSignatureName => 'Your name as signature';
+
+  @override
+  String get govLandSignatureDate => 'Date';
+
+  @override
+  String get govLandDisclaimer =>
+      'I understand this is not a substitute for a GD or court case.';
+
+  @override
+  String get govLandConsent => 'I confirm the information given is correct.';
+
+  @override
+  String get govLandSubmit => 'Submit form';
+
+  @override
+  String get govLandPickDate => 'Pick a date';
+
+  @override
+  String get govStandardTitle => 'Service standard';
+
+  @override
+  String get govStandardSubtitle =>
+      'The time the committee promises, and how it is going.';
+
+  @override
+  String govStandardTarget(String target) {
+    return 'Target: $target';
+  }
+
+  @override
+  String get govStandardMet => 'Done on time';
+
+  @override
+  String govStandardAvgDays(String days) {
+    return 'Average working days: $days';
+  }
+
+  @override
+  String get govStandardNoLive => 'Not enough data for this service yet.';
+
+  @override
+  String get govElectionsTitle => 'Elections';
+
+  @override
+  String get govElectionsSubtitle =>
+      'Stand as a candidate, vote in secret, see the result.';
+
+  @override
+  String get govElectionsEmpty => 'No election has been announced yet.';
+
+  @override
+  String get govElectionsEligibility => 'Are you eligible?';
+
+  @override
+  String get govElectionsEligibleYes =>
+      'You can vote and stand in this election.';
+
+  @override
+  String get govElectionsEligibleNo =>
+      'You are not eligible. Only approved general and founder members are.';
+
+  @override
+  String get govElectionsEligibleNoSnapshot =>
+      'You were not on the voter list when it was closed, so you cannot vote this time.';
+
+  @override
+  String govElectionsNominationWindow(String start, String end) {
+    return 'Nominations: $start to $end';
+  }
+
+  @override
+  String govElectionsVotingWindow(String start, String end) {
+    return 'Voting: $start to $end';
+  }
+
+  @override
+  String get govElectionsNominateTitle => 'Stand as a candidate';
+
+  @override
+  String get govElectionsNominateHint =>
+      'You can nominate once for each post during the nomination period.';
+
+  @override
+  String get govElectionsPost => 'Post';
+
+  @override
+  String get govElectionsStatement =>
+      'Your statement as a candidate (optional)';
+
+  @override
+  String get govElectionsNominateSubmit => 'Submit nomination';
+
+  @override
+  String get govElectionsNominateDone => 'Nomination submitted.';
+
+  @override
+  String get govElectionsVoteTitle => 'Secret vote';
+
+  @override
+  String get govElectionsVoteHint =>
+      'Choose one candidate for each post. Your vote stays secret.';
+
+  @override
+  String get govElectionsNoCandidates =>
+      'There are no approved candidates yet.';
+
+  @override
+  String get govElectionsVoted => 'Voted';
+
+  @override
+  String get govElectionsAlreadyVoted => 'You have voted for this post.';
+
+  @override
+  String get govElectionsCastVote => 'Cast vote';
+
+  @override
+  String get govElectionsVoteConfirm =>
+      'You cannot change your vote afterwards. Cast it?';
+
+  @override
+  String get govElectionsVoteDone => 'Your vote was recorded.';
+
+  @override
+  String get govElectionsResults => 'Results';
+
+  @override
+  String govElectionsVotesTotal(String total) {
+    return 'Total votes: $total';
+  }
+
+  @override
+  String govElectionsVotes(String count) {
+    return '$count votes';
+  }
+
+  @override
+  String get govElectionsMyNominations => 'Your nominations';
+
+  @override
+  String get govElectionStatus_nominations_open => 'Nominations open';
+
+  @override
+  String get govElectionStatus_nominations_closed => 'Nominations closed';
+
+  @override
+  String get govElectionStatus_voting => 'Voting open';
+
+  @override
+  String get govElectionStatus_tabulated => 'Counted';
+
+  @override
+  String get govElectionStatus_confirmed => 'Result final';
+
+  @override
+  String get govElectionStatusOther => 'Other status';
+
+  @override
+  String get govNomination_pending => 'Pending';
+
+  @override
+  String get govNomination_approved => 'Approved';
+
+  @override
+  String get govNomination_rejected => 'Rejected';
+
+  @override
+  String get govPetitionsTitle => 'Special meeting petition';
+
+  @override
+  String get govPetitionsSubtitle =>
+      'Eligible members can collect signatures and ask for a special meeting.';
+
+  @override
+  String govPetitionsThreshold(String percent) {
+    return 'Signatures of at least $percent% of eligible members are needed.';
+  }
+
+  @override
+  String govPetitionsResponseDays(String days) {
+    return 'The committee replies within $days days.';
+  }
+
+  @override
+  String get govPetitionsCreateTitle => 'New petition';
+
+  @override
+  String get govPetitionsTitleField => 'Petition title';
+
+  @override
+  String get govPetitionsJustification => 'Why this meeting is needed';
+
+  @override
+  String get govPetitionsCreate => 'Submit petition';
+
+  @override
+  String get govPetitionsCreateDone => 'Petition submitted.';
+
+  @override
+  String get govPetitionsSignTitle => 'Sign a petition';
+
+  @override
+  String get govPetitionsSignHint =>
+      'Type the petition ID to sign it. The person who filed it can share the ID.';
+
+  @override
+  String get govPetitionsId => 'Petition ID';
+
+  @override
+  String get govPetitionsSign => 'Sign';
+
+  @override
+  String get govPetitionsSignDone => 'Signed.';
+
+  @override
+  String get govPetitionsMine => 'My petitions';
+
+  @override
+  String get govPetitionsSigned => 'Petitions you signed';
+
+  @override
+  String get govPetitionsEmpty => 'You have not filed any petition yet.';
+
+  @override
+  String govPetitionsSignatures(String count, String required) {
+    return 'Signatures $count/$required';
+  }
+
+  @override
+  String govPetitionsResponseDue(String date) {
+    return 'Reply due $date';
+  }
+
+  @override
+  String get govPetitionsCommitteeResponse => 'Committee reply';
+
+  @override
+  String get govPetitionStatus_submitted => 'Submitted';
+
+  @override
+  String get govPetitionStatus_under_review => 'Under review';
+
+  @override
+  String get govPetitionStatus_responded => 'Replied';
+
+  @override
+  String get govPetitionStatus_scheduled => 'Meeting called';
+
+  @override
+  String get govPetitionStatus_rejected => 'Rejected';
+
+  @override
+  String get govPetitionStatusOther => 'Other status';
+
+  @override
+  String get govWelfareTitle => 'Member welfare fund';
+
+  @override
+  String get govWelfareSubtitle =>
+      'You can ask the welfare fund for help in hard times.';
+
+  @override
+  String get govWelfareApplyTitle => 'New application';
+
+  @override
+  String get govWelfareApplyHint =>
+      'Only one application can run at a time. The committee decides each one; nothing is approved automatically.';
+
+  @override
+  String get govWelfareType => 'Type of help';
+
+  @override
+  String get govWelfareAmount => 'Amount needed (Taka)';
+
+  @override
+  String get govWelfareReason => 'Why you need it';
+
+  @override
+  String get govWelfareApply => 'Submit application';
+
+  @override
+  String get govWelfareApplyDone => 'Application submitted.';
+
+  @override
+  String get govWelfareMine => 'My applications';
+
+  @override
+  String get govWelfareEmpty => 'You have no applications.';
+
+  @override
+  String govWelfareRequested(String amount) {
+    return 'Requested: $amount';
+  }
+
+  @override
+  String govWelfareApproved(String amount) {
+    return 'Approved: $amount';
+  }
+
+  @override
+  String get govWelfareCommitteeReason => 'Committee reason';
+
+  @override
+  String get govWelfareAmountInvalid => 'The amount must be more than 0.';
+
+  @override
+  String get govWelfareType_medical => 'Medical';
+
+  @override
+  String get govWelfareType_emergency => 'Emergency';
+
+  @override
+  String get govWelfareType_education => 'Education';
+
+  @override
+  String get govWelfareType_other => 'Other';
+
+  @override
+  String get govWelfareStatus_submitted => 'Submitted';
+
+  @override
+  String get govWelfareStatus_under_review => 'Under review';
+
+  @override
+  String get govWelfareStatus_approved => 'Approved';
+
+  @override
+  String get govWelfareStatus_rejected => 'Rejected';
+
+  @override
+  String get govWelfareStatus_disbursed => 'Paid out';
+
+  @override
+  String get govWelfareStatusOther => 'Other status';
+
+  @override
+  String get govAmendTitle => 'Constitution amendments';
+
+  @override
+  String get govAmendSubtitle =>
+      'Propose a change to the constitution and see its versions.';
+
+  @override
+  String get govAmendProposeTitle => 'Propose an amendment';
+
+  @override
+  String get govAmendProposeHint =>
+      'The proposal goes to the committee. It is decided at a meeting called with notice.';
+
+  @override
+  String get govAmendTitleField => 'Title';
+
+  @override
+  String get govAmendRationale => 'Why this change';
+
+  @override
+  String get govAmendText => 'Proposed text';
+
+  @override
+  String get govAmendDissolution =>
+      'This is a proposal to dissolve the society';
+
+  @override
+  String get govAmendDissolutionNotice =>
+      'Dissolution is done by hand with legal advice. This app never dissolves the society by itself.';
+
+  @override
+  String get govAmendSubmit => 'Submit proposal';
+
+  @override
+  String get govAmendSubmitDone => 'Proposal submitted.';
+
+  @override
+  String get govAmendMine => 'My proposals';
+
+  @override
+  String get govAmendEmpty => 'You have no proposals.';
+
+  @override
+  String get govAmendDissolutionTag => 'Dissolution';
+
+  @override
+  String govAmendAdoptedAs(String version) {
+    return 'Adopted as version $version';
+  }
+
+  @override
+  String get govAmendDecisionNote => 'Decision note';
+
+  @override
+  String get govAmendWithdraw => 'Withdraw';
+
+  @override
+  String get govAmendWithdrawConfirm =>
+      'A withdrawn proposal cannot be brought back. Withdraw it?';
+
+  @override
+  String get govAmendWithdrawDone => 'Proposal withdrawn.';
+
+  @override
+  String get govAmendVersionsTitle => 'Constitution versions';
+
+  @override
+  String get govAmendVersionsHint =>
+      'Each adopted amendment adds a new version. Old versions never change.';
+
+  @override
+  String get govAmendNoVersions => 'There are no versions yet.';
+
+  @override
+  String govAmendVersionLabel(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get govAmendCurrent => 'Current';
+
+  @override
+  String get govAmendViewText => 'Read the full text';
+
+  @override
+  String get govAmendStatus_draft => 'Draft';
+
+  @override
+  String get govAmendStatus_submitted => 'Submitted';
+
+  @override
+  String get govAmendStatus_scheduled => 'Scheduled for a meeting';
+
+  @override
+  String get govAmendStatus_adopted => 'Adopted';
+
+  @override
+  String get govAmendStatus_rejected => 'Rejected';
+
+  @override
+  String get govAmendStatus_withdrawn => 'Withdrawn';
+
+  @override
+  String get govAmendStatusOther => 'Other status';
 }

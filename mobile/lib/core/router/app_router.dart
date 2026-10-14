@@ -5,6 +5,14 @@ import '../../features/auth/pages/forgot_password_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/reset_password_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/governance/pages/amendments_page.dart';
+import '../../features/governance/pages/complaints_page.dart';
+import '../../features/governance/pages/elections_page.dart';
+import '../../features/governance/pages/emergency_help_page.dart';
+import '../../features/governance/pages/land_complaint_page.dart';
+import '../../features/governance/pages/petitions_page.dart';
+import '../../features/governance/pages/service_standard_page.dart';
+import '../../features/governance/pages/welfare_fund_page.dart';
 import '../../features/home/home_status_page.dart';
 import '../../features/home/my_land_hub_page.dart';
 import '../../features/home/organisation_hub_page.dart';
@@ -85,6 +93,17 @@ GoRouter buildRouter() {
           GoRoute(path: '/payments', builder: _paymentsBuilder),
           GoRoute(path: '/my-land', builder: (_, __) => const MyLandHubPage()),
           GoRoute(path: '/organisation', builder: (_, __) => const OrganisationHubPage()),
+          GoRoute(path: '/emergency-help', builder: (_, __) => const EmergencyHelpPage()),
+          GoRoute(
+            path: '/complaints',
+            builder: (_, __) => const ComplaintsPage(),
+            routes: [GoRoute(path: 'land-protection', builder: (_, __) => const LandComplaintPage())],
+          ),
+          GoRoute(path: '/service-standard', builder: (_, __) => const ServiceStandardPage()),
+          GoRoute(path: '/elections', builder: (_, __) => const ElectionsPage()),
+          GoRoute(path: '/petitions', builder: (_, __) => const PetitionsPage()),
+          GoRoute(path: '/welfare-fund', builder: (_, __) => const WelfareFundPage()),
+          GoRoute(path: '/amendments', builder: (_, __) => const AmendmentsPage()),
           GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
           GoRoute(path: '/installments', builder: (_, __) => const InstallmentsPage()),
           GoRoute(path: '/cost-shares', builder: (_, __) => const CostSharesPage()),

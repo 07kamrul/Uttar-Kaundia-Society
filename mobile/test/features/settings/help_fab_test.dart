@@ -65,4 +65,28 @@ void main() {
     await pumpBn(tester, HelpFab(repository: _Repo(Helpline.empty), launcher: _Launcher()));
     expect(find.byKey(const Key('helpFab')), findsNothing);
   });
+
+  testWidgets('the help desk tile opens the help desk page', (tester) async {
+    var opened = 0;
+    await pumpBn(
+      tester,
+      Stack(children: [
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: HelpFab(
+            repository: _Repo(const Helpline(phone: '+8801712345678', whatsapp: null, hoursText: null, enabled: true)),
+            launcher: _Launcher(),
+            openHelpDesk: () => opened++,
+          ),
+        ),
+      ]),
+    );
+    await tester.tap(find.byKey(const Key('helpFab')));
+    await tester.pumpAndSettle();
+    expect(find.text(bn.helpDeskTile), findsOneWidget);
+    await tester.tap(find.byKey(const Key('helpDesk')));
+    await tester.pumpAndSettle();
+    expect(opened, 1);
+  });
 }

@@ -13105,6 +13105,1314 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।'**
   String get regHelpStep6;
+
+  /// No description provided for @navElections.
+  ///
+  /// In bn, this message translates to:
+  /// **'নির্বাচন'**
+  String get navElections;
+
+  /// No description provided for @navWelfareFund.
+  ///
+  /// In bn, this message translates to:
+  /// **'কল্যাণ তহবিল'**
+  String get navWelfareFund;
+
+  /// No description provided for @navComplaints.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ ও সাহায্য'**
+  String get navComplaints;
+
+  /// No description provided for @navLandProtection.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমি সুরক্ষা অভিযোগ'**
+  String get navLandProtection;
+
+  /// No description provided for @navServiceStandard.
+  ///
+  /// In bn, this message translates to:
+  /// **'সেবার মান'**
+  String get navServiceStandard;
+
+  /// No description provided for @navEmergencyHelp.
+  ///
+  /// In bn, this message translates to:
+  /// **'হেল্প ডেস্ক'**
+  String get navEmergencyHelp;
+
+  /// No description provided for @navPetitions.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিশেষ সভার পিটিশন'**
+  String get navPetitions;
+
+  /// No description provided for @navAmendments.
+  ///
+  /// In bn, this message translates to:
+  /// **'গঠনতন্ত্র সংশোধনী'**
+  String get navAmendments;
+
+  /// No description provided for @helpDeskTile.
+  ///
+  /// In bn, this message translates to:
+  /// **'হেল্প ডেস্ক (জরুরি নিরাপদ পদক্ষেপ)'**
+  String get helpDeskTile;
+
+  /// No description provided for @govLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'তথ্য আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।'**
+  String get govLoadError;
+
+  /// No description provided for @govErrVoteForbidden.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এই নির্বাচনে ভোট দিতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।'**
+  String get govErrVoteForbidden;
+
+  /// No description provided for @govErrVoteConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোট নেওয়া হয়নি। ভোটের সময় নেই, অথবা এই পদে আপনি আগেই ভোট দিয়েছেন। পাতাটি নতুন করে খুলে দেখুন।'**
+  String get govErrVoteConflict;
+
+  /// No description provided for @govErrNominateForbidden.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এই নির্বাচনে প্রার্থী হতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।'**
+  String get govErrNominateForbidden;
+
+  /// No description provided for @govErrNominateConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন নেওয়া হয়নি। মনোনয়নের সময় নেই, অথবা এই পদে আপনি আগেই মনোনয়ন দিয়েছেন।'**
+  String get govErrNominateConflict;
+
+  /// No description provided for @govErrSignForbidden.
+  ///
+  /// In bn, this message translates to:
+  /// **'শুধু যোগ্য সদস্য স্বাক্ষর করতে পারেন। আপনার সদস্যপদ যোগ্য কি না কমিটির কাছে জানুন।'**
+  String get govErrSignForbidden;
+
+  /// No description provided for @govErrSignConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর হয়নি। আপনি আগেই স্বাক্ষর করেছেন, অথবা পিটিশনটি আর স্বাক্ষর নিচ্ছে না।'**
+  String get govErrSignConflict;
+
+  /// No description provided for @govErrSignNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই আইডির কোনো পিটিশন পাওয়া যায়নি। আইডিটি আবার দেখে নিন।'**
+  String get govErrSignNotFound;
+
+  /// No description provided for @govErrPetitionForbidden.
+  ///
+  /// In bn, this message translates to:
+  /// **'শুধু যোগ্য সদস্য পিটিশন দাখিল করতে পারেন। প্রয়োজনে কমিটির সাথে কথা বলুন।'**
+  String get govErrPetitionForbidden;
+
+  /// No description provided for @govErrWelfareConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার একটি আবেদন আগে থেকেই চলছে। সেটির সিদ্ধান্ত হলে নতুন আবেদন করুন।'**
+  String get govErrWelfareConflict;
+
+  /// No description provided for @govErrLandMissing.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফর্মের কিছু আবশ্যক ঘর ফাঁকা আছে। সব ঘর পূরণ করে আবার জমা দিন।'**
+  String get govErrLandMissing;
+
+  /// No description provided for @govErrWithdrawConflict.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাবটি আর প্রত্যাহার করা যাচ্ছে না। পাতাটি নতুন করে খুলে অবস্থা দেখুন।'**
+  String get govErrWithdrawConflict;
+
+  /// No description provided for @govEmergencySubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিপদে আগে নিজের নিরাপত্তা, তারপর কাগজপত্র।'**
+  String get govEmergencySubtitle;
+
+  /// No description provided for @govEmergencyContacts.
+  ///
+  /// In bn, this message translates to:
+  /// **'জরুরি নম্বর'**
+  String get govEmergencyContacts;
+
+  /// No description provided for @govEmergencyCall.
+  ///
+  /// In bn, this message translates to:
+  /// **'কল করুন'**
+  String get govEmergencyCall;
+
+  /// No description provided for @govEmergencyStepsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখনই যা করবেন'**
+  String get govEmergencyStepsTitle;
+
+  /// No description provided for @govEmergencyStep1.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিজে ও পরিবারকে নিরাপদে সরিয়ে নিন। দরকার হলে ৯৯৯ নম্বরে ফোন করুন।'**
+  String get govEmergencyStep1;
+
+  /// No description provided for @govEmergencyStep2.
+  ///
+  /// In bn, this message translates to:
+  /// **'নারী ও শিশুর বিষয় হলে ১০৯ নম্বরে ফোন করুন।'**
+  String get govEmergencyStep2;
+
+  /// No description provided for @govEmergencyStep3.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঘটনাস্থলের ছবি, ভিডিও ও সাক্ষীর নাম রেখে দিন।'**
+  String get govEmergencyStep3;
+
+  /// No description provided for @govEmergencyStep4.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ ও খতিয়ানের কাগজ হাতের কাছে রাখুন।'**
+  String get govEmergencyStep4;
+
+  /// No description provided for @govEmergencyStep5.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিরাপদ হলে সোসাইটিতে লিখিত অভিযোগ দিন।'**
+  String get govEmergencyStep5;
+
+  /// No description provided for @govEmergencyFileLand.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমি সুরক্ষা অভিযোগ করুন'**
+  String get govEmergencyFileLand;
+
+  /// No description provided for @govEmergencyFileComplaint.
+  ///
+  /// In bn, this message translates to:
+  /// **'সাধারণ অভিযোগ করুন'**
+  String get govEmergencyFileComplaint;
+
+  /// No description provided for @govComplaintsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ ব্যবস্থা'**
+  String get govComplaintsTitle;
+
+  /// No description provided for @govComplaintsSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ জানান ও অগ্রগতি দেখুন। ৩ কার্যদিবসে স্বীকৃতি, ১৫ কার্যদিবসে প্রথম খবর।'**
+  String get govComplaintsSubtitle;
+
+  /// No description provided for @govComplaintsNewTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন অভিযোগ'**
+  String get govComplaintsNewTitle;
+
+  /// No description provided for @govComplaintsCategory.
+  ///
+  /// In bn, this message translates to:
+  /// **'ধরন'**
+  String get govComplaintsCategory;
+
+  /// No description provided for @govComplaintsSubject.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিষয়'**
+  String get govComplaintsSubject;
+
+  /// No description provided for @govComplaintsDetails.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিস্তারিত'**
+  String get govComplaintsDetails;
+
+  /// No description provided for @govComplaintsSubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ জমা দিন'**
+  String get govComplaintsSubmit;
+
+  /// No description provided for @govComplaintsSuccess.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ জমা হয়েছে।'**
+  String get govComplaintsSuccess;
+
+  /// No description provided for @govComplaintsMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার অভিযোগ'**
+  String get govComplaintsMine;
+
+  /// No description provided for @govComplaintsEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এখনো কোনো অভিযোগ করেননি।'**
+  String get govComplaintsEmpty;
+
+  /// No description provided for @govComplaintsSlaAck.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বীকৃতির সময়'**
+  String get govComplaintsSlaAck;
+
+  /// No description provided for @govComplaintsSlaUpdate.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রথম খবরের সময়'**
+  String get govComplaintsSlaUpdate;
+
+  /// No description provided for @govComplaintsResolution.
+  ///
+  /// In bn, this message translates to:
+  /// **'সমাধান'**
+  String get govComplaintsResolution;
+
+  /// No description provided for @govComplaintsLandLink.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমি সুরক্ষা ফর্ম (সংযুক্তি-৩)'**
+  String get govComplaintsLandLink;
+
+  /// No description provided for @govComplaintsEmergencyLink.
+  ///
+  /// In bn, this message translates to:
+  /// **'জরুরি নিরাপদ পদক্ষেপ'**
+  String get govComplaintsEmergencyLink;
+
+  /// No description provided for @govFieldRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই ঘরটি পূরণ করুন।'**
+  String get govFieldRequired;
+
+  /// No description provided for @govComplaintStatus_submitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়েছে'**
+  String get govComplaintStatus_submitted;
+
+  /// No description provided for @govComplaintStatus_acknowledged.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বীকৃত'**
+  String get govComplaintStatus_acknowledged;
+
+  /// No description provided for @govComplaintStatus_investigating.
+  ///
+  /// In bn, this message translates to:
+  /// **'তদন্ত চলছে'**
+  String get govComplaintStatus_investigating;
+
+  /// No description provided for @govComplaintStatus_resolved.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিষ্পত্তি হয়েছে'**
+  String get govComplaintStatus_resolved;
+
+  /// No description provided for @govComplaintStatus_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'খারিজ'**
+  String get govComplaintStatus_rejected;
+
+  /// No description provided for @govComplaintStatus_closed.
+  ///
+  /// In bn, this message translates to:
+  /// **'বন্ধ'**
+  String get govComplaintStatus_closed;
+
+  /// No description provided for @govComplaintStatusOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য অবস্থা'**
+  String get govComplaintStatusOther;
+
+  /// No description provided for @govComplaintEvent_submitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ জমা হয়েছে'**
+  String get govComplaintEvent_submitted;
+
+  /// No description provided for @govComplaintEvent_acknowledged.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বীকৃতি দেওয়া হয়েছে'**
+  String get govComplaintEvent_acknowledged;
+
+  /// No description provided for @govComplaintEvent_assigned.
+  ///
+  /// In bn, this message translates to:
+  /// **'দায়িত্ব দেওয়া হয়েছে'**
+  String get govComplaintEvent_assigned;
+
+  /// No description provided for @govComplaintEvent_updated.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন খবর'**
+  String get govComplaintEvent_updated;
+
+  /// No description provided for @govComplaintEvent_resolved.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিষ্পত্তি হয়েছে'**
+  String get govComplaintEvent_resolved;
+
+  /// No description provided for @govComplaintEvent_closed.
+  ///
+  /// In bn, this message translates to:
+  /// **'বন্ধ হয়েছে'**
+  String get govComplaintEvent_closed;
+
+  /// No description provided for @govComplaintEvent_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'খারিজ হয়েছে'**
+  String get govComplaintEvent_rejected;
+
+  /// No description provided for @govComplaintEventOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন খবর'**
+  String get govComplaintEventOther;
+
+  /// No description provided for @govSla_met.
+  ///
+  /// In bn, this message translates to:
+  /// **'সময়মতো'**
+  String get govSla_met;
+
+  /// No description provided for @govSla_on_track.
+  ///
+  /// In bn, this message translates to:
+  /// **'সময় আছে'**
+  String get govSla_on_track;
+
+  /// No description provided for @govSla_due_soon.
+  ///
+  /// In bn, this message translates to:
+  /// **'শিগগির শেষ হবে'**
+  String get govSla_due_soon;
+
+  /// No description provided for @govSla_overdue.
+  ///
+  /// In bn, this message translates to:
+  /// **'সময় শেষ'**
+  String get govSla_overdue;
+
+  /// No description provided for @govSlaDays.
+  ///
+  /// In bn, this message translates to:
+  /// **'{state} ({days})'**
+  String govSlaDays(String state, String days);
+
+  /// No description provided for @govLandTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমি সুরক্ষা অভিযোগ (সংযুক্তি-৩)'**
+  String get govLandTitle;
+
+  /// No description provided for @govLandSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমি দখল বা হুমকির ক্ষেত্রে এই ফর্মটি পূরণ করুন।'**
+  String get govLandSubtitle;
+
+  /// No description provided for @govLandEmergencyTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি বিপদে থাকলে আগে ফোন করুন'**
+  String get govLandEmergencyTitle;
+
+  /// No description provided for @govLandSectionComplainant.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগকারীর তথ্য'**
+  String get govLandSectionComplainant;
+
+  /// No description provided for @govLandName.
+  ///
+  /// In bn, this message translates to:
+  /// **'নাম'**
+  String get govLandName;
+
+  /// No description provided for @govLandContact.
+  ///
+  /// In bn, this message translates to:
+  /// **'যোগাযোগের নম্বর বা ঠিকানা'**
+  String get govLandContact;
+
+  /// No description provided for @govLandSectionLand.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমির তথ্য'**
+  String get govLandSectionLand;
+
+  /// No description provided for @govLandLocation.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমির অবস্থান'**
+  String get govLandLocation;
+
+  /// No description provided for @govLandDagNo.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ নম্বর'**
+  String get govLandDagNo;
+
+  /// No description provided for @govLandKhatianNo.
+  ///
+  /// In bn, this message translates to:
+  /// **'খতিয়ান নম্বর'**
+  String get govLandKhatianNo;
+
+  /// No description provided for @govLandSectionIncident.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঘটনার বিবরণ'**
+  String get govLandSectionIncident;
+
+  /// No description provided for @govLandAccused.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযুক্ত পক্ষ'**
+  String get govLandAccused;
+
+  /// No description provided for @govLandIncidentDate.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঘটনার তারিখ'**
+  String get govLandIncidentDate;
+
+  /// No description provided for @govLandIncidentDesc.
+  ///
+  /// In bn, this message translates to:
+  /// **'কী ঘটেছে'**
+  String get govLandIncidentDesc;
+
+  /// No description provided for @govLandDanger.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই মুহূর্তে আমি বিপদে আছি বা নিরাপদ বোধ করছি না'**
+  String get govLandDanger;
+
+  /// No description provided for @govLandSectionEvidence.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রমাণ'**
+  String get govLandSectionEvidence;
+
+  /// No description provided for @govLandEvidenceFile.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রমাণের ফাইল (ঐচ্ছিক)'**
+  String get govLandEvidenceFile;
+
+  /// No description provided for @govLandPickFile.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফাইল বাছুন'**
+  String get govLandPickFile;
+
+  /// No description provided for @govLandSectionConsent.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর ও সম্মতি'**
+  String get govLandSectionConsent;
+
+  /// No description provided for @govLandSignatureName.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর হিসেবে আপনার নাম'**
+  String get govLandSignatureName;
+
+  /// No description provided for @govLandSignatureDate.
+  ///
+  /// In bn, this message translates to:
+  /// **'তারিখ'**
+  String get govLandSignatureDate;
+
+  /// No description provided for @govLandDisclaimer.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমি বুঝেছি, এটি জিডি বা আদালতের বিকল্প নয়।'**
+  String get govLandDisclaimer;
+
+  /// No description provided for @govLandConsent.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমি নিশ্চিত করছি, দেওয়া তথ্য সঠিক।'**
+  String get govLandConsent;
+
+  /// No description provided for @govLandSubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফর্ম জমা দিন'**
+  String get govLandSubmit;
+
+  /// No description provided for @govLandPickDate.
+  ///
+  /// In bn, this message translates to:
+  /// **'তারিখ বাছুন'**
+  String get govLandPickDate;
+
+  /// No description provided for @govStandardTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'সেবার মান'**
+  String get govStandardTitle;
+
+  /// No description provided for @govStandardSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমিটির দেওয়া সময়ের প্রতিশ্রুতি এবং বাস্তবে কেমন হচ্ছে।'**
+  String get govStandardSubtitle;
+
+  /// No description provided for @govStandardTarget.
+  ///
+  /// In bn, this message translates to:
+  /// **'লক্ষ্য: {target}'**
+  String govStandardTarget(String target);
+
+  /// No description provided for @govStandardMet.
+  ///
+  /// In bn, this message translates to:
+  /// **'সময়মতো হয়েছে'**
+  String get govStandardMet;
+
+  /// No description provided for @govStandardAvgDays.
+  ///
+  /// In bn, this message translates to:
+  /// **'গড় কার্যদিবস: {days}'**
+  String govStandardAvgDays(String days);
+
+  /// No description provided for @govStandardNoLive.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই সেবায় এখনো যথেষ্ট তথ্য জমেনি।'**
+  String get govStandardNoLive;
+
+  /// No description provided for @govElectionsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নির্বাচন'**
+  String get govElectionsTitle;
+
+  /// No description provided for @govElectionsSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন দিন, গোপনে ভোট দিন, ফল দেখুন।'**
+  String get govElectionsSubtitle;
+
+  /// No description provided for @govElectionsEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখনো কোনো নির্বাচন ঘোষণা হয়নি।'**
+  String get govElectionsEmpty;
+
+  /// No description provided for @govElectionsEligibility.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি কি যোগ্য?'**
+  String get govElectionsEligibility;
+
+  /// No description provided for @govElectionsEligibleYes.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এই নির্বাচনে ভোট দিতে ও প্রার্থী হতে পারবেন।'**
+  String get govElectionsEligibleYes;
+
+  /// No description provided for @govElectionsEligibleNo.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এই নির্বাচনে যোগ্য নন। শুধু অনুমোদিত সাধারণ ও প্রতিষ্ঠাতা সদস্য যোগ্য।'**
+  String get govElectionsEligibleNo;
+
+  /// No description provided for @govElectionsEligibleNoSnapshot.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোটার তালিকা বন্ধ হওয়ার সময় আপনার নাম ছিল না, তাই এবার ভোট দেওয়া যাবে না।'**
+  String get govElectionsEligibleNoSnapshot;
+
+  /// No description provided for @govElectionsNominationWindow.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন: {start} থেকে {end}'**
+  String govElectionsNominationWindow(String start, String end);
+
+  /// No description provided for @govElectionsVotingWindow.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোটগ্রহণ: {start} থেকে {end}'**
+  String govElectionsVotingWindow(String start, String end);
+
+  /// No description provided for @govElectionsNominateTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিজেকে মনোনীত করুন'**
+  String get govElectionsNominateTitle;
+
+  /// No description provided for @govElectionsNominateHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়নের সময়ের মধ্যে প্রতি পদে একবার মনোনয়ন দেওয়া যায়।'**
+  String get govElectionsNominateHint;
+
+  /// No description provided for @govElectionsPost.
+  ///
+  /// In bn, this message translates to:
+  /// **'পদ'**
+  String get govElectionsPost;
+
+  /// No description provided for @govElectionsStatement.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রার্থী হিসেবে আপনার কথা (ঐচ্ছিক)'**
+  String get govElectionsStatement;
+
+  /// No description provided for @govElectionsNominateSubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন জমা দিন'**
+  String get govElectionsNominateSubmit;
+
+  /// No description provided for @govElectionsNominateDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন জমা হয়েছে।'**
+  String get govElectionsNominateDone;
+
+  /// No description provided for @govElectionsVoteTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'গোপন ভোট'**
+  String get govElectionsVoteTitle;
+
+  /// No description provided for @govElectionsVoteHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রতি পদে একজন প্রার্থী বেছে ভোট দিন। আপনার ভোট গোপন থাকবে।'**
+  String get govElectionsVoteHint;
+
+  /// No description provided for @govElectionsNoCandidates.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখনো কোনো অনুমোদিত প্রার্থী নেই।'**
+  String get govElectionsNoCandidates;
+
+  /// No description provided for @govElectionsVoted.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোট দিয়েছেন'**
+  String get govElectionsVoted;
+
+  /// No description provided for @govElectionsAlreadyVoted.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই পদে আপনি ভোট দিয়েছেন।'**
+  String get govElectionsAlreadyVoted;
+
+  /// No description provided for @govElectionsCastVote.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোট দিন'**
+  String get govElectionsCastVote;
+
+  /// No description provided for @govElectionsVoteConfirm.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোট দিলে আর বদলানো যাবে না। ভোট দিতে চান?'**
+  String get govElectionsVoteConfirm;
+
+  /// No description provided for @govElectionsVoteDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার ভোট নেওয়া হয়েছে।'**
+  String get govElectionsVoteDone;
+
+  /// No description provided for @govElectionsResults.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফলাফল'**
+  String get govElectionsResults;
+
+  /// No description provided for @govElectionsVotesTotal.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোট ভোট: {total}'**
+  String govElectionsVotesTotal(String total);
+
+  /// No description provided for @govElectionsVotes.
+  ///
+  /// In bn, this message translates to:
+  /// **'{count} ভোট'**
+  String govElectionsVotes(String count);
+
+  /// No description provided for @govElectionsMyNominations.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার মনোনয়ন'**
+  String get govElectionsMyNominations;
+
+  /// No description provided for @govElectionStatus_nominations_open.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন চলছে'**
+  String get govElectionStatus_nominations_open;
+
+  /// No description provided for @govElectionStatus_nominations_closed.
+  ///
+  /// In bn, this message translates to:
+  /// **'মনোনয়ন বন্ধ'**
+  String get govElectionStatus_nominations_closed;
+
+  /// No description provided for @govElectionStatus_voting.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভোটগ্রহণ চলছে'**
+  String get govElectionStatus_voting;
+
+  /// No description provided for @govElectionStatus_tabulated.
+  ///
+  /// In bn, this message translates to:
+  /// **'গণনা হয়েছে'**
+  String get govElectionStatus_tabulated;
+
+  /// No description provided for @govElectionStatus_confirmed.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফল চূড়ান্ত'**
+  String get govElectionStatus_confirmed;
+
+  /// No description provided for @govElectionStatusOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য অবস্থা'**
+  String get govElectionStatusOther;
+
+  /// No description provided for @govNomination_pending.
+  ///
+  /// In bn, this message translates to:
+  /// **'অপেক্ষমাণ'**
+  String get govNomination_pending;
+
+  /// No description provided for @govNomination_approved.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদিত'**
+  String get govNomination_approved;
+
+  /// No description provided for @govNomination_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল'**
+  String get govNomination_rejected;
+
+  /// No description provided for @govPetitionsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিশেষ সভার পিটিশন'**
+  String get govPetitionsTitle;
+
+  /// No description provided for @govPetitionsSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'যোগ্য সদস্যরা স্বাক্ষর জোগাড় করে বিশেষ সভা ডাকার দাবি জানাতে পারেন।'**
+  String get govPetitionsSubtitle;
+
+  /// No description provided for @govPetitionsThreshold.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমপক্ষে {percent}% যোগ্য সদস্যের স্বাক্ষর লাগবে।'**
+  String govPetitionsThreshold(String percent);
+
+  /// No description provided for @govPetitionsResponseDays.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমিটি {days} দিনের মধ্যে জবাব দেবে।'**
+  String govPetitionsResponseDays(String days);
+
+  /// No description provided for @govPetitionsCreateTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন পিটিশন'**
+  String get govPetitionsCreateTitle;
+
+  /// No description provided for @govPetitionsTitleField.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিটিশনের শিরোনাম'**
+  String get govPetitionsTitleField;
+
+  /// No description provided for @govPetitionsJustification.
+  ///
+  /// In bn, this message translates to:
+  /// **'কেন এই সভা দরকার'**
+  String get govPetitionsJustification;
+
+  /// No description provided for @govPetitionsCreate.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিটিশন জমা দিন'**
+  String get govPetitionsCreate;
+
+  /// No description provided for @govPetitionsCreateDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিটিশন জমা হয়েছে।'**
+  String get govPetitionsCreateDone;
+
+  /// No description provided for @govPetitionsSignTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর করুন'**
+  String get govPetitionsSignTitle;
+
+  /// No description provided for @govPetitionsSignHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিটিশনের আইডি লিখে স্বাক্ষর করুন। আইডি পিটিশন দাখিলকারীর কাছে পাবেন।'**
+  String get govPetitionsSignHint;
+
+  /// No description provided for @govPetitionsId.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিটিশনের আইডি'**
+  String get govPetitionsId;
+
+  /// No description provided for @govPetitionsSign.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর করুন'**
+  String get govPetitionsSign;
+
+  /// No description provided for @govPetitionsSignDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর হয়েছে।'**
+  String get govPetitionsSignDone;
+
+  /// No description provided for @govPetitionsMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার পিটিশন'**
+  String get govPetitionsMine;
+
+  /// No description provided for @govPetitionsSigned.
+  ///
+  /// In bn, this message translates to:
+  /// **'যেসব পিটিশনে স্বাক্ষর করেছেন'**
+  String get govPetitionsSigned;
+
+  /// No description provided for @govPetitionsEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনি এখনো কোনো পিটিশন দাখিল করেননি।'**
+  String get govPetitionsEmpty;
+
+  /// No description provided for @govPetitionsSignatures.
+  ///
+  /// In bn, this message translates to:
+  /// **'স্বাক্ষর {count}/{required}'**
+  String govPetitionsSignatures(String count, String required);
+
+  /// No description provided for @govPetitionsResponseDue.
+  ///
+  /// In bn, this message translates to:
+  /// **'জবাবের শেষ তারিখ {date}'**
+  String govPetitionsResponseDue(String date);
+
+  /// No description provided for @govPetitionsCommitteeResponse.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমিটির জবাব'**
+  String get govPetitionsCommitteeResponse;
+
+  /// No description provided for @govPetitionStatus_submitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়েছে'**
+  String get govPetitionStatus_submitted;
+
+  /// No description provided for @govPetitionStatus_under_review.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেখা হচ্ছে'**
+  String get govPetitionStatus_under_review;
+
+  /// No description provided for @govPetitionStatus_responded.
+  ///
+  /// In bn, this message translates to:
+  /// **'জবাব দেওয়া হয়েছে'**
+  String get govPetitionStatus_responded;
+
+  /// No description provided for @govPetitionStatus_scheduled.
+  ///
+  /// In bn, this message translates to:
+  /// **'সভা ডাকা হয়েছে'**
+  String get govPetitionStatus_scheduled;
+
+  /// No description provided for @govPetitionStatus_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'খারিজ'**
+  String get govPetitionStatus_rejected;
+
+  /// No description provided for @govPetitionStatusOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য অবস্থা'**
+  String get govPetitionStatusOther;
+
+  /// No description provided for @govWelfareTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্য কল্যাণ তহবিল'**
+  String get govWelfareTitle;
+
+  /// No description provided for @govWelfareSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'কষ্টের সময় কল্যাণ তহবিল থেকে সাহায্য চাইতে পারেন।'**
+  String get govWelfareSubtitle;
+
+  /// No description provided for @govWelfareApplyTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন আবেদন'**
+  String get govWelfareApplyTitle;
+
+  /// No description provided for @govWelfareApplyHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'একসাথে একটির বেশি আবেদন চলতে পারে না। কমিটি নিজে সিদ্ধান্ত নেয়, কিছুই নিজে থেকে অনুমোদন হয় না।'**
+  String get govWelfareApplyHint;
+
+  /// No description provided for @govWelfareType.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদনের ধরন'**
+  String get govWelfareType;
+
+  /// No description provided for @govWelfareAmount.
+  ///
+  /// In bn, this message translates to:
+  /// **'কত টাকা দরকার'**
+  String get govWelfareAmount;
+
+  /// No description provided for @govWelfareReason.
+  ///
+  /// In bn, this message translates to:
+  /// **'কেন দরকার'**
+  String get govWelfareReason;
+
+  /// No description provided for @govWelfareApply.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন জমা দিন'**
+  String get govWelfareApply;
+
+  /// No description provided for @govWelfareApplyDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন জমা হয়েছে।'**
+  String get govWelfareApplyDone;
+
+  /// No description provided for @govWelfareMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার আবেদন'**
+  String get govWelfareMine;
+
+  /// No description provided for @govWelfareEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার কোনো আবেদন নেই।'**
+  String get govWelfareEmpty;
+
+  /// No description provided for @govWelfareRequested.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন: {amount}'**
+  String govWelfareRequested(String amount);
+
+  /// No description provided for @govWelfareApproved.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদিত: {amount}'**
+  String govWelfareApproved(String amount);
+
+  /// No description provided for @govWelfareCommitteeReason.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমিটির কারণ'**
+  String get govWelfareCommitteeReason;
+
+  /// No description provided for @govWelfareAmountInvalid.
+  ///
+  /// In bn, this message translates to:
+  /// **'টাকার পরিমাণ ০-এর বেশি হতে হবে।'**
+  String get govWelfareAmountInvalid;
+
+  /// No description provided for @govWelfareType_medical.
+  ///
+  /// In bn, this message translates to:
+  /// **'চিকিৎসা'**
+  String get govWelfareType_medical;
+
+  /// No description provided for @govWelfareType_emergency.
+  ///
+  /// In bn, this message translates to:
+  /// **'জরুরি'**
+  String get govWelfareType_emergency;
+
+  /// No description provided for @govWelfareType_education.
+  ///
+  /// In bn, this message translates to:
+  /// **'শিক্ষা'**
+  String get govWelfareType_education;
+
+  /// No description provided for @govWelfareType_other.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্যান্য'**
+  String get govWelfareType_other;
+
+  /// No description provided for @govWelfareStatus_submitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়েছে'**
+  String get govWelfareStatus_submitted;
+
+  /// No description provided for @govWelfareStatus_under_review.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেখা হচ্ছে'**
+  String get govWelfareStatus_under_review;
+
+  /// No description provided for @govWelfareStatus_approved.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদিত'**
+  String get govWelfareStatus_approved;
+
+  /// No description provided for @govWelfareStatus_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রত্যাখ্যাত'**
+  String get govWelfareStatus_rejected;
+
+  /// No description provided for @govWelfareStatus_disbursed.
+  ///
+  /// In bn, this message translates to:
+  /// **'টাকা দেওয়া হয়েছে'**
+  String get govWelfareStatus_disbursed;
+
+  /// No description provided for @govWelfareStatusOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য অবস্থা'**
+  String get govWelfareStatusOther;
+
+  /// No description provided for @govAmendTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'গঠনতন্ত্র সংশোধনী'**
+  String get govAmendTitle;
+
+  /// No description provided for @govAmendSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'গঠনতন্ত্র বদলের প্রস্তাব দিন এবং সংস্করণগুলো দেখুন।'**
+  String get govAmendSubtitle;
+
+  /// No description provided for @govAmendProposeTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংশোধনীর প্রস্তাব'**
+  String get govAmendProposeTitle;
+
+  /// No description provided for @govAmendProposeHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাব কমিটির কাছে যাবে। সিদ্ধান্ত হবে নোটিশ দিয়ে ডাকা সভায়।'**
+  String get govAmendProposeHint;
+
+  /// No description provided for @govAmendTitleField.
+  ///
+  /// In bn, this message translates to:
+  /// **'শিরোনাম'**
+  String get govAmendTitleField;
+
+  /// No description provided for @govAmendRationale.
+  ///
+  /// In bn, this message translates to:
+  /// **'কেন এই পরিবর্তন'**
+  String get govAmendRationale;
+
+  /// No description provided for @govAmendText.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাবিত লেখা'**
+  String get govAmendText;
+
+  /// No description provided for @govAmendDissolution.
+  ///
+  /// In bn, this message translates to:
+  /// **'এটি সংগঠন বিলুপ্তির প্রস্তাব'**
+  String get govAmendDissolution;
+
+  /// No description provided for @govAmendDissolutionNotice.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিলুপ্তি আইনি পরামর্শ নিয়ে হাতে-কলমে করা হয়। এই অ্যাপে নিজে থেকে বিলুপ্তি হয় না।'**
+  String get govAmendDissolutionNotice;
+
+  /// No description provided for @govAmendSubmit.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাব জমা দিন'**
+  String get govAmendSubmit;
+
+  /// No description provided for @govAmendSubmitDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাব জমা হয়েছে।'**
+  String get govAmendSubmitDone;
+
+  /// No description provided for @govAmendMine.
+  ///
+  /// In bn, this message translates to:
+  /// **'আমার প্রস্তাব'**
+  String get govAmendMine;
+
+  /// No description provided for @govAmendEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার কোনো প্রস্তাব নেই।'**
+  String get govAmendEmpty;
+
+  /// No description provided for @govAmendDissolutionTag.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিলুপ্তি'**
+  String get govAmendDissolutionTag;
+
+  /// No description provided for @govAmendAdoptedAs.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংস্করণ {version} হিসেবে গৃহীত'**
+  String govAmendAdoptedAs(String version);
+
+  /// No description provided for @govAmendDecisionNote.
+  ///
+  /// In bn, this message translates to:
+  /// **'সিদ্ধান্তের নোট'**
+  String get govAmendDecisionNote;
+
+  /// No description provided for @govAmendWithdraw.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রত্যাহার করুন'**
+  String get govAmendWithdraw;
+
+  /// No description provided for @govAmendWithdrawConfirm.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রত্যাহার করলে প্রস্তাবটি ফিরিয়ে আনা যাবে না। প্রত্যাহার করবেন?'**
+  String get govAmendWithdrawConfirm;
+
+  /// No description provided for @govAmendWithdrawDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রস্তাব প্রত্যাহার হয়েছে।'**
+  String get govAmendWithdrawDone;
+
+  /// No description provided for @govAmendVersionsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'গঠনতন্ত্রের সংস্করণ'**
+  String get govAmendVersionsTitle;
+
+  /// No description provided for @govAmendVersionsHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রতিটি গৃহীত সংশোধনীতে নতুন সংস্করণ যোগ হয়। পুরোনো সংস্করণ কখনো বদলায় না।'**
+  String get govAmendVersionsHint;
+
+  /// No description provided for @govAmendNoVersions.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখনো কোনো সংস্করণ নেই।'**
+  String get govAmendNoVersions;
+
+  /// No description provided for @govAmendVersionLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংস্করণ {version}'**
+  String govAmendVersionLabel(String version);
+
+  /// No description provided for @govAmendCurrent.
+  ///
+  /// In bn, this message translates to:
+  /// **'বর্তমান'**
+  String get govAmendCurrent;
+
+  /// No description provided for @govAmendViewText.
+  ///
+  /// In bn, this message translates to:
+  /// **'পুরো লেখা দেখুন'**
+  String get govAmendViewText;
+
+  /// No description provided for @govAmendStatus_draft.
+  ///
+  /// In bn, this message translates to:
+  /// **'খসড়া'**
+  String get govAmendStatus_draft;
+
+  /// No description provided for @govAmendStatus_submitted.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা হয়েছে'**
+  String get govAmendStatus_submitted;
+
+  /// No description provided for @govAmendStatus_scheduled.
+  ///
+  /// In bn, this message translates to:
+  /// **'সভায় ঠিক করা হয়েছে'**
+  String get govAmendStatus_scheduled;
+
+  /// No description provided for @govAmendStatus_adopted.
+  ///
+  /// In bn, this message translates to:
+  /// **'গৃহীত'**
+  String get govAmendStatus_adopted;
+
+  /// No description provided for @govAmendStatus_rejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল'**
+  String get govAmendStatus_rejected;
+
+  /// No description provided for @govAmendStatus_withdrawn.
+  ///
+  /// In bn, this message translates to:
+  /// **'প্রত্যাহার করা হয়েছে'**
+  String get govAmendStatus_withdrawn;
+
+  /// No description provided for @govAmendStatusOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অন্য অবস্থা'**
+  String get govAmendStatusOther;
 }
 
 class _AppLocalizationsDelegate

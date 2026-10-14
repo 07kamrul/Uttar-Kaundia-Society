@@ -14,6 +14,7 @@ class NavItem {
     required this.route,
     required this.icon,
     this.requiredPermission,
+    this.requiredAny,
     this.tier,
     this.area,
   });
@@ -22,10 +23,22 @@ class NavItem {
   final String route;
   final IconData icon;
   final String? requiredPermission;
+
+  /// Alternative to [requiredPermission]: any one of these opens the item
+  /// (Angular `requiredPermission: [a, b]`).
+  final List<String>? requiredAny;
   final LandingTierFilter? tier;
 
   /// Five-area (Batch 3) parent of this route; null for management items.
   final NavArea? area;
+
+  /// Whether [can] satisfies this item's permission rule (none = open).
+  bool isAllowed(bool Function(String) can) {
+    final any = requiredAny;
+    if (any != null) return any.any(can);
+    final p = requiredPermission;
+    return p == null || can(p);
+  }
 }
 
 enum LandingTierFilter { member, management, superAdmin }
@@ -365,6 +378,8 @@ class AppNav {
     NavArea.land: ['/my-land', '/neighbours', '/plot-map', '/property-requests'],
     NavArea.organisation: [
       '/organisation', '/notices', '/events', '/fund-transparency', '/roadmap', '/resolution-book',
+      '/elections', '/welfare-fund', '/complaints', '/service-standard', '/emergency-help',
+      '/petitions', '/amendments',
     ],
     NavArea.profile: ['/profile', '/change-password'],
   };
@@ -376,7 +391,7 @@ class AppNav {
     return [
       for (final route in routes)
         for (final item in _hubCatalog)
-          if (item.route == route && (item.requiredPermission == null || can(item.requiredPermission!))) item,
+          if (item.route == route && item.isAllowed(can)) item,
     ];
   }
 
@@ -384,6 +399,8 @@ class AppNav {
     NavArea.land: ['/property-requests/new', '/neighbours', '/plot-map'],
     NavArea.organisation: [
       '/notices', '/events', '/resolution-book', '/fund-transparency', '/roadmap',
+      '/elections', '/welfare-fund', '/complaints', '/complaints/land-protection',
+      '/service-standard', '/emergency-help', '/petitions', '/amendments',
     ],
   };
 
@@ -396,6 +413,62 @@ class AppNav {
       requiredPermission: 'profile.view_own',
       tier: LandingTierFilter.member,
       area: NavArea.land,
+    ),
+    // Governance pages: hub-only, never in the old flat menu.
+    NavItem(
+      labelKey: _t((l) => l.navElections),
+      route: '/elections',
+      icon: Icons.how_to_vote_outlined,
+      requiredAny: const ['election.vote', 'election.candidate'],
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navWelfareFund),
+      route: '/welfare-fund',
+      icon: Icons.volunteer_activism_outlined,
+      requiredPermission: 'welfare_fund.apply',
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navComplaints),
+      route: '/complaints',
+      icon: Icons.inbox_outlined,
+      requiredPermission: 'profile.view_own',
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navLandProtection),
+      route: '/complaints/land-protection',
+      icon: Icons.shield_outlined,
+      requiredPermission: 'land_complaint.create',
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navServiceStandard),
+      route: '/service-standard',
+      icon: Icons.task_alt_outlined,
+      requiredPermission: 'service_standard.view',
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navEmergencyHelp),
+      route: '/emergency-help',
+      icon: Icons.warning_amber_outlined,
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navPetitions),
+      route: '/petitions',
+      icon: Icons.edit_document,
+      requiredPermission: 'petition.create',
+      area: NavArea.organisation,
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navAmendments),
+      route: '/amendments',
+      icon: Icons.gavel_outlined,
+      requiredAny: const ['amendment.propose', 'service_standard.view'],
+      area: NavArea.organisation,
     ),
   ];
 }

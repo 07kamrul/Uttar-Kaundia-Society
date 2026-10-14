@@ -2869,5 +2869,340 @@
   "regHelpStep3": "Give the name, relation and mobile number of the person who should take over your membership.",
   "regHelpStep4": "After paying the admission fee, choose how you paid and write the transaction ID or receipt number.",
   "regHelpStep5": "Read the declaration, tick the box and sign.",
-  "regHelpStep6": "Check everything once more. Go back to fix mistakes, then submit."
+  "regHelpStep6": "Check everything once more. Go back to fix mistakes, then submit.",
+  "navElections": "Elections",
+  "navWelfareFund": "Welfare fund",
+  "navComplaints": "Complaints and help",
+  "navLandProtection": "Land protection complaint",
+  "navServiceStandard": "Service standard",
+  "navEmergencyHelp": "Help desk",
+  "navPetitions": "Special meeting petition",
+  "navAmendments": "Constitution amendments",
+  "helpDeskTile": "Help desk (emergency safety steps)",
+  "govLoadError": "Could not load this. Check your internet and try again.",
+  "govErrVoteForbidden": "You are not eligible to vote in this election. Talk to the committee if you think this is wrong.",
+  "govErrVoteConflict": "Your vote was not taken. Voting is closed, or you already voted for this post. Reopen the page to check.",
+  "govErrNominateForbidden": "You are not eligible to stand in this election. Talk to the committee if you think this is wrong.",
+  "govErrNominateConflict": "Your nomination was not taken. Nominations are closed, or you already nominated for this post.",
+  "govErrSignForbidden": "Only eligible members can sign. Ask the committee if your membership qualifies.",
+  "govErrSignConflict": "Not signed. You already signed, or this petition no longer takes signatures.",
+  "govErrSignNotFound": "No petition has this ID. Check the ID and try again.",
+  "govErrPetitionForbidden": "Only eligible members can file a petition. Talk to the committee if you think this is wrong.",
+  "govErrWelfareConflict": "You already have an application in progress. Apply again after it is decided.",
+  "govErrLandMissing": "Some required fields are empty. Fill them all and submit again.",
+  "govErrWithdrawConflict": "This proposal can no longer be withdrawn. Reopen the page to see its status.",
+  "govEmergencySubtitle": "In danger, safety comes first and paperwork after.",
+  "govEmergencyContacts": "Emergency numbers",
+  "govEmergencyCall": "Call",
+  "govEmergencyStepsTitle": "What to do now",
+  "govEmergencyStep1": "Move yourself and your family to safety. Call 999 if needed.",
+  "govEmergencyStep2": "For women and children, call 109.",
+  "govEmergencyStep3": "Keep photos, videos and the names of witnesses.",
+  "govEmergencyStep4": "Keep your dag and khatian papers at hand.",
+  "govEmergencyStep5": "Once you are safe, give the society a written complaint.",
+  "govEmergencyFileLand": "File a land protection complaint",
+  "govEmergencyFileComplaint": "File a general complaint",
+  "govComplaintsTitle": "Complaints",
+  "govComplaintsSubtitle": "Send a complaint and follow it. Acknowledged in 3 working days, first update in 15.",
+  "govComplaintsNewTitle": "New complaint",
+  "govComplaintsCategory": "Type",
+  "govComplaintsSubject": "Subject",
+  "govComplaintsDetails": "Details",
+  "govComplaintsSubmit": "Submit complaint",
+  "govComplaintsSuccess": "Your complaint was submitted.",
+  "govComplaintsMine": "My complaints",
+  "govComplaintsEmpty": "You have not made any complaint yet.",
+  "govComplaintsSlaAck": "Acknowledgement time",
+  "govComplaintsSlaUpdate": "First update time",
+  "govComplaintsResolution": "Resolution",
+  "govComplaintsLandLink": "Land protection form (Annex 3)",
+  "govComplaintsEmergencyLink": "Emergency safety steps",
+  "govFieldRequired": "Please fill this field.",
+  "govComplaintStatus_submitted": "Submitted",
+  "govComplaintStatus_acknowledged": "Acknowledged",
+  "govComplaintStatus_investigating": "Under investigation",
+  "govComplaintStatus_resolved": "Resolved",
+  "govComplaintStatus_rejected": "Rejected",
+  "govComplaintStatus_closed": "Closed",
+  "govComplaintStatusOther": "Other status",
+  "govComplaintEvent_submitted": "Complaint submitted",
+  "govComplaintEvent_acknowledged": "Acknowledged",
+  "govComplaintEvent_assigned": "Assigned",
+  "govComplaintEvent_updated": "Update",
+  "govComplaintEvent_resolved": "Resolved",
+  "govComplaintEvent_closed": "Closed",
+  "govComplaintEvent_rejected": "Rejected",
+  "govComplaintEventOther": "Update",
+  "govSla_met": "On time",
+  "govSla_on_track": "On track",
+  "govSla_due_soon": "Due soon",
+  "govSla_overdue": "Overdue",
+  "govSlaDays": "{state} ({days})",
+  "@govSlaDays": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govLandTitle": "Land protection complaint (Annex 3)",
+  "govLandSubtitle": "Fill this form for land grabbing or threats.",
+  "govLandEmergencyTitle": "If you are in danger, call first",
+  "govLandSectionComplainant": "Complainant",
+  "govLandName": "Name",
+  "govLandContact": "Phone or address",
+  "govLandSectionLand": "Land details",
+  "govLandLocation": "Location of the land",
+  "govLandDagNo": "Dag number",
+  "govLandKhatianNo": "Khatian number",
+  "govLandSectionIncident": "What happened",
+  "govLandAccused": "Accused party",
+  "govLandIncidentDate": "Date of the incident",
+  "govLandIncidentDesc": "Describe what happened",
+  "govLandDanger": "I am in danger right now or do not feel safe",
+  "govLandSectionEvidence": "Evidence",
+  "govLandEvidenceFile": "Evidence file (optional)",
+  "govLandPickFile": "Choose a file",
+  "govLandSectionConsent": "Signature and consent",
+  "govLandSignatureName": "Your name as signature",
+  "govLandSignatureDate": "Date",
+  "govLandDisclaimer": "I understand this is not a substitute for a GD or court case.",
+  "govLandConsent": "I confirm the information given is correct.",
+  "govLandSubmit": "Submit form",
+  "govLandPickDate": "Pick a date",
+  "govStandardTitle": "Service standard",
+  "govStandardSubtitle": "The time the committee promises, and how it is going.",
+  "govStandardTarget": "Target: {target}",
+  "@govStandardTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "govStandardMet": "Done on time",
+  "govStandardAvgDays": "Average working days: {days}",
+  "@govStandardAvgDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govStandardNoLive": "Not enough data for this service yet.",
+  "govElectionsTitle": "Elections",
+  "govElectionsSubtitle": "Stand as a candidate, vote in secret, see the result.",
+  "govElectionsEmpty": "No election has been announced yet.",
+  "govElectionsEligibility": "Are you eligible?",
+  "govElectionsEligibleYes": "You can vote and stand in this election.",
+  "govElectionsEligibleNo": "You are not eligible. Only approved general and founder members are.",
+  "govElectionsEligibleNoSnapshot": "You were not on the voter list when it was closed, so you cannot vote this time.",
+  "govElectionsNominationWindow": "Nominations: {start} to {end}",
+  "@govElectionsNominationWindow": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsVotingWindow": "Voting: {start} to {end}",
+  "@govElectionsVotingWindow": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsNominateTitle": "Stand as a candidate",
+  "govElectionsNominateHint": "You can nominate once for each post during the nomination period.",
+  "govElectionsPost": "Post",
+  "govElectionsStatement": "Your statement as a candidate (optional)",
+  "govElectionsNominateSubmit": "Submit nomination",
+  "govElectionsNominateDone": "Nomination submitted.",
+  "govElectionsVoteTitle": "Secret vote",
+  "govElectionsVoteHint": "Choose one candidate for each post. Your vote stays secret.",
+  "govElectionsNoCandidates": "There are no approved candidates yet.",
+  "govElectionsVoted": "Voted",
+  "govElectionsAlreadyVoted": "You have voted for this post.",
+  "govElectionsCastVote": "Cast vote",
+  "govElectionsVoteConfirm": "You cannot change your vote afterwards. Cast it?",
+  "govElectionsVoteDone": "Your vote was recorded.",
+  "govElectionsResults": "Results",
+  "govElectionsVotesTotal": "Total votes: {total}",
+  "@govElectionsVotesTotal": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsVotes": "{count} votes",
+  "@govElectionsVotes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsMyNominations": "Your nominations",
+  "govElectionStatus_nominations_open": "Nominations open",
+  "govElectionStatus_nominations_closed": "Nominations closed",
+  "govElectionStatus_voting": "Voting open",
+  "govElectionStatus_tabulated": "Counted",
+  "govElectionStatus_confirmed": "Result final",
+  "govElectionStatusOther": "Other status",
+  "govNomination_pending": "Pending",
+  "govNomination_approved": "Approved",
+  "govNomination_rejected": "Rejected",
+  "govPetitionsTitle": "Special meeting petition",
+  "govPetitionsSubtitle": "Eligible members can collect signatures and ask for a special meeting.",
+  "govPetitionsThreshold": "Signatures of at least {percent}% of eligible members are needed.",
+  "@govPetitionsThreshold": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsResponseDays": "The committee replies within {days} days.",
+  "@govPetitionsResponseDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsCreateTitle": "New petition",
+  "govPetitionsTitleField": "Petition title",
+  "govPetitionsJustification": "Why this meeting is needed",
+  "govPetitionsCreate": "Submit petition",
+  "govPetitionsCreateDone": "Petition submitted.",
+  "govPetitionsSignTitle": "Sign a petition",
+  "govPetitionsSignHint": "Type the petition ID to sign it. The person who filed it can share the ID.",
+  "govPetitionsId": "Petition ID",
+  "govPetitionsSign": "Sign",
+  "govPetitionsSignDone": "Signed.",
+  "govPetitionsMine": "My petitions",
+  "govPetitionsSigned": "Petitions you signed",
+  "govPetitionsEmpty": "You have not filed any petition yet.",
+  "govPetitionsSignatures": "Signatures {count}/{required}",
+  "@govPetitionsSignatures": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsResponseDue": "Reply due {date}",
+  "@govPetitionsResponseDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsCommitteeResponse": "Committee reply",
+  "govPetitionStatus_submitted": "Submitted",
+  "govPetitionStatus_under_review": "Under review",
+  "govPetitionStatus_responded": "Replied",
+  "govPetitionStatus_scheduled": "Meeting called",
+  "govPetitionStatus_rejected": "Rejected",
+  "govPetitionStatusOther": "Other status",
+  "govWelfareTitle": "Member welfare fund",
+  "govWelfareSubtitle": "You can ask the welfare fund for help in hard times.",
+  "govWelfareApplyTitle": "New application",
+  "govWelfareApplyHint": "Only one application can run at a time. The committee decides each one; nothing is approved automatically.",
+  "govWelfareType": "Type of help",
+  "govWelfareAmount": "Amount needed (Taka)",
+  "govWelfareReason": "Why you need it",
+  "govWelfareApply": "Submit application",
+  "govWelfareApplyDone": "Application submitted.",
+  "govWelfareMine": "My applications",
+  "govWelfareEmpty": "You have no applications.",
+  "govWelfareRequested": "Requested: {amount}",
+  "@govWelfareRequested": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govWelfareApproved": "Approved: {amount}",
+  "@govWelfareApproved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govWelfareCommitteeReason": "Committee reason",
+  "govWelfareAmountInvalid": "The amount must be more than 0.",
+  "govWelfareType_medical": "Medical",
+  "govWelfareType_emergency": "Emergency",
+  "govWelfareType_education": "Education",
+  "govWelfareType_other": "Other",
+  "govWelfareStatus_submitted": "Submitted",
+  "govWelfareStatus_under_review": "Under review",
+  "govWelfareStatus_approved": "Approved",
+  "govWelfareStatus_rejected": "Rejected",
+  "govWelfareStatus_disbursed": "Paid out",
+  "govWelfareStatusOther": "Other status",
+  "govAmendTitle": "Constitution amendments",
+  "govAmendSubtitle": "Propose a change to the constitution and see its versions.",
+  "govAmendProposeTitle": "Propose an amendment",
+  "govAmendProposeHint": "The proposal goes to the committee. It is decided at a meeting called with notice.",
+  "govAmendTitleField": "Title",
+  "govAmendRationale": "Why this change",
+  "govAmendText": "Proposed text",
+  "govAmendDissolution": "This is a proposal to dissolve the society",
+  "govAmendDissolutionNotice": "Dissolution is done by hand with legal advice. This app never dissolves the society by itself.",
+  "govAmendSubmit": "Submit proposal",
+  "govAmendSubmitDone": "Proposal submitted.",
+  "govAmendMine": "My proposals",
+  "govAmendEmpty": "You have no proposals.",
+  "govAmendDissolutionTag": "Dissolution",
+  "govAmendAdoptedAs": "Adopted as version {version}",
+  "@govAmendAdoptedAs": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmendDecisionNote": "Decision note",
+  "govAmendWithdraw": "Withdraw",
+  "govAmendWithdrawConfirm": "A withdrawn proposal cannot be brought back. Withdraw it?",
+  "govAmendWithdrawDone": "Proposal withdrawn.",
+  "govAmendVersionsTitle": "Constitution versions",
+  "govAmendVersionsHint": "Each adopted amendment adds a new version. Old versions never change.",
+  "govAmendNoVersions": "There are no versions yet.",
+  "govAmendVersionLabel": "Version {version}",
+  "@govAmendVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmendCurrent": "Current",
+  "govAmendViewText": "Read the full text",
+  "govAmendStatus_draft": "Draft",
+  "govAmendStatus_submitted": "Submitted",
+  "govAmendStatus_scheduled": "Scheduled for a meeting",
+  "govAmendStatus_adopted": "Adopted",
+  "govAmendStatus_rejected": "Rejected",
+  "govAmendStatus_withdrawn": "Withdrawn",
+  "govAmendStatusOther": "Other status"
 }

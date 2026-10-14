@@ -2370,5 +2370,340 @@
   "regHelpStep3": "যাকে আপনার পরে সদস্যপদের দায়িত্ব দিতে চান, তার নাম, সম্পর্ক ও মোবাইল নম্বর দিন।",
   "regHelpStep4": "ভর্তি ফি পাঠিয়ে কোন মাধ্যমে পাঠিয়েছেন তা বেছে নিন, তারপর ট্রানজেকশন আইডি বা রসিদ নম্বর লিখুন।",
   "regHelpStep5": "ঘোষণাটি পড়ে টিক দিন এবং নিজের স্বাক্ষর দিন।",
-  "regHelpStep6": "সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।"
+  "regHelpStep6": "সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।",
+  "navElections": "নির্বাচন",
+  "navWelfareFund": "কল্যাণ তহবিল",
+  "navComplaints": "অভিযোগ ও সাহায্য",
+  "navLandProtection": "জমি সুরক্ষা অভিযোগ",
+  "navServiceStandard": "সেবার মান",
+  "navEmergencyHelp": "হেল্প ডেস্ক",
+  "navPetitions": "বিশেষ সভার পিটিশন",
+  "navAmendments": "গঠনতন্ত্র সংশোধনী",
+  "helpDeskTile": "হেল্প ডেস্ক (জরুরি নিরাপদ পদক্ষেপ)",
+  "govLoadError": "তথ্য আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।",
+  "govErrVoteForbidden": "আপনি এই নির্বাচনে ভোট দিতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।",
+  "govErrVoteConflict": "ভোট নেওয়া হয়নি। ভোটের সময় নেই, অথবা এই পদে আপনি আগেই ভোট দিয়েছেন। পাতাটি নতুন করে খুলে দেখুন।",
+  "govErrNominateForbidden": "আপনি এই নির্বাচনে প্রার্থী হতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।",
+  "govErrNominateConflict": "মনোনয়ন নেওয়া হয়নি। মনোনয়নের সময় নেই, অথবা এই পদে আপনি আগেই মনোনয়ন দিয়েছেন।",
+  "govErrSignForbidden": "শুধু যোগ্য সদস্য স্বাক্ষর করতে পারেন। আপনার সদস্যপদ যোগ্য কি না কমিটির কাছে জানুন।",
+  "govErrSignConflict": "স্বাক্ষর হয়নি। আপনি আগেই স্বাক্ষর করেছেন, অথবা পিটিশনটি আর স্বাক্ষর নিচ্ছে না।",
+  "govErrSignNotFound": "এই আইডির কোনো পিটিশন পাওয়া যায়নি। আইডিটি আবার দেখে নিন।",
+  "govErrPetitionForbidden": "শুধু যোগ্য সদস্য পিটিশন দাখিল করতে পারেন। প্রয়োজনে কমিটির সাথে কথা বলুন।",
+  "govErrWelfareConflict": "আপনার একটি আবেদন আগে থেকেই চলছে। সেটির সিদ্ধান্ত হলে নতুন আবেদন করুন।",
+  "govErrLandMissing": "ফর্মের কিছু আবশ্যক ঘর ফাঁকা আছে। সব ঘর পূরণ করে আবার জমা দিন।",
+  "govErrWithdrawConflict": "প্রস্তাবটি আর প্রত্যাহার করা যাচ্ছে না। পাতাটি নতুন করে খুলে অবস্থা দেখুন।",
+  "govEmergencySubtitle": "বিপদে আগে নিজের নিরাপত্তা, তারপর কাগজপত্র।",
+  "govEmergencyContacts": "জরুরি নম্বর",
+  "govEmergencyCall": "কল করুন",
+  "govEmergencyStepsTitle": "এখনই যা করবেন",
+  "govEmergencyStep1": "নিজে ও পরিবারকে নিরাপদে সরিয়ে নিন। দরকার হলে ৯৯৯ নম্বরে ফোন করুন।",
+  "govEmergencyStep2": "নারী ও শিশুর বিষয় হলে ১০৯ নম্বরে ফোন করুন।",
+  "govEmergencyStep3": "ঘটনাস্থলের ছবি, ভিডিও ও সাক্ষীর নাম রেখে দিন।",
+  "govEmergencyStep4": "দাগ ও খতিয়ানের কাগজ হাতের কাছে রাখুন।",
+  "govEmergencyStep5": "নিরাপদ হলে সোসাইটিতে লিখিত অভিযোগ দিন।",
+  "govEmergencyFileLand": "জমি সুরক্ষা অভিযোগ করুন",
+  "govEmergencyFileComplaint": "সাধারণ অভিযোগ করুন",
+  "govComplaintsTitle": "অভিযোগ ব্যবস্থা",
+  "govComplaintsSubtitle": "অভিযোগ জানান ও অগ্রগতি দেখুন। ৩ কার্যদিবসে স্বীকৃতি, ১৫ কার্যদিবসে প্রথম খবর।",
+  "govComplaintsNewTitle": "নতুন অভিযোগ",
+  "govComplaintsCategory": "ধরন",
+  "govComplaintsSubject": "বিষয়",
+  "govComplaintsDetails": "বিস্তারিত",
+  "govComplaintsSubmit": "অভিযোগ জমা দিন",
+  "govComplaintsSuccess": "অভিযোগ জমা হয়েছে।",
+  "govComplaintsMine": "আমার অভিযোগ",
+  "govComplaintsEmpty": "আপনি এখনো কোনো অভিযোগ করেননি।",
+  "govComplaintsSlaAck": "স্বীকৃতির সময়",
+  "govComplaintsSlaUpdate": "প্রথম খবরের সময়",
+  "govComplaintsResolution": "সমাধান",
+  "govComplaintsLandLink": "জমি সুরক্ষা ফর্ম (সংযুক্তি-৩)",
+  "govComplaintsEmergencyLink": "জরুরি নিরাপদ পদক্ষেপ",
+  "govFieldRequired": "এই ঘরটি পূরণ করুন।",
+  "govComplaintStatus_submitted": "জমা হয়েছে",
+  "govComplaintStatus_acknowledged": "স্বীকৃত",
+  "govComplaintStatus_investigating": "তদন্ত চলছে",
+  "govComplaintStatus_resolved": "নিষ্পত্তি হয়েছে",
+  "govComplaintStatus_rejected": "খারিজ",
+  "govComplaintStatus_closed": "বন্ধ",
+  "govComplaintStatusOther": "অন্য অবস্থা",
+  "govComplaintEvent_submitted": "অভিযোগ জমা হয়েছে",
+  "govComplaintEvent_acknowledged": "স্বীকৃতি দেওয়া হয়েছে",
+  "govComplaintEvent_assigned": "দায়িত্ব দেওয়া হয়েছে",
+  "govComplaintEvent_updated": "নতুন খবর",
+  "govComplaintEvent_resolved": "নিষ্পত্তি হয়েছে",
+  "govComplaintEvent_closed": "বন্ধ হয়েছে",
+  "govComplaintEvent_rejected": "খারিজ হয়েছে",
+  "govComplaintEventOther": "নতুন খবর",
+  "govSla_met": "সময়মতো",
+  "govSla_on_track": "সময় আছে",
+  "govSla_due_soon": "শিগগির শেষ হবে",
+  "govSla_overdue": "সময় শেষ",
+  "govSlaDays": "{state} ({days})",
+  "@govSlaDays": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govLandTitle": "জমি সুরক্ষা অভিযোগ (সংযুক্তি-৩)",
+  "govLandSubtitle": "জমি দখল বা হুমকির ক্ষেত্রে এই ফর্মটি পূরণ করুন।",
+  "govLandEmergencyTitle": "আপনি বিপদে থাকলে আগে ফোন করুন",
+  "govLandSectionComplainant": "অভিযোগকারীর তথ্য",
+  "govLandName": "নাম",
+  "govLandContact": "যোগাযোগের নম্বর বা ঠিকানা",
+  "govLandSectionLand": "জমির তথ্য",
+  "govLandLocation": "জমির অবস্থান",
+  "govLandDagNo": "দাগ নম্বর",
+  "govLandKhatianNo": "খতিয়ান নম্বর",
+  "govLandSectionIncident": "ঘটনার বিবরণ",
+  "govLandAccused": "অভিযুক্ত পক্ষ",
+  "govLandIncidentDate": "ঘটনার তারিখ",
+  "govLandIncidentDesc": "কী ঘটেছে",
+  "govLandDanger": "এই মুহূর্তে আমি বিপদে আছি বা নিরাপদ বোধ করছি না",
+  "govLandSectionEvidence": "প্রমাণ",
+  "govLandEvidenceFile": "প্রমাণের ফাইল (ঐচ্ছিক)",
+  "govLandPickFile": "ফাইল বাছুন",
+  "govLandSectionConsent": "স্বাক্ষর ও সম্মতি",
+  "govLandSignatureName": "স্বাক্ষর হিসেবে আপনার নাম",
+  "govLandSignatureDate": "তারিখ",
+  "govLandDisclaimer": "আমি বুঝেছি, এটি জিডি বা আদালতের বিকল্প নয়।",
+  "govLandConsent": "আমি নিশ্চিত করছি, দেওয়া তথ্য সঠিক।",
+  "govLandSubmit": "ফর্ম জমা দিন",
+  "govLandPickDate": "তারিখ বাছুন",
+  "govStandardTitle": "সেবার মান",
+  "govStandardSubtitle": "কমিটির দেওয়া সময়ের প্রতিশ্রুতি এবং বাস্তবে কেমন হচ্ছে।",
+  "govStandardTarget": "লক্ষ্য: {target}",
+  "@govStandardTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "govStandardMet": "সময়মতো হয়েছে",
+  "govStandardAvgDays": "গড় কার্যদিবস: {days}",
+  "@govStandardAvgDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govStandardNoLive": "এই সেবায় এখনো যথেষ্ট তথ্য জমেনি।",
+  "govElectionsTitle": "নির্বাচন",
+  "govElectionsSubtitle": "মনোনয়ন দিন, গোপনে ভোট দিন, ফল দেখুন।",
+  "govElectionsEmpty": "এখনো কোনো নির্বাচন ঘোষণা হয়নি।",
+  "govElectionsEligibility": "আপনি কি যোগ্য?",
+  "govElectionsEligibleYes": "আপনি এই নির্বাচনে ভোট দিতে ও প্রার্থী হতে পারবেন।",
+  "govElectionsEligibleNo": "আপনি এই নির্বাচনে যোগ্য নন। শুধু অনুমোদিত সাধারণ ও প্রতিষ্ঠাতা সদস্য যোগ্য।",
+  "govElectionsEligibleNoSnapshot": "ভোটার তালিকা বন্ধ হওয়ার সময় আপনার নাম ছিল না, তাই এবার ভোট দেওয়া যাবে না।",
+  "govElectionsNominationWindow": "মনোনয়ন: {start} থেকে {end}",
+  "@govElectionsNominationWindow": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsVotingWindow": "ভোটগ্রহণ: {start} থেকে {end}",
+  "@govElectionsVotingWindow": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsNominateTitle": "নিজেকে মনোনীত করুন",
+  "govElectionsNominateHint": "মনোনয়নের সময়ের মধ্যে প্রতি পদে একবার মনোনয়ন দেওয়া যায়।",
+  "govElectionsPost": "পদ",
+  "govElectionsStatement": "প্রার্থী হিসেবে আপনার কথা (ঐচ্ছিক)",
+  "govElectionsNominateSubmit": "মনোনয়ন জমা দিন",
+  "govElectionsNominateDone": "মনোনয়ন জমা হয়েছে।",
+  "govElectionsVoteTitle": "গোপন ভোট",
+  "govElectionsVoteHint": "প্রতি পদে একজন প্রার্থী বেছে ভোট দিন। আপনার ভোট গোপন থাকবে।",
+  "govElectionsNoCandidates": "এখনো কোনো অনুমোদিত প্রার্থী নেই।",
+  "govElectionsVoted": "ভোট দিয়েছেন",
+  "govElectionsAlreadyVoted": "এই পদে আপনি ভোট দিয়েছেন।",
+  "govElectionsCastVote": "ভোট দিন",
+  "govElectionsVoteConfirm": "ভোট দিলে আর বদলানো যাবে না। ভোট দিতে চান?",
+  "govElectionsVoteDone": "আপনার ভোট নেওয়া হয়েছে।",
+  "govElectionsResults": "ফলাফল",
+  "govElectionsVotesTotal": "মোট ভোট: {total}",
+  "@govElectionsVotesTotal": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsVotes": "{count} ভোট",
+  "@govElectionsVotes": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "govElectionsMyNominations": "আপনার মনোনয়ন",
+  "govElectionStatus_nominations_open": "মনোনয়ন চলছে",
+  "govElectionStatus_nominations_closed": "মনোনয়ন বন্ধ",
+  "govElectionStatus_voting": "ভোটগ্রহণ চলছে",
+  "govElectionStatus_tabulated": "গণনা হয়েছে",
+  "govElectionStatus_confirmed": "ফল চূড়ান্ত",
+  "govElectionStatusOther": "অন্য অবস্থা",
+  "govNomination_pending": "অপেক্ষমাণ",
+  "govNomination_approved": "অনুমোদিত",
+  "govNomination_rejected": "বাতিল",
+  "govPetitionsTitle": "বিশেষ সভার পিটিশন",
+  "govPetitionsSubtitle": "যোগ্য সদস্যরা স্বাক্ষর জোগাড় করে বিশেষ সভা ডাকার দাবি জানাতে পারেন।",
+  "govPetitionsThreshold": "কমপক্ষে {percent}% যোগ্য সদস্যের স্বাক্ষর লাগবে।",
+  "@govPetitionsThreshold": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsResponseDays": "কমিটি {days} দিনের মধ্যে জবাব দেবে।",
+  "@govPetitionsResponseDays": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsCreateTitle": "নতুন পিটিশন",
+  "govPetitionsTitleField": "পিটিশনের শিরোনাম",
+  "govPetitionsJustification": "কেন এই সভা দরকার",
+  "govPetitionsCreate": "পিটিশন জমা দিন",
+  "govPetitionsCreateDone": "পিটিশন জমা হয়েছে।",
+  "govPetitionsSignTitle": "স্বাক্ষর করুন",
+  "govPetitionsSignHint": "পিটিশনের আইডি লিখে স্বাক্ষর করুন। আইডি পিটিশন দাখিলকারীর কাছে পাবেন।",
+  "govPetitionsId": "পিটিশনের আইডি",
+  "govPetitionsSign": "স্বাক্ষর করুন",
+  "govPetitionsSignDone": "স্বাক্ষর হয়েছে।",
+  "govPetitionsMine": "আমার পিটিশন",
+  "govPetitionsSigned": "যেসব পিটিশনে স্বাক্ষর করেছেন",
+  "govPetitionsEmpty": "আপনি এখনো কোনো পিটিশন দাখিল করেননি।",
+  "govPetitionsSignatures": "স্বাক্ষর {count}/{required}",
+  "@govPetitionsSignatures": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsResponseDue": "জবাবের শেষ তারিখ {date}",
+  "@govPetitionsResponseDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "govPetitionsCommitteeResponse": "কমিটির জবাব",
+  "govPetitionStatus_submitted": "জমা হয়েছে",
+  "govPetitionStatus_under_review": "দেখা হচ্ছে",
+  "govPetitionStatus_responded": "জবাব দেওয়া হয়েছে",
+  "govPetitionStatus_scheduled": "সভা ডাকা হয়েছে",
+  "govPetitionStatus_rejected": "খারিজ",
+  "govPetitionStatusOther": "অন্য অবস্থা",
+  "govWelfareTitle": "সদস্য কল্যাণ তহবিল",
+  "govWelfareSubtitle": "কষ্টের সময় কল্যাণ তহবিল থেকে সাহায্য চাইতে পারেন।",
+  "govWelfareApplyTitle": "নতুন আবেদন",
+  "govWelfareApplyHint": "একসাথে একটির বেশি আবেদন চলতে পারে না। কমিটি নিজে সিদ্ধান্ত নেয়, কিছুই নিজে থেকে অনুমোদন হয় না।",
+  "govWelfareType": "আবেদনের ধরন",
+  "govWelfareAmount": "কত টাকা দরকার",
+  "govWelfareReason": "কেন দরকার",
+  "govWelfareApply": "আবেদন জমা দিন",
+  "govWelfareApplyDone": "আবেদন জমা হয়েছে।",
+  "govWelfareMine": "আমার আবেদন",
+  "govWelfareEmpty": "আপনার কোনো আবেদন নেই।",
+  "govWelfareRequested": "আবেদন: {amount}",
+  "@govWelfareRequested": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govWelfareApproved": "অনুমোদিত: {amount}",
+  "@govWelfareApproved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govWelfareCommitteeReason": "কমিটির কারণ",
+  "govWelfareAmountInvalid": "টাকার পরিমাণ ০-এর বেশি হতে হবে।",
+  "govWelfareType_medical": "চিকিৎসা",
+  "govWelfareType_emergency": "জরুরি",
+  "govWelfareType_education": "শিক্ষা",
+  "govWelfareType_other": "অন্যান্য",
+  "govWelfareStatus_submitted": "জমা হয়েছে",
+  "govWelfareStatus_under_review": "দেখা হচ্ছে",
+  "govWelfareStatus_approved": "অনুমোদিত",
+  "govWelfareStatus_rejected": "প্রত্যাখ্যাত",
+  "govWelfareStatus_disbursed": "টাকা দেওয়া হয়েছে",
+  "govWelfareStatusOther": "অন্য অবস্থা",
+  "govAmendTitle": "গঠনতন্ত্র সংশোধনী",
+  "govAmendSubtitle": "গঠনতন্ত্র বদলের প্রস্তাব দিন এবং সংস্করণগুলো দেখুন।",
+  "govAmendProposeTitle": "সংশোধনীর প্রস্তাব",
+  "govAmendProposeHint": "প্রস্তাব কমিটির কাছে যাবে। সিদ্ধান্ত হবে নোটিশ দিয়ে ডাকা সভায়।",
+  "govAmendTitleField": "শিরোনাম",
+  "govAmendRationale": "কেন এই পরিবর্তন",
+  "govAmendText": "প্রস্তাবিত লেখা",
+  "govAmendDissolution": "এটি সংগঠন বিলুপ্তির প্রস্তাব",
+  "govAmendDissolutionNotice": "বিলুপ্তি আইনি পরামর্শ নিয়ে হাতে-কলমে করা হয়। এই অ্যাপে নিজে থেকে বিলুপ্তি হয় না।",
+  "govAmendSubmit": "প্রস্তাব জমা দিন",
+  "govAmendSubmitDone": "প্রস্তাব জমা হয়েছে।",
+  "govAmendMine": "আমার প্রস্তাব",
+  "govAmendEmpty": "আপনার কোনো প্রস্তাব নেই।",
+  "govAmendDissolutionTag": "বিলুপ্তি",
+  "govAmendAdoptedAs": "সংস্করণ {version} হিসেবে গৃহীত",
+  "@govAmendAdoptedAs": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmendDecisionNote": "সিদ্ধান্তের নোট",
+  "govAmendWithdraw": "প্রত্যাহার করুন",
+  "govAmendWithdrawConfirm": "প্রত্যাহার করলে প্রস্তাবটি ফিরিয়ে আনা যাবে না। প্রত্যাহার করবেন?",
+  "govAmendWithdrawDone": "প্রস্তাব প্রত্যাহার হয়েছে।",
+  "govAmendVersionsTitle": "গঠনতন্ত্রের সংস্করণ",
+  "govAmendVersionsHint": "প্রতিটি গৃহীত সংশোধনীতে নতুন সংস্করণ যোগ হয়। পুরোনো সংস্করণ কখনো বদলায় না।",
+  "govAmendNoVersions": "এখনো কোনো সংস্করণ নেই।",
+  "govAmendVersionLabel": "সংস্করণ {version}",
+  "@govAmendVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmendCurrent": "বর্তমান",
+  "govAmendViewText": "পুরো লেখা দেখুন",
+  "govAmendStatus_draft": "খসড়া",
+  "govAmendStatus_submitted": "জমা হয়েছে",
+  "govAmendStatus_scheduled": "সভায় ঠিক করা হয়েছে",
+  "govAmendStatus_adopted": "গৃহীত",
+  "govAmendStatus_rejected": "বাতিল",
+  "govAmendStatus_withdrawn": "প্রত্যাহার করা হয়েছে",
+  "govAmendStatusOther": "অন্য অবস্থা"
 }

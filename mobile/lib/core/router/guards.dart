@@ -78,6 +78,13 @@ const _areaPermissions = <String, List<String>>{
   '/property-requests': ['property.review'],
   '/neighbours': [AppPermissions.neighbourView],
   '/plot-map': ['boundary.view'],
+  // Governance pages (same permissions as the Angular route guards).
+  '/elections': ['election.vote', 'election.candidate'],
+  '/petitions': ['petition.create'],
+  '/welfare-fund': ['welfare_fund.apply'],
+  '/amendments': ['amendment.propose', 'service_standard.view'],
+  '/service-standard': ['service_standard.view'],
+  '/complaints/land-protection': ['land_complaint.create'],
 };
 
 /// Prefix-matched areas (list + detail routes).

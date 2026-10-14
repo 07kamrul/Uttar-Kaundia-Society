@@ -330,7 +330,7 @@ All seven batches are implemented in the backend, Angular and Flutter. Every cha
 - The camera, file picker, clipboard and native image compression on a real phone.
 
 **Known gaps:**
-- Flutter has no emergency-help, complaint or election screens, so its hubs list only the existing pages.
+- Flutter now has the help desk, complaints (incl. land protection), service standard, elections, petitions, welfare fund and amendments pages, all listed in the "সংগঠন" hub. Not ported: election complaints, PDF downloads (land-form copy, welfare decision letter, amendment certificate).
 - The Flutter admin side covers the "আজকের কাজ" page, search and bulk approve only; the merged queue, notices + events, phone fixes, cache stats and the fee wizard are Angular only.
 - Two backend tests fail on `main` without these changes (resolution-book audit test, CORS preflight test).
 

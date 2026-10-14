@@ -7085,4 +7085,721 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get regHelpStep6 =>
       'সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।';
+
+  @override
+  String get navElections => 'নির্বাচন';
+
+  @override
+  String get navWelfareFund => 'কল্যাণ তহবিল';
+
+  @override
+  String get navComplaints => 'অভিযোগ ও সাহায্য';
+
+  @override
+  String get navLandProtection => 'জমি সুরক্ষা অভিযোগ';
+
+  @override
+  String get navServiceStandard => 'সেবার মান';
+
+  @override
+  String get navEmergencyHelp => 'হেল্প ডেস্ক';
+
+  @override
+  String get navPetitions => 'বিশেষ সভার পিটিশন';
+
+  @override
+  String get navAmendments => 'গঠনতন্ত্র সংশোধনী';
+
+  @override
+  String get helpDeskTile => 'হেল্প ডেস্ক (জরুরি নিরাপদ পদক্ষেপ)';
+
+  @override
+  String get govLoadError =>
+      'তথ্য আনা যায়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।';
+
+  @override
+  String get govErrVoteForbidden =>
+      'আপনি এই নির্বাচনে ভোট দিতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।';
+
+  @override
+  String get govErrVoteConflict =>
+      'ভোট নেওয়া হয়নি। ভোটের সময় নেই, অথবা এই পদে আপনি আগেই ভোট দিয়েছেন। পাতাটি নতুন করে খুলে দেখুন।';
+
+  @override
+  String get govErrNominateForbidden =>
+      'আপনি এই নির্বাচনে প্রার্থী হতে যোগ্য নন। প্রয়োজনে কমিটির সাথে কথা বলুন।';
+
+  @override
+  String get govErrNominateConflict =>
+      'মনোনয়ন নেওয়া হয়নি। মনোনয়নের সময় নেই, অথবা এই পদে আপনি আগেই মনোনয়ন দিয়েছেন।';
+
+  @override
+  String get govErrSignForbidden =>
+      'শুধু যোগ্য সদস্য স্বাক্ষর করতে পারেন। আপনার সদস্যপদ যোগ্য কি না কমিটির কাছে জানুন।';
+
+  @override
+  String get govErrSignConflict =>
+      'স্বাক্ষর হয়নি। আপনি আগেই স্বাক্ষর করেছেন, অথবা পিটিশনটি আর স্বাক্ষর নিচ্ছে না।';
+
+  @override
+  String get govErrSignNotFound =>
+      'এই আইডির কোনো পিটিশন পাওয়া যায়নি। আইডিটি আবার দেখে নিন।';
+
+  @override
+  String get govErrPetitionForbidden =>
+      'শুধু যোগ্য সদস্য পিটিশন দাখিল করতে পারেন। প্রয়োজনে কমিটির সাথে কথা বলুন।';
+
+  @override
+  String get govErrWelfareConflict =>
+      'আপনার একটি আবেদন আগে থেকেই চলছে। সেটির সিদ্ধান্ত হলে নতুন আবেদন করুন।';
+
+  @override
+  String get govErrLandMissing =>
+      'ফর্মের কিছু আবশ্যক ঘর ফাঁকা আছে। সব ঘর পূরণ করে আবার জমা দিন।';
+
+  @override
+  String get govErrWithdrawConflict =>
+      'প্রস্তাবটি আর প্রত্যাহার করা যাচ্ছে না। পাতাটি নতুন করে খুলে অবস্থা দেখুন।';
+
+  @override
+  String get govEmergencySubtitle =>
+      'বিপদে আগে নিজের নিরাপত্তা, তারপর কাগজপত্র।';
+
+  @override
+  String get govEmergencyContacts => 'জরুরি নম্বর';
+
+  @override
+  String get govEmergencyCall => 'কল করুন';
+
+  @override
+  String get govEmergencyStepsTitle => 'এখনই যা করবেন';
+
+  @override
+  String get govEmergencyStep1 =>
+      'নিজে ও পরিবারকে নিরাপদে সরিয়ে নিন। দরকার হলে ৯৯৯ নম্বরে ফোন করুন।';
+
+  @override
+  String get govEmergencyStep2 => 'নারী ও শিশুর বিষয় হলে ১০৯ নম্বরে ফোন করুন।';
+
+  @override
+  String get govEmergencyStep3 =>
+      'ঘটনাস্থলের ছবি, ভিডিও ও সাক্ষীর নাম রেখে দিন।';
+
+  @override
+  String get govEmergencyStep4 => 'দাগ ও খতিয়ানের কাগজ হাতের কাছে রাখুন।';
+
+  @override
+  String get govEmergencyStep5 => 'নিরাপদ হলে সোসাইটিতে লিখিত অভিযোগ দিন।';
+
+  @override
+  String get govEmergencyFileLand => 'জমি সুরক্ষা অভিযোগ করুন';
+
+  @override
+  String get govEmergencyFileComplaint => 'সাধারণ অভিযোগ করুন';
+
+  @override
+  String get govComplaintsTitle => 'অভিযোগ ব্যবস্থা';
+
+  @override
+  String get govComplaintsSubtitle =>
+      'অভিযোগ জানান ও অগ্রগতি দেখুন। ৩ কার্যদিবসে স্বীকৃতি, ১৫ কার্যদিবসে প্রথম খবর।';
+
+  @override
+  String get govComplaintsNewTitle => 'নতুন অভিযোগ';
+
+  @override
+  String get govComplaintsCategory => 'ধরন';
+
+  @override
+  String get govComplaintsSubject => 'বিষয়';
+
+  @override
+  String get govComplaintsDetails => 'বিস্তারিত';
+
+  @override
+  String get govComplaintsSubmit => 'অভিযোগ জমা দিন';
+
+  @override
+  String get govComplaintsSuccess => 'অভিযোগ জমা হয়েছে।';
+
+  @override
+  String get govComplaintsMine => 'আমার অভিযোগ';
+
+  @override
+  String get govComplaintsEmpty => 'আপনি এখনো কোনো অভিযোগ করেননি।';
+
+  @override
+  String get govComplaintsSlaAck => 'স্বীকৃতির সময়';
+
+  @override
+  String get govComplaintsSlaUpdate => 'প্রথম খবরের সময়';
+
+  @override
+  String get govComplaintsResolution => 'সমাধান';
+
+  @override
+  String get govComplaintsLandLink => 'জমি সুরক্ষা ফর্ম (সংযুক্তি-৩)';
+
+  @override
+  String get govComplaintsEmergencyLink => 'জরুরি নিরাপদ পদক্ষেপ';
+
+  @override
+  String get govFieldRequired => 'এই ঘরটি পূরণ করুন।';
+
+  @override
+  String get govComplaintStatus_submitted => 'জমা হয়েছে';
+
+  @override
+  String get govComplaintStatus_acknowledged => 'স্বীকৃত';
+
+  @override
+  String get govComplaintStatus_investigating => 'তদন্ত চলছে';
+
+  @override
+  String get govComplaintStatus_resolved => 'নিষ্পত্তি হয়েছে';
+
+  @override
+  String get govComplaintStatus_rejected => 'খারিজ';
+
+  @override
+  String get govComplaintStatus_closed => 'বন্ধ';
+
+  @override
+  String get govComplaintStatusOther => 'অন্য অবস্থা';
+
+  @override
+  String get govComplaintEvent_submitted => 'অভিযোগ জমা হয়েছে';
+
+  @override
+  String get govComplaintEvent_acknowledged => 'স্বীকৃতি দেওয়া হয়েছে';
+
+  @override
+  String get govComplaintEvent_assigned => 'দায়িত্ব দেওয়া হয়েছে';
+
+  @override
+  String get govComplaintEvent_updated => 'নতুন খবর';
+
+  @override
+  String get govComplaintEvent_resolved => 'নিষ্পত্তি হয়েছে';
+
+  @override
+  String get govComplaintEvent_closed => 'বন্ধ হয়েছে';
+
+  @override
+  String get govComplaintEvent_rejected => 'খারিজ হয়েছে';
+
+  @override
+  String get govComplaintEventOther => 'নতুন খবর';
+
+  @override
+  String get govSla_met => 'সময়মতো';
+
+  @override
+  String get govSla_on_track => 'সময় আছে';
+
+  @override
+  String get govSla_due_soon => 'শিগগির শেষ হবে';
+
+  @override
+  String get govSla_overdue => 'সময় শেষ';
+
+  @override
+  String govSlaDays(String state, String days) {
+    return '$state ($days)';
+  }
+
+  @override
+  String get govLandTitle => 'জমি সুরক্ষা অভিযোগ (সংযুক্তি-৩)';
+
+  @override
+  String get govLandSubtitle =>
+      'জমি দখল বা হুমকির ক্ষেত্রে এই ফর্মটি পূরণ করুন।';
+
+  @override
+  String get govLandEmergencyTitle => 'আপনি বিপদে থাকলে আগে ফোন করুন';
+
+  @override
+  String get govLandSectionComplainant => 'অভিযোগকারীর তথ্য';
+
+  @override
+  String get govLandName => 'নাম';
+
+  @override
+  String get govLandContact => 'যোগাযোগের নম্বর বা ঠিকানা';
+
+  @override
+  String get govLandSectionLand => 'জমির তথ্য';
+
+  @override
+  String get govLandLocation => 'জমির অবস্থান';
+
+  @override
+  String get govLandDagNo => 'দাগ নম্বর';
+
+  @override
+  String get govLandKhatianNo => 'খতিয়ান নম্বর';
+
+  @override
+  String get govLandSectionIncident => 'ঘটনার বিবরণ';
+
+  @override
+  String get govLandAccused => 'অভিযুক্ত পক্ষ';
+
+  @override
+  String get govLandIncidentDate => 'ঘটনার তারিখ';
+
+  @override
+  String get govLandIncidentDesc => 'কী ঘটেছে';
+
+  @override
+  String get govLandDanger => 'এই মুহূর্তে আমি বিপদে আছি বা নিরাপদ বোধ করছি না';
+
+  @override
+  String get govLandSectionEvidence => 'প্রমাণ';
+
+  @override
+  String get govLandEvidenceFile => 'প্রমাণের ফাইল (ঐচ্ছিক)';
+
+  @override
+  String get govLandPickFile => 'ফাইল বাছুন';
+
+  @override
+  String get govLandSectionConsent => 'স্বাক্ষর ও সম্মতি';
+
+  @override
+  String get govLandSignatureName => 'স্বাক্ষর হিসেবে আপনার নাম';
+
+  @override
+  String get govLandSignatureDate => 'তারিখ';
+
+  @override
+  String get govLandDisclaimer => 'আমি বুঝেছি, এটি জিডি বা আদালতের বিকল্প নয়।';
+
+  @override
+  String get govLandConsent => 'আমি নিশ্চিত করছি, দেওয়া তথ্য সঠিক।';
+
+  @override
+  String get govLandSubmit => 'ফর্ম জমা দিন';
+
+  @override
+  String get govLandPickDate => 'তারিখ বাছুন';
+
+  @override
+  String get govStandardTitle => 'সেবার মান';
+
+  @override
+  String get govStandardSubtitle =>
+      'কমিটির দেওয়া সময়ের প্রতিশ্রুতি এবং বাস্তবে কেমন হচ্ছে।';
+
+  @override
+  String govStandardTarget(String target) {
+    return 'লক্ষ্য: $target';
+  }
+
+  @override
+  String get govStandardMet => 'সময়মতো হয়েছে';
+
+  @override
+  String govStandardAvgDays(String days) {
+    return 'গড় কার্যদিবস: $days';
+  }
+
+  @override
+  String get govStandardNoLive => 'এই সেবায় এখনো যথেষ্ট তথ্য জমেনি।';
+
+  @override
+  String get govElectionsTitle => 'নির্বাচন';
+
+  @override
+  String get govElectionsSubtitle => 'মনোনয়ন দিন, গোপনে ভোট দিন, ফল দেখুন।';
+
+  @override
+  String get govElectionsEmpty => 'এখনো কোনো নির্বাচন ঘোষণা হয়নি।';
+
+  @override
+  String get govElectionsEligibility => 'আপনি কি যোগ্য?';
+
+  @override
+  String get govElectionsEligibleYes =>
+      'আপনি এই নির্বাচনে ভোট দিতে ও প্রার্থী হতে পারবেন।';
+
+  @override
+  String get govElectionsEligibleNo =>
+      'আপনি এই নির্বাচনে যোগ্য নন। শুধু অনুমোদিত সাধারণ ও প্রতিষ্ঠাতা সদস্য যোগ্য।';
+
+  @override
+  String get govElectionsEligibleNoSnapshot =>
+      'ভোটার তালিকা বন্ধ হওয়ার সময় আপনার নাম ছিল না, তাই এবার ভোট দেওয়া যাবে না।';
+
+  @override
+  String govElectionsNominationWindow(String start, String end) {
+    return 'মনোনয়ন: $start থেকে $end';
+  }
+
+  @override
+  String govElectionsVotingWindow(String start, String end) {
+    return 'ভোটগ্রহণ: $start থেকে $end';
+  }
+
+  @override
+  String get govElectionsNominateTitle => 'নিজেকে মনোনীত করুন';
+
+  @override
+  String get govElectionsNominateHint =>
+      'মনোনয়নের সময়ের মধ্যে প্রতি পদে একবার মনোনয়ন দেওয়া যায়।';
+
+  @override
+  String get govElectionsPost => 'পদ';
+
+  @override
+  String get govElectionsStatement => 'প্রার্থী হিসেবে আপনার কথা (ঐচ্ছিক)';
+
+  @override
+  String get govElectionsNominateSubmit => 'মনোনয়ন জমা দিন';
+
+  @override
+  String get govElectionsNominateDone => 'মনোনয়ন জমা হয়েছে।';
+
+  @override
+  String get govElectionsVoteTitle => 'গোপন ভোট';
+
+  @override
+  String get govElectionsVoteHint =>
+      'প্রতি পদে একজন প্রার্থী বেছে ভোট দিন। আপনার ভোট গোপন থাকবে।';
+
+  @override
+  String get govElectionsNoCandidates => 'এখনো কোনো অনুমোদিত প্রার্থী নেই।';
+
+  @override
+  String get govElectionsVoted => 'ভোট দিয়েছেন';
+
+  @override
+  String get govElectionsAlreadyVoted => 'এই পদে আপনি ভোট দিয়েছেন।';
+
+  @override
+  String get govElectionsCastVote => 'ভোট দিন';
+
+  @override
+  String get govElectionsVoteConfirm =>
+      'ভোট দিলে আর বদলানো যাবে না। ভোট দিতে চান?';
+
+  @override
+  String get govElectionsVoteDone => 'আপনার ভোট নেওয়া হয়েছে।';
+
+  @override
+  String get govElectionsResults => 'ফলাফল';
+
+  @override
+  String govElectionsVotesTotal(String total) {
+    return 'মোট ভোট: $total';
+  }
+
+  @override
+  String govElectionsVotes(String count) {
+    return '$count ভোট';
+  }
+
+  @override
+  String get govElectionsMyNominations => 'আপনার মনোনয়ন';
+
+  @override
+  String get govElectionStatus_nominations_open => 'মনোনয়ন চলছে';
+
+  @override
+  String get govElectionStatus_nominations_closed => 'মনোনয়ন বন্ধ';
+
+  @override
+  String get govElectionStatus_voting => 'ভোটগ্রহণ চলছে';
+
+  @override
+  String get govElectionStatus_tabulated => 'গণনা হয়েছে';
+
+  @override
+  String get govElectionStatus_confirmed => 'ফল চূড়ান্ত';
+
+  @override
+  String get govElectionStatusOther => 'অন্য অবস্থা';
+
+  @override
+  String get govNomination_pending => 'অপেক্ষমাণ';
+
+  @override
+  String get govNomination_approved => 'অনুমোদিত';
+
+  @override
+  String get govNomination_rejected => 'বাতিল';
+
+  @override
+  String get govPetitionsTitle => 'বিশেষ সভার পিটিশন';
+
+  @override
+  String get govPetitionsSubtitle =>
+      'যোগ্য সদস্যরা স্বাক্ষর জোগাড় করে বিশেষ সভা ডাকার দাবি জানাতে পারেন।';
+
+  @override
+  String govPetitionsThreshold(String percent) {
+    return 'কমপক্ষে $percent% যোগ্য সদস্যের স্বাক্ষর লাগবে।';
+  }
+
+  @override
+  String govPetitionsResponseDays(String days) {
+    return 'কমিটি $days দিনের মধ্যে জবাব দেবে।';
+  }
+
+  @override
+  String get govPetitionsCreateTitle => 'নতুন পিটিশন';
+
+  @override
+  String get govPetitionsTitleField => 'পিটিশনের শিরোনাম';
+
+  @override
+  String get govPetitionsJustification => 'কেন এই সভা দরকার';
+
+  @override
+  String get govPetitionsCreate => 'পিটিশন জমা দিন';
+
+  @override
+  String get govPetitionsCreateDone => 'পিটিশন জমা হয়েছে।';
+
+  @override
+  String get govPetitionsSignTitle => 'স্বাক্ষর করুন';
+
+  @override
+  String get govPetitionsSignHint =>
+      'পিটিশনের আইডি লিখে স্বাক্ষর করুন। আইডি পিটিশন দাখিলকারীর কাছে পাবেন।';
+
+  @override
+  String get govPetitionsId => 'পিটিশনের আইডি';
+
+  @override
+  String get govPetitionsSign => 'স্বাক্ষর করুন';
+
+  @override
+  String get govPetitionsSignDone => 'স্বাক্ষর হয়েছে।';
+
+  @override
+  String get govPetitionsMine => 'আমার পিটিশন';
+
+  @override
+  String get govPetitionsSigned => 'যেসব পিটিশনে স্বাক্ষর করেছেন';
+
+  @override
+  String get govPetitionsEmpty => 'আপনি এখনো কোনো পিটিশন দাখিল করেননি।';
+
+  @override
+  String govPetitionsSignatures(String count, String required) {
+    return 'স্বাক্ষর $count/$required';
+  }
+
+  @override
+  String govPetitionsResponseDue(String date) {
+    return 'জবাবের শেষ তারিখ $date';
+  }
+
+  @override
+  String get govPetitionsCommitteeResponse => 'কমিটির জবাব';
+
+  @override
+  String get govPetitionStatus_submitted => 'জমা হয়েছে';
+
+  @override
+  String get govPetitionStatus_under_review => 'দেখা হচ্ছে';
+
+  @override
+  String get govPetitionStatus_responded => 'জবাব দেওয়া হয়েছে';
+
+  @override
+  String get govPetitionStatus_scheduled => 'সভা ডাকা হয়েছে';
+
+  @override
+  String get govPetitionStatus_rejected => 'খারিজ';
+
+  @override
+  String get govPetitionStatusOther => 'অন্য অবস্থা';
+
+  @override
+  String get govWelfareTitle => 'সদস্য কল্যাণ তহবিল';
+
+  @override
+  String get govWelfareSubtitle =>
+      'কষ্টের সময় কল্যাণ তহবিল থেকে সাহায্য চাইতে পারেন।';
+
+  @override
+  String get govWelfareApplyTitle => 'নতুন আবেদন';
+
+  @override
+  String get govWelfareApplyHint =>
+      'একসাথে একটির বেশি আবেদন চলতে পারে না। কমিটি নিজে সিদ্ধান্ত নেয়, কিছুই নিজে থেকে অনুমোদন হয় না।';
+
+  @override
+  String get govWelfareType => 'আবেদনের ধরন';
+
+  @override
+  String get govWelfareAmount => 'কত টাকা দরকার';
+
+  @override
+  String get govWelfareReason => 'কেন দরকার';
+
+  @override
+  String get govWelfareApply => 'আবেদন জমা দিন';
+
+  @override
+  String get govWelfareApplyDone => 'আবেদন জমা হয়েছে।';
+
+  @override
+  String get govWelfareMine => 'আমার আবেদন';
+
+  @override
+  String get govWelfareEmpty => 'আপনার কোনো আবেদন নেই।';
+
+  @override
+  String govWelfareRequested(String amount) {
+    return 'আবেদন: $amount';
+  }
+
+  @override
+  String govWelfareApproved(String amount) {
+    return 'অনুমোদিত: $amount';
+  }
+
+  @override
+  String get govWelfareCommitteeReason => 'কমিটির কারণ';
+
+  @override
+  String get govWelfareAmountInvalid => 'টাকার পরিমাণ ০-এর বেশি হতে হবে।';
+
+  @override
+  String get govWelfareType_medical => 'চিকিৎসা';
+
+  @override
+  String get govWelfareType_emergency => 'জরুরি';
+
+  @override
+  String get govWelfareType_education => 'শিক্ষা';
+
+  @override
+  String get govWelfareType_other => 'অন্যান্য';
+
+  @override
+  String get govWelfareStatus_submitted => 'জমা হয়েছে';
+
+  @override
+  String get govWelfareStatus_under_review => 'দেখা হচ্ছে';
+
+  @override
+  String get govWelfareStatus_approved => 'অনুমোদিত';
+
+  @override
+  String get govWelfareStatus_rejected => 'প্রত্যাখ্যাত';
+
+  @override
+  String get govWelfareStatus_disbursed => 'টাকা দেওয়া হয়েছে';
+
+  @override
+  String get govWelfareStatusOther => 'অন্য অবস্থা';
+
+  @override
+  String get govAmendTitle => 'গঠনতন্ত্র সংশোধনী';
+
+  @override
+  String get govAmendSubtitle =>
+      'গঠনতন্ত্র বদলের প্রস্তাব দিন এবং সংস্করণগুলো দেখুন।';
+
+  @override
+  String get govAmendProposeTitle => 'সংশোধনীর প্রস্তাব';
+
+  @override
+  String get govAmendProposeHint =>
+      'প্রস্তাব কমিটির কাছে যাবে। সিদ্ধান্ত হবে নোটিশ দিয়ে ডাকা সভায়।';
+
+  @override
+  String get govAmendTitleField => 'শিরোনাম';
+
+  @override
+  String get govAmendRationale => 'কেন এই পরিবর্তন';
+
+  @override
+  String get govAmendText => 'প্রস্তাবিত লেখা';
+
+  @override
+  String get govAmendDissolution => 'এটি সংগঠন বিলুপ্তির প্রস্তাব';
+
+  @override
+  String get govAmendDissolutionNotice =>
+      'বিলুপ্তি আইনি পরামর্শ নিয়ে হাতে-কলমে করা হয়। এই অ্যাপে নিজে থেকে বিলুপ্তি হয় না।';
+
+  @override
+  String get govAmendSubmit => 'প্রস্তাব জমা দিন';
+
+  @override
+  String get govAmendSubmitDone => 'প্রস্তাব জমা হয়েছে।';
+
+  @override
+  String get govAmendMine => 'আমার প্রস্তাব';
+
+  @override
+  String get govAmendEmpty => 'আপনার কোনো প্রস্তাব নেই।';
+
+  @override
+  String get govAmendDissolutionTag => 'বিলুপ্তি';
+
+  @override
+  String govAmendAdoptedAs(String version) {
+    return 'সংস্করণ $version হিসেবে গৃহীত';
+  }
+
+  @override
+  String get govAmendDecisionNote => 'সিদ্ধান্তের নোট';
+
+  @override
+  String get govAmendWithdraw => 'প্রত্যাহার করুন';
+
+  @override
+  String get govAmendWithdrawConfirm =>
+      'প্রত্যাহার করলে প্রস্তাবটি ফিরিয়ে আনা যাবে না। প্রত্যাহার করবেন?';
+
+  @override
+  String get govAmendWithdrawDone => 'প্রস্তাব প্রত্যাহার হয়েছে।';
+
+  @override
+  String get govAmendVersionsTitle => 'গঠনতন্ত্রের সংস্করণ';
+
+  @override
+  String get govAmendVersionsHint =>
+      'প্রতিটি গৃহীত সংশোধনীতে নতুন সংস্করণ যোগ হয়। পুরোনো সংস্করণ কখনো বদলায় না।';
+
+  @override
+  String get govAmendNoVersions => 'এখনো কোনো সংস্করণ নেই।';
+
+  @override
+  String govAmendVersionLabel(String version) {
+    return 'সংস্করণ $version';
+  }
+
+  @override
+  String get govAmendCurrent => 'বর্তমান';
+
+  @override
+  String get govAmendViewText => 'পুরো লেখা দেখুন';
+
+  @override
+  String get govAmendStatus_draft => 'খসড়া';
+
+  @override
+  String get govAmendStatus_submitted => 'জমা হয়েছে';
+
+  @override
+  String get govAmendStatus_scheduled => 'সভায় ঠিক করা হয়েছে';
+
+  @override
+  String get govAmendStatus_adopted => 'গৃহীত';
+
+  @override
+  String get govAmendStatus_rejected => 'বাতিল';
+
+  @override
+  String get govAmendStatus_withdrawn => 'প্রত্যাহার করা হয়েছে';
+
+  @override
+  String get govAmendStatusOther => 'অন্য অবস্থা';
 }
