@@ -6,6 +6,7 @@ import { LanguageService } from '../../core/services/language.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { LangSwitchComponent } from '../../shared/lang-switch/lang-switch.component';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { NetStatusBannerComponent } from '../../shared/net-status-banner/net-status-banner.component';
 
 /**
  * Shared chrome for the public-facing pages (home, registration, login) —
@@ -16,7 +17,7 @@ import { IconComponent } from '../../shared/icon/icon.component';
 @Component({
   selector: 'app-public-shell',
   standalone: true,
-  imports: [RouterLink, RouterOutlet, IconComponent, TranslatePipe, LangSwitchComponent],
+  imports: [RouterLink, RouterOutlet, IconComponent, TranslatePipe, LangSwitchComponent, NetStatusBannerComponent],
   templateUrl: './public-shell.component.html',
   styleUrl: './public-shell.component.scss',
 })

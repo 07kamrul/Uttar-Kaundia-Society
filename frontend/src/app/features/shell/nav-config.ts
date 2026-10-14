@@ -21,6 +21,8 @@ export interface NavItem {
   prefixes?: readonly string[];
   // Hub tiles only: tiles in a group are rendered under their own heading.
   group?: 'help' | 'more';
+  // Advanced menu entries: one plain line saying what the page is for.
+  descriptionKey?: string;
 }
 
 export type AreaKey = 'home' | 'payments' | 'my-land' | 'organisation' | 'profile';
@@ -28,6 +30,8 @@ export type AreaKey = 'home' | 'payments' | 'my-land' | 'organisation' | 'profil
 export interface NavSection {
   labelKey: string;
   items: NavItem[];
+  // Rendered as a collapsed <details> (admin "Advanced" group).
+  collapsible?: boolean;
 }
 
 // Sidebar is rendered section by section (Overview → My Payments → Community →

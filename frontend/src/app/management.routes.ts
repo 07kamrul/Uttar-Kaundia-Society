@@ -7,6 +7,48 @@ import { permissionGuard } from './core/guards/permission.guard';
  * group's own guard and preload permissions stay in app.routes.ts.
  */
 export const MANAGEMENT_ROUTES: Routes = [
+  // Batch 5/6 admin pages. Reachable by URL always; the menu shows them behind
+  // admin_console / nav_advanced_section (see features/shell/admin-groups.ts).
+  {
+    path: 'applications',
+    canActivate: [permissionGuard(['membership.review', 'membership_application.manage'])],
+    loadComponent: () =>
+      import('./features/management/pages/applications/applications.component').then(
+        (m) => m.ApplicationsComponent,
+      ),
+  },
+  {
+    path: 'notices-events',
+    canActivate: [permissionGuard(['manage_notices'])],
+    loadComponent: () =>
+      import('./features/management/pages/notices-events/notices-events.component').then(
+        (m) => m.NoticesEventsComponent,
+      ),
+  },
+  {
+    path: 'phone-fixes',
+    canActivate: [permissionGuard(['member.manage'])],
+    loadComponent: () =>
+      import('./features/management/pages/phone-fixes/phone-fixes.component').then(
+        (m) => m.PhoneFixesComponent,
+      ),
+  },
+  {
+    path: 'advanced/cache',
+    canActivate: [permissionGuard(['manage_system_config'])],
+    loadComponent: () =>
+      import('./features/management/pages/cache-stats/cache-stats.component').then(
+        (m) => m.CacheStatsComponent,
+      ),
+  },
+  {
+    path: 'advanced/login-readiness',
+    canActivate: [permissionGuard(['manage_system_config'])],
+    loadComponent: () =>
+      import('./features/management/pages/login-readiness/login-readiness.component').then(
+        (m) => m.LoginReadinessComponent,
+      ),
+  },
   {
     path: 'submissions',
     canActivate: [permissionGuard(['membership.review'])],

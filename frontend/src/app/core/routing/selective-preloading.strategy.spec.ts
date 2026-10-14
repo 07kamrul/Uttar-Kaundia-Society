@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Observable, Subject, of } from 'rxjs';
 import { vi } from 'vitest';
 import { AuthService } from '../services/auth.service';
+import { DataSaverService } from '../services/data-saver.service';
 import {
   MAX_CONCURRENT_PRELOADS,
   PRELOAD_IDLE,
@@ -12,6 +13,7 @@ describe('SelectivePreloadingStrategy', () => {
   function strategy(
     permissions: string[],
     idle: Observable<void> = of(undefined),
+    dataSaver = false,
   ): SelectivePreloadingStrategy {
     TestBed.configureTestingModule({
       providers: [
@@ -21,6 +23,7 @@ describe('SelectivePreloadingStrategy', () => {
             hasAnyPermission: (keys: string[]) => keys.some((k) => permissions.includes(k)),
           },
         },
+        { provide: DataSaverService, useValue: { enabled: () => dataSaver } },
         { provide: PRELOAD_IDLE, useValue: idle },
       ],
     });
@@ -124,5 +127,15 @@ describe('SelectivePreloadingStrategy', () => {
 
     failing.error(new Error('offline'));
     expect(started).toEqual(['a', 'b', 'c']);
+  });
+
+  it('preloads nothing while the data saver is on', () => {
+    const s = strategy([], of(undefined), true);
+    let called = false;
+    s.preload({ path: 'x' } as never, () => {
+      called = true;
+      return of('chunk');
+    }).subscribe(() => undefined);
+    expect(called).toBe(false);
   });
 });

@@ -12,16 +12,36 @@ import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MemberService } from '../../../../core/services/member.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { errorCodeOf } from '../../../../core/errors/user-error';
 import { PasswordFieldComponent } from '../../../../shared/password-field/password-field.component';
 
 export const MIN_PASSWORD_LENGTH = 8;
 const REDIRECT_DELAY_MS = 1500;
 
-export function passwordPolicy(control: AbstractControl): ValidationErrors | null {
-  const value: string = control.value ?? '';
-  if (!value) return null; // `required` reports the empty case
-  return value.length >= MIN_PASSWORD_LENGTH && /\d/.test(value) ? null : { passwordPolicy: true };
+/** v1 (today): at least 8 characters and a digit. v2: length only — the
+ * common-password and same-as-current rules stay server-side. */
+export function passwordPolicyFor(policyV2: boolean): (control: AbstractControl) => ValidationErrors | null {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value: string = control.value ?? '';
+    if (!value) return null; // `required` reports the empty case
+    const longEnough = value.length >= MIN_PASSWORD_LENGTH;
+    return longEnough && (policyV2 || /\d/.test(value)) ? null : { passwordPolicy: true };
+  };
 }
+
+/** Legacy alias kept for the existing imports; today's (v1) rule. */
+export function passwordPolicy(control: AbstractControl): ValidationErrors | null {
+  return passwordPolicyFor(false)(control);
+}
+
+/** The server codes the password pages map to their own plain message. */
+const PASSWORD_SERVER_CODES: ReadonlySet<string> = new Set([
+  'PASSWORD_TOO_SHORT',
+  'PASSWORD_TOO_COMMON',
+  'PASSWORD_SAME_AS_CURRENT',
+  'PASSWORD_TOO_WEAK',
+]);
 
 export function passwordGroupValidator(group: AbstractControl): ValidationErrors | null {
   const current = group.get('currentPassword')?.value;
@@ -66,6 +86,8 @@ export class ChangePasswordComponent {
   success = false;
   submitting = false;
   submitAttempted = false;
+  /** password_policy_v2: the client checks length only and the hint changes. */
+  readonly policyV2: boolean;
 
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -75,11 +97,13 @@ export class ChangePasswordComponent {
     private router: Router,
     private translate: TranslateService,
     private auth: AuthService,
+    private flags: FeatureFlagService,
   ) {
+    this.policyV2 = this.flags.isEnabled('password_policy_v2');
     this.form = this.fb.group(
       {
         currentPassword: ['', Validators.required],
-        newPassword: ['', [Validators.required, passwordPolicy]],
+        newPassword: ['', [Validators.required, passwordPolicyFor(this.policyV2)]],
         confirmPassword: ['', Validators.required],
       },
       { validators: passwordGroupValidator },
@@ -129,11 +153,18 @@ export class ChangePasswordComponent {
       },
       error: (err: unknown) => {
         this.submitting = false;
-        const server = extractServerErrors(err);
-        if (server) {
-          this.serverErrors = server.fields;
+        const code = errorCodeOf(err);
+        if (code !== null && PASSWORD_SERVER_CODES.has(code)) {
+          // The 422 carries a known password code — show its own plain message
+          // on the new-password field, never the server's text.
+          this.serverErrors = { newPassword: this.translate.instant(`errors.code.${code}`) };
         } else {
-          this.error = this.translate.instant('member.changePassword.changeFailedError');
+          const server = extractServerErrors(err);
+          if (server) {
+            this.serverErrors = server.fields;
+          } else {
+            this.error = this.translate.instant('member.changePassword.changeFailedError');
+          }
         }
         this.cdr.markForCheck();
       },

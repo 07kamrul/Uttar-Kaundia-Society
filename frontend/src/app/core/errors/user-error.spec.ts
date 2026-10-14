@@ -136,6 +136,7 @@ describe('known server detail codes', () => {
     [422, 'PASSWORD_TOO_SHORT', 'errors.code.PASSWORD_TOO_SHORT'],
     [422, 'PASSWORD_TOO_COMMON', 'errors.code.PASSWORD_TOO_COMMON'],
     [422, 'PASSWORD_SAME_AS_CURRENT', 'errors.code.PASSWORD_SAME_AS_CURRENT'],
+    [422, 'PASSWORD_TOO_WEAK', 'errors.code.PASSWORD_TOO_WEAK'],
   ])('maps %i %s to a friendly key', (status, code, key) => {
     expect(toUserMessageKey(httpError(status, { detail: { code } }))).toBe(key);
   });
@@ -154,6 +155,7 @@ describe('known server detail codes', () => {
     'SHARE_NOT_FOUND', 'SHARE_ALREADY_PAID', 'DUPLICATE_TRANSACTION_REF', 'REFERENCE_REQUIRED', 'AMOUNT_EXCEEDS_REMAINING', 'FEATURE_DISABLED',
     'INVALID_BD_MOBILE', 'PHONE_DUPLICATE', 'PHONE_FIX_ALREADY_RESOLVED', 'PHONE_FIX_NOT_FOUND', 'PHONE_FIX_TARGET_NOT_FOUND',
     'LOGIN_AMBIGUOUS_IDENTIFIER', 'PASSWORD_TOO_SHORT', 'PASSWORD_TOO_COMMON', 'PASSWORD_SAME_AS_CURRENT',
+    'PASSWORD_TOO_WEAK',
   ])(
     'has plain Bangla and English text for %s',
     (code) => {

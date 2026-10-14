@@ -10,6 +10,7 @@ import { MemberService } from '../../core/services/member.service';
 import { IdCardModalComponent } from '../member/components/id-card-modal/id-card-modal.component';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { BnNumberPipe } from '../../shared/pipes/bn-pipes';
+import { NetStatusBannerComponent } from '../../shared/net-status-banner/net-status-banner.component';
 import { HelpFabComponent } from '../../shared/help-fab/help-fab.component';
 import { LangSwitchComponent } from '../../shared/lang-switch/lang-switch.component';
 import { CostSharePaymentService } from '../../core/services/cost-share-payment.service';
@@ -39,6 +40,7 @@ const EMERGENCY_HELP_ROUTE = '/emergency-help';
     HelpFabComponent,
     LangSwitchComponent,
     BnNumberPipe,
+    NetStatusBannerComponent,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',

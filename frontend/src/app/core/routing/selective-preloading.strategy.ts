@@ -3,6 +3,7 @@ import type { Route } from '@angular/router';
 import { PreloadingStrategy } from '@angular/router';
 import { Observable, defer, finalize, of, switchMap } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { DataSaverService } from '../services/data-saver.service';
 
 /** Emits once the browser is idle; overridable so tests don't wait on real idle time. */
 export const PRELOAD_IDLE = new InjectionToken<Observable<void>>('PRELOAD_IDLE', {
@@ -39,12 +40,15 @@ export const MAX_CONCURRENT_PRELOADS = 2;
 @Injectable({ providedIn: 'root' })
 export class SelectivePreloadingStrategy implements PreloadingStrategy {
   private readonly auth = inject(AuthService);
+  private readonly dataSaver = inject(DataSaverService);
   private readonly idle = inject(PRELOAD_IDLE);
 
   private active = 0;
   private readonly waiting: (() => void)[] = [];
 
   preload(route: Route, fn: () => Observable<any>): Observable<any> {
+    // data_saver: the user asked for less downloading — preload nothing.
+    if (this.dataSaver.enabled()) return of(null);
     if (route.data?.['preload'] === false) return of(null);
     const requiredPermissions = route.data?.['requiredPermissions'] as string[] | undefined;
     if (requiredPermissions && !this.auth.hasAnyPermission(requiredPermissions)) return of(null);

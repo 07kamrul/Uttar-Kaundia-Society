@@ -306,7 +306,27 @@
     "landProtection": "Land protection complaint",
     "more": "More",
     "myMembership": "My membership",
-    "language": "Language"
+    "language": "Language",
+    "group": {
+      "applicationsMembers": "Applications and members",
+      "money": "Money",
+      "organisation": "Organisation",
+      "settings": "Settings",
+      "advanced": "Advanced"
+    },
+    "applications": "Applications",
+    "noticesEvents": "Notices and events",
+    "phoneFixes": "Fix phone numbers",
+    "cacheStats": "Cache stats",
+    "loginReadiness": "Login readiness",
+    "desc": {
+      "roles": "Decide who can do what",
+      "configLists": "Preset lists, including reject reasons",
+      "auditLog": "The record of who changed what",
+      "amendments": "Old versions of the constitution",
+      "cacheStats": "What the cache holds — read only",
+      "loginReadiness": "Checks to run before phone login goes on"
+    }
   },
   "errors": {
     "network": "No internet connection. Check your connection and try again.",
@@ -345,7 +365,8 @@
       "LOGIN_AMBIGUOUS_IDENTIFIER": "More than one account uses this number. Log in with your email or member ID.",
       "PASSWORD_TOO_SHORT": "The password must be at least 8 characters.",
       "PASSWORD_TOO_COMMON": "This password is too common. Choose another one.",
-      "PASSWORD_SAME_AS_CURRENT": "The new password cannot be the same as the old one."
+      "PASSWORD_SAME_AS_CURRENT": "The new password cannot be the same as the old one.",
+      "PASSWORD_TOO_WEAK": "This password is not strong enough — choose another one"
     }
   },
   "forbidden": {
@@ -560,7 +581,8 @@
       "changeFailedError": "Failed to change password.",
       "currentPasswordRequiredError": "Current password is required.",
       "passwordPolicyError": "Password must be at least 8 characters and include a number.",
-      "sameAsCurrentError": "New password must be different from the current password."
+      "sameAsCurrentError": "New password must be different from the current password.",
+      "passwordHintV2": "The password must be at least 8 characters"
     },
     "picnic": {
       "title": "Picnic Fee Payment",
@@ -1329,7 +1351,11 @@
       "loginFailedError": "Login failed. Information is incorrect.",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
-      "forgotPasswordLink": "Forgot password?"
+      "forgotPasswordLink": "Forgot password?",
+      "identifierLabelV2": "Mobile / email / member ID",
+      "identifierHelper": "For foreign numbers, include + and the country code",
+      "errorInvalidV2": "Mobile/email/member ID or password is incorrect",
+      "errorRateLimited": "Too many attempts — try again in 15 minutes"
     },
     "forgotPassword": {
       "title": "Forgot Password",
@@ -1360,7 +1386,8 @@
       "weakPasswordError": "Password must be at least 8 characters and include a number.",
       "errors": {
         "resetFailed": "Could not reset the password. Please try again."
-      }
+      },
+      "passwordHintV2": "The password must be at least 8 characters"
     }
   },
   "passwordField": {
@@ -2606,6 +2633,23 @@
       "save": "Save",
       "saved": "Saved",
       "loadError": "Could not load the helpline."
+    },
+    "feeWizard": {
+      "title": "Activate a new rate",
+      "subtitle": "Pick the fee, enter the new amount and the date it takes effect.",
+      "fee": "Fee",
+      "amount": "New amount",
+      "current": "Current rate",
+      "effectiveDate": "Effective from",
+      "futureBlocked": "A new rate is already scheduled",
+      "confirmTitle": "Confirm",
+      "confirm": "Old ৳{{old}} → new ৳{{new}}, effective {{date}}",
+      "save": "Activate the new rate",
+      "success": "The new rate has been saved",
+      "advanced": "More (Advanced)",
+      "loadError": "Could not load the data. Please try again.",
+      "noCurrent": "This fee has no rate yet",
+      "error": "The rate could not be saved. Please try again."
     }
   },
   "registration": {
@@ -3991,7 +4035,10 @@
   "profile": {
     "display": {
       "title": "Display",
-      "theme": "Screen colours"
+      "theme": "Screen colours",
+      "textSize": "Make text bigger",
+      "dataSaver": "Save data",
+      "dataSaverHint": "Images and maps use less internet"
     }
   },
   "hub": {
@@ -4098,5 +4145,10 @@
         "NOT_FOUND": "Not found"
       }
     }
+  },
+  "netStatus": {
+    "offline": "No internet connection — try again when it is back",
+    "slow": "Slow internet — please wait a moment",
+    "reconnected": "Connected again"
   }
 }

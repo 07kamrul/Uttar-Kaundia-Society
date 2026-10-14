@@ -1,20 +1,25 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { describe, expect, it, vi } from 'vitest';
 import { loaderInterceptor } from './loader.interceptor';
 import { LOADER_MODE, SKIP_LOADER } from './loader-context';
 import { LoaderService } from '../services/loader.service';
+import { NetworkStatusService } from '../services/network-status.service';
 
 describe('loaderInterceptor', () => {
   let http: HttpClient;
   let backend: HttpTestingController;
   let loader: LoaderService;
+  let noteLatency: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    noteLatency = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([loaderInterceptor])),
         provideHttpClientTesting(),
+        { provide: NetworkStatusService, useValue: { noteLatency } },
       ],
     });
     http = TestBed.inject(HttpClient);
@@ -66,5 +71,21 @@ describe('loaderInterceptor', () => {
 
     expect(loader.mode()).toBe('overlay');
     backend.expectOne('/api/x').flush({});
+  });
+
+  it('reports the elapsed time to the network-status service', () => {
+    http.get('/api/x').subscribe();
+    backend.expectOne('/api/x').flush({});
+
+    expect(noteLatency).toHaveBeenCalledTimes(1);
+    expect(noteLatency).toHaveBeenCalledWith(expect.any(Number));
+    expect(noteLatency.mock.calls[0][0]).toBeGreaterThanOrEqual(0);
+  });
+
+  it('reports even when the request fails', () => {
+    http.get('/api/x').subscribe({ error: () => undefined });
+    backend.expectOne('/api/x').flush('no', { status: 500, statusText: 'Server Error' });
+
+    expect(noteLatency).toHaveBeenCalledTimes(1);
   });
 });

@@ -23,6 +23,7 @@ const KNOWN_DETAIL_CODES: ReadonlySet<string> = new Set([
   'PASSWORD_TOO_SHORT',
   'PASSWORD_TOO_COMMON',
   'PASSWORD_SAME_AS_CURRENT',
+  'PASSWORD_TOO_WEAK',
 ]);
 
 /** The machine code of an API error: `detail.code` (FastAPI), or a top-level `code`. Null when absent. */

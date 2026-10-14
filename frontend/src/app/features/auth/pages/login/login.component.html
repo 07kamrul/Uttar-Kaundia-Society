@@ -9,7 +9,7 @@
         <div class="error-box"><p style="margin:0;color:var(--red-700)">{{ error }}</p></div>
       }
       <div class="field">
-        <label>{{ 'auth.login.identifierLabel' | translate }}</label>
+        <label>{{ identifierLabel | translate }}</label>
         <input
           type="text"
           formControlName="identifier"
@@ -17,7 +17,11 @@
           autocorrect="off"
           spellcheck="false"
           autocomplete="username"
+          inputmode="text"
         />
+        @if (byPhone) {
+          <p class="field-hint" data-testid="login-helper">{{ 'auth.login.identifierHelper' | translate }}</p>
+        }
         @if (showError('identifier')) {
           <p class="field-error">{{ errorMessage('identifier') }}</p>
         }

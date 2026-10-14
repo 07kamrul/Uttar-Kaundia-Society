@@ -4452,3 +4452,40 @@ label.checkbox-row {
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Batch 7 — ui_a11y_v2 (html.ui-v2, mirrored from the server flag in app.ts)
+// and the one-step "লেখা বড় করুন" text size (html.text-lg, TextSizeService).
+// ---------------------------------------------------------------------------
+
+html.text-lg {
+  font-size: 112.5%; // 18 px base; every rem-based size scales up
+}
+
+html.ui-v2 {
+  // Comfortable touch targets on the controls people actually tap.
+  button,
+  .btn,
+  a.nav-link,
+  .chip,
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']) {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  // Body copy stays at the browser's 16 px base; small print is raised to a
+  // legible 14 px instead of the 10–13 px declarations used elsewhere.
+  p,
+  li,
+  label {
+    font-size: 1rem;
+  }
+
+  small,
+  .field-hint,
+  .cell-secondary,
+  .topbar-welcome {
+    font-size: 0.875rem;
+  }
+}
