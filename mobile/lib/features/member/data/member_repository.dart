@@ -8,6 +8,8 @@ import '../../../core/di/injector.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/token_storage.dart';
 import '../domain/member_entities.dart';
+import '../domain/payment_entities.dart' show ProofFile;
+import 'payments_repository.dart' show proofForm;
 
 /// Repository for GET/PATCH /member/me etc. Mappers mirror member.service.ts
 /// ApiModel -> app model field-for-field; ids become String client-side.
@@ -136,6 +138,11 @@ class MemberRepository {
       'payment_method': (input.paymentMethod ?? '').isEmpty ? null : input.paymentMethod,
     }) as Map<dynamic, dynamic>;
     return picnicPaymentFromApi(data);
+  }
+
+  /// POST /member/picnic-payments/{id}/proof (pay_verify_other_fees).
+  Future<void> uploadPicnicProof(int paymentId, ProofFile proof) async {
+    await _api.postMultipart('/member/picnic-payments/$paymentId/proof', proofForm(proof));
   }
 }
 

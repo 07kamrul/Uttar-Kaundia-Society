@@ -7828,4 +7828,224 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get govAmendStatusOther => 'Other status';
+
+  @override
+  String get apiErrorReferenceRequired =>
+      'A transaction ID is required for mobile payments. Enter it and try again.';
+
+  @override
+  String get navApplications => 'Applications';
+
+  @override
+  String get navNoticesEvents => 'Notices and events';
+
+  @override
+  String get navPhoneFixes => 'Fix phone numbers';
+
+  @override
+  String get navCacheStats => 'Cache stats';
+
+  @override
+  String get adminApplicationsTitle => 'Applications';
+
+  @override
+  String get adminApplicationsTabRegistrations => 'New registrations';
+
+  @override
+  String get adminApplicationsTabMembership => 'Membership applications';
+
+  @override
+  String get noticesEventsTitle => 'Notices and events';
+
+  @override
+  String get noticesEventsTabNotices => 'Notices';
+
+  @override
+  String get noticesEventsTabEvents => 'Events';
+
+  @override
+  String get maFilterReceived => 'New';
+
+  @override
+  String get maFilterUnderReview => 'Under review';
+
+  @override
+  String get maFilterApproved => 'Approved';
+
+  @override
+  String get maFilterRejected => 'Rejected';
+
+  @override
+  String get maFilterAll => 'All';
+
+  @override
+  String get maEmpty => 'There are no applications in this list.';
+
+  @override
+  String get maLoadError => 'Could not load the applications. Try again.';
+
+  @override
+  String get maNumber => 'Application no.';
+
+  @override
+  String get maStartReview => 'Start review';
+
+  @override
+  String get maApprove => 'Approve';
+
+  @override
+  String get maReject => 'Reject';
+
+  @override
+  String get maRejectTitle => 'Reject this application?';
+
+  @override
+  String get phoneFixesTitle => 'Fix phone numbers';
+
+  @override
+  String get phoneFixesSubtitle => 'Correct the old wrong numbers here.';
+
+  @override
+  String get phoneFixesLoadError => 'Could not load the list. Try again.';
+
+  @override
+  String get phoneFixesRaw => 'Previously written';
+
+  @override
+  String get phoneFixesSave => 'Fix number';
+
+  @override
+  String get phoneFixesEmpty => 'No numbers need fixing';
+
+  @override
+  String get phoneFixFieldMemberMobile => 'Mobile';
+
+  @override
+  String get phoneFixFieldMemberUrgent => 'Emergency contact mobile';
+
+  @override
+  String get phoneFixFieldNomineeMobile => 'Nominee mobile';
+
+  @override
+  String get phoneFixFieldCoOwnerPhone => 'Co-owner phone';
+
+  @override
+  String get phoneFixFieldApplicationMobile => 'Application mobile';
+
+  @override
+  String get apiErrorPhoneDuplicate =>
+      'Another member already uses this number.';
+
+  @override
+  String get apiErrorPhoneFixAlreadyResolved =>
+      'This number was already fixed.';
+
+  @override
+  String get apiErrorPhoneFixNotFound =>
+      'This number is no longer in the list.';
+
+  @override
+  String get apiErrorPhoneFixTargetNotFound =>
+      'The record this number belongs to no longer exists.';
+
+  @override
+  String get cacheStatsTitle => 'Cache stats';
+
+  @override
+  String get cacheStatsSubtitle =>
+      'View only. Nothing can be cleared from here.';
+
+  @override
+  String get cacheStatsRefresh => 'Refresh';
+
+  @override
+  String get cacheStatsLoadError => 'Could not load the stats. Try again.';
+
+  @override
+  String get cacheStatsOn => 'Cache is on';
+
+  @override
+  String get cacheStatsOff => 'Cache is off';
+
+  @override
+  String get cacheStatsEntries => 'Entries / max';
+
+  @override
+  String get cacheStatsTtl => 'TTL (seconds)';
+
+  @override
+  String get cacheStatsHitRatio => 'Hit ratio';
+
+  @override
+  String get cacheStatsInvalidations => 'Invalidations';
+
+  @override
+  String get feeWizardTitle => 'Start a new rate';
+
+  @override
+  String get feeWizardStepFee => 'Which fee rate to change?';
+
+  @override
+  String feeWizardCurrent(String value) {
+    return 'Current rate: $value';
+  }
+
+  @override
+  String get feeWizardNewAmount => 'New amount';
+
+  @override
+  String get feeWizardStepDate => 'Effective from';
+
+  @override
+  String get feeWizardDateHint =>
+      'Pick a date from today up to one year ahead.';
+
+  @override
+  String get feeWizardConfirmTitle => 'Confirm';
+
+  @override
+  String feeWizardConfirmText(String oldValue, String newValue, String date) {
+    return 'Old $oldValue → new $newValue, effective $date';
+  }
+
+  @override
+  String get feeWizardNext => 'Next';
+
+  @override
+  String get feeWizardBack => 'Back';
+
+  @override
+  String get feeWizardConfirm => 'Confirm';
+
+  @override
+  String get feeWizardBlocked => 'A new rate is already scheduled';
+
+  @override
+  String get feeWizardDone => 'The new rate has been set';
+
+  @override
+  String get feeWizardAdvanced => 'Advanced';
+
+  @override
+  String get feeWizardAdvancedHint =>
+      'Old form, history and back-dated changes';
+
+  @override
+  String get feeWizardTierBase => 'Monthly subscription — base amount';
+
+  @override
+  String get feeWizardTierRate => 'Monthly subscription — additional rate';
+
+  @override
+  String get feeWizardTierThreshold => 'Monthly subscription — threshold';
+
+  @override
+  String get apiErrorFeeAlreadyPaid => 'This fee has already been paid.';
+
+  @override
+  String get apiErrorAlreadyReviewed => 'This payment was already reviewed.';
+
+  @override
+  String get apiErrorNotPending =>
+      'This payment is no longer waiting for review.';
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injector.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../core/format/bn_format.dart';
 import '../../../core/layout/responsive.dart';
 import '../../../core/network/api_client.dart';
@@ -296,7 +298,16 @@ class _HistoryRow extends StatelessWidget {
         PaymentKind.costShare => l10n.mpayKindCostShare,
       };
 
-  String _statusLabel(AppLocalizations l10n) => switch (item.status) {
+  /// With pay_verify_other_fees off an other fee is recorded as paid at once,
+  /// so it reads "জমা হয়েছে" rather than the approved wording.
+  PaymentItemStatus get _status =>
+      item.kind == PaymentKind.otherFee &&
+              item.status == PaymentItemStatus.approved &&
+              !flagEnabled(FeatureFlag.payVerifyOtherFees)
+          ? PaymentItemStatus.recorded
+          : item.status;
+
+  String _statusLabel(AppLocalizations l10n) => switch (_status) {
         PaymentItemStatus.pending => l10n.mpayStatusPending,
         PaymentItemStatus.approved => l10n.mpayStatusApproved,
         PaymentItemStatus.rejected => l10n.mpayStatusRejected(item.rejectionReason ?? '—'),
@@ -304,7 +315,7 @@ class _HistoryRow extends StatelessWidget {
         PaymentItemStatus.unknown => '',
       };
 
-  Color _statusColor(ColorScheme scheme) => switch (item.status) {
+  Color _statusColor(ColorScheme scheme) => switch (_status) {
         PaymentItemStatus.rejected => scheme.error,
         PaymentItemStatus.pending => scheme.tertiary,
         _ => scheme.primary,

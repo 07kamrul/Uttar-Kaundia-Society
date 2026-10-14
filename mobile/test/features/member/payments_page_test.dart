@@ -34,7 +34,7 @@ void main() {
           historyItem(id: 4, kind: PaymentKind.otherFee, status: PaymentItemStatus.recorded),
         ]));
     when(() => repo.submitInstallments(any())).thenAnswer((_) async {});
-    when(() => repo.submitOtherFee(any())).thenAnswer((_) async {});
+    when(() => repo.submitOtherFee(any())).thenAnswer((_) async => null);
     when(() => repo.submitCostShare(any())).thenAnswer((_) async => historyItem());
   });
 

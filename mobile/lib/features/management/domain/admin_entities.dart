@@ -332,11 +332,15 @@ class FeeSetting {
     required this.status,
     this.unit,
     this.endDate,
+    this.feeCategory,
   });
 
   final String id;
   final String key;
   final num value;
+
+  /// Kept when a new version is created (`fee_category`).
+  final String? feeCategory;
   final String? unit;
   final String startDate;
   final String? endDate;

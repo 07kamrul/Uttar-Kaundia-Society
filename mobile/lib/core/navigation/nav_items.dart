@@ -229,8 +229,9 @@ class AppNav {
     required LandingTier landingTier,
     required bool Function(String) can,
     bool mergedPayments = false,
+    bool adminConsole = false,
   }) {
-    return items.where((item) {
+    final visible = items.where((item) {
       if (item.route == '/payments' && !mergedPayments) return false;
       if (mergedPayments && (item.route == '/installments' || item.route == '/cost-shares')) return false;
       if (item.tier == LandingTierFilter.member && landingTier != LandingTier.member) {
@@ -239,10 +240,64 @@ class AppNav {
       if (item.tier == LandingTierFilter.superAdmin && landingTier != LandingTier.superAdmin) {
         return false;
       }
-      final p = item.requiredPermission;
-      return p == null || can(p);
+      return item.isAllowed(can);
     }).toList();
+    return adminConsole ? _withConsolePages(visible, can) : visible;
   }
+
+  /// admin_console on: the merged pages replace their two-page originals
+  /// (submissions, notices + events) and phone fixes joins the member pages.
+  static List<NavItem> _withConsolePages(List<NavItem> flat, bool Function(String) can) {
+    NavItem console(String route) => _consoleItems.firstWhere((i) => i.route == route);
+    final result = <NavItem>[];
+    for (final item in flat) {
+      switch (item.route) {
+        case '/submissions':
+          if (console('/applications').isAllowed(can)) result.add(console('/applications'));
+        case '/notices-management':
+          if (console('/notices-events').isAllowed(can)) result.add(console('/notices-events'));
+        case '/events-management':
+          break;
+        case '/members':
+          result.add(item);
+          if (console('/phone-fixes').isAllowed(can)) result.add(console('/phone-fixes'));
+        default:
+          result.add(item);
+      }
+    }
+    return result;
+  }
+
+  /// Pages of the admin console (flag admin_console); never in the flat menu
+  /// while the flag is off.
+  static final List<NavItem> _consoleItems = [
+    NavItem(
+      labelKey: _t((l) => l.navApplications),
+      route: '/applications',
+      icon: Icons.inbox_outlined,
+      requiredAny: const ['membership.review', 'membership_application.manage'],
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navNoticesEvents),
+      route: '/notices-events',
+      icon: Icons.campaign_outlined,
+      requiredPermission: 'manage_notices',
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navPhoneFixes),
+      route: '/phone-fixes',
+      icon: Icons.phone_forwarded_outlined,
+      requiredPermission: 'member.manage',
+    ),
+  ];
+
+  /// Read-only cache stats page under Advanced (nav_advanced_section).
+  static final NavItem _cacheStatsItem = NavItem(
+    labelKey: _t((l) => l.navCacheStats),
+    route: '/advanced/cache',
+    icon: Icons.storage_outlined,
+    requiredPermission: 'manage_system_config',
+  );
 
   // ---- Batch 5: grouped admin menu ----------------------------------------
 
@@ -253,7 +308,17 @@ class AppNav {
     ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management'],
     ['/notices-management', '/events-management'],
     ['/fee-settings'],
-    ['/config-lists', '/roles', '/audit-log'],
+    ['/config-lists', '/roles', '/audit-log', '/advanced/cache'],
+  ];
+
+  /// The same groups with admin_console on: merged queue, merged notices and
+  /// events, and the phone-fix page.
+  static const _consoleGroupRoutes = <List<String>>[
+    ['/applications', '/members', '/property-requests', '/phone-fixes'],
+    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management'],
+    ['/notices-events'],
+    ['/fee-settings'],
+    ['/config-lists', '/roles', '/audit-log', '/advanced/cache'],
   ];
 
   static final List<String Function(AppLocalizations)> _adminGroupLabels = [
@@ -286,24 +351,30 @@ class AppNav {
   static List<NavGroup> adminGroups({
     required LandingTier landingTier,
     required bool Function(String) can,
+    bool adminConsole = false,
   }) {
     if (landingTier == LandingTier.member) return const [];
-    final catalogue = [...items.where((i) => i.area == null), ..._groupOnlyItems];
+    final catalogue = [
+      ...items.where((i) => i.area == null),
+      ..._groupOnlyItems,
+      if (adminConsole) ..._consoleItems,
+      _cacheStatsItem,
+    ];
+    final routes = adminConsole ? _consoleGroupRoutes : _adminGroupRoutes;
     bool allowed(NavItem item) {
       if (item.tier == LandingTierFilter.superAdmin && landingTier != LandingTier.superAdmin) {
         return false;
       }
-      final p = item.requiredPermission;
-      return p == null || can(p);
+      return item.isAllowed(can);
     }
 
     return [
-      for (var g = 0; g < _adminGroupRoutes.length; g++)
-        if (_groupItems(catalogue, _adminGroupRoutes[g]).where(allowed).isNotEmpty)
+      for (var g = 0; g < routes.length; g++)
+        if (_groupItems(catalogue, routes[g]).where(allowed).isNotEmpty)
           NavGroup(
             labelKey: _adminGroupLabels[g],
-            items: _groupItems(catalogue, _adminGroupRoutes[g]).where(allowed).toList(),
-            advanced: g == _adminGroupRoutes.length - 1,
+            items: _groupItems(catalogue, routes[g]).where(allowed).toList(),
+            advanced: g == routes.length - 1,
           ),
     ];
   }

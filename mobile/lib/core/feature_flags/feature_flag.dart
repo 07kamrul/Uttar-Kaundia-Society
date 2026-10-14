@@ -25,7 +25,9 @@ enum FeatureFlag {
   // Batch 7: accessibility, data saver, network banner.
   uiA11yV2('ui_a11y_v2'),
   dataSaver('data_saver'),
-  netStatusBanner('net_status_banner');
+  netStatusBanner('net_status_banner'),
+  // Batch 2b: other-fee and picnic payments wait for committee verification.
+  payVerifyOtherFees('pay_verify_other_fees');
 
   const FeatureFlag(this.key);
 

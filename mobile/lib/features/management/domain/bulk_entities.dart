@@ -2,33 +2,39 @@ import 'finance_entities.dart';
 
 /// One payment the bulk approve accepted.
 class BulkApprovedItem {
-  const BulkApprovedItem({required this.kind, required this.id, this.amount});
+  const BulkApprovedItem({required this.kind, required this.id, this.amount, this.idRef});
 
   factory BulkApprovedItem.fromJson(Map<dynamic, dynamic> j) => BulkApprovedItem(
         kind: '${j['kind']}',
         id: (j['id'] as num).toInt(),
         amount: j['amount']?.toString(),
+        idRef: j['id_ref']?.toString(),
       );
 
   final String kind;
   final int id;
   final String? amount;
+
+  /// Other-fee items only: `fee:<id>` or `picnic:<id>` (the ids overlap).
+  final String? idRef;
 }
 
 /// One payment the bulk approve could not approve, with the server's code
 /// (NO_LONGER_DUE, ALREADY_REVIEWED, AMOUNT_EXCEEDS_REMAINING, NOT_FOUND).
 class BulkFailedItem {
-  const BulkFailedItem({required this.kind, required this.id, required this.code});
+  const BulkFailedItem({required this.kind, required this.id, required this.code, this.idRef});
 
   factory BulkFailedItem.fromJson(Map<dynamic, dynamic> j) => BulkFailedItem(
         kind: '${j['kind']}',
         id: (j['id'] as num).toInt(),
         code: '${j['code']}',
+        idRef: j['id_ref']?.toString(),
       );
 
   final String kind;
   final int id;
   final String code;
+  final String? idRef;
 }
 
 /// POST /admin/payment-verifications/bulk-approve: per-item results.

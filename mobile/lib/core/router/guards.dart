@@ -72,6 +72,11 @@ const _areaPermissions = <String, List<String>>{
   '/roadmap-management': ['manage_roadmap'],
   '/config-lists': ['manage_system_config'],
   '/notices-management': ['manage_notices'],
+  // Batch 5 console pages (same permissions as the Angular routes).
+  '/applications': ['membership.review', 'membership_application.manage'],
+  '/notices-events': ['manage_notices'],
+  '/phone-fixes': ['member.manage'],
+  '/advanced/cache': ['manage_system_config'],
   '/events-management': ['manage_notices'],
   '/roles': ['manage_roles', 'manage_users'],
   '/audit-log': ['view_audit_log'],

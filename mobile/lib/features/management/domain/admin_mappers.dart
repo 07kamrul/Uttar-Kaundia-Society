@@ -166,6 +166,7 @@ extension FeeSettingApiX on Map<String, dynamic> {
         startDate: _sOr(this, 'start_date'),
         endDate: _s(this, 'end_date'),
         status: _i(this, 'status'),
+        feeCategory: _s(this, 'fee_category'),
       );
 }
 

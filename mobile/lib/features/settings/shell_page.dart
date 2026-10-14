@@ -49,12 +49,17 @@ class ShellPage extends StatelessWidget {
       landingTier: session.landingTier,
       can: session.can,
       mergedPayments: on(FeatureFlag.payMergedPage),
+      adminConsole: on(FeatureFlag.adminConsole),
     );
     // Batch 3: members navigate by five areas instead of the long menu.
     final areas = member && flags != null && on(FeatureFlag.navFiveAreas);
     // Batch 5: management menu in groups (nav_advanced_section).
     final groups = !member && on(FeatureFlag.navAdvancedSection)
-        ? AppNav.adminGroups(landingTier: session.landingTier, can: session.can)
+        ? AppNav.adminGroups(
+            landingTier: session.landingTier,
+            can: session.can,
+            adminConsole: on(FeatureFlag.adminConsole),
+          )
         : const <NavGroup>[];
     final loc = AppLocalizations.of(context);
     final headers = <int, String>{};

@@ -17,7 +17,7 @@ void main() {
   setUp(() {
     repo = MockPaymentsRepository();
     when(() => repo.submitInstallments(any())).thenAnswer((_) async {});
-    when(() => repo.submitOtherFee(any())).thenAnswer((_) async {});
+    when(() => repo.submitOtherFee(any())).thenAnswer((_) async => null);
     when(() => repo.submitCostShare(any())).thenAnswer((_) async => historyItem());
   });
 

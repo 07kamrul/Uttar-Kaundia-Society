@@ -7802,4 +7802,220 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get govAmendStatusOther => 'অন্য অবস্থা';
+
+  @override
+  String get apiErrorReferenceRequired =>
+      'মোবাইল পেমেন্টে ট্রানজেকশন আইডি দিতে হবে। আইডিটি লিখে আবার চেষ্টা করুন।';
+
+  @override
+  String get navApplications => 'আবেদন';
+
+  @override
+  String get navNoticesEvents => 'নোটিশ ও অনুষ্ঠান';
+
+  @override
+  String get navPhoneFixes => 'ফোন নম্বর ঠিক করুন';
+
+  @override
+  String get navCacheStats => 'ক্যাশের হিসাব';
+
+  @override
+  String get adminApplicationsTitle => 'আবেদন';
+
+  @override
+  String get adminApplicationsTabRegistrations => 'নতুন নিবন্ধন';
+
+  @override
+  String get adminApplicationsTabMembership => 'সদস্যপদের আবেদন';
+
+  @override
+  String get noticesEventsTitle => 'নোটিশ ও অনুষ্ঠান';
+
+  @override
+  String get noticesEventsTabNotices => 'নোটিশ';
+
+  @override
+  String get noticesEventsTabEvents => 'অনুষ্ঠান';
+
+  @override
+  String get maFilterReceived => 'নতুন';
+
+  @override
+  String get maFilterUnderReview => 'পর্যালোচনাধীন';
+
+  @override
+  String get maFilterApproved => 'অনুমোদিত';
+
+  @override
+  String get maFilterRejected => 'বাতিল';
+
+  @override
+  String get maFilterAll => 'সব';
+
+  @override
+  String get maEmpty => 'এই তালিকায় কোনো আবেদন নেই।';
+
+  @override
+  String get maLoadError => 'আবেদনের তালিকা আনা যায়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get maNumber => 'আবেদন নম্বর';
+
+  @override
+  String get maStartReview => 'পর্যালোচনা শুরু';
+
+  @override
+  String get maApprove => 'অনুমোদন';
+
+  @override
+  String get maReject => 'বাতিল';
+
+  @override
+  String get maRejectTitle => 'আবেদন বাতিল করবেন?';
+
+  @override
+  String get phoneFixesTitle => 'ফোন নম্বর ঠিক করুন';
+
+  @override
+  String get phoneFixesSubtitle => 'পুরোনো ভুল নম্বরগুলো এখানে ঠিক করে দিন।';
+
+  @override
+  String get phoneFixesLoadError => 'তালিকা আনা যায়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get phoneFixesRaw => 'আগে যা লেখা ছিল';
+
+  @override
+  String get phoneFixesSave => 'নম্বর ঠিক করুন';
+
+  @override
+  String get phoneFixesEmpty => 'ঠিক করার মতো কোনো নম্বর নেই';
+
+  @override
+  String get phoneFixFieldMemberMobile => 'মোবাইল';
+
+  @override
+  String get phoneFixFieldMemberUrgent => 'জরুরি যোগাযোগের মোবাইল';
+
+  @override
+  String get phoneFixFieldNomineeMobile => 'ওয়ারিশের মোবাইল';
+
+  @override
+  String get phoneFixFieldCoOwnerPhone => 'শরিকের ফোন';
+
+  @override
+  String get phoneFixFieldApplicationMobile => 'আবেদনের মোবাইল';
+
+  @override
+  String get apiErrorPhoneDuplicate =>
+      'এই নম্বর অন্য একজন সদস্য ব্যবহার করছেন।';
+
+  @override
+  String get apiErrorPhoneFixAlreadyResolved => 'এই নম্বর আগেই ঠিক করা হয়েছে।';
+
+  @override
+  String get apiErrorPhoneFixNotFound => 'এই নম্বরটি তালিকায় আর নেই।';
+
+  @override
+  String get apiErrorPhoneFixTargetNotFound =>
+      'যার নম্বর, সেই তথ্যটি আর পাওয়া যাচ্ছে না।';
+
+  @override
+  String get cacheStatsTitle => 'ক্যাশের হিসাব';
+
+  @override
+  String get cacheStatsSubtitle =>
+      'শুধু দেখার জন্য। এখান থেকে কিছু মুছে ফেলা যায় না।';
+
+  @override
+  String get cacheStatsRefresh => 'নতুন করে আনুন';
+
+  @override
+  String get cacheStatsLoadError => 'হিসাব আনা যায়নি। আবার চেষ্টা করুন।';
+
+  @override
+  String get cacheStatsOn => 'ক্যাশ চালু আছে';
+
+  @override
+  String get cacheStatsOff => 'ক্যাশ বন্ধ আছে';
+
+  @override
+  String get cacheStatsEntries => 'জমা / সর্বোচ্চ';
+
+  @override
+  String get cacheStatsTtl => 'মেয়াদ (সেকেন্ড)';
+
+  @override
+  String get cacheStatsHitRatio => 'কাজে লাগার হার';
+
+  @override
+  String get cacheStatsInvalidations => 'বাতিল হয়েছে';
+
+  @override
+  String get feeWizardTitle => 'নতুন রেট চালু করুন';
+
+  @override
+  String get feeWizardStepFee => 'কোন ফি-এর রেট বদলাবেন?';
+
+  @override
+  String feeWizardCurrent(String value) {
+    return 'এখনকার রেট: $value';
+  }
+
+  @override
+  String get feeWizardNewAmount => 'নতুন পরিমাণ';
+
+  @override
+  String get feeWizardStepDate => 'কবে থেকে কার্যকর';
+
+  @override
+  String get feeWizardDateHint => 'আজ থেকে এক বছরের মধ্যে একটি তারিখ বেছে নিন।';
+
+  @override
+  String get feeWizardConfirmTitle => 'নিশ্চিত করুন';
+
+  @override
+  String feeWizardConfirmText(String oldValue, String newValue, String date) {
+    return 'পুরোনো $oldValue → নতুন $newValue, কার্যকর $date';
+  }
+
+  @override
+  String get feeWizardNext => 'পরের ধাপ';
+
+  @override
+  String get feeWizardBack => 'পিছনে';
+
+  @override
+  String get feeWizardConfirm => 'নিশ্চিত করুন';
+
+  @override
+  String get feeWizardBlocked => 'একটি নতুন রেট ইতিমধ্যে নির্ধারিত আছে';
+
+  @override
+  String get feeWizardDone => 'নতুন রেট চালু করা হয়েছে';
+
+  @override
+  String get feeWizardAdvanced => 'Advanced';
+
+  @override
+  String get feeWizardAdvancedHint =>
+      'পুরোনো ফর্ম, ইতিহাস ও আগের তারিখে রেট বদল';
+
+  @override
+  String get feeWizardTierBase => 'মাসিক চাঁদা — মূল পরিমাণ';
+
+  @override
+  String get feeWizardTierRate => 'মাসিক চাঁদা — অতিরিক্ত হার';
+
+  @override
+  String get feeWizardTierThreshold => 'মাসিক চাঁদা — সীমা';
+
+  @override
+  String get apiErrorFeeAlreadyPaid => 'এই ফি আগেই জমা দেওয়া হয়েছে।';
+
+  @override
+  String get apiErrorAlreadyReviewed => 'এই পেমেন্ট আগেই যাচাই করা হয়েছে।';
+
+  @override
+  String get apiErrorNotPending => 'এই পেমেন্ট আর যাচাইয়ের অপেক্ষায় নেই।';
 }

@@ -50,6 +50,7 @@ void main() {
           'ui_a11y_v2',
           'data_saver',
           'net_status_banner',
+          'pay_verify_other_fees',
         },
       );
     });

@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/di/injector.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../core/layout/responsive.dart';
 import '../../../core/network/api_client.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../data/admin_repository.dart';
 import '../domain/admin_entities.dart';
+import 'fee_rate_wizard.dart';
 import '../presentation/bloc/bloc_actions.dart';
 import '../presentation/bloc/fee_settings_bloc.dart';
 import '../presentation/widgets/management_page_kit.dart';
@@ -21,7 +24,14 @@ class FeeSettingsPage extends StatefulWidget {
   final String? propertyId;
   final String? returnUrl;
 
-  const FeeSettingsPage({super.key, this.id, this.propertyId, this.returnUrl});
+  const FeeSettingsPage(
+      {super.key, this.id, this.propertyId, this.returnUrl, this.repository, this.wizardEnabled});
+
+  /// Test seam; the live repository by default.
+  final AdminRepository? repository;
+
+  /// Fee-rate wizard on top (fee_wizard); the flag when null.
+  final bool? wizardEnabled;
 
   @override
   State<FeeSettingsPage> createState() => _FeeSettingsPageState();
@@ -44,6 +54,13 @@ String _keyLabel(AppLocalizations loc, String key) => switch (key) {
       _ => key,
     };
 
+String _wizardLabel(AppLocalizations loc, String key) => switch (key) {
+      'monthly_subscription_base_amount' => loc.feeWizardTierBase,
+      'monthly_subscription_additional_rate' => loc.feeWizardTierRate,
+      'monthly_subscription_base_threshold' => loc.feeWizardTierThreshold,
+      _ => _keyLabel(loc, key),
+    };
+
 String _unitLabel(AppLocalizations loc, String? unit) => switch (unit) {
       'taka' => loc.adminFeeSettingsUnitsTaka,
       'percent' => loc.adminFeeSettingsUnitsPercent,
@@ -59,7 +76,7 @@ class _FeeSettingsPageState extends State<FeeSettingsPage> {
     final loc = AppLocalizations.of(context);
     return BlocProvider(
       create: (_) => FeeSettingsBloc(
-          repository: AdminRepository(apiClient: sl<ApiClient>()))
+          repository: widget.repository ?? AdminRepository(apiClient: sl<ApiClient>()))
         ..add(const FeeSettingsLoadRequested()),
       child: BlocConsumer<FeeSettingsBloc, FeeSettingsState>(
         listenWhen: (a, b) => a.saveError != b.saveError,
@@ -90,7 +107,24 @@ class _FeeSettingsPageState extends State<FeeSettingsPage> {
                 ),
               if (!state.loading && !state.picnicConfigured)
                 _Callout(text: loc.adminFeeSettingsPicnicNotConfigured),
-              _layout(context, state),
+              if (widget.wizardEnabled ?? flagEnabled(FeatureFlag.feeWizard)) ...[
+                FeeRateWizard(
+                  repository: widget.repository ?? AdminRepository(apiClient: sl<ApiClient>()),
+                  feeKeys: [for (final s in state.active) s.key],
+                  labelFor: _wizardLabel,
+                  onSaved: () => bloc.add(const FeeSettingsLoadRequested()),
+                ),
+                Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    key: const Key('feeAdvanced'),
+                    title: Text(loc.feeWizardAdvanced),
+                    subtitle: Text(loc.feeWizardAdvancedHint),
+                    children: [_layout(context, state)],
+                  ),
+                ),
+              ] else
+                _layout(context, state),
             ],
           );
         },

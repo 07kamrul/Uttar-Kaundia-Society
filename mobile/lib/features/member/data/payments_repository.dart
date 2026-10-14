@@ -75,6 +75,13 @@ PaymentHistoryItem historyItemFromApi(Map<dynamic, dynamic> api) {
   );
 }
 
+/// Multipart body with the single `proof` file.
+FormData proofForm(ProofFile proof) => FormData()
+  ..files.add(MapEntry(
+    'proof',
+    MultipartFile.fromBytes(proof.bytes, filename: proof.fileName, contentType: DioMediaType.parse(proof.mimeType)),
+  ));
+
 /// Batch 2 member payments: merged summary + history, cost-share and
 /// other-fee submissions. Installments keep using [MemberPaymentRepository].
 class PaymentsRepository {
@@ -186,9 +193,10 @@ class PaymentsRepository {
   }
 
   /// POST /member/other-fees/payments (existing endpoint, JSON body).
-  Future<void> submitOtherFee(OtherFeePaymentSubmission p) async {
+  /// Returns the new payment id (null when the server sent none).
+  Future<int?> submitOtherFee(OtherFeePaymentSubmission p) async {
     final note = p.note?.trim();
-    await _api.post('/member/other-fees/payments', <String, dynamic>{
+    final data = await _api.post('/member/other-fees/payments', <String, dynamic>{
       'fee_type': p.feeType,
       'payment_date': p.paymentDate,
       'payment_method': p.paymentMethod,
@@ -197,6 +205,13 @@ class PaymentsRepository {
       'amount': p.amount,
       'additional_heads': p.additionalHeads,
     });
+    return data is Map ? (data['id'] as num?)?.toInt() : null;
+  }
+
+  /// POST /member/other-fees/payments/{id}/proof (pay_verify_other_fees):
+  /// the screenshot of the member's own pending payment.
+  Future<void> uploadOtherFeeProof(int paymentId, ProofFile proof) async {
+    await _api.postMultipart('/member/other-fees/payments/$paymentId/proof', proofForm(proof));
   }
 
   /// POST /member/installment-payments (existing multipart endpoint).

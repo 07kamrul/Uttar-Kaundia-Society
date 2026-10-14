@@ -19,6 +19,10 @@ import '../../features/home/organisation_hub_page.dart';
 import '../../features/member/domain/merged_payment_entities.dart';
 import '../../features/member/pages/payments_page.dart';
 import '../../features/home/home_page.dart';
+import '../../features/management/pages/applications_page.dart';
+import '../../features/management/pages/cache_stats_page.dart';
+import '../../features/management/pages/notices_events_page.dart';
+import '../../features/management/pages/phone_fixes_page.dart';
 import '../../features/management/pages/config_lists_page.dart';
 import '../../features/management/pages/events_management_page.dart';
 import '../../features/management/pages/fee_settings_page.dart';
@@ -193,6 +197,18 @@ GoRouter buildRouter() {
           GoRoute(path: '/config-lists', builder: (_, __) => const ConfigListsPage()),
           GoRoute(path: '/notices-management', builder: (_, __) => const NoticesManagementPage()),
           GoRoute(path: '/events-management', builder: (_, __) => const EventsManagementPage()),
+          GoRoute(
+            path: '/applications',
+            builder: (_, s) => ApplicationsPage(
+              initialTab: s.uri.queryParameters['tab'],
+            ),
+          ),
+          GoRoute(
+            path: '/notices-events',
+            builder: (_, s) => NoticesEventsPage(initialTab: s.uri.queryParameters['tab']),
+          ),
+          GoRoute(path: '/phone-fixes', builder: (_, __) => const PhoneFixesPage()),
+          GoRoute(path: '/advanced/cache', builder: (_, __) => const CacheStatsPage()),
           GoRoute(path: '/roles', builder: (_, __) => const RolesPage()),
           GoRoute(path: '/audit-log', builder: (_, __) => const AuditLogPage()),
         ],

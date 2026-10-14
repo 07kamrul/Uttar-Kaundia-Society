@@ -210,12 +210,14 @@ class AdminRepository {
     required num value,
     String? unit,
     String? startDate,
+    String? feeCategory,
   }) async {
     final data = await _api.post('$_base/fee-settings', {
       'key': key,
       'value': value,
       if (unit != null && unit.isNotEmpty) 'unit': unit,
       if (startDate != null && startDate.isNotEmpty) 'start_date': startDate,
+      if (feeCategory != null && feeCategory.isNotEmpty) 'fee_category': feeCategory,
     });
     return Map<String, dynamic>.from(data as Map).toFeeSettingEntity();
   }

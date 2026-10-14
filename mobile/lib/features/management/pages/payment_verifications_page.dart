@@ -12,6 +12,8 @@ import '../../registration/data/config_list_repository.dart';
 import '../presentation/bloc/payment_verifications_bloc.dart';
 
 import '../data/admin_repository.dart';
+import '../data/other_fee_verification_repository.dart';
+import 'other_fee_verifications_view.dart';
 import '../domain/bulk_entities.dart';
 import '../domain/finance_entities.dart';
 import '../presentation/widgets/management_widgets.dart';
@@ -32,7 +34,13 @@ class PaymentVerificationsPage extends StatelessWidget {
     this.repository,
     this.bulkEnabled,
     this.reasonSuggestions,
+    this.otherFeesEnabled,
+    this.otherFeeRepository,
   });
+
+  /// "অন্যান্য ফি" tab (pay_verify_other_fees); the flag when null.
+  final bool? otherFeesEnabled;
+  final OtherFeeVerificationRepository? otherFeeRepository;
 
   /// Test seam; the live repository by default.
   final InstallmentPaymentRepository? repository;
@@ -51,14 +59,66 @@ class PaymentVerificationsPage extends StatelessWidget {
             ? () => ConfigListRepository(apiClient: sl<ApiClient>())
                 .getValues(kPaymentRejectReasonCategory, kPaymentRejectReasonFallback)
             : null);
-    return BlocProvider(
+    final bulk = bulkEnabled ?? flagEnabled(FeatureFlag.adminBulkVerify);
+    final installments = BlocProvider(
       create: (_) => PaymentVerificationsBloc(
         repository: repository ?? InstallmentPaymentRepository(apiClient: sl<ApiClient>()),
       )..add(const PaymentVerificationsLoadRequested()),
-      child: _PaymentVerificationsView(
-        bulkEnabled: bulkEnabled ?? flagEnabled(FeatureFlag.adminBulkVerify),
+      child: _PaymentVerificationsView(bulkEnabled: bulk, reasonSuggestions: suggestions),
+    );
+    if (!(otherFeesEnabled ?? flagEnabled(FeatureFlag.payVerifyOtherFees))) return installments;
+    return _TabbedVerifications(
+      installments: installments,
+      otherFees: OtherFeeVerificationsView(
+        repository: otherFeeRepository ?? OtherFeeVerificationRepository(apiClient: sl<ApiClient>()),
+        bulkEnabled: bulk,
         reasonSuggestions: suggestions,
       ),
+    );
+  }
+}
+
+/// Kind switch above the queues: installments | other fees.
+class _TabbedVerifications extends StatefulWidget {
+  const _TabbedVerifications({required this.installments, required this.otherFees});
+
+  final Widget installments;
+  final Widget otherFees;
+
+  @override
+  State<_TabbedVerifications> createState() => _TabbedVerificationsState();
+}
+
+class _TabbedVerificationsState extends State<_TabbedVerifications> {
+  bool _other = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                key: const Key('pvTab_installment'),
+                label: Text(loc.mpayKindInstallment),
+                selected: !_other,
+                onSelected: (_) => setState(() => _other = false),
+              ),
+              ChoiceChip(
+                key: const Key('pvTab_other_fee'),
+                label: Text(loc.mpayKindOtherFee),
+                selected: _other,
+                onSelected: (_) => setState(() => _other = true),
+              ),
+            ],
+          ),
+        ),
+        Expanded(child: _other ? widget.otherFees : widget.installments),
+      ],
     );
   }
 }

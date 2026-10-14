@@ -14413,6 +14413,420 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'অন্য অবস্থা'**
   String get govAmendStatusOther;
+
+  /// No description provided for @apiErrorReferenceRequired.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল পেমেন্টে ট্রানজেকশন আইডি দিতে হবে। আইডিটি লিখে আবার চেষ্টা করুন।'**
+  String get apiErrorReferenceRequired;
+
+  /// No description provided for @navApplications.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন'**
+  String get navApplications;
+
+  /// No description provided for @navNoticesEvents.
+  ///
+  /// In bn, this message translates to:
+  /// **'নোটিশ ও অনুষ্ঠান'**
+  String get navNoticesEvents;
+
+  /// No description provided for @navPhoneFixes.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফোন নম্বর ঠিক করুন'**
+  String get navPhoneFixes;
+
+  /// No description provided for @navCacheStats.
+  ///
+  /// In bn, this message translates to:
+  /// **'ক্যাশের হিসাব'**
+  String get navCacheStats;
+
+  /// No description provided for @adminApplicationsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন'**
+  String get adminApplicationsTitle;
+
+  /// No description provided for @adminApplicationsTabRegistrations.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন নিবন্ধন'**
+  String get adminApplicationsTabRegistrations;
+
+  /// No description provided for @adminApplicationsTabMembership.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্যপদের আবেদন'**
+  String get adminApplicationsTabMembership;
+
+  /// No description provided for @noticesEventsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নোটিশ ও অনুষ্ঠান'**
+  String get noticesEventsTitle;
+
+  /// No description provided for @noticesEventsTabNotices.
+  ///
+  /// In bn, this message translates to:
+  /// **'নোটিশ'**
+  String get noticesEventsTabNotices;
+
+  /// No description provided for @noticesEventsTabEvents.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুষ্ঠান'**
+  String get noticesEventsTabEvents;
+
+  /// No description provided for @maFilterReceived.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন'**
+  String get maFilterReceived;
+
+  /// No description provided for @maFilterUnderReview.
+  ///
+  /// In bn, this message translates to:
+  /// **'পর্যালোচনাধীন'**
+  String get maFilterUnderReview;
+
+  /// No description provided for @maFilterApproved.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদিত'**
+  String get maFilterApproved;
+
+  /// No description provided for @maFilterRejected.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল'**
+  String get maFilterRejected;
+
+  /// No description provided for @maFilterAll.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব'**
+  String get maFilterAll;
+
+  /// No description provided for @maEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই তালিকায় কোনো আবেদন নেই।'**
+  String get maEmpty;
+
+  /// No description provided for @maLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদনের তালিকা আনা যায়নি। আবার চেষ্টা করুন।'**
+  String get maLoadError;
+
+  /// No description provided for @maNumber.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন নম্বর'**
+  String get maNumber;
+
+  /// No description provided for @maStartReview.
+  ///
+  /// In bn, this message translates to:
+  /// **'পর্যালোচনা শুরু'**
+  String get maStartReview;
+
+  /// No description provided for @maApprove.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদন'**
+  String get maApprove;
+
+  /// No description provided for @maReject.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল'**
+  String get maReject;
+
+  /// No description provided for @maRejectTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন বাতিল করবেন?'**
+  String get maRejectTitle;
+
+  /// No description provided for @phoneFixesTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফোন নম্বর ঠিক করুন'**
+  String get phoneFixesTitle;
+
+  /// No description provided for @phoneFixesSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'পুরোনো ভুল নম্বরগুলো এখানে ঠিক করে দিন।'**
+  String get phoneFixesSubtitle;
+
+  /// No description provided for @phoneFixesLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'তালিকা আনা যায়নি। আবার চেষ্টা করুন।'**
+  String get phoneFixesLoadError;
+
+  /// No description provided for @phoneFixesRaw.
+  ///
+  /// In bn, this message translates to:
+  /// **'আগে যা লেখা ছিল'**
+  String get phoneFixesRaw;
+
+  /// No description provided for @phoneFixesSave.
+  ///
+  /// In bn, this message translates to:
+  /// **'নম্বর ঠিক করুন'**
+  String get phoneFixesSave;
+
+  /// No description provided for @phoneFixesEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঠিক করার মতো কোনো নম্বর নেই'**
+  String get phoneFixesEmpty;
+
+  /// No description provided for @phoneFixFieldMemberMobile.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল'**
+  String get phoneFixFieldMemberMobile;
+
+  /// No description provided for @phoneFixFieldMemberUrgent.
+  ///
+  /// In bn, this message translates to:
+  /// **'জরুরি যোগাযোগের মোবাইল'**
+  String get phoneFixFieldMemberUrgent;
+
+  /// No description provided for @phoneFixFieldNomineeMobile.
+  ///
+  /// In bn, this message translates to:
+  /// **'ওয়ারিশের মোবাইল'**
+  String get phoneFixFieldNomineeMobile;
+
+  /// No description provided for @phoneFixFieldCoOwnerPhone.
+  ///
+  /// In bn, this message translates to:
+  /// **'শরিকের ফোন'**
+  String get phoneFixFieldCoOwnerPhone;
+
+  /// No description provided for @phoneFixFieldApplicationMobile.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদনের মোবাইল'**
+  String get phoneFixFieldApplicationMobile;
+
+  /// No description provided for @apiErrorPhoneDuplicate.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বর অন্য একজন সদস্য ব্যবহার করছেন।'**
+  String get apiErrorPhoneDuplicate;
+
+  /// No description provided for @apiErrorPhoneFixAlreadyResolved.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বর আগেই ঠিক করা হয়েছে।'**
+  String get apiErrorPhoneFixAlreadyResolved;
+
+  /// No description provided for @apiErrorPhoneFixNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বরটি তালিকায় আর নেই।'**
+  String get apiErrorPhoneFixNotFound;
+
+  /// No description provided for @apiErrorPhoneFixTargetNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'যার নম্বর, সেই তথ্যটি আর পাওয়া যাচ্ছে না।'**
+  String get apiErrorPhoneFixTargetNotFound;
+
+  /// No description provided for @cacheStatsTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'ক্যাশের হিসাব'**
+  String get cacheStatsTitle;
+
+  /// No description provided for @cacheStatsSubtitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'শুধু দেখার জন্য। এখান থেকে কিছু মুছে ফেলা যায় না।'**
+  String get cacheStatsSubtitle;
+
+  /// No description provided for @cacheStatsRefresh.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন করে আনুন'**
+  String get cacheStatsRefresh;
+
+  /// No description provided for @cacheStatsLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'হিসাব আনা যায়নি। আবার চেষ্টা করুন।'**
+  String get cacheStatsLoadError;
+
+  /// No description provided for @cacheStatsOn.
+  ///
+  /// In bn, this message translates to:
+  /// **'ক্যাশ চালু আছে'**
+  String get cacheStatsOn;
+
+  /// No description provided for @cacheStatsOff.
+  ///
+  /// In bn, this message translates to:
+  /// **'ক্যাশ বন্ধ আছে'**
+  String get cacheStatsOff;
+
+  /// No description provided for @cacheStatsEntries.
+  ///
+  /// In bn, this message translates to:
+  /// **'জমা / সর্বোচ্চ'**
+  String get cacheStatsEntries;
+
+  /// No description provided for @cacheStatsTtl.
+  ///
+  /// In bn, this message translates to:
+  /// **'মেয়াদ (সেকেন্ড)'**
+  String get cacheStatsTtl;
+
+  /// No description provided for @cacheStatsHitRatio.
+  ///
+  /// In bn, this message translates to:
+  /// **'কাজে লাগার হার'**
+  String get cacheStatsHitRatio;
+
+  /// No description provided for @cacheStatsInvalidations.
+  ///
+  /// In bn, this message translates to:
+  /// **'বাতিল হয়েছে'**
+  String get cacheStatsInvalidations;
+
+  /// No description provided for @feeWizardTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন রেট চালু করুন'**
+  String get feeWizardTitle;
+
+  /// No description provided for @feeWizardStepFee.
+  ///
+  /// In bn, this message translates to:
+  /// **'কোন ফি-এর রেট বদলাবেন?'**
+  String get feeWizardStepFee;
+
+  /// No description provided for @feeWizardCurrent.
+  ///
+  /// In bn, this message translates to:
+  /// **'এখনকার রেট: {value}'**
+  String feeWizardCurrent(String value);
+
+  /// No description provided for @feeWizardNewAmount.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন পরিমাণ'**
+  String get feeWizardNewAmount;
+
+  /// No description provided for @feeWizardStepDate.
+  ///
+  /// In bn, this message translates to:
+  /// **'কবে থেকে কার্যকর'**
+  String get feeWizardStepDate;
+
+  /// No description provided for @feeWizardDateHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'আজ থেকে এক বছরের মধ্যে একটি তারিখ বেছে নিন।'**
+  String get feeWizardDateHint;
+
+  /// No description provided for @feeWizardConfirmTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিশ্চিত করুন'**
+  String get feeWizardConfirmTitle;
+
+  /// No description provided for @feeWizardConfirmText.
+  ///
+  /// In bn, this message translates to:
+  /// **'পুরোনো {oldValue} → নতুন {newValue}, কার্যকর {date}'**
+  String feeWizardConfirmText(String oldValue, String newValue, String date);
+
+  /// No description provided for @feeWizardNext.
+  ///
+  /// In bn, this message translates to:
+  /// **'পরের ধাপ'**
+  String get feeWizardNext;
+
+  /// No description provided for @feeWizardBack.
+  ///
+  /// In bn, this message translates to:
+  /// **'পিছনে'**
+  String get feeWizardBack;
+
+  /// No description provided for @feeWizardConfirm.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিশ্চিত করুন'**
+  String get feeWizardConfirm;
+
+  /// No description provided for @feeWizardBlocked.
+  ///
+  /// In bn, this message translates to:
+  /// **'একটি নতুন রেট ইতিমধ্যে নির্ধারিত আছে'**
+  String get feeWizardBlocked;
+
+  /// No description provided for @feeWizardDone.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন রেট চালু করা হয়েছে'**
+  String get feeWizardDone;
+
+  /// No description provided for @feeWizardAdvanced.
+  ///
+  /// In bn, this message translates to:
+  /// **'Advanced'**
+  String get feeWizardAdvanced;
+
+  /// No description provided for @feeWizardAdvancedHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'পুরোনো ফর্ম, ইতিহাস ও আগের তারিখে রেট বদল'**
+  String get feeWizardAdvancedHint;
+
+  /// No description provided for @feeWizardTierBase.
+  ///
+  /// In bn, this message translates to:
+  /// **'মাসিক চাঁদা — মূল পরিমাণ'**
+  String get feeWizardTierBase;
+
+  /// No description provided for @feeWizardTierRate.
+  ///
+  /// In bn, this message translates to:
+  /// **'মাসিক চাঁদা — অতিরিক্ত হার'**
+  String get feeWizardTierRate;
+
+  /// No description provided for @feeWizardTierThreshold.
+  ///
+  /// In bn, this message translates to:
+  /// **'মাসিক চাঁদা — সীমা'**
+  String get feeWizardTierThreshold;
+
+  /// No description provided for @apiErrorFeeAlreadyPaid.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই ফি আগেই জমা দেওয়া হয়েছে।'**
+  String get apiErrorFeeAlreadyPaid;
+
+  /// No description provided for @apiErrorAlreadyReviewed.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই পেমেন্ট আগেই যাচাই করা হয়েছে।'**
+  String get apiErrorAlreadyReviewed;
+
+  /// No description provided for @apiErrorNotPending.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই পেমেন্ট আর যাচাইয়ের অপেক্ষায় নেই।'**
+  String get apiErrorNotPending;
 }
 
 class _AppLocalizationsDelegate

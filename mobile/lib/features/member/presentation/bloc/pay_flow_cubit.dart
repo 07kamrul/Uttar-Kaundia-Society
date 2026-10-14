@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../registration/domain/registration_form.dart' show PaymentMethod, PaymentMethodX;
 import '../../data/payments_repository.dart';
 import '../../domain/merged_payment_entities.dart';
@@ -155,10 +157,15 @@ class PayFlowCubit extends Cubit<PayFlowState> {
     required PaymentsRepository repository,
     DateTime Function()? now,
     String? preselectFee,
+    bool? verifyOtherFees,
   })  : _repository = repository,
+        _verifyOtherFees = verifyOtherFees ?? flagEnabled(FeatureFlag.payVerifyOtherFees),
         super(_initial(summary, (now ?? DateTime.now)(), preselectFee));
 
   final PaymentsRepository _repository;
+
+  /// pay_verify_other_fees: the screenshot goes to the new pending payment.
+  final bool _verifyOtherFees;
   int _okTotal = 0;
 
   /// True once at least one request went through (even if others failed), so
@@ -181,6 +188,14 @@ class PayFlowCubit extends Cubit<PayFlowState> {
       submitting: false,
       result: null,
     );
+  }
+
+  /// The payment is already saved, so a failed upload never fails the item.
+  Future<void> _attachProof(int? paymentId, ProofFile? proof) async {
+    if (!_verifyOtherFees || paymentId == null || proof == null) return;
+    try {
+      await _repository.uploadOtherFeeProof(paymentId, proof);
+    } catch (_) {}
   }
 
   void toggleDue(PaymentDue due) {
@@ -291,14 +306,17 @@ class PayFlowCubit extends Cubit<PayFlowState> {
       if (type == null) continue;
       await run(
         type.label,
-        () => _repository.submitOtherFee(OtherFeePaymentSubmission(
-          feeType: type.key,
-          paymentDate: paidOn,
-          paymentMethod: method,
-          receiptNo: reference,
-          amount: type.isVariable ? entry.value.amount : null,
-          additionalHeads: type.isPicnic ? entry.value.extraHeads : null,
-        )),
+        () async {
+          final id = await _repository.submitOtherFee(OtherFeePaymentSubmission(
+            feeType: type.key,
+            paymentDate: paidOn,
+            paymentMethod: method,
+            receiptNo: reference,
+            amount: type.isVariable ? entry.value.amount : null,
+            additionalHeads: type.isPicnic ? entry.value.extraHeads : null,
+          ));
+          await _attachProof(id, proof);
+        },
         () => remainingFees.remove(entry.key),
       );
     }
