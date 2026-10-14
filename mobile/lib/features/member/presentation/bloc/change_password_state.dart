@@ -19,6 +19,7 @@ class ChangePasswordState extends Equatable {
     this.confirmError = ChangePasswordFieldError.none,
     this.currentServerError,
     this.newServerError,
+    this.newServerCode,
   });
 
   final bool submitting;
@@ -33,6 +34,10 @@ class ChangePasswordState extends Equatable {
   /// 422 server field errors keyed to the camelCase control names.
   final String? currentServerError;
   final String? newServerError;
+
+  /// Machine code of the 422 (PASSWORD_TOO_COMMON ...) so the page can show
+  /// its own plain-language copy instead of the server's English text.
+  final String? newServerCode;
 
   bool get hasValidationErrors =>
       currentError != ChangePasswordFieldError.none ||
@@ -50,6 +55,7 @@ class ChangePasswordState extends Equatable {
     String? currentServerError,
     bool clearServerErrors = false,
     String? newServerError,
+    String? newServerCode,
   }) {
     return ChangePasswordState(
       submitting: submitting ?? this.submitting,
@@ -64,6 +70,8 @@ class ChangePasswordState extends Equatable {
           : (currentServerError ?? this.currentServerError),
       newServerError:
           clearServerErrors ? null : (newServerError ?? this.newServerError),
+      newServerCode:
+          clearServerErrors ? null : (newServerCode ?? this.newServerCode),
     );
   }
 
@@ -77,5 +85,6 @@ class ChangePasswordState extends Equatable {
         confirmError,
         currentServerError,
         newServerError,
+        newServerCode,
       ];
 }

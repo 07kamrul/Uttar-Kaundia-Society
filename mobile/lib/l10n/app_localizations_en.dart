@@ -6916,4 +6916,194 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapWizardNoMatch => 'There is no RS plot to compare with.';
+
+  @override
+  String get todayTitle => 'Today\'s work';
+
+  @override
+  String get todayEmpty => 'Nothing is waiting today';
+
+  @override
+  String get todayLoadError => 'Could not load';
+
+  @override
+  String get todayRegistrations => 'New registrations';
+
+  @override
+  String get todayMembershipApplications => 'Membership applications';
+
+  @override
+  String get todayNeedsDag => 'Plot number needed';
+
+  @override
+  String get todayPaymentVerifications => 'Payments to verify';
+
+  @override
+  String get todayComplaints => 'Complaints';
+
+  @override
+  String get todayOverdue => 'Overdue';
+
+  @override
+  String get todayDueSoon => 'Due soon';
+
+  @override
+  String get todayPropertyRequests => 'Property requests';
+
+  @override
+  String get todayBoundaries => 'Boundaries to check';
+
+  @override
+  String get todayCommitteeTerms => 'Committee terms ending';
+
+  @override
+  String get todayPhoneFixes => 'Phone numbers to fix';
+
+  @override
+  String get adminSearchHint => 'Name / mobile / member ID';
+
+  @override
+  String get bulkSelectRow => 'Select';
+
+  @override
+  String bulkSelectedBar(String count, String total) {
+    return '$count selected · total $total';
+  }
+
+  @override
+  String get bulkApproveAction => 'Approve selected';
+
+  @override
+  String bulkConfirmTitle(String count, String total) {
+    return 'Approve $count payments, total $total?';
+  }
+
+  @override
+  String get bulkConfirmYes => 'Confirm';
+
+  @override
+  String bulkResultAllOk(String ok) {
+    return '$ok approved';
+  }
+
+  @override
+  String bulkResultPartial(String ok, String failed, String reasons) {
+    return '$ok approved, $failed not done — reason: $reasons';
+  }
+
+  @override
+  String get bulkStale => 'The list has changed, please look again';
+
+  @override
+  String get bulkFailNoLongerDue => 'no longer due';
+
+  @override
+  String get bulkFailAlreadyReviewed => 'already reviewed';
+
+  @override
+  String get bulkFailNotFound => 'not found';
+
+  @override
+  String get bulkFailOther => 'could not be approved';
+
+  @override
+  String get reasonPickerLabel => 'Pick a reason or write one';
+
+  @override
+  String get adminGroupApplications => 'Applications and members';
+
+  @override
+  String get adminGroupMoney => 'Money';
+
+  @override
+  String get adminGroupOrganisation => 'Organisation';
+
+  @override
+  String get adminGroupSettings => 'Settings';
+
+  @override
+  String get adminGroupAdvanced => 'Advanced';
+
+  @override
+  String get authLoginIdentifierLabelV2 => 'Mobile / email / member ID';
+
+  @override
+  String get authLoginIdentifierHelperV2 =>
+      'For a foreign number, include + and the country code';
+
+  @override
+  String get authLoginFailedV2 =>
+      'The mobile / email / member ID or the password is not correct';
+
+  @override
+  String get authLoginTooManyAttempts =>
+      'Too many attempts. Try again in 15 minutes';
+
+  @override
+  String get apiErrorLoginAmbiguous =>
+      'More than one account uses this — log in with your email or member ID';
+
+  @override
+  String get apiErrorPasswordTooShort =>
+      'The password must be at least 8 characters';
+
+  @override
+  String get apiErrorPasswordTooCommon =>
+      'This password is too common, choose another one';
+
+  @override
+  String get apiErrorPasswordSameAsCurrent =>
+      'The new password cannot be the same as the old one';
+
+  @override
+  String get settingsTextLarge => 'Larger text';
+
+  @override
+  String get settingsDataSaver => 'Data saver';
+
+  @override
+  String get settingsDataSaverHint =>
+      'Pictures and maps load only when you ask';
+
+  @override
+  String get netOffline => 'No internet connection — try again when it is back';
+
+  @override
+  String get netSlow => 'The internet is slow — please wait a little';
+
+  @override
+  String get netReconnected => 'Connected again';
+
+  @override
+  String plainConfirmYes(String action) {
+    return 'Yes, $action';
+  }
+
+  @override
+  String get plainConfirmNo => 'No, go back';
+
+  @override
+  String get tapToLoadImage => 'Show picture';
+
+  @override
+  String get regHelpTooltip => 'Help with this step';
+
+  @override
+  String get regHelpStep1 =>
+      'Write your name, date of birth and mobile number correctly. Match your national ID.';
+
+  @override
+  String get regHelpStep3 =>
+      'Give the name, relation and mobile number of the person who should take over your membership.';
+
+  @override
+  String get regHelpStep4 =>
+      'After paying the admission fee, choose how you paid and write the transaction ID or receipt number.';
+
+  @override
+  String get regHelpStep5 => 'Read the declaration, tick the box and sign.';
+
+  @override
+  String get regHelpStep6 =>
+      'Check everything once more. Go back to fix mistakes, then submit.';
 }

@@ -14,6 +14,15 @@ final class MembersLoadRequested extends MembersEvent {
 
 /// Mutating events carry an optional completer so callers can await the
 /// outcome (replaces the cubit's `Future<bool>` returns).
+/// Search box (admin_console): name / mobile / member id. Under two
+/// characters counts as no search.
+final class MembersSearchChanged extends MembersEvent {
+  const MembersSearchChanged(this.query);
+  final String query;
+  @override
+  List<Object?> get props => [query];
+}
+
 final class MemberDeleted extends MembersEvent {
   const MemberDeleted(this.memberId, {this.completer});
   final String memberId;

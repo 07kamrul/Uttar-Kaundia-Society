@@ -1058,10 +1058,14 @@
     (confirm)="reject()"
     (cancel)="showRejectModal = false"
   >
+    @if (consoleOn) {
+      <app-reason-picker [category]="reasonCategory" [value]="rejectReason" (valueChange)="rejectReason = $event" />
+    } @else {
     <textarea
       rows="3"
       [(ngModel)]="rejectReason"
       [placeholder]="'admin.submissionDetail.rejectModal.placeholder' | translate"
     ></textarea>
+    }
   </app-confirm-modal>
 </div>

@@ -12769,6 +12769,342 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'তুলনা করার মতো আরএস দাগ নেই।'**
   String get mapWizardNoMatch;
+
+  /// No description provided for @todayTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'আজকের কাজ'**
+  String get todayTitle;
+
+  /// No description provided for @todayEmpty.
+  ///
+  /// In bn, this message translates to:
+  /// **'আজ কোনো জমে থাকা কাজ নেই'**
+  String get todayEmpty;
+
+  /// No description provided for @todayLoadError.
+  ///
+  /// In bn, this message translates to:
+  /// **'তথ্য আনা যায়নি'**
+  String get todayLoadError;
+
+  /// No description provided for @todayRegistrations.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন নিবন্ধন'**
+  String get todayRegistrations;
+
+  /// No description provided for @todayMembershipApplications.
+  ///
+  /// In bn, this message translates to:
+  /// **'সদস্যপদের আবেদন'**
+  String get todayMembershipApplications;
+
+  /// No description provided for @todayNeedsDag.
+  ///
+  /// In bn, this message translates to:
+  /// **'দাগ দরকার'**
+  String get todayNeedsDag;
+
+  /// No description provided for @todayPaymentVerifications.
+  ///
+  /// In bn, this message translates to:
+  /// **'পেমেন্ট যাচাই'**
+  String get todayPaymentVerifications;
+
+  /// No description provided for @todayComplaints.
+  ///
+  /// In bn, this message translates to:
+  /// **'অভিযোগ'**
+  String get todayComplaints;
+
+  /// No description provided for @todayOverdue.
+  ///
+  /// In bn, this message translates to:
+  /// **'দেরি হয়েছে'**
+  String get todayOverdue;
+
+  /// No description provided for @todayDueSoon.
+  ///
+  /// In bn, this message translates to:
+  /// **'শীঘ্রই সময় শেষ'**
+  String get todayDueSoon;
+
+  /// No description provided for @todayPropertyRequests.
+  ///
+  /// In bn, this message translates to:
+  /// **'সম্পত্তির অনুরোধ'**
+  String get todayPropertyRequests;
+
+  /// No description provided for @todayBoundaries.
+  ///
+  /// In bn, this message translates to:
+  /// **'সীমানা যাচাই'**
+  String get todayBoundaries;
+
+  /// No description provided for @todayCommitteeTerms.
+  ///
+  /// In bn, this message translates to:
+  /// **'কমিটির মেয়াদ শেষ হচ্ছে'**
+  String get todayCommitteeTerms;
+
+  /// No description provided for @todayPhoneFixes.
+  ///
+  /// In bn, this message translates to:
+  /// **'ফোন নম্বর ঠিক করুন'**
+  String get todayPhoneFixes;
+
+  /// No description provided for @adminSearchHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'নাম / মোবাইল / সদস্য আইডি'**
+  String get adminSearchHint;
+
+  /// No description provided for @bulkSelectRow.
+  ///
+  /// In bn, this message translates to:
+  /// **'নির্বাচন করুন'**
+  String get bulkSelectRow;
+
+  /// No description provided for @bulkSelectedBar.
+  ///
+  /// In bn, this message translates to:
+  /// **'{count}টি নির্বাচিত · মোট {total}'**
+  String bulkSelectedBar(String count, String total);
+
+  /// No description provided for @bulkApproveAction.
+  ///
+  /// In bn, this message translates to:
+  /// **'নির্বাচিতগুলো অনুমোদন করুন'**
+  String get bulkApproveAction;
+
+  /// No description provided for @bulkConfirmTitle.
+  ///
+  /// In bn, this message translates to:
+  /// **'{count}টি পেমেন্ট, মোট {total} অনুমোদন করবেন?'**
+  String bulkConfirmTitle(String count, String total);
+
+  /// No description provided for @bulkConfirmYes.
+  ///
+  /// In bn, this message translates to:
+  /// **'নিশ্চিত করুন'**
+  String get bulkConfirmYes;
+
+  /// No description provided for @bulkResultAllOk.
+  ///
+  /// In bn, this message translates to:
+  /// **'{ok}টি অনুমোদিত'**
+  String bulkResultAllOk(String ok);
+
+  /// No description provided for @bulkResultPartial.
+  ///
+  /// In bn, this message translates to:
+  /// **'{ok}টি অনুমোদিত, {failed}টি হয়নি — কারণ: {reasons}'**
+  String bulkResultPartial(String ok, String failed, String reasons);
+
+  /// No description provided for @bulkStale.
+  ///
+  /// In bn, this message translates to:
+  /// **'তালিকা বদলে গেছে, আবার দেখুন'**
+  String get bulkStale;
+
+  /// No description provided for @bulkFailNoLongerDue.
+  ///
+  /// In bn, this message translates to:
+  /// **'আর বকেয়া নেই'**
+  String get bulkFailNoLongerDue;
+
+  /// No description provided for @bulkFailAlreadyReviewed.
+  ///
+  /// In bn, this message translates to:
+  /// **'আগেই যাচাই হয়েছে'**
+  String get bulkFailAlreadyReviewed;
+
+  /// No description provided for @bulkFailNotFound.
+  ///
+  /// In bn, this message translates to:
+  /// **'খুঁজে পাওয়া যায়নি'**
+  String get bulkFailNotFound;
+
+  /// No description provided for @bulkFailOther.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনুমোদন করা যায়নি'**
+  String get bulkFailOther;
+
+  /// No description provided for @reasonPickerLabel.
+  ///
+  /// In bn, this message translates to:
+  /// **'কারণ বেছে নিন বা লিখুন'**
+  String get reasonPickerLabel;
+
+  /// No description provided for @adminGroupApplications.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবেদন ও সদস্য'**
+  String get adminGroupApplications;
+
+  /// No description provided for @adminGroupMoney.
+  ///
+  /// In bn, this message translates to:
+  /// **'টাকা-পয়সা'**
+  String get adminGroupMoney;
+
+  /// No description provided for @adminGroupOrganisation.
+  ///
+  /// In bn, this message translates to:
+  /// **'সংগঠন'**
+  String get adminGroupOrganisation;
+
+  /// No description provided for @adminGroupSettings.
+  ///
+  /// In bn, this message translates to:
+  /// **'সেটিংস'**
+  String get adminGroupSettings;
+
+  /// No description provided for @adminGroupAdvanced.
+  ///
+  /// In bn, this message translates to:
+  /// **'Advanced'**
+  String get adminGroupAdvanced;
+
+  /// No description provided for @authLoginIdentifierLabelV2.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল / ইমেইল / সদস্য আইডি'**
+  String get authLoginIdentifierLabelV2;
+
+  /// No description provided for @authLoginIdentifierHelperV2.
+  ///
+  /// In bn, this message translates to:
+  /// **'বিদেশি নম্বর হলে + ও দেশের কোড সহ লিখুন'**
+  String get authLoginIdentifierHelperV2;
+
+  /// No description provided for @authLoginFailedV2.
+  ///
+  /// In bn, this message translates to:
+  /// **'মোবাইল/ইমেইল/সদস্য আইডি অথবা পাসওয়ার্ড সঠিক নয়'**
+  String get authLoginFailedV2;
+
+  /// No description provided for @authLoginTooManyAttempts.
+  ///
+  /// In bn, this message translates to:
+  /// **'অনেকবার চেষ্টা হয়েছে, ১৫ মিনিট পরে আবার চেষ্টা করুন'**
+  String get authLoginTooManyAttempts;
+
+  /// No description provided for @apiErrorLoginAmbiguous.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই নম্বরে একাধিক অ্যাকাউন্ট আছে — ইমেইল বা সদস্য আইডি দিয়ে লগইন করুন'**
+  String get apiErrorLoginAmbiguous;
+
+  /// No description provided for @apiErrorPasswordTooShort.
+  ///
+  /// In bn, this message translates to:
+  /// **'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে'**
+  String get apiErrorPasswordTooShort;
+
+  /// No description provided for @apiErrorPasswordTooCommon.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই পাসওয়ার্ডটি খুব সাধারণ, অন্য একটি দিন'**
+  String get apiErrorPasswordTooCommon;
+
+  /// No description provided for @apiErrorPasswordSameAsCurrent.
+  ///
+  /// In bn, this message translates to:
+  /// **'নতুন পাসওয়ার্ড আগেরটির মতো হতে পারবে না'**
+  String get apiErrorPasswordSameAsCurrent;
+
+  /// No description provided for @settingsTextLarge.
+  ///
+  /// In bn, this message translates to:
+  /// **'লেখা বড় করুন'**
+  String get settingsTextLarge;
+
+  /// No description provided for @settingsDataSaver.
+  ///
+  /// In bn, this message translates to:
+  /// **'ডেটা সাশ্রয়'**
+  String get settingsDataSaver;
+
+  /// No description provided for @settingsDataSaverHint.
+  ///
+  /// In bn, this message translates to:
+  /// **'ছবি ও মানচিত্র চাইলে তবেই লোড হবে'**
+  String get settingsDataSaverHint;
+
+  /// No description provided for @netOffline.
+  ///
+  /// In bn, this message translates to:
+  /// **'ইন্টারনেট সংযোগ নেই — সংযোগ ফিরলে আবার চেষ্টা করুন'**
+  String get netOffline;
+
+  /// No description provided for @netSlow.
+  ///
+  /// In bn, this message translates to:
+  /// **'ইন্টারনেট ধীর — একটু অপেক্ষা করুন'**
+  String get netSlow;
+
+  /// No description provided for @netReconnected.
+  ///
+  /// In bn, this message translates to:
+  /// **'আবার সংযুক্ত'**
+  String get netReconnected;
+
+  /// No description provided for @plainConfirmYes.
+  ///
+  /// In bn, this message translates to:
+  /// **'হ্যাঁ, {action}'**
+  String plainConfirmYes(String action);
+
+  /// No description provided for @plainConfirmNo.
+  ///
+  /// In bn, this message translates to:
+  /// **'না, ফিরে যান'**
+  String get plainConfirmNo;
+
+  /// No description provided for @tapToLoadImage.
+  ///
+  /// In bn, this message translates to:
+  /// **'ছবি দেখুন'**
+  String get tapToLoadImage;
+
+  /// No description provided for @regHelpTooltip.
+  ///
+  /// In bn, this message translates to:
+  /// **'এই ধাপে সাহায্য'**
+  String get regHelpTooltip;
+
+  /// No description provided for @regHelpStep1.
+  ///
+  /// In bn, this message translates to:
+  /// **'আপনার নাম, জন্মতারিখ ও মোবাইল নম্বর ঠিকভাবে লিখুন। জাতীয় পরিচয়পত্রের সাথে মিল রাখুন।'**
+  String get regHelpStep1;
+
+  /// No description provided for @regHelpStep3.
+  ///
+  /// In bn, this message translates to:
+  /// **'যাকে আপনার পরে সদস্যপদের দায়িত্ব দিতে চান, তার নাম, সম্পর্ক ও মোবাইল নম্বর দিন।'**
+  String get regHelpStep3;
+
+  /// No description provided for @regHelpStep4.
+  ///
+  /// In bn, this message translates to:
+  /// **'ভর্তি ফি পাঠিয়ে কোন মাধ্যমে পাঠিয়েছেন তা বেছে নিন, তারপর ট্রানজেকশন আইডি বা রসিদ নম্বর লিখুন।'**
+  String get regHelpStep4;
+
+  /// No description provided for @regHelpStep5.
+  ///
+  /// In bn, this message translates to:
+  /// **'ঘোষণাটি পড়ে টিক দিন এবং নিজের স্বাক্ষর দিন।'**
+  String get regHelpStep5;
+
+  /// No description provided for @regHelpStep6.
+  ///
+  /// In bn, this message translates to:
+  /// **'সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।'**
+  String get regHelpStep6;
 }
 
 class _AppLocalizationsDelegate

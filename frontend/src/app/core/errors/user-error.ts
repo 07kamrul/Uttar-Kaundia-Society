@@ -14,13 +14,30 @@ const KNOWN_DETAIL_CODES: ReadonlySet<string> = new Set([
   'AMOUNT_EXCEEDS_REMAINING',
   'FEATURE_DISABLED',
   'INVALID_BD_MOBILE',
+  'PHONE_DUPLICATE',
+  'PHONE_FIX_ALREADY_RESOLVED',
+  'PHONE_FIX_NOT_FOUND',
+  'PHONE_FIX_TARGET_NOT_FOUND',
+  'LOGIN_AMBIGUOUS_IDENTIFIER',
+  'PASSWORD_TOO_SHORT',
+  'PASSWORD_TOO_COMMON',
+  'PASSWORD_SAME_AS_CURRENT',
 ]);
 
+/** The machine code of an API error: `detail.code` (FastAPI), or a top-level `code`. Null when absent. */
+export function errorCodeOf(err: unknown): string | null {
+  if (!(err instanceof HttpErrorResponse)) return null;
+  const body: unknown = err.error;
+  if (!body || typeof body !== 'object') return null;
+  const detail = (body as { detail?: unknown }).detail;
+  const nested = detail && typeof detail === 'object' ? (detail as { code?: unknown }).code : undefined;
+  const code = typeof nested === 'string' ? nested : (body as { code?: unknown }).code;
+  return typeof code === 'string' ? code : null;
+}
+
 function knownCodeKey(err: HttpErrorResponse): string | null {
-  const detail: unknown = err.error?.detail;
-  if (!detail || typeof detail !== 'object') return null;
-  const code = (detail as { code?: unknown }).code;
-  return typeof code === 'string' && KNOWN_DETAIL_CODES.has(code) ? `errors.code.${code}` : null;
+  const code = errorCodeOf(err);
+  return code !== null && KNOWN_DETAIL_CODES.has(code) ? `errors.code.${code}` : null;
 }
 
 /**

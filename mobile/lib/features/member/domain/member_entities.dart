@@ -45,6 +45,7 @@ class MemberProfile extends Equatable {
     required this.properties,
     required this.nominees,
     this.showInNeighbourDirectory = true,
+    this.needsDag,
   });
 
   final String memberId;
@@ -89,6 +90,10 @@ class MemberProfile extends Equatable {
   /// Non-core privacy preference: mobile shown in the neighbour directory.
   final bool showInNeighbourDirectory;
 
+  /// Server-computed "the office still has to record a dag number"; null when
+  /// the server does not send it (clients then derive it from the properties).
+  final bool? needsDag;
+
   MemberStatus get memberStatus => MemberStatusX.fromName(status);
 
   bool hasCurrentAddress() =>
@@ -109,7 +114,7 @@ class MemberProfile extends Equatable {
         urgentContactRelation, urgentContactMobile, urgentContactAddress,
         admissionFee, subscription, receiptNo, paymentMethod, memberSignature,
         submissionDate, memberPhotoUrl, receiptPhotoUrl, properties, nominees,
-        showInNeighbourDirectory,
+        showInNeighbourDirectory, needsDag,
       ];
 }
 

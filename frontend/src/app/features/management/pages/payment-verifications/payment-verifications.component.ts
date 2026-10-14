@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { map, type Observable } from 'rxjs';
+import { errorCodeOf } from '../../../../core/errors/user-error';
 import {
   InstallmentPaymentService,
   type AdminInstallmentPayment,
@@ -11,8 +12,16 @@ import {
 import type { AdminCostSharePayment } from '../../../../core/services/cost-share-payment.service';
 import {
   CostSharePaymentService,
+  type BulkApproveResult,
+  type BulkItem,
   type PendingVerificationCounts,
 } from '../../../../core/services/cost-share-payment.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { LanguageService } from '../../../../core/services/language.service';
+import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { ReasonPickerComponent } from '../../../../shared/reason-picker/reason-picker.component';
+import { REASON_CATEGORY } from '../../../../shared/reason-picker/reject-reasons';
+import { formatBnNumber, formatTakaAmount } from '../../../../shared/pipes/bn-format';
 import { monthNameKey } from '../../../../shared/constants/months';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { BnNumberPipe } from '../../../../shared/pipes/bn-pipes';
@@ -54,7 +63,7 @@ export interface VerificationRow {
   selector: 'app-payment-verifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, BnNumberPipe, IconComponent, SectionLoaderComponent],
+  imports: [FormsModule, TranslatePipe, BnNumberPipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent, ReasonPickerComponent],
   templateUrl: './payment-verifications.component.html',
   styleUrl: './payment-verifications.component.scss',
 })
@@ -62,6 +71,20 @@ export class PaymentVerificationsComponent implements OnInit {
   private readonly service = inject(InstallmentPaymentService);
   private readonly shareService = inject(CostSharePaymentService);
   private readonly translate = inject(TranslateService);
+  private readonly flags = inject(FeatureFlagService);
+  private readonly language = inject(LanguageService);
+
+  readonly paymentReasonCategory = REASON_CATEGORY.payment;
+  /** admin_console: canned reject reasons. */
+  readonly consoleOn = computed(() => this.flags.isEnabled('admin_console'));
+  /** admin_bulk_verify: tick several pending payments and approve them together. */
+  readonly bulkOn = computed(() => this.flags.isEnabled('admin_bulk_verify'));
+  readonly selection = signal<ReadonlyMap<string, BulkItem & { amount: number }>>(new Map());
+  readonly selectedCount = computed(() => this.selection().size);
+  readonly selectedTotal = computed(() => [...this.selection().values()].reduce((sum, i) => sum + i.amount, 0));
+  readonly confirmingBulk = signal(false);
+  readonly bulkBusy = signal(false);
+  readonly bulkMessage = signal<{ kind: 'result' | 'stale' | 'error'; text: string } | null>(null);
 
   readonly filters = FILTERS;
   readonly kinds = KINDS;
@@ -84,6 +107,101 @@ export class PaymentVerificationsComponent implements OnInit {
     const counts = this.counts();
     if (!counts) return null;
     return kind === 'installment' ? counts.installment : counts.costShare;
+  }
+
+  // ---- bulk approve (admin_bulk_verify) ----
+
+  private keyOf(p: Pick<VerificationRow, 'kind' | 'id'>): string {
+    return `${p.kind}:${p.id}`;
+  }
+
+  isSelected(p: VerificationRow): boolean {
+    return this.selection().has(this.keyOf(p));
+  }
+
+  toggle(p: VerificationRow): void {
+    const next = new Map(this.selection());
+    if (!next.delete(this.keyOf(p))) next.set(this.keyOf(p), { kind: p.kind, id: p.id, amount: p.amount });
+    this.selection.set(next);
+  }
+
+  allSelected(): boolean {
+    const rows = this.payments();
+    return rows.length > 0 && rows.every((r) => this.isSelected(r));
+  }
+
+  toggleAll(): void {
+    const next = new Map(this.selection());
+    const all = this.allSelected();
+    for (const r of this.payments()) {
+      if (all) next.delete(this.keyOf(r));
+      else next.set(this.keyOf(r), { kind: r.kind, id: r.id, amount: r.amount });
+    }
+    this.selection.set(next);
+  }
+
+  private bulkFigures(): { count: string; total: string } {
+    const lang = this.language.lang();
+    return { count: formatBnNumber(this.selectedCount(), lang), total: formatTakaAmount(this.selectedTotal(), lang) };
+  }
+
+  bulkBarText(): string {
+    return this.translate.instant('adminConsole.bulk.selected', this.bulkFigures());
+  }
+
+  bulkConfirmText(): string {
+    return this.translate.instant('adminConsole.bulk.confirmMessage', this.bulkFigures());
+  }
+
+  askBulk(): void {
+    if (this.selectedCount() > 0) this.confirmingBulk.set(true);
+  }
+
+  runBulk(): void {
+    const items: BulkItem[] = [...this.selection().values()].map(({ kind, id }) => ({ kind, id }));
+    if (items.length === 0 || this.bulkBusy()) return;
+    this.bulkBusy.set(true);
+    this.bulkMessage.set(null);
+    this.shareService.bulkApprove(items, items.length, this.selectedTotal().toFixed(2)).subscribe({
+      next: (result) => this.onBulkDone(result),
+      error: (err: unknown) => this.onBulkError(err),
+    });
+  }
+
+  private onBulkDone(result: BulkApproveResult): void {
+    this.bulkBusy.set(false);
+    this.confirmingBulk.set(false);
+    const approved = new Set(result.approved.map((a) => this.keyOf(a)));
+    const failedKeys = new Set(result.failed.map((f) => this.keyOf(f)));
+    // Failed rows stay selected so the admin can see them and try again.
+    this.selection.set(new Map([...this.selection()].filter(([key]) => failedKeys.has(key))));
+    this.payments.update((rows) => rows.filter((r) => !approved.has(this.keyOf(r))));
+    this.loadCounts();
+    const lang = this.language.lang();
+    const reasons = [...new Set(result.failed.map((f) => this.translate.instant(`adminConsole.bulk.fail.${f.code}`)))].join(', ');
+    const text =
+      result.failed.length === 0
+        ? this.translate.instant('adminConsole.bulk.resultAll', { ok: formatBnNumber(result.approvedCount, lang) })
+        : this.translate.instant('adminConsole.bulk.result', {
+            ok: formatBnNumber(result.approvedCount, lang),
+            failed: formatBnNumber(result.failed.length, lang),
+            reasons,
+          });
+    this.bulkMessage.set({ kind: 'result', text });
+  }
+
+  private onBulkError(err: unknown): void {
+    this.bulkBusy.set(false);
+    this.confirmingBulk.set(false);
+    const stale = errorCodeOf(err) === 'BULK_SELECTION_STALE' || (err instanceof HttpErrorResponse && err.status === 409);
+    if (stale) {
+      this.selection.set(new Map());
+      this.bulkMessage.set({ kind: 'stale', text: this.translate.instant('adminConsole.bulk.stale') });
+      this.load();
+      this.loadCounts();
+      return;
+    }
+    this.bulkMessage.set({ kind: 'error', text: this.translate.instant('adminConsole.bulk.error') });
   }
 
   setKind(kind: VerificationKind): void {

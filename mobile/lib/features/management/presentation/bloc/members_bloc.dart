@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/admin_repository.dart';
 import '../../domain/admin_entities.dart';
+import 'submissions_bloc.dart' show normalizeSearch;
 
 part 'members_event.dart';
 part 'members_state.dart';
@@ -14,6 +15,12 @@ class MembersBloc extends Bloc<MembersEvent, MembersState> {
       : _repository = repository,
         super(const MembersState()) {
     on<MembersLoadRequested>(_onLoad);
+    on<MembersSearchChanged>((e, emit) async {
+      final q = normalizeSearch(e.query);
+      if (q == state.search) return;
+      emit(state.copyWith(search: q));
+      await _onLoad(const MembersLoadRequested(), emit);
+    });
     on<MemberDeleted>(_onDelete);
     on<MemberPasswordResetRequested>(_onResetPassword);
   }
@@ -26,7 +33,8 @@ class MembersBloc extends Bloc<MembersEvent, MembersState> {
   ) async {
     emit(state.copyWith(loading: true, error: () => null));
     try {
-      final items = await _repository.listMembers();
+      final items = await _repository.listMembers(
+          search: state.search.isEmpty ? null : state.search);
       emit(state.copyWith(items: items, loading: false));
     } catch (err) {
       emit(state.copyWith(loading: false, error: () => err));

@@ -225,6 +225,7 @@ MemberProfile memberProfileFromApi(Map<dynamic, dynamic> api) {
     properties: [for (final p in props) memberPropertyFromApi(p as Map<dynamic, dynamic>)],
     nominees: [for (final n in nominees) memberNomineeFromApi(n as Map<dynamic, dynamic>)],
     showInNeighbourDirectory: _boolOr(api['show_in_neighbour_directory'], fallback: true),
+    needsDag: api['needs_dag'] is bool ? api['needs_dag'] as bool : null,
   );
 }
 

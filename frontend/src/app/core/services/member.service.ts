@@ -112,6 +112,8 @@ export interface MemberProfile {
   receiptPhotoUrl?: string;
   /** Neighbour-directory contact visibility (a preference - never re-queues review). */
   showInNeighbourDirectory: boolean;
+  /** Server-computed: a property still has an unknown dag. Undefined on older servers. */
+  needsDag?: boolean;
   properties: MemberProperty[];
   nominees: MemberNominee[];
 }
@@ -154,6 +156,7 @@ interface MemberProfileApiModel {
   member_photo_path?: string | null;
   receipt_photo_path?: string | null;
   show_in_neighbour_directory?: boolean | null;
+  needs_dag?: boolean | null;
   properties: PropertyApiModel[];
   nominees: NomineeApiModel[];
 }
@@ -235,6 +238,7 @@ function toMemberProfile(api: MemberProfileApiModel): MemberProfile {
     receiptPhotoUrl: toFileUrl(api.receipt_photo_path ?? null),
     // Absent on older servers: the backend default is "shown".
     showInNeighbourDirectory: api.show_in_neighbour_directory ?? true,
+    needsDag: typeof api.needs_dag === 'boolean' ? api.needs_dag : undefined,
     properties: (api.properties ?? []).map(toProperty),
     nominees: (api.nominees ?? []).map(toNominee),
   };

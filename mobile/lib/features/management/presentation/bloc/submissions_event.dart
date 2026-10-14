@@ -13,6 +13,17 @@ final class SubmissionsLoadRequested extends SubmissionsEvent {
   const SubmissionsLoadRequested();
 }
 
+/// Search box (admin_console): name / mobile / member id. Under two
+/// characters counts as no search.
+final class SubmissionsSearchChanged extends SubmissionsEvent {
+  const SubmissionsSearchChanged(this.query);
+
+  final String query;
+
+  @override
+  List<Object?> get props => [query];
+}
+
 final class SubmissionsFilterChanged extends SubmissionsEvent {
   const SubmissionsFilterChanged(this.filter);
 

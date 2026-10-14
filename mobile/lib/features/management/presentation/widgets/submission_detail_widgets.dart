@@ -5,6 +5,7 @@ import '../../../../core/layout/responsive.dart';
 import '../../../../core/validation/bd_input.dart' show toAsciiDigits;
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/tap_to_load_image.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/admin_entities.dart';
 import 'management_widgets.dart';
@@ -311,13 +312,15 @@ class _AttachmentPreview extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => showImagePreview(context, link, label),
-        child: Image.network(
-          link,
-          height: _height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _placeholder(context,
-              Icons.broken_image_outlined, loc.adminSubmissionDetailFileMissing),
+        child: TapToLoadImage(
+          builder: () => Image.network(
+            link,
+            height: _height,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _placeholder(context,
+                Icons.broken_image_outlined, loc.adminSubmissionDetailFileMissing),
+          ),
         ),
       ),
     );

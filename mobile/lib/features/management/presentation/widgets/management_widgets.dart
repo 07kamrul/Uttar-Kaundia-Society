@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../../core/layout/responsive.dart';
 import '../../../../core/network/api_error_messages.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/phone_display.dart';
+import '../../../../shared/widgets/plain_confirm.dart';
 import '../../../../shared/widgets/widgets.dart';
 
 export 'management_record_widgets.dart';
@@ -383,6 +386,16 @@ Future<bool> confirmDialog(
   String? cancelLabel,
   bool destructive = false,
 }) {
+  // ui_a11y_v2: a question, one sentence, "হ্যাঁ, …" / "না, ফিরে যান".
+  if (flagEnabled(FeatureFlag.uiA11yV2)) {
+    return showPlainConfirm(
+      context,
+      title: title,
+      consequence: message,
+      action: confirmLabel ?? AppLocalizations.of(context).commonConfirmAction,
+      destructive: destructive,
+    );
+  }
   final loc = AppLocalizations.of(context);
   return showDialog<bool>(
     context: context,
@@ -423,10 +436,12 @@ Future<String?> showReasonDialog(
   String? cancelLabel,
   int maxLength = 500,
   String? Function(String text)? validator,
+  List<String> suggestions = const [],
 }) {
   return showDialog<String>(
     context: context,
     builder: (_) => _ReasonDialog(
+      suggestions: suggestions,
       title: title,
       confirmLabel: confirmLabel,
       label: label,
@@ -444,6 +459,7 @@ class _ReasonDialog extends StatefulWidget {
     required this.title,
     required this.confirmLabel,
     required this.maxLength,
+    this.suggestions = const [],
     this.label,
     this.hint,
     this.summary,
@@ -451,6 +467,8 @@ class _ReasonDialog extends StatefulWidget {
     this.validator,
   });
 
+  /// Canned reasons (admin_console): tapping one fills the editable text.
+  final List<String> suggestions;
   final String title;
   final String confirmLabel;
   final String? label;
@@ -505,6 +523,27 @@ class _ReasonDialogState extends State<_ReasonDialog> {
                         color: theme.colorScheme.onSurfaceVariant)),
               ],
               const SizedBox(height: 16),
+              if (widget.suggestions.isNotEmpty) ...[
+                Text(loc.reasonPickerLabel, style: theme.textTheme.labelMedium),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final reason in widget.suggestions)
+                      ActionChip(
+                        label: Text(reason),
+                        onPressed: () => setState(() {
+                          _controller.text = reason;
+                          _controller.selection =
+                              TextSelection.collapsed(offset: reason.length);
+                          _error = null;
+                        }),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
               TextField(
                 controller: _controller,
                 autofocus: true,

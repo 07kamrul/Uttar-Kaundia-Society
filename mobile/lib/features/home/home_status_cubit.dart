@@ -51,9 +51,11 @@ class HomeState extends Equatable {
   final AsyncCard<EventItem?> event;
 
   /// A property exists but has neither CS nor RS dag number: the office has to
-  /// record it. (Mirrors the backend `needs_dag` flag, which members' own
-  /// profile does not expose.)
-  static bool needsDag(MemberProfile p) => p.properties.any(
+  /// record it. The profile's own `needs_dag` wins; the derivation from the
+  /// properties is the fallback when the server does not send it.
+  static bool needsDag(MemberProfile p) =>
+      p.needsDag ??
+      p.properties.any(
         (x) => (x.dagNoCs ?? '').trim().isEmpty && (x.dagNoRs ?? '').trim().isEmpty,
       );
 

@@ -127,8 +127,20 @@ describe('known server detail codes', () => {
     [422, 'AMOUNT_EXCEEDS_REMAINING', 'errors.code.AMOUNT_EXCEEDS_REMAINING'],
     [404, 'FEATURE_DISABLED', 'errors.code.FEATURE_DISABLED'],
     [422, 'INVALID_BD_MOBILE', 'errors.code.INVALID_BD_MOBILE'],
+    [409, 'PHONE_DUPLICATE', 'errors.code.PHONE_DUPLICATE'],
+    [409, 'PHONE_FIX_ALREADY_RESOLVED', 'errors.code.PHONE_FIX_ALREADY_RESOLVED'],
+    [404, 'PHONE_FIX_NOT_FOUND', 'errors.code.PHONE_FIX_NOT_FOUND'],
+    [404, 'PHONE_FIX_TARGET_NOT_FOUND', 'errors.code.PHONE_FIX_TARGET_NOT_FOUND'],
+    [409, 'LOGIN_AMBIGUOUS_IDENTIFIER', 'errors.code.LOGIN_AMBIGUOUS_IDENTIFIER'],
+    [422, 'PASSWORD_TOO_SHORT', 'errors.code.PASSWORD_TOO_SHORT'],
+    [422, 'PASSWORD_TOO_COMMON', 'errors.code.PASSWORD_TOO_COMMON'],
+    [422, 'PASSWORD_SAME_AS_CURRENT', 'errors.code.PASSWORD_SAME_AS_CURRENT'],
   ])('maps %i %s to a friendly key', (status, code, key) => {
     expect(toUserMessageKey(httpError(status, { detail: { code } }))).toBe(key);
+  });
+
+  it('also reads a code that sits at the top of the body', () => {
+    expect(toUserMessageKey(httpError(409, { code: 'LOGIN_AMBIGUOUS_IDENTIFIER' }))).toBe('errors.code.LOGIN_AMBIGUOUS_IDENTIFIER');
   });
 
   it('ignores unknown codes and string details', () => {
@@ -136,7 +148,12 @@ describe('known server detail codes', () => {
     expect(toUserMessageKey(httpError(422, { detail: 'PHOTO_REQUIRED' }))).toBe('errors.validation');
   });
 
-  it.each(['PHOTO_REQUIRED', 'PROPERTY_PROOF_REQUIRED', 'DAG_REQUIRED', 'ABROAD_ADDRESS_REQUIRED', 'DAG_REQUIRED_FIELD', 'SHARE_NOT_FOUND', 'SHARE_ALREADY_PAID', 'DUPLICATE_TRANSACTION_REF', 'AMOUNT_EXCEEDS_REMAINING', 'FEATURE_DISABLED', 'INVALID_BD_MOBILE'])(
+  it.each([
+    'PHOTO_REQUIRED', 'PROPERTY_PROOF_REQUIRED', 'DAG_REQUIRED', 'ABROAD_ADDRESS_REQUIRED', 'DAG_REQUIRED_FIELD',
+    'SHARE_NOT_FOUND', 'SHARE_ALREADY_PAID', 'DUPLICATE_TRANSACTION_REF', 'AMOUNT_EXCEEDS_REMAINING', 'FEATURE_DISABLED',
+    'INVALID_BD_MOBILE', 'PHONE_DUPLICATE', 'PHONE_FIX_ALREADY_RESOLVED', 'PHONE_FIX_NOT_FOUND', 'PHONE_FIX_TARGET_NOT_FOUND',
+    'LOGIN_AMBIGUOUS_IDENTIFIER', 'PASSWORD_TOO_SHORT', 'PASSWORD_TOO_COMMON', 'PASSWORD_SAME_AS_CURRENT',
+  ])(
     'has plain Bangla and English text for %s',
     (code) => {
       const bnText = lookup(bn, `errors.code.${code}`) as string;

@@ -16,6 +16,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 import { AuthService } from '../../../../core/services/auth.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { LandDataService, type LandFeatureCollection } from '../../../../core/services/land-data.service';
 import { MemberService } from '../../../../core/services/member.service';
@@ -266,6 +267,7 @@ export function setup(options: SetupOptions = {}) {
       { provide: MemberService, useValue: memberService },
       { provide: LandDataService, useValue: landDataService },
       { provide: LanguageService, useValue: { lang: vi.fn(() => 'en'), setLang: vi.fn() } },
+      { provide: FeatureFlagService, useValue: { isEnabled: () => false } },
       {
         provide: AuthService,
         useValue: { hasPermission: (key: string) => permissions.includes(key) },

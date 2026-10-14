@@ -22,6 +22,15 @@ export function readLayerPrefs(): LayerPrefs {
   }
 }
 
+/** True once the member has saved a choice (the defaults then no longer apply). */
+export function hasStoredLayerPrefs(): boolean {
+  try {
+    return localStorage.getItem(LAYER_PREFS_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function writeLayerPrefs(prefs: LayerPrefs): void {
   try {
     localStorage.setItem(LAYER_PREFS_KEY, JSON.stringify(prefs));

@@ -1,8 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { QueueSearchComponent } from '../../../../shared/queue-search/queue-search.component';
 import type { Member } from '../../../../core/models/admin.model';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -14,10 +16,13 @@ import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.componen
   selector: 'app-members-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent],
   templateUrl: './members-list.component.html',
 })
 export class MembersListComponent implements OnInit {
+  /** admin_console: search by name, mobile or member ID. */
+  readonly searchOn = inject(FeatureFlagService).isEnabled('admin_console');
+  searchTerm = '';
   members: Member[] = [];
   loading = true;
   loadFailed = false;
@@ -45,7 +50,7 @@ export class MembersListComponent implements OnInit {
     this.loading = true;
     this.loadFailed = false;
     this.error = '';
-    this.adminService.listMembers().subscribe({
+    this.adminService.listMembers(this.searchTerm || undefined).subscribe({
       next: (data) => {
         this.members = data;
         this.loading = false;
@@ -58,6 +63,11 @@ export class MembersListComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  onSearch(term: string): void {
+    this.searchTerm = term;
+    this.load();
   }
 
   statusLabel(status: string): string {

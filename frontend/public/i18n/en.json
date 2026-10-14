@@ -336,7 +336,15 @@
       "DUPLICATE_TRANSACTION_REF": "This transaction ID was already used. Check the ID again.",
       "AMOUNT_EXCEEDS_REMAINING": "The amount is more than what is left to pay. Enter a smaller amount.",
       "FEATURE_DISABLED": "This feature is not available right now.",
-      "INVALID_BD_MOBILE": "That mobile number is not valid. Enter an 11-digit number such as 01712345678."
+      "INVALID_BD_MOBILE": "That mobile number is not valid. Enter an 11-digit number such as 01712345678.",
+      "PHONE_DUPLICATE": "Another member already uses this number.",
+      "PHONE_FIX_ALREADY_RESOLVED": "This number was already fixed.",
+      "PHONE_FIX_NOT_FOUND": "This number is no longer in the list.",
+      "PHONE_FIX_TARGET_NOT_FOUND": "The record this number belongs to no longer exists.",
+      "LOGIN_AMBIGUOUS_IDENTIFIER": "More than one account uses this number. Log in with your email or member ID.",
+      "PASSWORD_TOO_SHORT": "The password must be at least 8 characters.",
+      "PASSWORD_TOO_COMMON": "This password is too common. Choose another one.",
+      "PASSWORD_SAME_AS_CURRENT": "The new password cannot be the same as the old one."
     }
   },
   "forbidden": {
@@ -1104,6 +1112,83 @@
           "generic": "Could not load the details. Please try again.",
           "notFound": "No details found for this dag.",
           "rateLimited": "Too many requests. Please try again in a few minutes."
+        }
+      },
+      "wizard": {
+        "moreLayers": "More layers",
+        "showMap": "Show map",
+        "showMapSub": "Uses internet data",
+        "plainMapLabel": "Plain background, map not loaded",
+        "layers": {
+          "title": "Choose layers",
+          "mine": "My land",
+          "bds": "Government mouza map (BDS)",
+          "rs": "Show RAJUK RS plot lines",
+          "snap": "Snap to plot lines",
+          "satellite": "Satellite"
+        },
+        "legend": {
+          "approved": "Approved",
+          "mine": "Mine",
+          "pending": "Pending"
+        },
+        "disputed": "⚠ Dispute in progress",
+        "stepHeader": "Step {{n}} / 3 — {{title}}",
+        "steps": {
+          "find": "Find your plot",
+          "adjust": "Adjust the boundary",
+          "submit": "Submit"
+        },
+        "find": {
+          "pick": "Which property is this boundary for?",
+          "looking": "Looking for the plot…",
+          "found": "The plot was found on the map.",
+          "foundMany": "Several plots found — pick yours.",
+          "notFound": "No plot found with this number.",
+          "error": "Could not look up the plot. Try again.",
+          "thisIsMine": "This is my plot",
+          "other": "Search another plot",
+          "otherPlaceholder": "Enter plot number",
+          "search": "Search",
+          "drawMyself": "Plot not found — draw it myself",
+          "candidate": "RS plot {{dag}} · sheet {{sheet}}"
+        },
+        "adjust": {
+          "fromDag": "Start from the plot",
+          "draw": "Draw it myself",
+          "undo": "↶ Go back one step",
+          "redo": "↷ Redo",
+          "clear": "Clear all and start again",
+          "area": "Drawn area",
+          "declared": "Declared land",
+          "next": "Next",
+          "back": "Back",
+          "drawHint": "Tap the map to place corners, then tap the first point to finish."
+        },
+        "submit": {
+          "property": "Property",
+          "dag": "Plot",
+          "area": "Drawn area",
+          "match": "Match with RS plot",
+          "noMatch": "No match with an RS plot",
+          "go": "Submit"
+        },
+        "notice": {
+          "short": "This is an approximate boundary, not a substitute for a government survey or deed.",
+          "more": "Details",
+          "less": "Hide"
+        },
+        "tour": {
+          "layers": "Choose more layers here.",
+          "legend": "The colours show what is approved, yours, or waiting.",
+          "draw": "Draw your land boundary from here.",
+          "help": "Tap this ? button if you need help.",
+          "next": "Next",
+          "done": "Got it",
+          "skip": "Skip",
+          "again": "Show again",
+          "helpButton": "Help",
+          "step": "{{n}} / {{total}}"
         }
       }
     },
@@ -3916,5 +4001,99 @@
     "complaintsHelp": "Complaints / help",
     "more": "More",
     "electionActive": "Election in progress"
+  },
+  "adminConsole": {
+    "search": {
+      "placeholder": "Name / mobile / member ID",
+      "clear": "Clear"
+    },
+    "reason": {
+      "label": "Pick a reason or write one"
+    },
+    "today": {
+      "title": "Today's work",
+      "loadError": "Could not load. Try again.",
+      "empty": "Nothing is waiting today",
+      "overdue": "Late",
+      "dueSoon": "Due soon",
+      "applications": "Applications",
+      "needsDag": "Plot number needed",
+      "payments": "Payment checks",
+      "complaints": "Complaints",
+      "propertyRequests": "Property requests",
+      "boundaries": "Boundary checks",
+      "committeeTerms": "Committee terms ending",
+      "phoneFixes": "Fix phone numbers"
+    },
+    "applications": {
+      "title": "Applications",
+      "tabs": {
+        "registrations": "New registrations",
+        "membership": "Membership applications"
+      }
+    },
+    "noticesEvents": {
+      "title": "Notices and events",
+      "tabs": {
+        "notices": "Notices",
+        "events": "Events"
+      }
+    },
+    "phoneFixes": {
+      "title": "Fix phone numbers",
+      "subtitle": "Correct the old, wrong numbers here.",
+      "loadError": "Could not load the list. Try again.",
+      "raw": "Was written as",
+      "save": "Fix number",
+      "empty": "No numbers need fixing",
+      "field": {
+        "member": {
+          "mobile": "Mobile",
+          "urgent_contact_mobile": "Emergency contact mobile"
+        },
+        "nominee": {
+          "mobile": "Nominee mobile"
+        },
+        "co_owner": {
+          "owner_phone": "Co-owner phone"
+        },
+        "membership_application": {
+          "mobile": "Application mobile"
+        }
+      }
+    },
+    "cacheStats": {
+      "title": "Cache statistics",
+      "subtitle": "Read only. Nothing can be cleared from here.",
+      "refresh": "Refresh",
+      "loadError": "Could not load the statistics. Try again.",
+      "on": "Cache is on",
+      "off": "Cache is off",
+      "name": "Name",
+      "entries": "Entries / max",
+      "ttl": "TTL (seconds)",
+      "hitRatio": "Hit ratio",
+      "invalidations": "Invalidations"
+    },
+    "bulk": {
+      "selected": "{{count}} selected · total {{total}}",
+      "approve": "Approve the selected",
+      "confirmTitle": "Approve them?",
+      "confirmMessage": "Approve {{count}} payments, total {{total}}?",
+      "confirmYes": "Yes, approve",
+      "confirmNo": "No, go back",
+      "result": "{{ok}} approved, {{failed}} not done. Reason: {{reasons}}",
+      "resultAll": "{{ok}} approved.",
+      "stale": "The list has changed, please look again",
+      "error": "Could not approve. Try again.",
+      "selectAll": "Select all",
+      "select": "Select",
+      "fail": {
+        "NO_LONGER_DUE": "Nothing is due any more",
+        "ALREADY_REVIEWED": "Already reviewed",
+        "AMOUNT_EXCEEDS_REMAINING": "More than the amount left",
+        "NOT_FOUND": "Not found"
+      }
+    }
   }
 }

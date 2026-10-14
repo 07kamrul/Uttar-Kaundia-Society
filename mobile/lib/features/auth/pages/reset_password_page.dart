@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
+import '../../../core/network/api_error_messages.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../../../l10n/app_localizations.dart';
@@ -16,7 +19,16 @@ class ResetPasswordPage extends StatefulWidget {
   final String? id;
   final String? propertyId;
   final String? returnUrl;
-  const ResetPasswordPage({super.key, this.id, this.propertyId, this.returnUrl});
+  const ResetPasswordPage({
+    super.key,
+    this.id,
+    this.propertyId,
+    this.returnUrl,
+    this.passwordPolicyV2,
+  });
+
+  /// password_policy_v2 (length-only client check and hint); the flag when null.
+  final bool? passwordPolicyV2;
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -31,6 +43,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   bool _obscureConfirm = true;
   bool _resetDone = false;
   String? _error;
+
+  late final bool _v2 = widget.passwordPolicyV2 ?? flagEnabled(FeatureFlag.passwordPolicyV2);
 
   @override
   void dispose() {
@@ -48,9 +62,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   bool get _mismatch =>
       _newPasswordController.text != _confirmPasswordController.text;
 
+  /// v2 only: the blocklist stays on the server, the client checks length.
+  bool get _tooShort => _v2 && _newPasswordController.text.length < 8;
+
   String? _newPasswordError(AppLocalizations loc) {
     if (!_submitAttempted) return null;
     if (_newPasswordController.text.isEmpty) return loc.authResetPasswordPasswordHint;
+    if (_tooShort) return loc.apiErrorPasswordTooShort;
     return null;
   }
 
@@ -70,6 +88,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     });
     if (_newPasswordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty ||
+        _tooShort ||
         _mismatch) {
       return;
     }
@@ -81,6 +100,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   }
 
   String _mapFailure(AppLocalizations loc, ApiException error) {
+    final byCode = apiErrorCodeMessage(loc, error.errorCode);
+    if (byCode != null && error.statusCode == 422) return byCode;
     if (error.statusCode == 422) return loc.authResetPasswordWeakPasswordError;
     if (error.statusCode == 400) return loc.authResetPasswordInvalidTokenError;
     return loc.authResetPasswordErrorsResetFailed;
@@ -143,7 +164,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           _PasswordField(
             controller: _newPasswordController,
             label: loc.authResetPasswordNewPasswordLabel,
-            helper: loc.authResetPasswordPasswordHint,
+            helper: _v2 ? loc.apiErrorPasswordTooShort : loc.authResetPasswordPasswordHint,
             error: _newPasswordError(loc),
             obscure: _obscureNew,
             enabled: !loading,

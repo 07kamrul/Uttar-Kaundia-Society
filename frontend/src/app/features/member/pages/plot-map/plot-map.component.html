@@ -1,6 +1,13 @@
 <div class="plot-map-page">
   <div class="map-wrap">
-    <div #mapEl class="map-canvas" [attr.aria-label]="'member.plotMap.title' | translate"></div>
+    <div #mapEl class="map-canvas" [class.map-plain]="showTileGate()" [attr.aria-label]="'member.plotMap.title' | translate"></div>
+
+    @if (showTileGate()) {
+      <button type="button" class="tile-gate" data-testid="tile-gate" (click)="requestTiles()">
+        <strong class="tile-gate-title">{{ 'member.plotMap.wizard.showMap' | translate }}</strong>
+        <span class="tile-gate-sub">{{ 'member.plotMap.wizard.showMapSub' | translate }}</span>
+      </button>
+    }
 
     <!-- Floating toolbar: search + actions above the map -->
     <div class="map-topbar">
@@ -63,6 +70,29 @@
         }
       </div>
 
+      @if (wizardOn()) {
+        <div class="wizard-tools">
+          <button type="button" class="toolbar-btn layers-open-btn" data-testid="layers-open" (click)="openLayersSheet()">
+            <app-icon name="layers" [size]="16" />
+            <span class="btn-label">{{ 'member.plotMap.wizard.moreLayers' | translate }}</span>
+          </button>
+          <span class="help-wrap">
+            <button
+              type="button"
+              class="toolbar-btn help-btn"
+              data-testid="help-open"
+              [attr.aria-expanded]="helpMenuOpen()"
+              [attr.aria-label]="'member.plotMap.wizard.tour.helpButton' | translate"
+              (click)="helpMenuOpen.set(!helpMenuOpen())"
+            >?</button>
+            @if (helpMenuOpen()) {
+              <button type="button" class="toolbar-btn help-item" data-testid="tour-again" (click)="restartTour()">
+                {{ 'member.plotMap.wizard.tour.again' | translate }}
+              </button>
+            }
+          </span>
+        </div>
+      } @else {
       <!-- Layer switcher: collapses into an expandable panel on phones -->
       <div class="map-layers" [class.open]="layersPanelOpen()">
         <button
@@ -103,6 +133,7 @@
           </button>
         </div>
       </div>
+      }
 
       @if (dagNotFound()) {
         <p class="locate-error" role="alert">{{ 'member.plotMap.views.dagNotFound' | translate }}</p>
@@ -116,7 +147,22 @@
     </div>
 
     <!-- Disclaimer toast (session-dismissible) -->
-    @if (!disclaimerDismissed() && disclaimerText()) {
+    @if (wizardOn()) {
+      <div class="short-notice" role="note">
+        <app-icon name="alert" [size]="15" />
+        <span class="short-notice-text" data-testid="notice-short">{{ 'member.plotMap.wizard.notice.short' | translate }}</span>
+        <button
+          type="button"
+          class="notice-more"
+          data-testid="notice-more"
+          [attr.aria-expanded]="noticeExpanded()"
+          (click)="noticeExpanded.set(!noticeExpanded())"
+        >{{ (noticeExpanded() ? 'member.plotMap.wizard.notice.less' : 'member.plotMap.wizard.notice.more') | translate }}</button>
+        @if (noticeExpanded()) {
+          <p class="short-notice-full" data-testid="notice-text">{{ disclaimerText() }}</p>
+        }
+      </div>
+    } @else if (!disclaimerDismissed() && disclaimerText()) {
       <div class="disclaimer-banner" role="note">
         <app-icon name="alert" [size]="15" />
         <span class="disclaimer-text">{{ disclaimerText() }}</span>
@@ -146,6 +192,15 @@
       </button>
       @if (legendOpen()) {
         <div class="legend-body">
+          @if (wizardOn()) {
+            @for (item of wizardLegend; track item.kind) {
+              <span class="legend-chip" role="listitem">
+                <span class="legend-swatch" aria-hidden="true" [style.background]="item.colour"></span>
+                <span aria-hidden="true">{{ item.glyph }}</span>
+                {{ item.labelKey | translate }}
+              </span>
+            }
+          } @else {
           @for (item of legendItems; track item.status) {
             <span class="legend-chip" role="listitem">
               <span class="legend-swatch" [style.background]="item.color"></span>
@@ -157,6 +212,7 @@
               <span class="legend-swatch legend-swatch-rs"></span>
               {{ 'member.plotMap.views.rs' | translate }}
             </span>
+          }
           }
         </div>
       }
@@ -210,7 +266,7 @@
           }
           @if (sel.feature.isDisputed) {
             <span class="status-chip status-disputed">
-              {{ 'member.plotMap.status.disputed' | translate }}
+              {{ (wizardOn() ? 'member.plotMap.wizard.disputed' : 'member.plotMap.status.disputed') | translate }}
             </span>
           }
         </h2>
@@ -297,6 +353,23 @@
       }
     </section>
     }
+
+    @if (layersSheetOpen()) {
+      <app-layers-sheet
+        [mode]="mapMode()"
+        [rs]="rsOverlayOn()"
+        [snap]="snapEnabled()"
+        [satellite]="satelliteOn()"
+        (modeChange)="selectMapMode($event)"
+        (rsToggle)="toggleRsOverlay()"
+        (snapToggle)="toggleSnap()"
+        (satelliteToggle)="toggleSatellite()"
+        (closed)="closeLayersSheet()"
+      />
+    }
+    @if (tourOpen()) {
+      <app-map-tour (closed)="tourOpen.set(false)" />
+    }
   </div>
 
   <!-- Draw panel -->
@@ -304,15 +377,191 @@
     <section class="details-sheet draw-panel" role="dialog" [attr.aria-label]="'member.plotMap.draw.open' | translate">
       <div class="sheet-grip" aria-hidden="true"></div>
       <header class="sheet-head">
+        @if (wizardOn()) {
+          <h2 class="sheet-title" data-testid="wizard-header">
+            {{ 'member.plotMap.wizard.stepHeader' | translate: { n: digits(wizardStepNumber()), title: ('member.plotMap.wizard.steps.' + wizardStep() | translate) } }}
+          </h2>
+        } @else {
         <h2 class="sheet-title">
           {{ (editingBoundary() ? 'member.plotMap.draw.editTitle' : 'member.plotMap.draw.title') | translate }}
         </h2>
+        }
         <button type="button" class="sheet-close" (click)="closeDrawPanel()">
           <app-icon name="close" [size]="16" />
         </button>
       </header>
 
-      @if (drawStep() === 'pick') {
+      @if (wizardOn()) {
+        @switch (wizardStep()) {
+          @case ('find') {
+            @if (availableProperties().length === 0) {
+              <p class="draw-empty">{{ 'member.plotMap.draw.noProperties' | translate }}</p>
+            } @else {
+              <p class="draw-hint">{{ 'member.plotMap.wizard.find.pick' | translate }}</p>
+              <ul class="property-list">
+                @for (property of availableProperties(); track property.id) {
+                  <li>
+                    <label class="property-option" [class.checked]="selectedPropertyId() === property.id">
+                      <input
+                        type="radio"
+                        name="wizard-property"
+                        [attr.data-testid]="'wizard-pick-' + property.id"
+                        [checked]="selectedPropertyId() === property.id"
+                        (change)="pickWizardProperty(property)"
+                      />
+                      <span>{{ propertyLabel(property) }}</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+            @switch (rsLookup()) {
+              @case ('loading') {
+                <p class="draw-hint" role="status">{{ 'member.plotMap.wizard.find.looking' | translate }}</p>
+              }
+              @case ('error') {
+                <p class="validation-error" role="alert">{{ 'member.plotMap.wizard.find.error' | translate }}</p>
+              }
+              @case ('none') {
+                <p class="validation-warning" role="status">{{ 'member.plotMap.wizard.find.notFound' | translate }}</p>
+              }
+              @case ('found') {
+                <p class="draw-hint" role="status">
+                  {{ (rsCandidates().length > 1 ? 'member.plotMap.wizard.find.foundMany' : 'member.plotMap.wizard.find.found') | translate }}
+                </p>
+                <ul class="property-list">
+                  @for (candidate of rsCandidates(); track $index) {
+                    <li>
+                      <label class="property-option" [class.checked]="rsCandidateIndex() === $index">
+                        <input
+                          type="radio"
+                          name="rs-candidate"
+                          data-testid="rs-candidate"
+                          [checked]="rsCandidateIndex() === $index"
+                          (change)="rsCandidateIndex.set($index)"
+                        />
+                        <span>{{ 'member.plotMap.wizard.find.candidate' | translate: candidateLabel(candidate) }}</span>
+                      </label>
+                    </li>
+                  }
+                </ul>
+                <button type="button" class="toolbar-btn primary wizard-btn" data-testid="rs-confirm" (click)="confirmRsCandidate()">
+                  {{ 'member.plotMap.wizard.find.thisIsMine' | translate }}
+                </button>
+              }
+            }
+            @if (rsLookup() === 'found' || rsLookup() === 'none' || rsLookup() === 'error') {
+              <div class="other-dag">
+                <input
+                  type="search"
+                  class="dag-search-input other-dag-input"
+                  inputmode="numeric"
+                  [placeholder]="'member.plotMap.wizard.find.otherPlaceholder' | translate"
+                  [attr.aria-label]="'member.plotMap.wizard.find.otherPlaceholder' | translate"
+                  [value]="otherDagQuery()"
+                  (input)="otherDagQuery.set($any($event.target).value)"
+                  (keydown.enter)="searchOtherDag()"
+                />
+                <button type="button" class="toolbar-btn wizard-btn" data-testid="rs-other" (click)="searchOtherDag()">
+                  {{ 'member.plotMap.wizard.find.other' | translate }}
+                </button>
+              </div>
+              <button type="button" class="toolbar-btn ghost wizard-btn" data-testid="rs-none" (click)="chooseDrawMyself()">
+                {{ 'member.plotMap.wizard.find.drawMyself' | translate }}
+              </button>
+            }
+            <ng-container [ngTemplateOutlet]="myBoundariesTpl" />
+          }
+          @case ('adjust') {
+            <div class="adjust-modes" role="group">
+              @if (chosenRs()) {
+                <button type="button" class="toolbar-btn wizard-btn" data-testid="adjust-from-dag" (click)="startFromDag()">
+                  {{ 'member.plotMap.wizard.adjust.fromDag' | translate }}
+                </button>
+              }
+              <button type="button" class="toolbar-btn wizard-btn" data-testid="adjust-draw" (click)="startFreehand()">
+                {{ 'member.plotMap.wizard.adjust.draw' | translate }}
+              </button>
+            </div>
+            @if (freehand()) {
+              <p class="draw-hint">{{ 'member.plotMap.wizard.adjust.drawHint' | translate }}</p>
+            }
+            <div class="history-row">
+              <button type="button" class="toolbar-btn wizard-btn" data-testid="undo" [disabled]="!canUndoEdit()" (click)="undoEdit()">
+                {{ 'member.plotMap.wizard.adjust.undo' | translate }}
+              </button>
+              <button type="button" class="toolbar-btn wizard-btn" data-testid="redo" [disabled]="!canRedoEdit()" (click)="redoEdit()">
+                {{ 'member.plotMap.wizard.adjust.redo' | translate }}
+              </button>
+            </div>
+            <button type="button" class="toolbar-btn ghost wizard-btn" data-testid="clear-all" (click)="clearAll()">
+              {{ 'member.plotMap.wizard.adjust.clear' | translate }}
+            </button>
+            <ng-container [ngTemplateOutlet]="validationTpl" />
+            @if (saveErrorKey(); as key) {
+              <div class="error-box" role="alert">
+                <p class="error-text">{{ key | translate }}</p>
+              </div>
+            }
+            <div class="draw-actions">
+              <button type="button" class="toolbar-btn ghost wizard-btn" (click)="cancelDraw()">{{ 'common.cancel' | translate }}</button>
+              <button
+                type="button"
+                class="toolbar-btn primary wizard-btn"
+                data-testid="adjust-next"
+                [disabled]="!validation().valid"
+                (click)="goToSubmitStep()"
+              >{{ 'member.plotMap.wizard.adjust.next' | translate }}</button>
+            </div>
+          }
+          @case ('submit') {
+            <dl class="wizard-summary" data-testid="wizard-summary">
+              <div class="fact">
+                <dt>{{ 'member.plotMap.wizard.submit.property' | translate }}</dt>
+                <dd>{{ selectedProperty() ? propertyLabel(selectedProperty()!) : '—' }}</dd>
+              </div>
+              <div class="fact">
+                <dt>{{ 'member.plotMap.wizard.submit.dag' | translate }}</dt>
+                <dd>{{ dagLabelFor(selectedProperty()) }}</dd>
+              </div>
+              <div class="fact">
+                <dt>{{ 'member.plotMap.wizard.submit.area' | translate }}</dt>
+                <dd>
+                  {{ digits(validation().areaSqM) }} m² · {{ digits(validation().areaShotangsho) }}
+                  {{ 'member.plotMap.details.shotangsho' | translate }}
+                </dd>
+              </div>
+              <div class="fact">
+                <dt>{{ 'member.plotMap.wizard.submit.match' | translate }}</dt>
+                <dd>
+                  @if (rsMatch(); as match) {
+                    {{ (match.diverges ? 'member.plotMap.draw.rsDiverges' : 'member.plotMap.draw.rsMatch') | translate: { dag: digits(match.rsPlotNo), pct: digits(match.matchPct) } }}
+                  } @else {
+                    {{ 'member.plotMap.wizard.submit.noMatch' | translate }}
+                  }
+                </dd>
+              </div>
+            </dl>
+            <ng-container [ngTemplateOutlet]="validationTpl" />
+            <p class="draw-hint">{{ 'member.plotMap.wizard.notice.short' | translate }}</p>
+            @if (saveErrorKey(); as key) {
+              <div class="error-box" role="alert">
+                <p class="error-text">{{ key | translate }}</p>
+              </div>
+            }
+            <div class="draw-actions">
+              <button type="button" class="toolbar-btn ghost wizard-btn" (click)="backToAdjustStep()">{{ 'member.plotMap.wizard.adjust.back' | translate }}</button>
+              <button
+                type="button"
+                class="toolbar-btn primary wizard-btn"
+                data-testid="submit-go"
+                [disabled]="!validation().valid || saving()"
+                (click)="requestSave()"
+              >{{ 'member.plotMap.wizard.submit.go' | translate }}</button>
+            </div>
+          }
+        }
+      } @else if (drawStep() === 'pick') {
         @if (availableProperties().length === 0) {
           <p class="draw-empty">{{ 'member.plotMap.draw.noProperties' | translate }}</p>
         } @else {
@@ -349,73 +598,7 @@
           </button>
         }
 
-        @if (myBoundaries().length) {
-          <h3 class="mine-heading">{{ 'member.plotMap.draw.myBoundaries' | translate }}</h3>
-          <ul class="mine-list">
-            @for (boundary of myBoundaries(); track boundary.id) {
-              <li class="mine-item">
-                <div class="mine-info">
-                  <span class="status-chip" [class]="'status-' + boundary.reviewStatus">
-                    {{ 'member.plotMap.status.' + boundary.reviewStatus | translate }}
-                  </span>
-                  <span class="mine-dag">{{ boundaryLabel(boundary) }}</span>
-                </div>
-
-                <!-- Status timeline: submitted → under review → approved/rejected -->
-                <ol class="status-timeline" aria-label="review status">
-                  <li [class.done]="true">
-                    {{ 'member.plotMap.timeline.submitted' | translate }}
-                  </li>
-                  <li
-                    [class.done]="boundary.reviewStatus !== 'pending'"
-                    [class.active]="boundary.reviewStatus === 'pending'"
-                  >
-                    {{ 'member.plotMap.timeline.underReview' | translate }}
-                  </li>
-                  @if (boundary.reviewStatus === 'rejected') {
-                    <li class="done rejected">
-                      {{ 'member.plotMap.status.rejected' | translate }}
-                    </li>
-                  } @else {
-                    <li [class.done]="boundary.liveReviewStatus === 'approved'">
-                      {{ 'member.plotMap.timeline.approved' | translate }}
-                    </li>
-                  }
-                </ol>
-                @if (boundary.reviewStatus === 'pending') {
-                  <p class="pending-hint">
-                    {{ 'member.plotMap.timeline.pendingHint' | translate }}
-                  </p>
-                }
-                @if (boundary.reviewStatus === 'rejected' && boundary.reviewNote) {
-                  <p class="review-note">
-                    {{ 'member.plotMap.timeline.rejectionNote' | translate }}:
-                    {{ boundary.reviewNote }}
-                  </p>
-                }
-
-                <div class="mine-actions">
-                  <button
-                    type="button"
-                    class="toolbar-btn ghost"
-                    (click)="startEditing(boundary)"
-                  >
-                    <span class="btn-label">{{ 'member.plotMap.draw.edit' | translate }}</span>
-                  </button>
-                  @if (boundary.hasPending) {
-                    <button
-                      type="button"
-                      class="toolbar-btn danger"
-                      (click)="withdrawTarget.set(boundary)"
-                    >
-                      <span class="btn-label">{{ 'member.plotMap.draw.withdraw' | translate }}</span>
-                    </button>
-                  }
-                </div>
-              </li>
-            }
-          </ul>
-        }
+        <ng-container [ngTemplateOutlet]="myBoundariesTpl" />
       } @else {
         <div class="snap-row">
           <label class="snap-toggle" [class.disabled]="!rsOverlayOn()">
@@ -451,55 +634,7 @@
             {{ 'member.plotMap.draw.rsNoMatch' | translate }}
           </p>
         }
-        <div class="validation-panel" aria-live="polite">
-          @if (validation(); as v) {
-            @if (v.selfIntersection) {
-              <p class="validation-error">
-                <app-icon name="alert" [size]="14" />
-                {{ 'member.plotMap.validation.selfIntersection' | translate }}
-              </p>
-            }
-            @if (v.outsideSociety) {
-              <p class="validation-error">
-                <app-icon name="alert" [size]="14" />
-                {{ 'member.plotMap.validation.outsideSociety' | translate }}
-              </p>
-            }
-            @if (v.areaExceeds) {
-              <p class="validation-error" role="alert">
-                <app-icon name="alert" [size]="14" />
-                {{ 'member.plotMap.validation.areaExceeds' | translate }}
-              </p>
-            }
-            @if (v.areaMismatch && !v.areaExceeds) {
-              <p class="validation-warning">
-                <app-icon name="alert" [size]="14" />
-                {{ 'member.plotMap.validation.areaMismatch' | translate }}
-              </p>
-            }
-            @if (v.declaredShotangsho !== null) {
-              <p class="validation-meta">
-                {{ 'member.plotMap.validation.declared' | translate }}:
-                {{ digits(v.declaredShotangsho) }}
-                {{ 'member.plotMap.details.shotangsho' | translate }}
-              </p>
-            }
-            @if (v.areaSqM !== null) {
-              <p class="validation-meta">
-                {{ 'member.plotMap.validation.area' | translate }}:
-                {{ digits(v.areaSqM) }} m² ·
-                {{ digits(v.areaShotangsho) }}
-                {{ 'member.plotMap.details.shotangsho' | translate }}
-              </p>
-            }
-            @if (!v.selfIntersection && !v.outsideSociety && !v.areaMismatch && !v.areaExceeds && v.areaSqM !== null) {
-              <p class="validation-ok">
-                <app-icon name="check-circle" [size]="14" />
-                {{ 'member.plotMap.validation.ok' | translate }}
-              </p>
-            }
-          }
-        </div>
+        <ng-container [ngTemplateOutlet]="validationTpl" />
         @if (saveErrorKey(); as key) {
           <div class="error-box" role="alert">
             <p class="error-text">{{ key | translate }}</p>
@@ -594,3 +729,125 @@
     (cancel)="cancelWithdraw()"
   />
 </div>
+
+<ng-template #myBoundariesTpl>
+        @if (myBoundaries().length) {
+          <h3 class="mine-heading">{{ 'member.plotMap.draw.myBoundaries' | translate }}</h3>
+          <ul class="mine-list">
+            @for (boundary of myBoundaries(); track boundary.id) {
+              <li class="mine-item">
+                <div class="mine-info">
+                  <span class="status-chip" [class]="'status-' + boundary.reviewStatus">
+                    {{ 'member.plotMap.status.' + boundary.reviewStatus | translate }}
+                  </span>
+                  <span class="mine-dag">{{ boundaryLabel(boundary) }}</span>
+                </div>
+
+                <!-- Status timeline: submitted → under review → approved/rejected -->
+                <ol class="status-timeline" aria-label="review status">
+                  <li [class.done]="true">
+                    {{ 'member.plotMap.timeline.submitted' | translate }}
+                  </li>
+                  <li
+                    [class.done]="boundary.reviewStatus !== 'pending'"
+                    [class.active]="boundary.reviewStatus === 'pending'"
+                  >
+                    {{ 'member.plotMap.timeline.underReview' | translate }}
+                  </li>
+                  @if (boundary.reviewStatus === 'rejected') {
+                    <li class="done rejected">
+                      {{ 'member.plotMap.status.rejected' | translate }}
+                    </li>
+                  } @else {
+                    <li [class.done]="boundary.liveReviewStatus === 'approved'">
+                      {{ 'member.plotMap.timeline.approved' | translate }}
+                    </li>
+                  }
+                </ol>
+                @if (boundary.reviewStatus === 'pending') {
+                  <p class="pending-hint">
+                    {{ 'member.plotMap.timeline.pendingHint' | translate }}
+                  </p>
+                }
+                @if (boundary.reviewStatus === 'rejected' && boundary.reviewNote) {
+                  <p class="review-note">
+                    {{ 'member.plotMap.timeline.rejectionNote' | translate }}:
+                    {{ boundary.reviewNote }}
+                  </p>
+                }
+
+                <div class="mine-actions">
+                  <button
+                    type="button"
+                    class="toolbar-btn ghost"
+                    (click)="startEditing(boundary)"
+                  >
+                    <span class="btn-label">{{ 'member.plotMap.draw.edit' | translate }}</span>
+                  </button>
+                  @if (boundary.hasPending) {
+                    <button
+                      type="button"
+                      class="toolbar-btn danger"
+                      (click)="withdrawTarget.set(boundary)"
+                    >
+                      <span class="btn-label">{{ 'member.plotMap.draw.withdraw' | translate }}</span>
+                    </button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+</ng-template>
+
+<ng-template #validationTpl>
+        <div class="validation-panel" aria-live="polite">
+          @if (validation(); as v) {
+            @if (v.selfIntersection) {
+              <p class="validation-error">
+                <app-icon name="alert" [size]="14" />
+                {{ 'member.plotMap.validation.selfIntersection' | translate }}
+              </p>
+            }
+            @if (v.outsideSociety) {
+              <p class="validation-error">
+                <app-icon name="alert" [size]="14" />
+                {{ 'member.plotMap.validation.outsideSociety' | translate }}
+              </p>
+            }
+            @if (v.areaExceeds) {
+              <p class="validation-error" role="alert">
+                <app-icon name="alert" [size]="14" />
+                {{ 'member.plotMap.validation.areaExceeds' | translate }}
+              </p>
+            }
+            @if (v.areaMismatch && !v.areaExceeds) {
+              <p class="validation-warning">
+                <app-icon name="alert" [size]="14" />
+                {{ 'member.plotMap.validation.areaMismatch' | translate }}
+              </p>
+            }
+            @if (v.declaredShotangsho !== null) {
+              <p class="validation-meta">
+                {{ 'member.plotMap.validation.declared' | translate }}:
+                {{ digits(v.declaredShotangsho) }}
+                {{ 'member.plotMap.details.shotangsho' | translate }}
+              </p>
+            }
+            @if (v.areaSqM !== null) {
+              <p class="validation-meta">
+                {{ 'member.plotMap.validation.area' | translate }}:
+                {{ digits(v.areaSqM) }} m² ·
+                {{ digits(v.areaShotangsho) }}
+                {{ 'member.plotMap.details.shotangsho' | translate }}
+              </p>
+            }
+            @if (!v.selfIntersection && !v.outsideSociety && !v.areaMismatch && !v.areaExceeds && v.areaSqM !== null) {
+              <p class="validation-ok">
+                <app-icon name="check-circle" [size]="14" />
+                {{ 'member.plotMap.validation.ok' | translate }}
+              </p>
+            }
+          }
+        </div>
+</ng-template>

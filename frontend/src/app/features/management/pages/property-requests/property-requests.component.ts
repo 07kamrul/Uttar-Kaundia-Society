@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -10,6 +10,9 @@ import {
   type MemberPropertyRequest,
   type PropertyRequestStatus,
 } from '../../../../core/services/member.service';
+import { ReasonPickerComponent } from '../../../../shared/reason-picker/reason-picker.component';
+import { REASON_CATEGORY } from '../../../../shared/reason-picker/reject-reasons';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -19,11 +22,14 @@ import { formatPhone } from '../../../../shared/phone/phone-format';
   selector: 'app-property-requests',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent],
+  imports: [FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, ReasonPickerComponent],
   templateUrl: './property-requests.component.html',
   styleUrl: './property-requests.component.scss',
 })
 export class PropertyRequestsComponent implements OnInit {
+  /** admin_console: canned reject reasons. */
+  readonly consoleOn = inject(FeatureFlagService).isEnabled('admin_console');
+  readonly reasonCategory = REASON_CATEGORY.propertyRequest;
   requests: MemberPropertyRequest[] = [];
   statusFilter: PropertyRequestStatus | '' = 'pending';
   loading = false;

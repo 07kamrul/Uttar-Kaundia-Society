@@ -8,12 +8,24 @@ import '../../domain/admin_entities.dart';
 part 'submissions_event.dart';
 part 'submissions_state.dart';
 
+/// The effective search term: trimmed, and empty under two characters.
+String normalizeSearch(String raw) {
+  final q = raw.trim();
+  return q.runes.length >= 2 ? q : '';
+}
+
 class SubmissionsBloc extends Bloc<SubmissionsEvent, SubmissionsState> {
   SubmissionsBloc({required AdminRepository repository})
       : _repository = repository,
         super(const SubmissionsData(
             filter: SubmissionStatus.pending, loading: true)) {
     on<SubmissionsLoadRequested>((event, emit) => _load(emit));
+    on<SubmissionsSearchChanged>((event, emit) async {
+      final q = normalizeSearch(event.query);
+      if (q == state.search) return;
+      emit(_d.copyWith(search: q));
+      await _load(emit);
+    });
     on<SubmissionsFilterChanged>((event, emit) async {
       emit(_d.copyWith(filter: () => event.filter));
       await _load(emit);
@@ -30,7 +42,10 @@ class SubmissionsBloc extends Bloc<SubmissionsEvent, SubmissionsState> {
   Future<void> _load(Emitter<SubmissionsState> emit) async {
     emit(_d.copyWith(loading: true, error: () => null));
     try {
-      final items = await _repository.listSubmissions(status: state.filter);
+      final items = await _repository.listSubmissions(
+        status: state.filter,
+        search: state.search.isEmpty ? null : state.search,
+      );
       emit(_d.copyWith(items: items, loading: false));
     } catch (e) {
       emit(_d.copyWith(loading: false, error: () => e));

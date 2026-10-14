@@ -26,6 +26,7 @@ import '../../features/management/pages/roadmap_management_page.dart';
 import '../../features/management/pages/society_costs_page.dart';
 import '../../features/management/pages/submission_detail_page.dart';
 import '../../features/management/pages/submissions_list_page.dart';
+import '../../features/management/pages/today_page.dart';
 import '../../features/member/pages/change_password_page.dart';
 import '../../features/member/pages/cost_shares_page.dart';
 import '../../features/member/pages/fund_transparency_page.dart';
@@ -80,7 +81,7 @@ GoRouter buildRouter() {
       ShellRoute(
         builder: (context, state, child) => ShellPage(child: child),
         routes: [
-          GoRoute(path: '/dashboard', builder: (_, __) => const _DashboardSwitch()),
+          GoRoute(path: '/dashboard', builder: (_, __) => const DashboardSwitch()),
           GoRoute(path: '/payments', builder: _paymentsBuilder),
           GoRoute(path: '/my-land', builder: (_, __) => const MyLandHubPage()),
           GoRoute(path: '/organisation', builder: (_, __) => const OrganisationHubPage()),
@@ -181,18 +182,32 @@ GoRouter buildRouter() {
   );
 }
 
-/// nav_five_areas: members get the "আমার অবস্থা" home; everyone else (and the
-/// flag off) keeps the dashboard.
-class _DashboardSwitch extends StatelessWidget {
-  const _DashboardSwitch();
+/// The landing page. nav_five_areas: members get the "আমার অবস্থা" home.
+/// admin_console: admins get "আজকের কাজ". Everyone else (and every flag off)
+/// keeps the dashboard. [legacy] / [today] are test seams.
+class DashboardSwitch extends StatelessWidget {
+  const DashboardSwitch({super.key, this.legacy, this.today});
+
+  final Widget? legacy;
+  final Widget? today;
 
   @override
-  Widget build(BuildContext context) => FeatureFlagBuilder(
+  Widget build(BuildContext context) {
+    final tier = sl<SessionManager>().session?.landingTier;
+    return FeatureFlagBuilder(
+      flag: FeatureFlag.adminConsole,
+      builder: (_, console) => FeatureFlagBuilder(
         flag: FeatureFlag.navFiveAreas,
-        builder: (_, on) => on && sl<SessionManager>().session?.landingTier == LandingTier.member
-            ? const HomeStatusPage()
-            : const DashboardPage(),
-      );
+        builder: (_, areas) {
+          if (console && tier != null && tier != LandingTier.member) {
+            return today ?? const TodayPage();
+          }
+          if (areas && tier == LandingTier.member) return const HomeStatusPage();
+          return legacy ?? const DashboardPage();
+        },
+      ),
+    );
+  }
 }
 
 /// `/payments?kind=installment|other_fee|cost_share&status=…&fee=picnic`.

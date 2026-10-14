@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import 'api_exception.dart';
+import 'network_status.dart';
 
 /// Thin dio wrapper: Bearer token attach, 401 -> onUnauthorized callback
 /// (mirrors Angular auth.interceptor.ts), error mapping to [ApiException].
@@ -11,6 +12,7 @@ class ApiClient {
     required TokenProvider tokenProvider,
     required void Function() onUnauthorized,
     Dio? dio,
+    NetworkObserver? networkObserver,
   })  : _tokenProvider = tokenProvider,
         _onUnauthorized = onUnauthorized {
     _dio = dio ??
@@ -36,6 +38,28 @@ class ApiClient {
           handler.next(options);
         },
       ));
+    // Offline / slow detection for the net_status_banner. Timing only: it
+    // never changes a request or its result.
+    if (networkObserver != null) {
+      _dio.interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          networkObserver.requestStarted(options);
+          handler.next(options);
+        },
+        onResponse: (response, handler) {
+          networkObserver.requestSucceeded(response.requestOptions);
+          handler.next(response);
+        },
+        onError: (error, handler) {
+          networkObserver.requestFailed(
+            error.requestOptions,
+            offline: error.type == DioExceptionType.connectionError ||
+                error.type == DioExceptionType.connectionTimeout,
+          );
+          handler.next(error);
+        },
+      ));
+    }
     if (kDebugMode && AppConfig.flavor == 'dev') {
       _dio.interceptors.add(
         LogInterceptor(requestHeader: false, requestBody: false, responseBody: false),

@@ -6,18 +6,26 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/data_saver/data_saver.dart';
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart'
+    show flagEnabled;
 import '../../../../l10n/app_localizations.dart';
 import '../../../member/domain/finance_entities.dart' show toBanglaDigits;
 import '../../../../shared/widgets/widgets.dart';
-import '../../domain/boundary_validation.dart';
 import '../../domain/geo.dart';
+import '../../domain/land_entities.dart';
+import '../../domain/map_tile_session.dart';
 import '../../domain/plot_boundary_entities.dart';
-import '../../domain/plot_boundary_failure.dart';
 import '../bloc/boundary_editor_bloc.dart';
+import '../bloc/rs_lookup_cubit.dart';
 import '../widgets/boundary_disclaimer_banner.dart';
-import '../widgets/draw_panel_sheet.dart' show confirmAction;
+import '../widgets/boundary_editor_messages.dart';
+import '../widgets/boundary_editor_wizard.dart';
+import '../widgets/map/map_tile_gate.dart';
 import '../widgets/map/plot_map_canvas.dart'
     show kMapBoundsPadding, kMapMaxZoom, kMapMinZoom;
+import '../widgets/short_disclaimer.dart';
 
 /// Tap-to-draw polygon editor: vertices are added by tapping the map, moved
 /// by dragging their markers, removed via long-press / list. Save POSTs (or
@@ -29,7 +37,20 @@ class BoundaryEditorPage extends StatelessWidget {
     this.editing,
     this.initialPropertyId,
     this.tileProvider,
+    this.wizard,
+    this.dataSaver,
+    this.createLookupCubit,
   });
+
+  /// map_wizard (three steps); read from the feature flag when null.
+  final bool? wizard;
+
+  /// Data saver (Batch 7): the map asks before downloading tiles. Taken from
+  /// the flag and the member's switch when null.
+  final bool? dataSaver;
+
+  /// Test seam for the RS plot lookup of step 1.
+  final RsLookupCubit Function()? createLookupCubit;
 
   final BoundaryEditorBloc Function()? createBloc;
 
@@ -46,18 +67,42 @@ class BoundaryEditorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => (createBloc?.call() ?? BoundaryEditorBloc())
-        ..add(EditorStarted(editing: editing)),
-      child: _EditorView(tileProvider: tileProvider),
+    final isWizard = wizard ?? flagEnabled(FeatureFlag.mapWizard);
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              (createBloc?.call() ?? BoundaryEditorBloc(wizard: isWizard))
+                ..add(EditorStarted(
+                  editing: editing,
+                  // The legacy page never forwarded it; unchanged when off.
+                  propertyId: isWizard ? initialPropertyId : null,
+                )),
+        ),
+        if (isWizard)
+          BlocProvider(
+            create: (_) => createLookupCubit?.call() ?? RsLookupCubit(),
+          ),
+      ],
+      child: _EditorView(
+        tileProvider: tileProvider,
+        wizard: isWizard,
+        dataSaver: dataSaver ?? dataSaverActive(),
+      ),
     );
   }
 }
 
 class _EditorView extends StatefulWidget {
-  const _EditorView({this.tileProvider});
+  const _EditorView({
+    this.tileProvider,
+    this.wizard = false,
+    this.dataSaver = false,
+  });
 
   final TileProvider? tileProvider;
+  final bool wizard;
+  final bool dataSaver;
 
   @override
   State<_EditorView> createState() => _EditorViewState();
@@ -65,6 +110,46 @@ class _EditorView extends StatefulWidget {
 
 class _EditorViewState extends State<_EditorView> {
   final _mapController = MapController();
+
+  /// map_wizard data-saver start: no tiles until the member asks (or already
+  /// agreed this session with data saver off). Always on for the legacy editor.
+  late bool _tiles = !widget.wizard || (MapTileSession.ok && !widget.dataSaver);
+
+  void _showTiles() {
+    MapTileSession.remember();
+    setState(() => _tiles = true);
+  }
+
+  /// Step 1: look the chosen property's RS dag up (or clear the result).
+  void _lookupFor(BoundaryEditorState s) {
+    final cubit = context.read<RsLookupCubit>();
+    final dag = (s.selectedProperty?.rsDag ?? '').trim();
+    if (dag.isEmpty) {
+      cubit.reset();
+    } else {
+      cubit.lookup(dag);
+    }
+  }
+
+  void _fitCandidates(List<LandPlot> plots) {
+    final box = SocietyBbox.around([
+      for (final p in plots)
+        for (final r in p.rings) ...r,
+    ]);
+    if (box == null) return;
+    // The map may not have been built yet when a fast lookup answers.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _mapController.fitCamera(CameraFit.bounds(
+        bounds: LatLngBounds(
+          LatLng(box.minLat, box.minLng),
+          LatLng(box.maxLat, box.maxLng),
+        ),
+        padding: const EdgeInsets.all(48),
+        maxZoom: 18,
+      ));
+    });
+  }
 
   @override
   void dispose() {
@@ -85,35 +170,100 @@ class _EditorViewState extends State<_EditorView> {
           }
         },
         builder: (context, state) {
-          if (state.status == EditorStatus.loading) {
-            return const SkeletonLoader(lines: 4);
-          }
-          if (state.status == EditorStatus.failure &&
-              state.properties.isEmpty) {
-            return InlineError(
-              message: _failureMessage(state.failureKind, loc),
-              onRetry: () =>
-                  context.read<BoundaryEditorBloc>().add(const EditorStarted()),
-            );
-          }
-          return Column(
-            children: [
-              const BoundaryDisclaimerBanner(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-                child: _PropertyPicker(state: state),
+          final body = _body(context, loc, state);
+          if (!widget.wizard) return body;
+          return MultiBlocListener(
+            listeners: [
+              BlocListener<BoundaryEditorBloc, BoundaryEditorState>(
+                listenWhen: (a, b) =>
+                    b.step == EditorStep.find &&
+                    b.status == EditorStatus.ready &&
+                    (a.selectedPropertyId != b.selectedPropertyId ||
+                        a.status != b.status ||
+                        a.step != b.step),
+                listener: (_, s) => _lookupFor(s),
               ),
-              Expanded(
-                child: _EditorMap(
-                  mapController: _mapController,
-                  tileProvider: widget.tileProvider,
-                ),
+              BlocListener<RsLookupCubit, RsLookupState>(
+                listenWhen: (a, b) =>
+                    a.status != b.status && b.status == RsLookupStatus.found,
+                listener: (_, s) => _fitCandidates(s.candidates),
               ),
-              _EditorToolbar(state: state),
             ],
+            child: body,
           );
         },
       ),
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    AppLocalizations loc,
+    BoundaryEditorState state,
+  ) {
+    if (state.status == EditorStatus.loading) {
+      return const SkeletonLoader(lines: 4);
+    }
+    if (state.status == EditorStatus.failure && state.properties.isEmpty) {
+      return InlineError(
+        message: boundaryFailureMessage(state.failureKind, loc),
+        onRetry: () =>
+            context.read<BoundaryEditorBloc>().add(const EditorStarted()),
+      );
+    }
+    if (widget.wizard) return _wizardLayout(state);
+    return Column(
+      children: [
+        const BoundaryDisclaimerBanner(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: _PropertyPicker(state: state),
+        ),
+        Expanded(
+          child: _EditorMap(
+            mapController: _mapController,
+            tileProvider: widget.tileProvider,
+          ),
+        ),
+        _EditorToolbar(state: state),
+      ],
+    );
+  }
+
+  Widget _wizardLayout(BoundaryEditorState state) {
+    final step = state.step;
+    return Column(
+      children: [
+        WizardStepHeader(step: step),
+        if (step != EditorStep.submit)
+          const ShortDisclaimer(margin: EdgeInsets.fromLTRB(12, 8, 12, 0)),
+        if (step == EditorStep.find)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: _PropertyPicker(state: state),
+          ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _EditorMap(
+                  mapController: _mapController,
+                  tileProvider: widget.tileProvider,
+                  wizard: true,
+                  tilesRequested: _tiles,
+                ),
+              ),
+              if (!_tiles)
+                Positioned.fill(child: MapTileGateCard(onShow: _showTiles)),
+            ],
+          ),
+        ),
+        switch (step) {
+          EditorStep.find => const FindStepPanel(),
+          EditorStep.adjust => const AdjustStepPanel(),
+          EditorStep.submit => const SubmitStepPanel(),
+        },
+      ],
     );
   }
 }
@@ -177,16 +327,26 @@ class _PropertyPicker extends StatelessWidget {
 }
 
 class _EditorMap extends StatelessWidget {
-  const _EditorMap({required this.mapController, this.tileProvider});
+  const _EditorMap({
+    required this.mapController,
+    this.tileProvider,
+    this.wizard = false,
+    this.tilesRequested = true,
+  });
 
   final MapController mapController;
   final TileProvider? tileProvider;
 
+  /// map_wizard: RS candidates are outlined, one undo step per drag, and taps
+  /// add points only in the "adjust" step.
+  final bool wizard;
+  final bool tilesRequested;
+
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<BoundaryEditorBloc>();
-    final area =
-        SocietyBbox.tryParse(AppConfig.societyBboxRaw)?.padded(kMapBoundsPadding);
+    final area = SocietyBbox.tryParse(AppConfig.societyBboxRaw)
+        ?.padded(kMapBoundsPadding);
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
@@ -205,14 +365,22 @@ class _EditorMap extends StatelessWidget {
                   LatLng(area.maxLat, area.maxLng),
                 ),
               ),
-        onTap: (_, latLng) => bloc.add(EditorVertexAdded(latLng)),
+        backgroundColor: tilesRequested
+            ? const Color(0xFFE0E0E0)
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
+        onTap: (_, latLng) {
+          if (wizard && bloc.state.step != EditorStep.adjust) return;
+          bloc.add(EditorVertexAdded(latLng));
+        },
       ),
       children: [
-        TileLayer(
-          urlTemplate: AppConfig.mapTileUrl,
-          tileProvider: tileProvider,
-          userAgentPackageName: 'bd.kaundia.app',
-        ),
+        if (tilesRequested)
+          TileLayer(
+            urlTemplate: AppConfig.mapTileUrl,
+            tileProvider: tileProvider,
+            userAgentPackageName: 'bd.kaundia.app',
+          ),
+        if (wizard) const _CandidateLayer(),
         BlocBuilder<BoundaryEditorBloc, BoundaryEditorState>(
           buildWhen: (a, b) => a.vertices != b.vertices,
           builder: (context, state) {
@@ -253,9 +421,10 @@ class _EditorMap extends StatelessWidget {
             );
           },
         ),
-        RichAttributionWidget(
-          attributions: [TextSourceAttribution('OpenStreetMap contributors')],
-        ),
+        if (tilesRequested)
+          RichAttributionWidget(
+            attributions: [TextSourceAttribution('OpenStreetMap contributors')],
+          ),
       ],
     );
   }
@@ -272,6 +441,12 @@ class _EditorMap extends StatelessWidget {
       height: 44,
       alignment: Alignment.center,
       child: GestureDetector(
+        onPanStart:
+            wizard ? (_) => bloc.add(EditorVertexMoveStarted(index)) : null,
+        onPanEnd:
+            wizard ? (_) => bloc.add(const EditorVertexMoveEnded()) : null,
+        onPanCancel:
+            wizard ? () => bloc.add(const EditorVertexMoveEnded()) : null,
         onPanUpdate: (details) {
           // Convert the pixel delta to a geographic offset around the vertex.
           final camera = mapController.camera;
@@ -295,6 +470,32 @@ class _EditorMap extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// map_wizard: the RS plot(s) found in step 1, outlined on the map.
+class _CandidateLayer extends StatelessWidget {
+  const _CandidateLayer();
+
+  @override
+  Widget build(BuildContext context) {
+    final lookup = context.watch<RsLookupCubit>().state;
+    if (lookup.candidates.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    const amber = Color(0xFFC9861E);
+    return PolygonLayer(
+      polygons: [
+        for (final plot in lookup.candidates)
+          for (final ring in plot.rings)
+            Polygon(
+              points: ring,
+              color: amber.withValues(alpha: 0.18),
+              borderColor:
+                  identical(plot, lookup.selected) ? scheme.primary : amber,
+              borderStrokeWidth: identical(plot, lookup.selected) ? 4 : 2,
+            ),
+      ],
     );
   }
 }
@@ -358,7 +559,7 @@ class _EditorToolbar extends StatelessWidget {
                 FilledButton(
                   onPressed:
                       state.canSave && state.status != EditorStatus.saving
-                          ? () => _save(context, bloc, state)
+                          ? () => saveBoundaryWithConfirm(context, bloc, state)
                           : null,
                   child: state.status == EditorStatus.saving
                       ? const SizedBox(
@@ -379,7 +580,7 @@ class _EditorToolbar extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        _errorLabel(validation.error!, loc),
+                        boundaryErrorLabel(validation.error!, loc),
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: theme.colorScheme.error),
                       ),
@@ -428,7 +629,7 @@ class _EditorToolbar extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  _failureMessage(state.failureKind, loc),
+                  boundaryFailureMessage(state.failureKind, loc),
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.error),
                 ),
@@ -447,58 +648,8 @@ class _EditorToolbar extends StatelessWidget {
     );
   }
 
-  /// Saving over a pending review replaces it, so ask first.
-  Future<void> _save(
-    BuildContext context,
-    BoundaryEditorBloc bloc,
-    BoundaryEditorState state,
-  ) async {
-    if (state.editingHasPending) {
-      final loc = AppLocalizations.of(context);
-      final confirmed = await confirmAction(
-        context,
-        title: loc.plotMapDrawReplaceTitle,
-        message: loc.plotMapDrawReplaceMessage,
-        confirmLabel: loc.commonSave,
-      );
-      if (!confirmed) return;
-    }
-    bloc.add(const EditorSaveRequested());
-  }
-
   String _digits(BuildContext context, String text) =>
       Localizations.localeOf(context).languageCode == 'bn'
           ? toBanglaDigits(text)
           : text;
 }
-
-String _errorLabel(BoundaryError error, AppLocalizations loc) =>
-    switch (error) {
-      BoundaryError.tooFewPoints => loc.boundaryErrorTooFewPoints,
-      BoundaryError.selfIntersecting => loc.boundaryErrorSelfIntersecting,
-      BoundaryError.outsideSociety => loc.boundaryErrorOutsideSociety,
-      BoundaryError.zeroArea => loc.boundaryErrorZeroArea,
-      BoundaryError.tooManyVertices => loc.boundaryErrorTooManyVertices,
-    };
-
-String _failureMessage(
-  PlotBoundaryFailureKind? kind,
-  AppLocalizations loc,
-) =>
-    switch (kind) {
-      PlotBoundaryFailureKind.network => loc.commonNetworkError,
-      PlotBoundaryFailureKind.selfIntersecting =>
-        loc.boundaryErrorSelfIntersecting,
-      PlotBoundaryFailureKind.outsideSociety => loc.boundaryErrorOutsideSociety,
-      PlotBoundaryFailureKind.zeroArea => loc.boundaryErrorZeroArea,
-      PlotBoundaryFailureKind.tooManyVertices =>
-        loc.boundaryErrorTooManyVertices,
-      PlotBoundaryFailureKind.invalidGeometry =>
-        loc.boundaryErrorInvalidGeometry,
-      PlotBoundaryFailureKind.notYourProperty =>
-        loc.boundaryErrorNotYourProperty,
-      PlotBoundaryFailureKind.boundaryExists => loc.boundaryErrorBoundaryExists,
-      PlotBoundaryFailureKind.rateLimited => loc.boundaryErrorRateLimited,
-      PlotBoundaryFailureKind.notApproved => loc.boundaryErrorNotApproved,
-      PlotBoundaryFailureKind.other || null => loc.boundaryErrorGeneric,
-    };

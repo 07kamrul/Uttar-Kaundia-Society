@@ -2267,5 +2267,108 @@
     }
   },
   "mapWizardMatchLow": "মিল কম — অফিস যাচাই করবে।",
-  "mapWizardNoMatch": "তুলনা করার মতো আরএস দাগ নেই।"
+  "mapWizardNoMatch": "তুলনা করার মতো আরএস দাগ নেই।",
+  "todayTitle": "আজকের কাজ",
+  "todayEmpty": "আজ কোনো জমে থাকা কাজ নেই",
+  "todayLoadError": "তথ্য আনা যায়নি",
+  "todayRegistrations": "নতুন নিবন্ধন",
+  "todayMembershipApplications": "সদস্যপদের আবেদন",
+  "todayNeedsDag": "দাগ দরকার",
+  "todayPaymentVerifications": "পেমেন্ট যাচাই",
+  "todayComplaints": "অভিযোগ",
+  "todayOverdue": "দেরি হয়েছে",
+  "todayDueSoon": "শীঘ্রই সময় শেষ",
+  "todayPropertyRequests": "সম্পত্তির অনুরোধ",
+  "todayBoundaries": "সীমানা যাচাই",
+  "todayCommitteeTerms": "কমিটির মেয়াদ শেষ হচ্ছে",
+  "todayPhoneFixes": "ফোন নম্বর ঠিক করুন",
+  "adminSearchHint": "নাম / মোবাইল / সদস্য আইডি",
+  "bulkSelectRow": "নির্বাচন করুন",
+  "bulkSelectedBar": "{count}টি নির্বাচিত · মোট {total}",
+  "@bulkSelectedBar": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkApproveAction": "নির্বাচিতগুলো অনুমোদন করুন",
+  "bulkConfirmTitle": "{count}টি পেমেন্ট, মোট {total} অনুমোদন করবেন?",
+  "@bulkConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkConfirmYes": "নিশ্চিত করুন",
+  "bulkResultAllOk": "{ok}টি অনুমোদিত",
+  "@bulkResultAllOk": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkResultPartial": "{ok}টি অনুমোদিত, {failed}টি হয়নি — কারণ: {reasons}",
+  "@bulkResultPartial": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      },
+      "failed": {
+        "type": "String"
+      },
+      "reasons": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkStale": "তালিকা বদলে গেছে, আবার দেখুন",
+  "bulkFailNoLongerDue": "আর বকেয়া নেই",
+  "bulkFailAlreadyReviewed": "আগেই যাচাই হয়েছে",
+  "bulkFailNotFound": "খুঁজে পাওয়া যায়নি",
+  "bulkFailOther": "অনুমোদন করা যায়নি",
+  "reasonPickerLabel": "কারণ বেছে নিন বা লিখুন",
+  "adminGroupApplications": "আবেদন ও সদস্য",
+  "adminGroupMoney": "টাকা-পয়সা",
+  "adminGroupOrganisation": "সংগঠন",
+  "adminGroupSettings": "সেটিংস",
+  "adminGroupAdvanced": "Advanced",
+  "authLoginIdentifierLabelV2": "মোবাইল / ইমেইল / সদস্য আইডি",
+  "authLoginIdentifierHelperV2": "বিদেশি নম্বর হলে + ও দেশের কোড সহ লিখুন",
+  "authLoginFailedV2": "মোবাইল/ইমেইল/সদস্য আইডি অথবা পাসওয়ার্ড সঠিক নয়",
+  "authLoginTooManyAttempts": "অনেকবার চেষ্টা হয়েছে, ১৫ মিনিট পরে আবার চেষ্টা করুন",
+  "apiErrorLoginAmbiguous": "এই নম্বরে একাধিক অ্যাকাউন্ট আছে — ইমেইল বা সদস্য আইডি দিয়ে লগইন করুন",
+  "apiErrorPasswordTooShort": "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে",
+  "apiErrorPasswordTooCommon": "এই পাসওয়ার্ডটি খুব সাধারণ, অন্য একটি দিন",
+  "apiErrorPasswordSameAsCurrent": "নতুন পাসওয়ার্ড আগেরটির মতো হতে পারবে না",
+  "settingsTextLarge": "লেখা বড় করুন",
+  "settingsDataSaver": "ডেটা সাশ্রয়",
+  "settingsDataSaverHint": "ছবি ও মানচিত্র চাইলে তবেই লোড হবে",
+  "netOffline": "ইন্টারনেট সংযোগ নেই — সংযোগ ফিরলে আবার চেষ্টা করুন",
+  "netSlow": "ইন্টারনেট ধীর — একটু অপেক্ষা করুন",
+  "netReconnected": "আবার সংযুক্ত",
+  "plainConfirmYes": "হ্যাঁ, {action}",
+  "@plainConfirmYes": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "plainConfirmNo": "না, ফিরে যান",
+  "tapToLoadImage": "ছবি দেখুন",
+  "regHelpTooltip": "এই ধাপে সাহায্য",
+  "regHelpStep1": "আপনার নাম, জন্মতারিখ ও মোবাইল নম্বর ঠিকভাবে লিখুন। জাতীয় পরিচয়পত্রের সাথে মিল রাখুন।",
+  "regHelpStep3": "যাকে আপনার পরে সদস্যপদের দায়িত্ব দিতে চান, তার নাম, সম্পর্ক ও মোবাইল নম্বর দিন।",
+  "regHelpStep4": "ভর্তি ফি পাঠিয়ে কোন মাধ্যমে পাঠিয়েছেন তা বেছে নিন, তারপর ট্রানজেকশন আইডি বা রসিদ নম্বর লিখুন।",
+  "regHelpStep5": "ঘোষণাটি পড়ে টিক দিন এবং নিজের স্বাক্ষর দিন।",
+  "regHelpStep6": "সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।"
 }

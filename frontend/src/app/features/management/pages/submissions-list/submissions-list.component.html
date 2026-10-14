@@ -28,6 +28,10 @@
     </select>
   </div>
 
+  @if (searchOn) {
+    <app-queue-search (search)="onSearch($event)" />
+  }
+
   @if (loading) {
     <app-section-loader variant="rows" [count]="5" />
   } @else if (error) {

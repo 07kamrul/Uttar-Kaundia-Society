@@ -174,10 +174,14 @@
     (confirm)="cancel()"
     (cancel)="showCancelModal = false"
   >
+    @if (consoleOn) {
+      <app-reason-picker [category]="reasonCategory" [value]="cancelReason" (valueChange)="cancelReason = $event" />
+    } @else {
     <textarea
       rows="3"
       [(ngModel)]="cancelReason"
       [placeholder]="'admin.propertyRequests.cancelModal.placeholder' | translate"
     ></textarea>
+    }
   </app-confirm-modal>
 </div>

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import bn from '../../../../../../public/i18n/bn.json';
 import type { SubmissionSummary } from '../../../../core/models/admin.model';
 import { AdminService } from '../../../../core/services/admin.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { SubmissionsListComponent } from './submissions-list.component';
 
 const row = (id: string, needsDag: boolean): SubmissionSummary => ({
@@ -25,6 +26,7 @@ describe('SubmissionsListComponent', () => {
         provideRouter([]),
         provideTranslateService(),
         { provide: AdminService, useValue: { listSubmissions: () => of([row('1', true), row('2', false)]) } },
+        { provide: FeatureFlagService, useValue: { isEnabled: () => false } },
       ],
     });
     const translate = TestBed.inject(TranslateService);

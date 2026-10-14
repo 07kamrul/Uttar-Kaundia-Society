@@ -6,21 +6,24 @@ import {
   ElementRef,
   NgZone,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import type { Subscription } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import * as L from 'leaflet';
-import '../../../../shared/map/leaflet-geoman-setup';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { DagInfoDialogComponent, type DagTarget } from './dag-info-dialog/dag-info-dialog.component';
 import { IconComponent, type IconName } from '../../../../shared/icon/icon.component';
 import { AuthService } from '../../../../core/services/auth.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { MemberService, type MemberProperty } from '../../../../core/services/member.service';
 import { localizeDigits } from '../../../../core/services/roadmap.service';
@@ -43,8 +46,22 @@ import type {
   PolygonGeometry,
 } from '../../../../core/models/plot-boundary.model';
 import { validateDrawing, type DrawValidation } from './boundary-validation';
-import { readLayerPrefs, writeLayerPrefs } from './layer-prefs';
-import { bestRsMatch, rsArea, rsLabelNumber, snapDistancePx, type RsMatch } from './rs-match';
+import { hasStoredLayerPrefs, readLayerPrefs, writeLayerPrefs } from './layer-prefs';
+import { outerRingLatLngs, rsLabelNumber, snapDistancePx } from './rs-labels';
+import type { RsMatch } from './rs-match';
+import {
+  canRedo,
+  canUndo,
+  currentRing,
+  emptyHistory,
+  pushRing,
+  redo as redoHistory,
+  undo as undoHistory,
+  type EditHistory,
+} from './edit-history';
+import { WIZARD_LEGEND, legendEntryFor } from './map-legend';
+import { LayersSheetComponent } from './layers-sheet/layers-sheet.component';
+import { MapTourComponent, isMapTourDone } from './map-tour/map-tour.component';
 import { environment } from '../../../../../environments/environment';
 import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 
@@ -53,6 +70,8 @@ const MOVE_DEBOUNCE_MS = 300;
 // [23.77, 90.39] pointed at Mirpur and left the mouza data in a corner.
 const SOCIETY_CENTER: L.LatLngTuple = [23.809, 90.323];
 const DISCLAIMER_KEY = 'krmf_boundary_disclaimer_dismissed';
+/** map_wizard: the member chose to load map tiles in this session. */
+export const TILES_OK_KEY = 'krmf_map_tiles_ok';
 const MOUZA_CENTER: L.LatLngTuple = [23.7985, 90.3325];
 const BDS_LABEL_MIN_ZOOM = 16;
 
@@ -150,12 +169,25 @@ interface SelectedFeature {
 }
 
 type DrawStep = 'idle' | 'pick' | 'draw';
+export type WizardStep = 'find' | 'adjust' | 'submit';
+type RsLookupState = 'idle' | 'loading' | 'found' | 'none' | 'error';
+type RsMatchModule = typeof import('./rs-match');
 
 @Component({
   selector: 'app-plot-map',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent, DagInfoDialogComponent, PhoneTextPipe],
+  imports: [
+    FormsModule,
+    NgTemplateOutlet,
+    TranslatePipe,
+    IconComponent,
+    ConfirmModalComponent,
+    DagInfoDialogComponent,
+    PhoneTextPipe,
+    LayersSheetComponent,
+    MapTourComponent,
+  ],
   templateUrl: './plot-map.component.html',
   styleUrl: './plot-map.component.scss',
 })
@@ -167,7 +199,11 @@ export class PlotMapComponent implements AfterViewInit {
   private readonly translate = inject(TranslateService);
   private readonly zone = inject(NgZone);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly flags = inject(FeatureFlagService);
   readonly lang = inject(LanguageService).lang;
+
+  /** map_wizard: data-saver start, layers sheet, 3-step draw wizard, tour. Off = today's map. */
+  readonly wizardOn = computed(() => this.flags.isEnabled('map_wizard'));
 
   readonly mapContainer = viewChild.required<ElementRef<HTMLDivElement>>('mapEl');
 
@@ -223,6 +259,30 @@ export class PlotMapComponent implements AfterViewInit {
 
   readonly showDrawPanel = signal(false);
 
+  // ---- map_wizard state ----
+  readonly tilesOn = signal(false);
+  readonly satelliteOn = signal(false);
+  readonly showTileGate = computed(() => this.wizardOn() && !this.tilesOn());
+  readonly layersSheetOpen = signal(false);
+  readonly helpMenuOpen = signal(false);
+  readonly noticeExpanded = signal(false);
+  readonly tourOpen = signal(this.flags.isEnabled('map_wizard') && !isMapTourDone());
+  readonly wizardLegend = WIZARD_LEGEND;
+  readonly wizardStep = signal<WizardStep>('find');
+  readonly wizardStepNumber = computed(() => ({ find: 1, adjust: 2, submit: 3 })[this.wizardStep()]);
+  readonly rsLookup = signal<RsLookupState>('idle');
+  readonly rsCandidates = signal<LandPlotFeature[]>([]);
+  readonly rsCandidateIndex = signal(0);
+  readonly chosenRs = signal<LandPlotFeature | null>(null);
+  readonly otherDagQuery = signal('');
+  readonly history = signal<EditHistory>(emptyHistory());
+  /** True from the moment the draw tool starts until the polygon closes. */
+  readonly freehand = signal(false);
+  readonly freehandVertices = signal(0);
+  readonly canUndoEdit = computed(() => (this.freehand() ? this.freehandVertices() > 0 : canUndo(this.history())));
+  readonly canRedoEdit = computed(() => !this.freehand() && canRedo(this.history()));
+  readonly selectedProperty = computed(() => this.properties().find((p) => p.id === this.selectedPropertyId()) ?? null);
+
   // Floating legend card: open by default on desktop, collapsed on phones.
   readonly legendOpen = signal(
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
@@ -248,7 +308,8 @@ export class PlotMapComponent implements AfterViewInit {
 
   // RS দাগ reference layer (RAJUK masterplan RS plots) + snapping, persisted per browser.
   private readonly layerPrefs = readLayerPrefs();
-  readonly rsOverlayOn = signal(this.layerPrefs.rsOverlay);
+  // The wizard fetches the RS layer only when asked (switched on, or steps 1-2).
+  readonly rsOverlayOn = signal(this.layerPrefs.rsOverlay && (!this.flags.isEnabled('map_wizard') || hasStoredLayerPrefs()));
   readonly snapEnabled = signal(this.layerPrefs.snapToRs);
   /** True while the cursor/vertex is snapped onto an RS dag edge or corner. */
   readonly isSnapped = signal(false);
@@ -259,17 +320,10 @@ export class PlotMapComponent implements AfterViewInit {
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(pointer: coarse)').matches
       : false;
-  /** How well the drawn shape matches the best RS dag (null = no overlap). */
-  readonly rsMatch = computed<RsMatch | null>(() => {
-    const geometry = this.drawnGeometry();
-    const collection = this.rsCollection();
-    if (!geometry || !collection) return null;
-    try {
-      return bestRsMatch(geometry, collection.features);
-    } catch {
-      return null; // half-drawn ring: no summary yet
-    }
-  });
+  /** How well the drawn shape matches the best RS dag (null = no overlap). Computed on demand (turf loads lazily). */
+  readonly rsMatch = signal<RsMatch | null>(null);
+  private rsMatchModule: RsMatchModule | null = null;
+  private rsMatchLoading: Promise<RsMatchModule> | null = null;
 
   // Dag-number search on the official map views (BDS dag no / RAJUK RS dag no).
   readonly dagQuery = signal('');
@@ -283,6 +337,11 @@ export class PlotMapComponent implements AfterViewInit {
   );
 
   private map: L.Map | null = null;
+  private streetLayer: L.TileLayer | null = null;
+  private satelliteLayer: L.TileLayer | null = null;
+  private geomanReady: Promise<void> | null = null;
+  /** Dynamic import of Geoman; a seam the tests replace. */
+  protected loadGeomanModule: () => Promise<unknown> = () => import('../../../../shared/map/leaflet-geoman-setup');
   private resizeObserver: ResizeObserver | null = null;
   private readonly featureLayers = new Map<string, L.Polygon>();
   private moveDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -309,8 +368,19 @@ export class PlotMapComponent implements AfterViewInit {
     { status: 'disputed', color: STATUS_COLORS['disputed'] },
   ];
 
+  constructor() {
+    effect(() => {
+      this.drawnGeometry();
+      this.rsCollection();
+      this.rsCandidates();
+      untracked(() => void this.refreshRsMatch());
+    });
+  }
+
   ngAfterViewInit(): void {
     this.zone.runOutsideAngular(() => this.initMap());
+    // Today's map draws with Geoman at any time, so load it right away; the wizard waits for step 2.
+    if (!this.wizardOn()) void this.ensureGeoman();
     this.loadProperties();
     this.loadFeatures();
     if (this.rsOverlayOn()) this.loadRsPlots();
@@ -375,15 +445,24 @@ export class PlotMapComponent implements AfterViewInit {
       updateWhenZooming: false,
       attribution: '© Esri World Imagery',
     });
-    street.addTo(map);
+    this.streetLayer = street;
+    this.satelliteLayer = satellite;
+    this.map = map;
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.control
-      .layers(
-        { Street: street, Satellite: satellite },
-        {},
-        { position: 'bottomright' },
-      )
-      .addTo(map);
+    if (this.wizardOn()) {
+      // Data-saver start: society outline on a plain background, tiles only on request.
+      L.rectangle(society, { color: '#2e5138', weight: 2, fill: false, interactive: false, snapIgnore: true } as L.PolylineOptions).addTo(map);
+      if (this.tilesAllowed()) this.addBaseTiles();
+    } else {
+      street.addTo(map);
+      L.control
+        .layers(
+          { Street: street, Satellite: satellite },
+          {},
+          { position: 'bottomright' },
+        )
+        .addTo(map);
+    }
 
     // Re-measure whenever the container's box changes. initMap runs outside
     // the Angular zone, so these callbacks never trigger change detection.
@@ -412,18 +491,104 @@ export class PlotMapComponent implements AfterViewInit {
     map.on('pm:drawstart', (event: { workingLayer?: L.Layer }) => this.bindSnapCue(event.workingLayer));
     map.on('pm:drawend', () => this.clearSnapCue());
     map.on('pm:drawmove', () => this.zone.run(() => this.syncDrawnGeometry()));
-    map.on('pm:vertexadded', () => this.zone.run(() => this.syncDrawnGeometry()));
+    map.on('pm:vertexadded', () =>
+      this.zone.run(() => {
+        this.syncDrawnGeometry();
+        if (this.freehand()) this.freehandVertices.update((n) => n + 1);
+      }),
+    );
     map.on('pm:change', () => this.zone.run(() => this.syncDrawnGeometry()));
     map.on('pm:create', (event: { layer: L.Layer }) => {
       this.zone.run(() => {
         this.drawnLayer = event.layer as L.Polygon;
+        this.freehand.set(false);
         this.syncDrawnGeometry();
+        this.recordSnapshot();
         this.attachEditListeners(this.drawnLayer);
       });
     });
 
-    this.map = map;
     this.applyDrawingMode();
+  }
+
+  // ---- map_wizard: tiles, Geoman and RS-match loading ---------------------
+
+  private tilesAllowed(): boolean {
+    try {
+      return sessionStorage.getItem(TILES_OK_KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private addBaseTiles(): void {
+    const map = this.map;
+    const layer = this.satelliteOn() ? this.satelliteLayer : this.streetLayer;
+    if (!map || !layer) return;
+    layer.addTo(map);
+    this.tilesOn.set(true);
+  }
+
+  /** "মানচিত্র দেখুন": adds the street layer and remembers the choice for this session. */
+  requestTiles(): void {
+    this.addBaseTiles();
+    try {
+      sessionStorage.setItem(TILES_OK_KEY, '1');
+    } catch {
+      // private mode: the card simply shows again on reload
+    }
+  }
+
+  toggleSatellite(): void {
+    const map = this.map;
+    const was = this.satelliteOn();
+    this.satelliteOn.set(!was);
+    if (!map || !this.tilesOn()) return;
+    const from = was ? this.satelliteLayer : this.streetLayer;
+    const to = was ? this.streetLayer : this.satelliteLayer;
+    if (from) map.removeLayer(from);
+    to?.addTo(map);
+  }
+
+  /** Geoman must be loaded before a map can draw; it attaches itself to a map created earlier. */
+  private ensureGeoman(): Promise<void> {
+    this.geomanReady ??= this.loadGeomanModule().then(() => {
+      const map = this.map as (L.Map & { pm?: unknown }) | null;
+      const pmApi = this.geomanApi();
+      if (map && !map.pm && pmApi?.Map) map.pm = new pmApi.Map(map) as never;
+      this.applyDrawingMode();
+    });
+    return this.geomanReady;
+  }
+
+  /** Geoman registers `L.PM` as a side effect of loading; it does not exist before that. */
+  private geomanApi(): { Map?: new (m: L.Map) => unknown } | undefined {
+    try {
+      return (L as unknown as { PM?: { Map?: new (m: L.Map) => unknown } }).PM;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private loadRsMatch(): Promise<RsMatchModule> {
+    this.rsMatchLoading ??= import('./rs-match').then((module) => (this.rsMatchModule = module));
+    return this.rsMatchLoading;
+  }
+
+  private async refreshRsMatch(): Promise<void> {
+    const geometry = this.drawnGeometry();
+    const features = [...(this.rsCollection()?.features ?? []), ...this.rsCandidates()];
+    if (!geometry || features.length === 0) {
+      this.rsMatch.set(null);
+      return;
+    }
+    const module = await this.loadRsMatch();
+    if (geometry !== this.drawnGeometry()) return; // a newer shape is being matched
+    try {
+      this.rsMatch.set(module.bestRsMatch(geometry, features));
+    } catch {
+      this.rsMatch.set(null); // half-drawn ring: no summary yet
+    }
   }
 
   // ---- Data loading -------------------------------------------------------
@@ -487,12 +652,16 @@ export class PlotMapComponent implements AfterViewInit {
     }
     this.featureLayers.clear();
 
+    const wizard = this.wizardOn();
     for (const feature of this.features()) {
       if (!this.featureLayerVisible(feature)) continue;
+      // map_wizard: rejected/withdrawn/superseded shapes are not drawn at all.
+      const entry = wizard ? legendEntryFor(feature.reviewStatus, feature.isMine) : null;
+      if (wizard && !entry) continue;
       // Live shapes are solid; the owner's pending/rejected proposal is dashed.
-      const isProposal = feature.isMine && feature.reviewStatus !== 'approved';
+      const isProposal = entry ? entry.dashed : feature.isMine && feature.reviewStatus !== 'approved';
       const layer = L.polygon(this.geoRingToLatLngs(feature.geometry), {
-        color: this.featureColor(feature),
+        color: entry ? entry.colour : this.featureColor(feature),
         weight: 2,
         fillOpacity: 0.25,
         dashArray: isProposal ? '6,6' : undefined,
@@ -565,6 +734,20 @@ export class PlotMapComponent implements AfterViewInit {
     this.layersPanelOpen.update((open) => !open);
   }
 
+  /** map_wizard: "আরও লেয়ার" sheet and the "?" menu. */
+  openLayersSheet(): void {
+    this.layersSheetOpen.set(true);
+  }
+
+  closeLayersSheet(): void {
+    this.layersSheetOpen.set(false);
+  }
+
+  restartTour(): void {
+    this.helpMenuOpen.set(false);
+    this.tourOpen.set(true);
+  }
+
   private persistLayerPrefs(): void {
     writeLayerPrefs({ rsOverlay: this.rsOverlayOn(), snapToRs: this.snapEnabled() });
   }
@@ -583,12 +766,13 @@ export class PlotMapComponent implements AfterViewInit {
   private applyDrawingMode(): void {
     const map = this.map;
     if (!map) return;
+    this.mapContainer().nativeElement.classList.toggle('rs-drawing', this.drawStep() === 'draw');
+    if (!map.pm) return; // Geoman is still loading; ensureGeoman() calls this again
     const options = this.snapOptions();
     map.pm.setGlobalOptions(options as never);
     const draw = (map.pm.Draw as unknown as Record<string, { setOptions?: (o: unknown) => void }>)['Polygon'];
     draw?.setOptions?.(options);
-    this.drawnLayer?.pm.setOptions(options as never);
-    this.mapContainer().nativeElement.classList.toggle('rs-drawing', this.drawStep() === 'draw');
+    this.drawnLayer?.pm?.setOptions(options as never);
   }
 
   /** Orange ring where the vertex has snapped onto an RS dag boundary. */
@@ -774,6 +958,7 @@ export class PlotMapComponent implements AfterViewInit {
         ),
     };
     this.rsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
+    void this.loadRsMatch(); // popups show the area once the module is in
     this.updateRsLabels();
   }
 
@@ -796,7 +981,7 @@ export class PlotMapComponent implements AfterViewInit {
     const center = layer.getBounds().getCenter();
     const streetView = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
     const t = (key: string) => this.translate.instant(`member.plotMap.views.${key}`);
-    const area = rsArea(feature.geometry);
+    const area = this.rsMatchModule?.rsArea(feature.geometry) ?? null;
     const areaLine = area
       ? `<p>${t('rsArea')}: ≈ ${this.digits(area.shotangsho.toFixed(2))} ${this.translate.instant('member.plotMap.details.shotangsho')} (${this.digits(Math.round(area.sqm))} m²)</p>`
       : '';
@@ -1140,13 +1325,22 @@ export class PlotMapComponent implements AfterViewInit {
     this.showDrawPanel.set(false);
   }
 
-  startDrawing(): void {
-    const propertyId = this.selectedPropertyId();
-    if (!propertyId || !this.map) return;
+  async startDrawing(): Promise<void> {
+    if (!this.selectedPropertyId() || !this.map) return;
     this.editingBoundary.set(null);
+    await this.enableFreehand();
+  }
+
+  /** Starts the Geoman polygon tool (free drawing); waits for Geoman first. */
+  private async enableFreehand(): Promise<void> {
+    if (!this.map) return;
+    await this.ensureGeoman();
+    this.discardShape();
     this.drawStep.set('draw');
     this.saveErrorKey.set(null);
     this.drawnGeometry.set(null);
+    this.freehand.set(true);
+    this.freehandVertices.set(0);
     this.loadRsPlots(); // the match summary needs RS parcels even if the overlay is hidden
     this.applyDrawingMode();
     this.map.pm.enableDraw('Polygon', {
@@ -1158,35 +1352,213 @@ export class PlotMapComponent implements AfterViewInit {
     } as never);
   }
 
-  startEditing(boundary: MyBoundary): void {
+  async startEditing(boundary: MyBoundary): Promise<void> {
     if (!this.map) return;
+    await this.ensureGeoman();
     this.editingBoundary.set(boundary);
     this.drawStep.set('draw');
+    if (this.wizardOn()) this.wizardStep.set('adjust');
     this.saveErrorKey.set(null);
     this.drawnGeometry.set(boundary.geometry);
     this.showDrawPanel.set(true);
-    const layer = L.polygon(this.geoRingToLatLngs(boundary.geometry), {
-      color: MINE_COLOR,
-    }).addTo(this.map);
+    this.placeEditableShape(this.geoRingToLatLngs(boundary.geometry));
+  }
+
+  /** Puts an editable polygon on the map and starts its history. */
+  private placeEditableShape(ring: L.LatLngTuple[]): void {
+    const map = this.map;
+    if (!map) return;
+    const layer = L.polygon(ring, { color: MINE_COLOR }).addTo(map);
     this.drawnLayer = layer;
     this.loadRsPlots();
-    layer.pm.enable({ ...this.snapOptions(), allowSelfIntersection: false, allowRemoval: false } as never);
+    layer.pm.enable(this.editOptions());
     this.applyDrawingMode();
     this.attachEditListeners(layer);
+    this.syncDrawnGeometry();
+    this.recordSnapshot();
+  }
+
+  private editOptions(): never {
+    return { ...this.snapOptions(), allowSelfIntersection: false, allowRemoval: false } as never;
   }
 
   private attachEditListeners(layer: L.Polygon): void {
-    layer.on('pm:edit', () => this.zone.run(() => this.syncDrawnGeometry()));
-    layer.on('pm:vertexadded', () => this.zone.run(() => this.syncDrawnGeometry()));
-    layer.on('pm:vertexremoved', () => this.zone.run(() => this.syncDrawnGeometry()));
+    const onChange = (): void =>
+      this.zone.run(() => {
+        this.syncDrawnGeometry();
+        this.recordSnapshot();
+      });
+    layer.on('pm:edit', onChange);
+    layer.on('pm:vertexadded', onChange);
+    layer.on('pm:vertexremoved', onChange);
+  }
+
+  private layerRing(): Array<[number, number]> | null {
+    const latlngs = this.drawnLayer?.getLatLngs()[0] as L.LatLng[] | undefined;
+    return latlngs ? latlngs.map((ll) => [ll.lat, ll.lng] as [number, number]) : null;
   }
 
   private syncDrawnGeometry(): void {
+    const ring = this.layerRing();
+    if (ring) this.drawnGeometry.set(latLngsToGeometry(ring));
+  }
+
+  private recordSnapshot(): void {
+    const ring = this.layerRing();
+    if (ring) this.history.update((h) => pushRing(h, ring));
+  }
+
+  // ---- map_wizard: undo / redo -------------------------------------------
+
+  undoEdit(): void {
+    if (this.freehand()) {
+      const draw = (this.map?.pm.Draw as unknown as Record<string, { _removeLastVertex?: () => void }> | undefined)?.['Polygon'];
+      draw?._removeLastVertex?.();
+      this.freehandVertices.update((n) => Math.max(0, n - 1));
+      return;
+    }
+    this.moveHistory(undoHistory(this.history()));
+  }
+
+  redoEdit(): void {
+    if (!this.freehand()) this.moveHistory(redoHistory(this.history()));
+  }
+
+  /** Re-applies a snapshot; editing is re-enabled or the vertex handles would disappear. */
+  private moveHistory(next: EditHistory): void {
+    const ring = currentRing(next);
     const layer = this.drawnLayer;
-    if (!layer) return;
-    const latlngs = layer.getLatLngs()[0] as L.LatLng[];
-    const ring = latlngs.map((ll) => [ll.lat, ll.lng] as [number, number]);
+    if (next === this.history() || !ring || !layer) return;
+    this.history.set(next);
+    layer.setLatLngs(ring.map(([lat, lng]) => [lat, lng] as L.LatLngTuple));
+    layer.pm.disable();
+    layer.pm.enable(this.editOptions());
+    this.syncDrawnGeometry();
+  }
+
+  /** Removes the drawn shape (or the tool in progress) and its history. */
+  private discardShape(): void {
+    const pm = this.map?.pm as unknown as { disableDraw?: () => void } | undefined;
+    pm?.disableDraw?.();
+    this.drawnLayer?.pm?.disable?.();
+    this.drawnLayer?.remove();
+    this.drawnLayer = null;
+    this.drawnGeometry.set(null);
+    this.history.set(emptyHistory());
+    this.freehand.set(false);
+    this.freehandVertices.set(0);
+  }
+
+  // ---- map_wizard: the three steps ----------------------------------------
+
+  /** Step 1: a property was picked; look its RS dag up (or go straight to drawing without any dag). */
+  async pickWizardProperty(property: MemberProperty): Promise<void> {
+    this.selectedPropertyId.set(property.id);
+    this.rsCandidates.set([]);
+    this.rsCandidateIndex.set(0);
+    this.chosenRs.set(null);
+    this.rsLookup.set('idle');
+    if (!property.dagNoRs && !property.dagNoCs) {
+      await this.chooseDrawMyself();
+      return;
+    }
+    if (property.dagNoRs) this.lookupRsCandidates(property.dagNoRs);
+    else this.rsLookup.set('none');
+  }
+
+  searchOtherDag(): void {
+    const query = toAsciiDigits(this.otherDagQuery().trim());
+    if (query) this.lookupRsCandidates(query);
+  }
+
+  private lookupRsCandidates(query: string): void {
+    this.rsLookup.set('loading');
+    this.landDataService
+      .lookupRsPlot(query)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (collection) => {
+          const features = collection.features ?? [];
+          this.rsCandidates.set(features);
+          this.rsCandidateIndex.set(0);
+          this.rsLookup.set(features.length ? 'found' : 'none');
+          if (!features.length) return;
+          if (!this.rsOverlayOn()) this.setRsOverlay(true);
+          this.highlightDag.set(this.dagKeyOf(features[0].properties));
+          this.styleSearchedLayer();
+          this.fitToFeatures(features);
+        },
+        error: () => this.rsLookup.set('error'),
+      });
+  }
+
+  candidateLabel(feature: LandPlotFeature): { dag: string; sheet: string } {
+    return { dag: this.digits(rsLabelNumber(feature.properties)), sheet: this.digits(feature.properties?.sheet ?? '') };
+  }
+
+  async confirmRsCandidate(): Promise<void> {
+    const chosen = this.rsCandidates()[this.rsCandidateIndex()];
+    if (!chosen) return;
+    this.chosenRs.set(chosen);
+    this.wizardStep.set('adjust');
+    await this.startFromDag();
+  }
+
+  async chooseDrawMyself(): Promise<void> {
+    this.chosenRs.set(null);
+    this.wizardStep.set('adjust');
+    await this.startFreehand();
+  }
+
+  /** Step 2 default: the chosen RS plot becomes an editable shape with snapping on. */
+  async startFromDag(): Promise<void> {
+    const ring = outerRingLatLngs(this.chosenRs()?.geometry);
+    if (!ring || !this.map) return;
+    await this.ensureGeoman();
+    this.discardShape();
+    this.editingBoundary.set(null);
+    this.drawStep.set('draw');
+    this.saveErrorKey.set(null);
+    this.snapEnabled.set(true);
+    this.persistLayerPrefs();
+    if (!this.rsOverlayOn()) this.setRsOverlay(true);
     this.drawnGeometry.set(latLngsToGeometry(ring));
+    this.placeEditableShape(ring);
+  }
+
+  async startFreehand(): Promise<void> {
+    this.editingBoundary.set(null);
+    await this.enableFreehand();
+  }
+
+  /** "সব মুছে নতুন করে": back to an empty step 2. */
+  clearAll(): void {
+    this.discardShape();
+    this.saveErrorKey.set(null);
+  }
+
+  goToSubmitStep(): void {
+    if (this.validation().valid) this.wizardStep.set('submit');
+  }
+
+  backToAdjustStep(): void {
+    this.wizardStep.set('adjust');
+  }
+
+  private resetWizard(): void {
+    this.wizardStep.set('find');
+    this.rsLookup.set('idle');
+    this.rsCandidates.set([]);
+    this.rsCandidateIndex.set(0);
+    this.chosenRs.set(null);
+    this.otherDagQuery.set('');
+    this.history.set(emptyHistory());
+    this.freehand.set(false);
+    this.freehandVertices.set(0);
+  }
+
+  dagLabelFor(property: MemberProperty | null): string {
+    return property ? this.digits([property.dagNoRs, property.dagNoCs].filter(Boolean).join(' / ')) : '—';
   }
 
   cancelDraw(): void {
@@ -1199,6 +1571,7 @@ export class PlotMapComponent implements AfterViewInit {
     this.selectedPropertyId.set(null);
     this.saveErrorKey.set(null);
     this.clearSnapCue();
+    this.resetWizard();
     this.applyDrawingMode();
   }
 

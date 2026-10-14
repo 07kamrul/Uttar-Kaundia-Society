@@ -468,6 +468,9 @@
         <label class="modal-label" for="reject-note">
           {{ 'admin.plotBoundaries.modal.noteRequired' | translate }}
         </label>
+        @if (consoleOn) {
+          <app-reason-picker [category]="reasonCategory" inputId="reject-note" [value]="rejectNote()" (valueChange)="rejectNote.set($event)" />
+        } @else {
         <textarea
           id="reject-note"
           class="modal-textarea"
@@ -475,6 +478,7 @@
           [value]="rejectNote()"
           (input)="rejectNote.set($any($event.target).value)"
         ></textarea>
+        }
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary btn-sm" (click)="rejectOpen.set(false)">
             {{ 'common.cancel' | translate }}

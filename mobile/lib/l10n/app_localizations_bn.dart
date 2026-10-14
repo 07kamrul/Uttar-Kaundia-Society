@@ -6897,4 +6897,192 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get mapWizardNoMatch => 'তুলনা করার মতো আরএস দাগ নেই।';
+
+  @override
+  String get todayTitle => 'আজকের কাজ';
+
+  @override
+  String get todayEmpty => 'আজ কোনো জমে থাকা কাজ নেই';
+
+  @override
+  String get todayLoadError => 'তথ্য আনা যায়নি';
+
+  @override
+  String get todayRegistrations => 'নতুন নিবন্ধন';
+
+  @override
+  String get todayMembershipApplications => 'সদস্যপদের আবেদন';
+
+  @override
+  String get todayNeedsDag => 'দাগ দরকার';
+
+  @override
+  String get todayPaymentVerifications => 'পেমেন্ট যাচাই';
+
+  @override
+  String get todayComplaints => 'অভিযোগ';
+
+  @override
+  String get todayOverdue => 'দেরি হয়েছে';
+
+  @override
+  String get todayDueSoon => 'শীঘ্রই সময় শেষ';
+
+  @override
+  String get todayPropertyRequests => 'সম্পত্তির অনুরোধ';
+
+  @override
+  String get todayBoundaries => 'সীমানা যাচাই';
+
+  @override
+  String get todayCommitteeTerms => 'কমিটির মেয়াদ শেষ হচ্ছে';
+
+  @override
+  String get todayPhoneFixes => 'ফোন নম্বর ঠিক করুন';
+
+  @override
+  String get adminSearchHint => 'নাম / মোবাইল / সদস্য আইডি';
+
+  @override
+  String get bulkSelectRow => 'নির্বাচন করুন';
+
+  @override
+  String bulkSelectedBar(String count, String total) {
+    return '$countটি নির্বাচিত · মোট $total';
+  }
+
+  @override
+  String get bulkApproveAction => 'নির্বাচিতগুলো অনুমোদন করুন';
+
+  @override
+  String bulkConfirmTitle(String count, String total) {
+    return '$countটি পেমেন্ট, মোট $total অনুমোদন করবেন?';
+  }
+
+  @override
+  String get bulkConfirmYes => 'নিশ্চিত করুন';
+
+  @override
+  String bulkResultAllOk(String ok) {
+    return '$okটি অনুমোদিত';
+  }
+
+  @override
+  String bulkResultPartial(String ok, String failed, String reasons) {
+    return '$okটি অনুমোদিত, $failedটি হয়নি — কারণ: $reasons';
+  }
+
+  @override
+  String get bulkStale => 'তালিকা বদলে গেছে, আবার দেখুন';
+
+  @override
+  String get bulkFailNoLongerDue => 'আর বকেয়া নেই';
+
+  @override
+  String get bulkFailAlreadyReviewed => 'আগেই যাচাই হয়েছে';
+
+  @override
+  String get bulkFailNotFound => 'খুঁজে পাওয়া যায়নি';
+
+  @override
+  String get bulkFailOther => 'অনুমোদন করা যায়নি';
+
+  @override
+  String get reasonPickerLabel => 'কারণ বেছে নিন বা লিখুন';
+
+  @override
+  String get adminGroupApplications => 'আবেদন ও সদস্য';
+
+  @override
+  String get adminGroupMoney => 'টাকা-পয়সা';
+
+  @override
+  String get adminGroupOrganisation => 'সংগঠন';
+
+  @override
+  String get adminGroupSettings => 'সেটিংস';
+
+  @override
+  String get adminGroupAdvanced => 'Advanced';
+
+  @override
+  String get authLoginIdentifierLabelV2 => 'মোবাইল / ইমেইল / সদস্য আইডি';
+
+  @override
+  String get authLoginIdentifierHelperV2 =>
+      'বিদেশি নম্বর হলে + ও দেশের কোড সহ লিখুন';
+
+  @override
+  String get authLoginFailedV2 =>
+      'মোবাইল/ইমেইল/সদস্য আইডি অথবা পাসওয়ার্ড সঠিক নয়';
+
+  @override
+  String get authLoginTooManyAttempts =>
+      'অনেকবার চেষ্টা হয়েছে, ১৫ মিনিট পরে আবার চেষ্টা করুন';
+
+  @override
+  String get apiErrorLoginAmbiguous =>
+      'এই নম্বরে একাধিক অ্যাকাউন্ট আছে — ইমেইল বা সদস্য আইডি দিয়ে লগইন করুন';
+
+  @override
+  String get apiErrorPasswordTooShort => 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে';
+
+  @override
+  String get apiErrorPasswordTooCommon =>
+      'এই পাসওয়ার্ডটি খুব সাধারণ, অন্য একটি দিন';
+
+  @override
+  String get apiErrorPasswordSameAsCurrent =>
+      'নতুন পাসওয়ার্ড আগেরটির মতো হতে পারবে না';
+
+  @override
+  String get settingsTextLarge => 'লেখা বড় করুন';
+
+  @override
+  String get settingsDataSaver => 'ডেটা সাশ্রয়';
+
+  @override
+  String get settingsDataSaverHint => 'ছবি ও মানচিত্র চাইলে তবেই লোড হবে';
+
+  @override
+  String get netOffline => 'ইন্টারনেট সংযোগ নেই — সংযোগ ফিরলে আবার চেষ্টা করুন';
+
+  @override
+  String get netSlow => 'ইন্টারনেট ধীর — একটু অপেক্ষা করুন';
+
+  @override
+  String get netReconnected => 'আবার সংযুক্ত';
+
+  @override
+  String plainConfirmYes(String action) {
+    return 'হ্যাঁ, $action';
+  }
+
+  @override
+  String get plainConfirmNo => 'না, ফিরে যান';
+
+  @override
+  String get tapToLoadImage => 'ছবি দেখুন';
+
+  @override
+  String get regHelpTooltip => 'এই ধাপে সাহায্য';
+
+  @override
+  String get regHelpStep1 =>
+      'আপনার নাম, জন্মতারিখ ও মোবাইল নম্বর ঠিকভাবে লিখুন। জাতীয় পরিচয়পত্রের সাথে মিল রাখুন।';
+
+  @override
+  String get regHelpStep3 =>
+      'যাকে আপনার পরে সদস্যপদের দায়িত্ব দিতে চান, তার নাম, সম্পর্ক ও মোবাইল নম্বর দিন।';
+
+  @override
+  String get regHelpStep4 =>
+      'ভর্তি ফি পাঠিয়ে কোন মাধ্যমে পাঠিয়েছেন তা বেছে নিন, তারপর ট্রানজেকশন আইডি বা রসিদ নম্বর লিখুন।';
+
+  @override
+  String get regHelpStep5 => 'ঘোষণাটি পড়ে টিক দিন এবং নিজের স্বাক্ষর দিন।';
+
+  @override
+  String get regHelpStep6 =>
+      'সব তথ্য আবার দেখে নিন। ভুল থাকলে পেছনে গিয়ে ঠিক করুন, তারপর জমা দিন।';
 }

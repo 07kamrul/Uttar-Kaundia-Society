@@ -3,7 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injector.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_error_messages.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
 import '../data/member_repository.dart';
@@ -18,15 +21,24 @@ class ChangePasswordPage extends StatelessWidget {
   final String? propertyId;
   final String? returnUrl;
 
-  const ChangePasswordPage({super.key, this.id, this.propertyId, this.returnUrl});
+  const ChangePasswordPage(
+      {super.key, this.id, this.propertyId, this.returnUrl, this.passwordPolicyV2, this.repository});
+
+  /// password_policy_v2 (length-only check); read from the flag when null.
+  final bool? passwordPolicyV2;
+
+  /// Test seam; the live repository by default.
+  final MemberRepository? repository;
 
   @override
   Widget build(BuildContext context) {
+    final v2 = passwordPolicyV2 ?? flagEnabled(FeatureFlag.passwordPolicyV2);
     return BlocProvider(
       create: (_) => ChangePasswordBloc(
-        repository: MemberRepository(apiClient: sl<ApiClient>()),
+        repository: repository ?? MemberRepository(apiClient: sl<ApiClient>()),
+        policyV2: v2,
       ),
-      child: const _ChangePasswordView(),
+      child: _ChangePasswordView(policyV2: v2),
     );
   }
 }
@@ -35,7 +47,9 @@ class ChangePasswordPage extends StatelessWidget {
 const double _cardMaxWidth = 560;
 
 class _ChangePasswordView extends StatefulWidget {
-  const _ChangePasswordView();
+  const _ChangePasswordView({this.policyV2 = false});
+
+  final bool policyV2;
 
   @override
   State<_ChangePasswordView> createState() => _ChangePasswordViewState();
@@ -65,6 +79,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
       current: _current.text,
       next: _next.text,
       confirm: _confirm.text,
+      policyV2: widget.policyV2,
     ).ok) {
       bloc.add(ChangePasswordSubmitted(current: _current.text, next: _next.text));
     }
@@ -142,7 +157,12 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
             controller: _next,
             icon: Icons.key_outlined,
             autofillHint: AutofillHints.newPassword,
-            errorText: _errorText(state.newError, state.newServerError, loc),
+            helperText: widget.policyV2 ? loc.apiErrorPasswordTooShort : null,
+            errorText: _errorText(
+              state.newError,
+              apiErrorCodeMessage(loc, state.newServerCode) ?? state.newServerError,
+              loc,
+            ),
           ),
           const SizedBox(height: 16),
           _PasswordField(
@@ -175,7 +195,9 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
     return switch (error) {
       ChangePasswordFieldError.required =>
         loc.memberChangePasswordCurrentPasswordRequiredError,
-      ChangePasswordFieldError.policy => loc.memberChangePasswordPasswordPolicyError,
+      ChangePasswordFieldError.policy => widget.policyV2
+          ? loc.apiErrorPasswordTooShort
+          : loc.memberChangePasswordPasswordPolicyError,
       ChangePasswordFieldError.sameAsCurrent =>
         loc.memberChangePasswordSameAsCurrentError,
       ChangePasswordFieldError.mismatch =>
@@ -192,6 +214,7 @@ class _PasswordField extends StatefulWidget {
     required this.icon,
     required this.autofillHint,
     this.errorText,
+    this.helperText,
     this.textInputAction = TextInputAction.next,
     this.onSubmitted,
   });
@@ -201,6 +224,7 @@ class _PasswordField extends StatefulWidget {
   final IconData icon;
   final String autofillHint;
   final String? errorText;
+  final String? helperText;
   final TextInputAction textInputAction;
   final ValueChanged<String>? onSubmitted;
 
@@ -225,6 +249,8 @@ class _PasswordFieldState extends State<_PasswordField> {
       onSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
         labelText: widget.label,
+        helperText: widget.errorText == null ? widget.helperText : null,
+        helperMaxLines: 2,
         errorText: widget.errorText,
         errorMaxLines: 3,
         prefixIcon: Icon(widget.icon),

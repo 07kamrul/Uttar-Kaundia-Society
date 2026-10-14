@@ -30,6 +30,17 @@ class NavItem {
 
 enum LandingTierFilter { member, management, superAdmin }
 
+/// One heading of the grouped admin menu (nav_advanced_section).
+class NavGroup {
+  const NavGroup({required this.labelKey, required this.items, this.advanced = false});
+
+  final String Function(AppLocalizations) labelKey;
+  final List<NavItem> items;
+
+  /// The "Advanced" tail of Settings (roles, config lists, audit log).
+  final bool advanced;
+}
+
 /// The five member areas behind `nav_five_areas`.
 enum NavArea { home, payments, land, organisation, profile }
 
@@ -219,6 +230,76 @@ class AppNav {
       return p == null || can(p);
     }).toList();
   }
+
+  // ---- Batch 5: grouped admin menu ----------------------------------------
+
+  /// Routes of each admin group, in menu order. A new admin route in [items]
+  /// must be listed here (the menu-guard test fails otherwise).
+  static const _adminGroupRoutes = <List<String>>[
+    ['/submissions', '/members', '/property-requests'],
+    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management'],
+    ['/notices-management', '/events-management'],
+    ['/fee-settings'],
+    ['/config-lists', '/roles', '/audit-log'],
+  ];
+
+  static final List<String Function(AppLocalizations)> _adminGroupLabels = [
+    _t((l) => l.adminGroupApplications),
+    _t((l) => l.adminGroupMoney),
+    _t((l) => l.adminGroupOrganisation),
+    _t((l) => l.adminGroupSettings),
+    _t((l) => l.adminGroupAdvanced),
+  ];
+
+  /// Admin pages that exist in Flutter but were never in the flat menu; they
+  /// only appear in the grouped menu.
+  static final List<NavItem> _groupOnlyItems = [
+    NavItem(
+      labelKey: _t((l) => l.navPaymentVerifications),
+      route: '/payment-verifications',
+      icon: Icons.fact_check_outlined,
+      requiredPermission: 'manage_finance',
+    ),
+    NavItem(
+      labelKey: _t((l) => l.navPropertyRequests),
+      route: '/property-requests',
+      icon: Icons.home_work_outlined,
+      requiredPermission: 'property.review',
+    ),
+  ];
+
+  /// The admin menu in four groups plus Advanced, permission-filtered like
+  /// [visibleFor]; empty groups are dropped and members get none.
+  static List<NavGroup> adminGroups({
+    required LandingTier landingTier,
+    required bool Function(String) can,
+  }) {
+    if (landingTier == LandingTier.member) return const [];
+    final catalogue = [...items.where((i) => i.area == null), ..._groupOnlyItems];
+    bool allowed(NavItem item) {
+      if (item.tier == LandingTierFilter.superAdmin && landingTier != LandingTier.superAdmin) {
+        return false;
+      }
+      final p = item.requiredPermission;
+      return p == null || can(p);
+    }
+
+    return [
+      for (var g = 0; g < _adminGroupRoutes.length; g++)
+        if (_groupItems(catalogue, _adminGroupRoutes[g]).where(allowed).isNotEmpty)
+          NavGroup(
+            labelKey: _adminGroupLabels[g],
+            items: _groupItems(catalogue, _adminGroupRoutes[g]).where(allowed).toList(),
+            advanced: g == _adminGroupRoutes.length - 1,
+          ),
+    ];
+  }
+
+  static List<NavItem> _groupItems(List<NavItem> catalogue, List<String> routes) => [
+        for (final route in routes)
+          for (final item in catalogue)
+            if (item.route == route) item,
+      ];
 
   // ---- Batch 3: five member areas -----------------------------------------
 

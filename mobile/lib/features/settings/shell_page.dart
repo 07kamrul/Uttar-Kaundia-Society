@@ -11,6 +11,7 @@ import '../../../core/layout/responsive.dart';
 import '../../../core/navigation/nav_items.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/net_status_banner.dart';
 import '../auth/bloc/auth_bloc.dart';
 import 'help_fab.dart';
 import 'settings_bloc.dart';
@@ -51,11 +52,34 @@ class ShellPage extends StatelessWidget {
     );
     // Batch 3: members navigate by five areas instead of the long menu.
     final areas = member && flags != null && on(FeatureFlag.navFiveAreas);
-    final navItems = areas ? AppNav.memberAreas(flags, can: session.can) : visible;
+    // Batch 5: management menu in groups (nav_advanced_section).
+    final groups = !member && on(FeatureFlag.navAdvancedSection)
+        ? AppNav.adminGroups(landingTier: session.landingTier, can: session.can)
+        : const <NavGroup>[];
+    final loc = AppLocalizations.of(context);
+    final headers = <int, String>{};
+    final grouped = <NavItem>[];
+    if (groups.isNotEmpty) {
+      grouped.addAll(visible.where((i) => i.route == '/dashboard'));
+      for (final g in groups) {
+        headers[grouped.length] = g.labelKey(loc);
+        grouped.addAll(g.items);
+      }
+    }
+    final navItems = areas
+        ? AppNav.memberAreas(flags, can: session.can)
+        : groups.isNotEmpty
+            ? grouped
+            : visible;
     final currentRoute = GoRouterState.of(context).uri.path;
-    final selected =
-        areas ? _areaIndex(navItems, currentRoute) : _selectedIndex(visible, currentRoute);
+    final selected = areas
+        ? _areaIndex(navItems, currentRoute)
+        : _selectedIndex(groups.isNotEmpty ? navItems : visible, currentRoute);
     final help = member && on(FeatureFlag.navMergedEntries) ? const HelpFab() : null;
+    // net_status_banner: offline / slow strip above the page.
+    final page = on(FeatureFlag.netStatusBanner)
+        ? Column(children: [const NetStatusBanner(), Expanded(child: child)])
+        : child;
 
     return switch (context.windowSize) {
       WindowSize.expanded => Scaffold(
@@ -65,10 +89,10 @@ class ShellPage extends StatelessWidget {
             children: [
               SizedBox(
                 width: 280,
-                child: _NavPanel(visible: navItems, selected: selected),
+                child: _NavPanel(visible: navItems, selected: selected, headers: headers),
               ),
               const VerticalDivider(width: 1),
-              Expanded(child: child),
+              Expanded(child: page),
             ],
           ),
         ),
@@ -79,7 +103,7 @@ class ShellPage extends StatelessWidget {
             children: [
               _Rail(visible: navItems, selected: selected),
               const VerticalDivider(width: 1),
-              Expanded(child: child),
+              Expanded(child: page),
             ],
           ),
         ),
@@ -88,11 +112,13 @@ class ShellPage extends StatelessWidget {
           floatingActionButton: help,
           drawer: member
               ? null
-              : Drawer(child: _NavPanel(visible: navItems, selected: selected, popFirst: true)),
+              : Drawer(
+                  child: _NavPanel(
+                      visible: navItems, selected: selected, popFirst: true, headers: headers)),
           bottomNavigationBar: member && navItems.isNotEmpty
               ? _BottomBar(visible: navItems, selected: selected, areas: areas)
               : null,
-          body: child,
+          body: page,
         ),
     };
   }
@@ -285,11 +311,19 @@ class _Rail extends StatelessWidget {
 /// Branded list of destinations — used as the modal drawer on phones and the
 /// permanent side panel on large screens.
 class _NavPanel extends StatelessWidget {
-  const _NavPanel({required this.visible, required this.selected, this.popFirst = false});
+  const _NavPanel({
+    required this.visible,
+    required this.selected,
+    this.popFirst = false,
+    this.headers = const {},
+  });
 
   final List<NavItem> visible;
   final int selected;
   final bool popFirst;
+
+  /// Group headings by the index of the item they precede (nav_advanced_section).
+  final Map<int, String> headers;
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +369,15 @@ class _NavPanel extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
-                for (var i = 0; i < visible.length; i++)
+                for (var i = 0; i < visible.length; i++) ...[
+                  if (headers[i] != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                      child: Text(
+                        headers[i]!,
+                        style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary),
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 2),
                     child: ListTile(
@@ -351,6 +393,7 @@ class _NavPanel extends StatelessWidget {
                       onTap: () => go(visible[i].route),
                     ),
                   ),
+                ],
               ],
             ),
           ),

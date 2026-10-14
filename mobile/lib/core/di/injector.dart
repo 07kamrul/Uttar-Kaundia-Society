@@ -6,7 +6,9 @@ import '../helpline/helpline_repository.dart';
 import '../feature_flags/feature_flags_service.dart';
 import '../../features/dashboard/data/public_stats_repository.dart';
 import '../auth/session.dart';
+import '../accessibility/display_prefs.dart';
 import '../network/api_client.dart';
+import '../network/network_status.dart';
 import '../storage/app_preferences.dart';
 import '../storage/token_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,9 +33,12 @@ Future<void> configureDependencies() async {
   final prefs = AppPreferences(await SharedPreferences.getInstance());
   sl.registerLazySingleton(() => prefs);
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
+  sl.registerLazySingleton(() => DisplayPrefs(sl<AppPreferences>()));
+  sl.registerLazySingleton(() => NetworkStatusCubit());
 
   sl.registerLazySingleton<ApiClient>(
     () => ApiClient(
+      networkObserver: sl<NetworkStatusCubit>(),
       tokenProvider: () => sl<TokenStorage>().readAccess(),
       onUnauthorized: () {
         sl<SessionManager>().clear();

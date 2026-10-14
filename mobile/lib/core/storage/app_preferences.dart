@@ -11,6 +11,12 @@ class AppPreferences {
   static const _langKey = 'krmf_lang'; // bn (default) | en
   static const _draftKey = 'ukams_registration_draft';
   static const _mapTourKey = 'krmf_map_tour_v1';
+  static const _textSizeKey = 'krmf_text_size';
+  static const _dataSaverKey = 'krmf_data_saver';
+
+  /// "লেখা বড় করুন" (ui_a11y_v2): the two supported factors.
+  static const double textScaleNormal = 1.0;
+  static const double textScaleLarge = 1.15;
 
   String get themeMode {
     final v = _prefs.getString(_themeKey);
@@ -37,4 +43,18 @@ class AppPreferences {
   bool get mapTourDone => _prefs.getBool(_mapTourKey) ?? false;
 
   Future<void> setMapTourDone(bool done) => _prefs.setBool(_mapTourKey, done);
+
+  /// Text size factor (1.0 or 1.15); anything else reads as 1.0.
+  double get textScale {
+    final v = _prefs.getDouble(_textSizeKey);
+    return v == textScaleLarge ? textScaleLarge : textScaleNormal;
+  }
+
+  Future<void> setTextScale(double scale) => _prefs.setDouble(
+      _textSizeKey, scale == textScaleLarge ? textScaleLarge : textScaleNormal);
+
+  /// "ডেটা সাশ্রয়" (data_saver): the member's own switch.
+  bool get dataSaver => _prefs.getBool(_dataSaverKey) ?? false;
+
+  Future<void> setDataSaver(bool on) => _prefs.setBool(_dataSaverKey, on);
 }

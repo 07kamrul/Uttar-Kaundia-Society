@@ -29,6 +29,26 @@ export interface AdminCostSharePayment {
   createdAt: string;
 }
 
+export type BulkKind = 'installment' | 'cost_share';
+export interface BulkItem {
+  kind: BulkKind;
+  id: number;
+}
+export interface BulkApproveResult {
+  batchId: string;
+  approvedCount: number;
+  approvedTotal: number;
+  approved: Array<BulkItem & { amount: number }>;
+  failed: Array<BulkItem & { code: string }>;
+}
+interface BulkApproveApi {
+  batch_id: string;
+  approved_count: number;
+  approved_total: string;
+  approved: Array<BulkItem & { amount: string }>;
+  failed: Array<BulkItem & { code: string }>;
+}
+
 export interface PendingVerificationCounts {
   installment: number;
   costShare: number;
@@ -104,6 +124,25 @@ export class CostSharePaymentService {
     return this.http
       .post<AdminCostSharePaymentApi>(`${this.base}/cost-share-payments/${id}/reject`, { reason })
       .pipe(map(toAdminPayment));
+  }
+
+  /** admin_bulk_verify: approve many payments at once; per-item failures come back in `failed`. */
+  bulkApprove(items: BulkItem[], expectedCount: number, expectedTotal: string): Observable<BulkApproveResult> {
+    return this.http
+      .post<BulkApproveApi>(`${this.base}/payment-verifications/bulk-approve`, {
+        items,
+        expected_count: expectedCount,
+        expected_total: expectedTotal,
+      })
+      .pipe(
+        map((r) => ({
+          batchId: r.batch_id,
+          approvedCount: r.approved_count,
+          approvedTotal: Number(r.approved_total),
+          approved: r.approved.map((a) => ({ kind: a.kind, id: a.id, amount: Number(a.amount) })),
+          failed: r.failed,
+        })),
+      );
   }
 
   pendingCounts(): Observable<PendingVerificationCounts> {

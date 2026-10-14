@@ -7,12 +7,17 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/data_saver/data_saver.dart';
 import '../../../../core/di/injector.dart';
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
+import '../../../../core/storage/app_preferences.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/utils/external_link_launcher.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/geo.dart';
 import '../../domain/land_entities.dart';
+import '../../domain/map_tile_session.dart';
 import '../../domain/phone_links.dart';
 import '../../domain/plot_boundary_entities.dart';
 import '../../domain/plot_boundary_failure.dart';
@@ -25,8 +30,11 @@ import '../widgets/dag_info_sheet.dart';
 import '../widgets/draw_panel_sheet.dart';
 import '../widgets/land_info_sheet.dart';
 import '../widgets/map/boundary_polygon_layer.dart';
+import '../widgets/map/layers_sheet.dart';
+import '../widgets/map/map_tile_gate.dart';
 import '../widgets/map/plot_map_canvas.dart';
 import '../widgets/map/plot_map_overlays.dart';
+import '../widgets/map_tour_overlay.dart';
 import '../widgets/owner_bottom_sheet.dart';
 import '../widgets/report_sheet.dart';
 
@@ -58,7 +66,20 @@ class PlotMapPage extends StatelessWidget {
     this.canDraw,
     this.tileProvider,
     this.createDagInfoCubit,
+    this.wizard,
+    this.preferences,
+    this.dataSaver,
   });
+
+  /// map_wizard; read from the feature flag when null (tests pass it).
+  final bool? wizard;
+
+  /// Where "tour seen" is kept; the DI preferences when null.
+  final AppPreferences? preferences;
+
+  /// Data saver (Batch 7): the tile card is shown on every visit. Taken from
+  /// the flag and the member's switch when null.
+  final bool? dataSaver;
 
   /// Test seams; each defaults to the live implementation.
   final PlotMapBloc Function()? createBloc;
@@ -84,9 +105,23 @@ class PlotMapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final society = SocietyBbox.tryParse(AppConfig.societyBboxRaw);
+    final isWizard = wizard ?? flagEnabled(FeatureFlag.mapWizard);
+    final saver = dataSaver ?? dataSaverActive();
+    final prefs = preferences ??
+        (sl.isRegistered<AppPreferences>() ? sl<AppPreferences>() : null);
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => createBloc?.call() ?? PlotMapBloc()),
+        BlocProvider(create: (_) {
+          final bloc = createBloc?.call() ?? PlotMapBloc();
+          // Data-saver start: no tiles until "মানচিত্র দেখুন", unless the
+          // member already agreed this session (and data saver is off).
+          if (isWizard) {
+            bloc.add(PlotMapTileGateSet(
+              requested: MapTileSession.ok && !saver,
+            ));
+          }
+          return bloc;
+        }),
         BlocProvider(create: (_) => createLandBloc?.call() ?? LandMapBloc()),
         BlocProvider(
           create: (_) =>
@@ -101,6 +136,9 @@ class PlotMapPage extends StatelessWidget {
         createDrawCubit: createDrawCubit,
         tileProvider: tileProvider,
         createDagInfoCubit: createDagInfoCubit,
+        wizard: isWizard,
+        preferences: prefs,
+        dataSaver: saver,
       ),
     );
   }
@@ -115,8 +153,14 @@ class _PlotMapView extends StatefulWidget {
     this.createDrawCubit,
     this.tileProvider,
     this.createDagInfoCubit,
+    this.wizard = false,
+    this.preferences,
+    this.dataSaver = false,
   });
 
+  final bool wizard;
+  final AppPreferences? preferences;
+  final bool dataSaver;
   final DagInfoCubit Function(String sheet, String dag)? createDagInfoCubit;
   final TileProvider? tileProvider;
   final SocietyBbox? society;
@@ -137,6 +181,13 @@ class _PlotMapViewState extends State<_PlotMapView> {
   SocietyBbox? _viewport;
   String _boundaryQuery = '';
 
+  // map_wizard first-time tour: coach-mark targets and visibility.
+  final _layersKey = GlobalKey();
+  final _legendKey = GlobalKey();
+  final _drawKey = GlobalKey();
+  final _helpKey = GlobalKey();
+  bool _tourVisible = false;
+
   @override
   void initState() {
     super.initState();
@@ -151,7 +202,34 @@ class _PlotMapViewState extends State<_PlotMapView> {
       } else {
         plot.add(const PlotMapRefreshRequested());
       }
+      final prefs = widget.preferences;
+      if (widget.wizard && prefs != null && !prefs.mapTourDone) {
+        setState(() => _tourVisible = true);
+      }
     });
+  }
+
+  void _finishTour() {
+    setState(() => _tourVisible = false);
+    widget.preferences?.setMapTourDone(true);
+  }
+
+  List<MapTourStep> _tourSteps(AppLocalizations loc) => [
+        MapTourStep(target: _layersKey, text: loc.mapWizardTourLayers),
+        MapTourStep(target: _legendKey, text: loc.mapWizardTourLegend),
+        if (_canDraw)
+          MapTourStep(target: _drawKey, text: loc.mapWizardTourDraw),
+        MapTourStep(target: _helpKey, text: loc.mapWizardTourHelp),
+      ];
+
+  void _openLayers() {
+    showLayersSheet(
+      context,
+      plot: context.read<PlotMapBloc>(),
+      land: context.read<LandMapBloc>(),
+      onMode: _selectMode,
+      allowSatellite: !widget.dataSaver,
+    );
   }
 
   @override
@@ -353,6 +431,19 @@ class _PlotMapViewState extends State<_PlotMapView> {
         body: Stack(
           children: [
             Positioned.fill(child: _buildCanvas()),
+            if (widget.wizard)
+              BlocBuilder<PlotMapBloc, PlotMapState>(
+                buildWhen: (a, b) => a.tilesRequested != b.tilesRequested,
+                builder: (context, s) => s.tilesRequested
+                    ? const SizedBox.shrink()
+                    : Positioned.fill(
+                        child: MapTileGateCard(
+                          onShow: () => context
+                              .read<PlotMapBloc>()
+                              .add(const PlotMapTilesRequested()),
+                        ),
+                      ),
+              ),
             Positioned(
               top: 0,
               left: 0,
@@ -375,6 +466,12 @@ class _PlotMapViewState extends State<_PlotMapView> {
                             context.read<MyLocationCubit>().locate(),
                         onDraw: _openDrawPanel,
                         onModeChanged: _selectMode,
+                        wizard: widget.wizard,
+                        onLayers: _openLayers,
+                        onTourAgain: () => setState(() => _tourVisible = true),
+                        layersKey: _layersKey,
+                        helpKey: _helpKey,
+                        drawKey: _drawKey,
                       ),
                     ),
                   ],
@@ -390,6 +487,8 @@ class _PlotMapViewState extends State<_PlotMapView> {
                 child: BlocBuilder<PlotMapBloc, PlotMapState>(
                   buildWhen: (a, b) => a.layer != b.layer,
                   builder: (context, state) => PlotMapBottomOverlay(
+                    wizard: widget.wizard,
+                    legendKey: _legendKey,
                     basemap: state.layer,
                     onToggleBasemap: () =>
                         context.read<PlotMapBloc>().add(PlotMapLayerChanged(
@@ -407,6 +506,13 @@ class _PlotMapViewState extends State<_PlotMapView> {
                 ),
               ),
             ),
+            if (_tourVisible)
+              Positioned.fill(
+                child: MapTourOverlay(
+                  steps: _tourSteps(AppLocalizations.of(context)),
+                  onFinished: _finishTour,
+                ),
+              ),
           ],
         ),
       ),
@@ -418,6 +524,7 @@ class _PlotMapViewState extends State<_PlotMapView> {
       buildWhen: (a, b) =>
           !identical(a.features, b.features) ||
           a.layer != b.layer ||
+          a.tilesRequested != b.tilesRequested ||
           a.highlightedBoundaryId != b.highlightedBoundaryId,
       builder: (context, plot) => BlocBuilder<LandMapBloc, LandMapState>(
         buildWhen: (a, b) =>
@@ -441,6 +548,8 @@ class _PlotMapViewState extends State<_PlotMapView> {
             onTap: _onMapTap,
             onCameraChanged: _onCameraChanged,
             tileProvider: widget.tileProvider,
+            tilesRequested: plot.tilesRequested,
+            simplified: widget.wizard,
           ),
         ),
       ),
@@ -473,6 +582,7 @@ class _PlotMapViewState extends State<_PlotMapView> {
             return ValueListenableBuilder<Set<String>>(
               valueListenable: _reported,
               builder: (_, reported, __) => BoundaryOwnerSheet(
+                wizard: widget.wizard,
                 status: s.ownerStatus,
                 owner: s.owner,
                 failure: failureMessage,

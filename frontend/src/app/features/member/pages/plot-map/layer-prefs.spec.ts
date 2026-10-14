@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LAYER_PREFS_KEY, readLayerPrefs, writeLayerPrefs } from './layer-prefs';
+import { LAYER_PREFS_KEY, hasStoredLayerPrefs, readLayerPrefs, writeLayerPrefs } from './layer-prefs';
 
 /** Minimal in-memory Storage; the test runtime's localStorage is not reliable. */
 function memoryStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
@@ -17,6 +17,12 @@ describe('layer prefs', () => {
 
   it('defaults to RS overlay on and snapping on', () => {
     expect(readLayerPrefs()).toEqual({ rsOverlay: true, snapToRs: true });
+  });
+
+  it('knows whether the member ever saved a preference', () => {
+    expect(hasStoredLayerPrefs()).toBe(false);
+    writeLayerPrefs({ rsOverlay: true, snapToRs: true });
+    expect(hasStoredLayerPrefs()).toBe(true);
   });
 
   it('round-trips saved preferences', () => {

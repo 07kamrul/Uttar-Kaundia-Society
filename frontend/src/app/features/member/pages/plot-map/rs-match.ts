@@ -5,8 +5,6 @@ import type { LandPlotFeature } from '../../../../core/services/land-data.servic
 /** Below this overlap the drawn shape is flagged as diverging from every RS dag. */
 export const RS_DIVERGENCE_THRESHOLD_PCT = 60;
 
-const SNAP_DISTANCE_MOUSE_PX = 12;
-const SNAP_DISTANCE_TOUCH_PX = 24;
 // 1 shatak (decimal) = 435.6 sq ft; matches the backend constant.
 const SQM_PER_SHOTANGSHO = 40.4686;
 
@@ -16,17 +14,8 @@ export interface RsMatch {
   diverges: boolean;
 }
 
-/** Snap tolerance in pixels; fingers need a larger target than a mouse. */
-export function snapDistancePx(isTouch: boolean): number {
-  return isTouch ? SNAP_DISTANCE_TOUCH_PX : SNAP_DISTANCE_MOUSE_PX;
-}
-
-/** Dag number as printed on the map ("RS-4611" -> "4611"). */
-export function rsLabelNumber(props: LandPlotFeature['properties'] | undefined): string {
-  const raw = props?.rs_plot_no ?? props?.plot_no;
-  if (raw === undefined || raw === null) return '';
-  return String(raw).replace(/^RS-?/i, '');
-}
+// Turf-free helpers live in rs-labels.ts so the map can use them without this module.
+export { rsLabelNumber, snapDistancePx } from './rs-labels';
 
 function outerRing(geometry: { type: string; coordinates: unknown }): number[][] | null {
   if (geometry.type !== 'Polygon') return null;

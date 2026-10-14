@@ -122,7 +122,8 @@ export class HomeStatusComponent implements OnInit {
   loadProfile(): void {
     loadCard(this.profileCard, this.members.getProfile(), (p) => ({
       status: p.status,
-      needsDag: p.properties.some((prop) => !prop.dagNoCs && !prop.dagNoRs),
+      // The server decides; older servers do not send it, so derive it from the properties.
+      needsDag: p.needsDag ?? p.properties.some((prop) => !prop.dagNoCs && !prop.dagNoRs),
       name: p.fullName,
     }));
   }

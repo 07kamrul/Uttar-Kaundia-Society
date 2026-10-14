@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/widgets.dart';
@@ -15,7 +18,10 @@ class LoginPage extends StatefulWidget {
   final String? id;
   final String? propertyId;
   final String? returnUrl;
-  const LoginPage({super.key, this.id, this.propertyId, this.returnUrl});
+  const LoginPage({super.key, this.id, this.propertyId, this.returnUrl, this.loginByPhone});
+
+  /// login_by_phone: mobile / email / member ID; read from the flag when null.
+  final bool? loginByPhone;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -27,6 +33,21 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordFocus = FocusNode();
   bool _submitAttempted = false;
   bool _obscurePassword = true;
+
+  late final bool _byPhone = widget.loginByPhone ?? flagEnabled(FeatureFlag.loginByPhone);
+
+  /// With login_by_phone each status says what happened; without it every
+  /// failure shows the one old message.
+  String _failureMessage(AppLocalizations loc, ApiException failure) {
+    if (_byPhone) {
+      if (failure.statusCode == 429) return loc.authLoginTooManyAttempts;
+      if (failure.errorCode == 'LOGIN_AMBIGUOUS_IDENTIFIER') return loc.apiErrorLoginAmbiguous;
+      if (failure.isUnauthorized || failure.statusCode == 401) return loc.authLoginFailedV2;
+    }
+    return (failure.isBusiness && failure.businessMessage != null)
+        ? failure.businessMessage!
+        : loc.authLoginLoginFailedError;
+  }
 
   @override
   void dispose() {
@@ -115,17 +136,13 @@ class _LoginPageState extends State<LoginPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (failure != null) ...[
-            AuthNotice(
-              message: (failure.isBusiness && failure.businessMessage != null)
-                  ? failure.businessMessage!
-                  : loc.authLoginLoginFailedError,
-            ),
+            AuthNotice(message: _failureMessage(loc, failure)),
             const SizedBox(height: 16),
           ],
           TextField(
             controller: _identifierController,
             autofillHints: const [AutofillHints.username, AutofillHints.email],
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: _byPhone ? TextInputType.text : TextInputType.emailAddress,
             autocorrect: false,
             enableSuggestions: false,
             textInputAction: TextInputAction.next,
@@ -133,7 +150,9 @@ class _LoginPageState extends State<LoginPage> {
             onChanged: (_) => setState(() {}),
             onSubmitted: (_) => _passwordFocus.requestFocus(),
             decoration: InputDecoration(
-              labelText: loc.authLoginIdentifierLabel,
+              labelText: _byPhone ? loc.authLoginIdentifierLabelV2 : loc.authLoginIdentifierLabel,
+              helperText: _byPhone ? loc.authLoginIdentifierHelperV2 : null,
+              helperMaxLines: 2,
               prefixIcon: const Icon(Icons.person_outline),
               errorText: _identifierError(loc),
             ),

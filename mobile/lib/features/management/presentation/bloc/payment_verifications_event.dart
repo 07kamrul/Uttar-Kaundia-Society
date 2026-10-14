@@ -21,6 +21,25 @@ final class PaymentVerificationsStatusFilterChanged
   List<Object?> get props => [status];
 }
 
+/// Ticks / unticks one pending payment for the bulk approve.
+final class PaymentVerificationsToggled extends PaymentVerificationsEvent {
+  const PaymentVerificationsToggled(this.id);
+  final int id;
+  @override
+  List<Object?> get props => [id];
+}
+
+final class PaymentVerificationsSelectionCleared
+    extends PaymentVerificationsEvent {
+  const PaymentVerificationsSelectionCleared();
+}
+
+/// Approves every ticked payment in one request (admin_bulk_verify).
+final class PaymentVerificationsBulkApproveRequested
+    extends PaymentVerificationsEvent {
+  const PaymentVerificationsBulkApproveRequested();
+}
+
 final class PaymentVerificationsApproved extends PaymentVerificationsEvent {
   const PaymentVerificationsApproved({required this.payment});
 

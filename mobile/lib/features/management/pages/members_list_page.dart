@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injector.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../core/network/api_client.dart';
 import '../../../core/enums/enums.dart';
 import '../../../core/theme/app_theme.dart';
@@ -15,6 +17,7 @@ import '../domain/admin_entities.dart';
 import '../presentation/bloc/bloc_actions.dart';
 import '../presentation/bloc/members_bloc.dart';
 import '../presentation/widgets/management_widgets.dart';
+import '../presentation/widgets/queue_search_field.dart';
 import 'submissions_list_page.dart';
 
 /// All members (Angular members-list): list-cards with ID / name / mobile /
@@ -24,25 +27,41 @@ class MembersListPage extends StatelessWidget {
   final String? propertyId;
   final String? returnUrl;
 
-  const MembersListPage({super.key, this.id, this.propertyId, this.returnUrl});
+  const MembersListPage(
+      {super.key,
+      this.id,
+      this.propertyId,
+      this.returnUrl,
+      this.repository,
+      this.searchEnabled});
+
+  /// Test seam; the live repository by default.
+  final AdminRepository? repository;
+
+  /// Search box (admin_console); read from the feature flag when null.
+  final bool? searchEnabled;
 
   @override
   Widget build(BuildContext context) {
     final canManage =
         sl<SessionManager>().session?.can('member.manage') ?? false;
     return BlocProvider(
-      create: (_) =>
-          MembersBloc(repository: AdminRepository(apiClient: sl<ApiClient>()))
-            ..add(const MembersLoadRequested()),
-      child: _MembersView(canManage: canManage),
+      create: (_) => MembersBloc(
+          repository: repository ?? AdminRepository(apiClient: sl<ApiClient>()))
+        ..add(const MembersLoadRequested()),
+      child: _MembersView(
+        canManage: canManage,
+        searchEnabled: searchEnabled ?? flagEnabled(FeatureFlag.adminConsole),
+      ),
     );
   }
 }
 
 class _MembersView extends StatelessWidget {
-  const _MembersView({required this.canManage});
+  const _MembersView({required this.canManage, this.searchEnabled = false});
 
   final bool canManage;
+  final bool searchEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +85,8 @@ class _MembersView extends StatelessWidget {
               title: loc.adminMembersListTitle,
               subtitle: loc.adminMembersListSubtitle,
             ),
+            if (searchEnabled)
+              QueueSearchField(onChanged: (q) => bloc.add(MembersSearchChanged(q))),
             ..._content(context, loc, bloc, state),
           ],
         );

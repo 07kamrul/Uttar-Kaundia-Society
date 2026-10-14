@@ -26,6 +26,7 @@ import {
 } from '../models/content.model';
 import { toPropertyRequest, type MemberPropertyRequest, type PropertyRequestStatus } from './member.service';
 import { getMediaToken } from './media-token.service';
+import type { MembershipApplication } from './governance.service';
 
 export type AttachmentKind = 'member_photo' | 'receipt_photo';
 
@@ -515,8 +516,14 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  listSubmissions(status?: SubmissionStatus): Observable<SubmissionSummary[]> {
-    const url = status ? `${this.base}/submissions?status=${status}` : `${this.base}/submissions`;
+  /** `?a=1&b=2` from the given pairs, skipping empty values; empty string when none. */
+  private query(pairs: Array<[string, string | undefined]>): string {
+    const parts = pairs.filter(([, v]) => !!v).map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`);
+    return parts.length ? `?${parts.join('&')}` : '';
+  }
+
+  listSubmissions(status?: SubmissionStatus, search?: string): Observable<SubmissionSummary[]> {
+    const url = `${this.base}/submissions${this.query([['status', status], ['search', search?.trim()]])}`;
     return this.http
       .get<SubmissionSummaryApiModel[]>(url)
       .pipe(map((rows) => rows.map(toSubmissionSummary)));
@@ -596,10 +603,16 @@ export class AdminService {
       .pipe(map(toPropertyRequest));
   }
 
-  listMembers(): Observable<Member[]> {
+  listMembers(search?: string): Observable<Member[]> {
     return this.http
-      .get<MemberApiModel[]>(`${this.base}/members`)
+      .get<MemberApiModel[]>(`${this.base}/members${this.query([['search', search?.trim()]])}`)
       .pipe(map((rows) => rows.map(toMember)));
+  }
+
+  /** Membership applications (membership_application.manage), optionally searched by name or mobile. */
+  listApplications(status?: string, search?: string): Observable<MembershipApplication[]> {
+    const url = `${this.base}/membership-applications${this.query([['status_filter', status], ['search', search?.trim()]])}`;
+    return this.http.get<MembershipApplication[]>(url);
   }
 
   getMemberProfile(id: string): Observable<MemberProfile> {
@@ -728,6 +741,7 @@ export class AdminService {
     value: number;
     unit?: string;
     startDate?: string;
+    feeCategory?: string;
   }): Observable<FeeSetting> {
     return this.http
       .post<FeeSettingApiModel>(`${this.base}/fee-settings`, {
@@ -735,6 +749,7 @@ export class AdminService {
         value: payload.value,
         unit: payload.unit,
         start_date: payload.startDate,
+        ...(payload.feeCategory ? { fee_category: payload.feeCategory } : {}),
       })
       .pipe(map(toFeeSetting));
   }

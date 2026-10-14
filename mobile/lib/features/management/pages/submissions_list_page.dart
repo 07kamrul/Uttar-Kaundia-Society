@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/di/injector.dart';
+import '../../../core/feature_flags/feature_flag.dart';
+import '../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../core/network/api_client.dart';
 import '../../../core/enums/enums.dart';
 import '../../../l10n/app_localizations.dart';
@@ -12,6 +14,7 @@ import '../data/admin_repository.dart';
 import '../domain/admin_entities.dart';
 import '../presentation/bloc/submissions_bloc.dart';
 import '../presentation/widgets/management_widgets.dart';
+import '../presentation/widgets/queue_search_field.dart';
 import '../presentation/widgets/submission_detail_widgets.dart' show NeedsDagBadge;
 
 /// Review queue: submissions filtered by status (Angular submissions-list).
@@ -21,21 +24,35 @@ class SubmissionsListPage extends StatelessWidget {
   final String? returnUrl;
 
   const SubmissionsListPage(
-      {super.key, this.id, this.propertyId, this.returnUrl});
+      {super.key,
+      this.id,
+      this.propertyId,
+      this.returnUrl,
+      this.repository,
+      this.searchEnabled});
+
+  /// Test seam; the live repository by default.
+  final AdminRepository? repository;
+
+  /// Search box (admin_console); read from the feature flag when null.
+  final bool? searchEnabled;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => SubmissionsBloc(
-          repository: AdminRepository(apiClient: sl<ApiClient>()))
+          repository: repository ?? AdminRepository(apiClient: sl<ApiClient>()))
         ..add(const SubmissionsLoadRequested()),
-      child: const _SubmissionsView(),
+      child: _SubmissionsView(
+          searchEnabled: searchEnabled ?? flagEnabled(FeatureFlag.adminConsole)),
     );
   }
 }
 
 class _SubmissionsView extends StatelessWidget {
-  const _SubmissionsView();
+  const _SubmissionsView({this.searchEnabled = false});
+
+  final bool searchEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +69,9 @@ class _SubmissionsView extends StatelessWidget {
               title: loc.adminSubmissionsListTitle,
               subtitle: loc.adminSubmissionsListSubtitle,
             ),
+            if (searchEnabled)
+              QueueSearchField(
+                  onChanged: (q) => bloc.add(SubmissionsSearchChanged(q))),
             ManagementFilterChips<SubmissionStatus?>(
               label: loc.adminSubmissionsListFilterLabel,
               selected: state.filter,

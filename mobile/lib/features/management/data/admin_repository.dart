@@ -4,7 +4,9 @@ import '../../../../core/enums/enums.dart';
 import '../../../../core/network/api_client.dart';
 import '../domain/admin_entities.dart';
 import '../domain/admin_mappers.dart';
+import '../domain/bulk_entities.dart';
 import '../domain/finance_entities.dart';
+import '../domain/today_entities.dart';
 import '../domain/finance_mappers.dart';
 
 /// Admin portal endpoints (mirrors Angular AdminService.ts). All payloads are
@@ -21,11 +23,19 @@ class AdminRepository {
 
   // ----- Submissions -----
 
+  /// GET /admin/today (Batch 5): counts of work waiting.
+  Future<TodaySummary> today() async {
+    final data = await _api.getUri('$_base/today');
+    return TodaySummary.fromJson(data as Map);
+  }
+
+  /// [search] (name / mobile / member id) is sent only when set.
   Future<List<SubmissionSummary>> listSubmissions(
-      {SubmissionStatus? status}) async {
+      {SubmissionStatus? status, String? search}) async {
     final data = await _api.getUri('$_base/submissions', query: {
       if (status != null && status != SubmissionStatus.unknown)
         'status': status.apiName,
+      if (search != null && search.isNotEmpty) 'search': search,
     });
     return _rows(data)
         .map((r) => SubmissionSummaryApiX(r).toSummaryEntity())
@@ -124,8 +134,10 @@ class AdminRepository {
 
   // ----- Members -----
 
-  Future<List<Member>> listMembers() async {
-    final data = await _api.getUri('$_base/members');
+  Future<List<Member>> listMembers({String? search}) async {
+    final data = (search == null || search.isEmpty)
+        ? await _api.getUri('$_base/members')
+        : await _api.getUri('$_base/members', query: {'search': search});
     return _rows(data).map((r) => r.toMemberEntity()).toList(growable: false);
   }
 
@@ -552,6 +564,25 @@ class InstallmentPaymentRepository {
   Future<AdminInstallmentPayment> reject(int id, String reason) async {
     final data = await _api.post('$_base/$id/reject', {'reason': reason});
     return Map<String, dynamic>.from(data as Map).toAdminPaymentEntity();
+  }
+
+  /// Bulk approve (admin_bulk_verify). [expectedCount] / [expectedTotal] are
+  /// the stale guard: the server answers 409 BULK_SELECTION_STALE and writes
+  /// nothing when they no longer match. Results come back per item.
+  Future<BulkApproveResult> bulkApprove(
+    List<int> ids, {
+    required int expectedCount,
+    required String expectedTotal,
+  }) async {
+    final data =
+        await _api.post('/admin/payment-verifications/bulk-approve', {
+      'items': [
+        for (final id in ids) {'kind': 'installment', 'id': id},
+      ],
+      'expected_count': expectedCount,
+      'expected_total': expectedTotal,
+    });
+    return BulkApproveResult.fromJson(data as Map);
   }
 }
 

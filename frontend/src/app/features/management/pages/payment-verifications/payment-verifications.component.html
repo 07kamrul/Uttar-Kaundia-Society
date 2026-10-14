@@ -27,6 +27,17 @@
     <div class="error-box" role="alert"><p style="margin:0 0 0.5rem">{{ error() }}</p><button type="button" class="btn btn-secondary btn-sm" [disabled]="loading()" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   }
 
+  @if (bulkMessage(); as m) {
+    <p class="pv-bulk-message" role="status" [attr.data-testid]="'bulk-' + m.kind">{{ m.text }}</p>
+  }
+
+  @if (bulkOn() && filter() === 'pending' && payments().length > 1 && !loading()) {
+    <label class="pv-check pv-select-all">
+      <input type="checkbox" data-testid="select-all" [checked]="allSelected()" (change)="toggleAll()" />
+      {{ 'adminConsole.bulk.selectAll' | translate }}
+    </label>
+  }
+
   @if (loading()) {
     <app-section-loader variant="cards" [count]="3" />
   } @else if (!error()) {
@@ -34,6 +45,17 @@
       @for (p of payments(); track p.id) {
         <li class="pv-card card">
           <div class="pv-card-head">
+            @if (bulkOn() && p.status === 'pending') {
+              <label class="pv-check">
+                <input
+                  type="checkbox"
+                  [attr.data-testid]="'select-' + p.kind + '-' + p.id"
+                  [checked]="isSelected(p)"
+                  [attr.aria-label]="'adminConsole.bulk.select' | translate"
+                  (change)="toggle(p)"
+                />
+              </label>
+            }
             <div>
               <p class="pv-member">{{ p.memberName || '—' }} <span class="pv-member-id">{{ p.memberDisplayId }}</span></p>
               <p class="pv-months">{{ p.headline }}</p>
@@ -84,6 +106,26 @@
     </ul>
   }
 
+  @if (selectedCount() > 0) {
+    <div class="pv-bulk-bar" data-testid="bulk-bar">
+      <span class="pv-bulk-text">{{ bulkBarText() }}</span>
+      <button type="button" class="btn btn-primary" data-testid="bulk-approve" [disabled]="bulkBusy()" (click)="askBulk()">
+        {{ 'adminConsole.bulk.approve' | translate }}
+      </button>
+    </div>
+  }
+
+  <app-confirm-modal
+    [open]="confirmingBulk()"
+    [title]="'adminConsole.bulk.confirmTitle' | translate"
+    [message]="bulkConfirmText()"
+    [confirmLabel]="'adminConsole.bulk.confirmYes' | translate"
+    [cancelLabel]="'adminConsole.bulk.confirmNo' | translate"
+    [loading]="bulkBusy()"
+    (confirm)="runBulk()"
+    (cancel)="confirmingBulk.set(false)"
+  />
+
   @if (rejecting(); as r) {
     <div class="modal-backdrop" (click)="rejecting.set(null)">
       <div class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
@@ -91,8 +133,12 @@
         <p class="modal-message">{{ r.memberName }} · ৳ {{ formatAmount(r.amount) }} · {{ r.transactionRef }}</p>
         <div class="field">
           <label for="rejectReason">{{ 'admin.paymentVerifications.reason' | translate }} *</label>
+          @if (consoleOn()) {
+            <app-reason-picker [category]="paymentReasonCategory" inputId="rejectReason" [value]="rejectReason" (valueChange)="rejectReason = $event" />
+          } @else {
           <textarea id="rejectReason" rows="3" maxlength="500" [(ngModel)]="rejectReason"
             [placeholder]="'admin.paymentVerifications.reasonPlaceholder' | translate"></textarea>
+          }
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" (click)="rejecting.set(null)">{{ 'admin.paymentVerifications.cancel' | translate }}</button>

@@ -19,6 +19,14 @@ export const FEATURE_FLAG_KEYS = [
   'nav_advanced_section',
   'pay_merged_page',
   'nav_five_areas',
+  'map_wizard',
+  'admin_console',
+  'admin_bulk_verify',
+  'fee_wizard',
+  'login_by_phone',
+  'ui_a11y_v2',
+  'data_saver',
+  'net_status_banner',
 ] as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];

@@ -42,10 +42,13 @@ class AppRadius {
 class AppTheme {
   const AppTheme._();
 
-  static const fontFamilyBody = 'Inter';
-  static const fontFamilyBangla = 'Hind Siliguri';
+  // No font family is named on purpose: none is bundled, so the platform's
+  // own font (Noto Sans Bengali on Android) is what shows. Naming Inter /
+  // Tiro Bangla only produced a silent fallback.
 
-  static ThemeData light() => _base(
+  /// [a11yV2] (ui_a11y_v2): 48 px targets, 16 px body text, 14 px minimum.
+  static ThemeData light({bool a11yV2 = false}) => _base(
+        a11yV2: a11yV2,
         brightness: Brightness.light,
         scaffold: AppColors.gray50,
         surface: AppColors.surface,
@@ -59,7 +62,8 @@ class AppTheme {
         error: AppColors.red600,
       );
 
-  static ThemeData dark() => _base(
+  static ThemeData dark({bool a11yV2 = false}) => _base(
+        a11yV2: a11yV2,
         brightness: Brightness.dark,
         scaffold: AppColors.darkBg,
         surface: AppColors.darkSurface,
@@ -74,6 +78,7 @@ class AppTheme {
       );
 
   static ThemeData _base({
+    required bool a11yV2,
     required Brightness brightness,
     required Color scaffold,
     required Color surface,
@@ -117,7 +122,6 @@ class AppTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scaffold,
-      fontFamily: fontFamilyBody,
     );
 
     final text = base.textTheme.apply(bodyColor: onSurface, displayColor: onSurface);
@@ -133,7 +137,7 @@ class AppTheme {
     );
     final navIndicator = isDark ? AppColors.emerald700 : AppColors.emerald50;
 
-    return base.copyWith(
+    final themed = base.copyWith(
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: primary,
@@ -142,7 +146,6 @@ class AppTheme {
         scrolledUnderElevation: 2,
         centerTitle: false,
         titleTextStyle: const TextStyle(
-          fontFamily: 'Tiro Bangla',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -306,6 +309,25 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         textStyle: TextStyle(color: scaffold, fontSize: 12),
+      ),
+    );
+    return a11yV2 ? _a11y(themed) : themed;
+  }
+
+  /// ui_a11y_v2: bigger body text (16 px, meta at least 14 px) and 48 px
+  /// targets everywhere.
+  static ThemeData _a11y(ThemeData t) {
+    final text = t.textTheme;
+    return t.copyWith(
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
+      textTheme: text.copyWith(
+        bodyMedium: text.bodyMedium?.copyWith(fontSize: 16),
+        bodySmall: text.bodySmall?.copyWith(fontSize: 14),
+        labelMedium: text.labelMedium?.copyWith(fontSize: 14),
+        labelSmall: text.labelSmall?.copyWith(fontSize: 14),
       ),
     );
   }

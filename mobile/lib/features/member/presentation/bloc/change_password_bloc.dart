@@ -30,10 +30,13 @@ class ChangePasswordValidation {
       confirmError == ChangePasswordFieldError.none;
 }
 
+/// [policyV2] (password_policy_v2) checks the length only: the blocklist is
+/// server-side and answers with a code, no digit rule.
 ChangePasswordValidation validateChangePassword({
   required String current,
   required String next,
   required String confirm,
+  bool policyV2 = false,
 }) {
   var currentError = ChangePasswordFieldError.none;
   var newError = ChangePasswordFieldError.none;
@@ -43,7 +46,7 @@ ChangePasswordValidation validateChangePassword({
   }
   if (next.isEmpty ||
       next.length < minPasswordLength ||
-      !RegExp(r'\d').hasMatch(next)) {
+      (!policyV2 && !RegExp(r'\d').hasMatch(next))) {
     newError = ChangePasswordFieldError.policy;
   } else if (current.isNotEmpty && next == current) {
     newError = ChangePasswordFieldError.sameAsCurrent;
@@ -59,7 +62,7 @@ ChangePasswordValidation validateChangePassword({
 
 class ChangePasswordBloc
     extends Bloc<ChangePasswordEvent, ChangePasswordState> {
-  ChangePasswordBloc({MemberRepository? repository})
+  ChangePasswordBloc({MemberRepository? repository, this.policyV2 = false})
       : _repository =
             repository ?? MemberRepository(apiClient: sl<ApiClient>()),
         super(const ChangePasswordState()) {
@@ -70,12 +73,18 @@ class ChangePasswordBloc
 
   final MemberRepository _repository;
 
+  /// password_policy_v2: length-only client check.
+  final bool policyV2;
+
   void _onValidated(
     ChangePasswordValidated e,
     Emitter<ChangePasswordState> emit,
   ) {
     final v = validateChangePassword(
-        current: e.current, next: e.next, confirm: e.confirm);
+        current: e.current,
+        next: e.next,
+        confirm: e.confirm,
+        policyV2: policyV2);
     emit(state.copyWith(
       currentError: v.currentError,
       newError: v.newError,
@@ -101,6 +110,7 @@ class ChangePasswordBloc
           submitting: false,
           currentServerError: err.fieldErrors['current_password'],
           newServerError: err.fieldErrors['new_password'],
+          newServerCode: err.errorCode,
         ));
       } else {
         emit(state.copyWith(submitting: false, generalError: true));

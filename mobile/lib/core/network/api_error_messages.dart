@@ -41,5 +41,9 @@ String? apiErrorCodeMessage(AppLocalizations l10n, String? code) => switch (code
       'AMOUNT_EXCEEDS_REMAINING' => l10n.apiErrorAmountExceedsRemaining,
       'FEATURE_DISABLED' => l10n.apiErrorFeatureDisabled,
       'INVALID_BD_MOBILE' => l10n.apiErrorInvalidBdMobile,
+      'LOGIN_AMBIGUOUS_IDENTIFIER' => l10n.apiErrorLoginAmbiguous,
+      'PASSWORD_TOO_SHORT' => l10n.apiErrorPasswordTooShort,
+      'PASSWORD_TOO_COMMON' => l10n.apiErrorPasswordTooCommon,
+      'PASSWORD_SAME_AS_CURRENT' => l10n.apiErrorPasswordSameAsCurrent,
       _ => null,
     };

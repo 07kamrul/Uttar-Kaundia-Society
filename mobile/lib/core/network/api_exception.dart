@@ -76,8 +76,9 @@ class ApiException implements Exception {
   static String? _extractCode(dynamic data) {
     if (data is! Map) return null;
     final detail = data['detail'];
-    if (detail is! Map) return null;
-    final code = detail['code'];
+    // Usually inside `detail`; some endpoints (e.g. the login 409) may put it
+    // at the top level.
+    final code = detail is Map ? detail['code'] : data['code'];
     return code is String && code.isNotEmpty ? code : null;
   }
 
@@ -110,6 +111,11 @@ class ApiException implements Exception {
           }
         }
       }
+    } else if (detail is Map && detail['errors'] is Map) {
+      // {"message": ..., "errors": {"new_password": ...}, "code": ...}
+      (detail['errors'] as Map).forEach((k, v) {
+        if (k is String && v != null) result[k] = v.toString();
+      });
     } else if (detail is Map) {
       detail.forEach((k, v) {
         if (k is String && v != null) result[k] = v.toString();

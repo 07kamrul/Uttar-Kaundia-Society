@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/plain_confirm.dart';
 import '../../../../shared/widgets/widgets.dart';
 import '../../domain/plot_boundary_entities.dart';
 import '../bloc/my_boundaries_cubit.dart';
@@ -338,6 +341,16 @@ Future<bool> confirmAction(
   required String confirmLabel,
   bool destructive = false,
 }) async {
+  // ui_a11y_v2: plain yes / no words.
+  if (flagEnabled(FeatureFlag.uiA11yV2)) {
+    return showPlainConfirm(
+      context,
+      title: title,
+      consequence: message,
+      action: confirmLabel,
+      destructive: destructive,
+    );
+  }
   final loc = AppLocalizations.of(context);
   final result = await showDialog<bool>(
     context: context,

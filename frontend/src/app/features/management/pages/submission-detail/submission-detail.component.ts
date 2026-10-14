@@ -6,6 +6,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
+  inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +27,9 @@ import type {
   SubmissionDetail,
   SubmissionProperty,
 } from '../../../../core/models/admin.model';
+import { ReasonPickerComponent } from '../../../../shared/reason-picker/reason-picker.component';
+import { REASON_CATEGORY } from '../../../../shared/reason-picker/reject-reasons';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -35,10 +39,13 @@ import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.componen
   selector: 'app-submission-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
+  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
   templateUrl: './submission-detail.component.html',
 })
 export class SubmissionDetailComponent implements OnInit, OnDestroy {
+  /** admin_console: canned reject reasons. */
+  readonly consoleOn = inject(FeatureFlagService).isEnabled('admin_console');
+  readonly reasonCategory = REASON_CATEGORY.application;
   submission: SubmissionDetail | null = null;
   loading = false;
   error = '';

@@ -131,6 +131,18 @@ describe('MemberService neighbour directory and profile preference', () => {
     expect(profile!.showInNeighbourDirectory).toBe(false);
   });
 
+  it('maps needs_dag from the server and leaves it undefined on older servers', () => {
+    let profile: MemberProfile | undefined;
+    service.getProfile().subscribe((p) => (profile = p));
+    http.expectOne((r) => r.url.endsWith('/member/me')).flush({ ...API_PROFILE });
+    expect(profile!.needsDag).toBeUndefined();
+
+    service.clearProfileCache();
+    service.getProfile().subscribe((p) => (profile = p));
+    http.expectOne((r) => r.url.endsWith('/member/me')).flush({ ...API_PROFILE, needs_dag: true });
+    expect(profile!.needsDag).toBe(true);
+  });
+
   it('updateProfile sends the preference as a boolean', () => {
     service.updateProfile({ showInNeighbourDirectory: false }).subscribe();
     const req = http.expectOne((r) => r.url.endsWith('/member/profile'));

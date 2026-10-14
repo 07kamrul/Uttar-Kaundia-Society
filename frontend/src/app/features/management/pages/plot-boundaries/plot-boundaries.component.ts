@@ -11,6 +11,9 @@ import {
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ReasonPickerComponent } from '../../../../shared/reason-picker/reason-picker.component';
+import { REASON_CATEGORY } from '../../../../shared/reason-picker/reject-reasons';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { Subscription } from 'rxjs';
@@ -65,11 +68,14 @@ export interface OverlapInfo {
   selector: 'app-plot-boundaries',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
   templateUrl: './plot-boundaries.component.html',
   styleUrl: './plot-boundaries.component.scss',
 })
 export class PlotBoundariesComponent implements OnInit {
+  /** admin_console: canned reject reasons. */
+  readonly consoleOn = inject(FeatureFlagService).isEnabled('admin_console');
+  readonly reasonCategory = REASON_CATEGORY.boundary;
   private readonly plotMapService = inject(PlotMapService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);

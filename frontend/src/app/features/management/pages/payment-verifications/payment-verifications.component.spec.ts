@@ -9,6 +9,7 @@ import {
   InstallmentPaymentService,
   type AdminInstallmentPayment,
 } from '../../../../core/services/installment-payment.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { PaymentVerificationsComponent } from './payment-verifications.component';
 
 const installmentRow = {
@@ -70,6 +71,7 @@ function setup() {
       provideTranslateService(),
       { provide: InstallmentPaymentService, useValue: installments },
       { provide: CostSharePaymentService, useValue: shares },
+      { provide: FeatureFlagService, useValue: { isEnabled: () => false } },
     ],
   });
   const t = TestBed.inject(TranslateService);

@@ -101,6 +101,17 @@ describe('HomeStatusComponent', () => {
     expect(q(h, '[data-testid="next-step"]')?.textContent).toContain('অফিসে দাগ নম্বর দিন');
   });
 
+  it('uses needs_dag from the profile response when the server sends it', async () => {
+    const withDagButFlagged = await setup({ profile: of(profile({ needsDag: true, properties: [property('১২৩')] })) });
+    expect(q(withDagButFlagged, '[data-testid="next-step"]')?.textContent).toContain('অফিসে দাগ নম্বর দিন');
+  });
+
+  it('trusts needs_dag=false even when a property has no dag number', async () => {
+    const h = await setup({ profile: of(profile({ needsDag: false, properties: [property(undefined)] })) });
+    expect(q(h, '[data-testid="next-step"]')?.textContent).not.toContain('অফিসে দাগ নম্বর দিন');
+    expect(q(h, '[data-testid="next-step"]')?.textContent).toContain('সব ঠিক আছে');
+  });
+
   it('shows the dues and a পেমেন্ট করুন action to the merged page', async () => {
     const h = await setup({ payMerged: true, summary: of(makeSummary({ totalDue: 700 })) });
     const step = q(h, '[data-testid="next-step"]') as HTMLElement;

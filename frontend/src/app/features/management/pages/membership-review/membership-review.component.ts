@@ -10,6 +10,11 @@ import {
   SlaInfo,
 } from '../../../../core/services/governance.service';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
+import { AdminService } from '../../../../core/services/admin.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { QueueSearchComponent } from '../../../../shared/queue-search/queue-search.component';
+import { ReasonPickerComponent } from '../../../../shared/reason-picker/reason-picker.component';
+import { REASON_CATEGORY } from '../../../../shared/reason-picker/reject-reasons';
 
 function saveBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
@@ -26,12 +31,16 @@ function saveBlob(blob: Blob, filename: string): void {
   selector: 'app-membership-review',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent, PhoneLinkComponent],
+  imports: [TranslatePipe, DatePipe, FormsModule, IconComponent, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent, ReasonPickerComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
         <h1><app-icon name="id-card" /> {{ 'membershipReview.title' | translate }}</h1>
       </header>
+
+      @if (consoleOn) {
+        <app-queue-search (search)="onSearch($event)" />
+      }
 
       <div class="filters">
         @for (option of statusFilters; track option) {
@@ -98,7 +107,11 @@ function saveBlob(blob: Blob, filename: string): void {
                       @if (rejectingId() === app.id) {
                         <div class="field">
                           <label for="reject-reason-{{ app.id }}">{{ 'membershipReview.rejectReason' | translate }}</label>
-                          <textarea id="reject-reason-{{ app.id }}" rows="2" [(ngModel)]="rejectReason"></textarea>
+                          @if (consoleOn) {
+                            <app-reason-picker [category]="reasonCategory" [inputId]="'reject-reason-' + app.id" [value]="rejectReason" (valueChange)="rejectReason = $event" />
+                          } @else {
+                            <textarea id="reject-reason-{{ app.id }}" rows="2" [(ngModel)]="rejectReason"></textarea>
+                          }
                           <button type="button" class="btn-danger" (click)="reject(app)">{{ 'membershipReview.confirmReject' | translate }}</button>
                         </div>
                       }
@@ -126,6 +139,11 @@ function saveBlob(blob: Blob, filename: string): void {
 })
 export class MembershipReviewComponent implements OnInit {
   private readonly governance = inject(GovernanceService);
+  private readonly admin = inject(AdminService);
+  /** admin_console: search box and canned reject reasons. */
+  readonly consoleOn = inject(FeatureFlagService).isEnabled('admin_console');
+  readonly reasonCategory = REASON_CATEGORY.application;
+  private searchTerm = '';
 
   readonly statusFilters = ['received', 'under_review', 'approved', 'rejected', 'all'] as const;
   readonly filter = signal<string>('all');
@@ -141,13 +159,18 @@ export class MembershipReviewComponent implements OnInit {
 
   load(): void {
     this.loading.set(true);
-    this.governance.adminApplications(this.filter() === 'all' ? undefined : this.filter()).subscribe({
+    this.admin.listApplications(this.filter() === 'all' ? undefined : this.filter(), this.searchTerm || undefined).subscribe({
       next: (rows) => {
         this.applications.set(rows);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  onSearch(term: string): void {
+    this.searchTerm = term;
+    this.load();
   }
 
   toggleDetail(id: number): void {

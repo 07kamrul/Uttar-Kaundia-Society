@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injector.dart';
+import '../../../../core/feature_flags/feature_flag.dart';
+import '../../../../core/feature_flags/feature_flag_builder.dart' show flagEnabled;
 import '../../../../core/feature_flags/feature_flags_service.dart';
 import '../../../../core/layout/responsive.dart';
 import '../../../../core/network/api_client.dart';
@@ -30,6 +32,7 @@ import '../widgets/registration_l10n.dart';
 import '../widgets/registration_simple_widgets.dart';
 import '../widgets/registration_stepper.dart';
 import '../widgets/review_step.dart';
+import '../widgets/step_help_button.dart';
 
 /// Public 6-step registration wizard (registration-page.component).
 class RegistrationPage extends StatelessWidget {
@@ -290,9 +293,18 @@ class _StepperPanel extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              RegistrationStepper(
-                currentStep: state.currentStep,
-                onStepTapped: (s) => bloc.add(StepGoToRequested(s)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: RegistrationStepper(
+                      currentStep: state.currentStep,
+                      onStepTapped: (s) => bloc.add(StepGoToRequested(s)),
+                    ),
+                  ),
+                  // ui_a11y_v2: a "?" with two or three plain lines per step.
+                  if (flagEnabled(FeatureFlag.uiA11yV2)) StepHelpButton(step: state.currentStep),
+                ],
               ),
               if (state.flags.simplifiedUi)
                 const Padding(padding: EdgeInsets.only(top: 6), child: RegDraftSavedLine())

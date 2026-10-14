@@ -2766,5 +2766,108 @@
     }
   },
   "mapWizardMatchLow": "Low match — the office will check.",
-  "mapWizardNoMatch": "There is no RS plot to compare with."
+  "mapWizardNoMatch": "There is no RS plot to compare with.",
+  "todayTitle": "Today's work",
+  "todayEmpty": "Nothing is waiting today",
+  "todayLoadError": "Could not load",
+  "todayRegistrations": "New registrations",
+  "todayMembershipApplications": "Membership applications",
+  "todayNeedsDag": "Plot number needed",
+  "todayPaymentVerifications": "Payments to verify",
+  "todayComplaints": "Complaints",
+  "todayOverdue": "Overdue",
+  "todayDueSoon": "Due soon",
+  "todayPropertyRequests": "Property requests",
+  "todayBoundaries": "Boundaries to check",
+  "todayCommitteeTerms": "Committee terms ending",
+  "todayPhoneFixes": "Phone numbers to fix",
+  "adminSearchHint": "Name / mobile / member ID",
+  "bulkSelectRow": "Select",
+  "bulkSelectedBar": "{count} selected · total {total}",
+  "@bulkSelectedBar": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkApproveAction": "Approve selected",
+  "bulkConfirmTitle": "Approve {count} payments, total {total}?",
+  "@bulkConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkConfirmYes": "Confirm",
+  "bulkResultAllOk": "{ok} approved",
+  "@bulkResultAllOk": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkResultPartial": "{ok} approved, {failed} not done — reason: {reasons}",
+  "@bulkResultPartial": {
+    "placeholders": {
+      "ok": {
+        "type": "String"
+      },
+      "failed": {
+        "type": "String"
+      },
+      "reasons": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkStale": "The list has changed, please look again",
+  "bulkFailNoLongerDue": "no longer due",
+  "bulkFailAlreadyReviewed": "already reviewed",
+  "bulkFailNotFound": "not found",
+  "bulkFailOther": "could not be approved",
+  "reasonPickerLabel": "Pick a reason or write one",
+  "adminGroupApplications": "Applications and members",
+  "adminGroupMoney": "Money",
+  "adminGroupOrganisation": "Organisation",
+  "adminGroupSettings": "Settings",
+  "adminGroupAdvanced": "Advanced",
+  "authLoginIdentifierLabelV2": "Mobile / email / member ID",
+  "authLoginIdentifierHelperV2": "For a foreign number, include + and the country code",
+  "authLoginFailedV2": "The mobile / email / member ID or the password is not correct",
+  "authLoginTooManyAttempts": "Too many attempts. Try again in 15 minutes",
+  "apiErrorLoginAmbiguous": "More than one account uses this — log in with your email or member ID",
+  "apiErrorPasswordTooShort": "The password must be at least 8 characters",
+  "apiErrorPasswordTooCommon": "This password is too common, choose another one",
+  "apiErrorPasswordSameAsCurrent": "The new password cannot be the same as the old one",
+  "settingsTextLarge": "Larger text",
+  "settingsDataSaver": "Data saver",
+  "settingsDataSaverHint": "Pictures and maps load only when you ask",
+  "netOffline": "No internet connection — try again when it is back",
+  "netSlow": "The internet is slow — please wait a little",
+  "netReconnected": "Connected again",
+  "plainConfirmYes": "Yes, {action}",
+  "@plainConfirmYes": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "plainConfirmNo": "No, go back",
+  "tapToLoadImage": "Show picture",
+  "regHelpTooltip": "Help with this step",
+  "regHelpStep1": "Write your name, date of birth and mobile number correctly. Match your national ID.",
+  "regHelpStep3": "Give the name, relation and mobile number of the person who should take over your membership.",
+  "regHelpStep4": "After paying the admission fee, choose how you paid and write the transaction ID or receipt number.",
+  "regHelpStep5": "Read the declaration, tick the box and sign.",
+  "regHelpStep6": "Check everything once more. Go back to fix mistakes, then submit."
 }
