@@ -296,7 +296,45 @@ Each batch ships with before/after screenshots, build and test status, metrics, 
   - "লেখা বড় করুন": one step (18 px).
   - No new dependencies.
 
-## 14. Original questions (answered in §13)
+## 14. Implementation status (2026-10-14)
+
+All seven batches are implemented in the backend, Angular and Flutter. Every change sits behind a feature flag that is **off by default**.
+
+| Batch | Flags | Status |
+|---|---|---|
+| 0 Foundation, 0b international phones | — | Done |
+| 1 Registration | `reg_*` (8 flags) | Done |
+| 2 Payments merge | `pay_merged_page` | Done. Other-fee verification (B2-R1) is **not built**. |
+| 3 Navigation and home | `nav_five_areas`, `nav_merged_entries` | Done. `nav_advanced_section` is applied in Batch 5. |
+| 4 Map wizard | `map_wizard` | Done |
+| 5 Admin console | `admin_console`, `admin_bulk_verify`, `fee_wizard`, `nav_advanced_section` | Done |
+| 6 Login and passwords | `login_by_phone`, `password_policy_v2` | Done |
+| 7 Performance and accessibility | `ui_a11y_v2`, `data_saver`, `net_status_banner` | Done |
+
+**Migrations to apply on staging, in order:** `a7c3e9b1d5f2` (flags) → `b4d6f8a0c2e5` (phones) → `c1e5a9d3b7f4` (registration) → `d2f6b0a4c8e1` (cost-share payments) → `e3a7c1b5d9f2` (settings) → `f5b8d2a6c1e7` (reject reasons). Run the phone dry-run first. Run `python -m scripts.report_duplicate_mobiles` before switching on `login_by_phone`.
+
+**Measured:**
+
+| Metric | Result |
+|---|---|
+| Angular initial bundle | 522.23 kB → **483.63 kB** (budget 500 kB; error limit now 550 kB) |
+| Font families loaded | 4 → 1 (Hind Siliguri 400/600/700) |
+| Pay a fee from Home | **4 interactions** (component test) |
+| Every former member menu page | Reachable from the five areas (mapping-guard test fails otherwise) |
+| Tests | Backend 1070 pass; Angular 1057 of 1057; Flutter 958 of 958 |
+
+**Not measured, because it needs real people or devices:**
+- Registration under 5 minutes and about 25 taps for a prepared member.
+- First useful screen under 3 s on Slow 4G.
+- The usability test with 5 members (§11).
+- The camera, file picker, clipboard and native image compression on a real phone.
+
+**Known gaps:**
+- Flutter has no emergency-help, complaint or election screens, so its hubs list only the existing pages.
+- The Flutter admin side covers the "আজকের কাজ" page, search and bulk approve only; the merged queue, notices + events, phone fixes, cache stats and the fee wizard are Angular only.
+- Two backend tests fail on `main` without these changes (resolution-book audit test, CORS preflight test).
+
+## 15. Original questions (answered in §13)
 
 1. R1–R10: yes or no for each.
 2. Is the photo required at registration? (The form builder says yes, the server says no.)
