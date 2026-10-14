@@ -26,6 +26,7 @@ class ApplicationsOut(BaseModel):
 class PaymentVerificationsOut(BaseModel):
     installment: int
     cost_share: int
+    other_fee: int = 0
     total: int
 
 

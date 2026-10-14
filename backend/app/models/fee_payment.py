@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, func
+from sqlalchemy import Date, DateTime, ForeignKey, Index, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -32,3 +32,17 @@ class FeePayment(Base):
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Verification (flag pay_verify_other_fees): pending / approved / rejected.
+    # Rows created with the flag off - and every pre-existing row - are approved.
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="approved", server_default="approved"
+    )
+    rejection_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    reviewed_by: Mapped[int | None] = mapped_column(
+        ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    proof_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+    __table_args__ = (Index("ix_fee_payments_status_created_at", "status", "created_at"),)

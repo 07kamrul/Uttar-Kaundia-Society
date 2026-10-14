@@ -175,7 +175,7 @@ async def test_super_admin_sees_every_section(client: AsyncClient, db_session: A
     assert body == {
         "applications": {"registrations_pending": 2, "membership_applications_open": 2, "total": 4},
         "needs_dag": 1,
-        "payment_verifications": {"installment": 2, "cost_share": 1, "total": 3},
+        "payment_verifications": {"installment": 2, "cost_share": 1, "other_fee": 0, "total": 3},
         "complaints": {"open": 2, "due_soon": 1, "overdue": 1},
         "property_requests": {"pending": 1},
         "boundaries": {"pending": 1},
@@ -192,7 +192,7 @@ async def test_finance_only_admin_sees_only_payments(client: AsyncClient, db_ses
 
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["payment_verifications"] == {"installment": 2, "cost_share": 1, "total": 3}
+    assert body["payment_verifications"] == {"installment": 2, "cost_share": 1, "other_fee": 0, "total": 3}
     for hidden in (
         "applications", "needs_dag", "complaints", "property_requests", "boundaries", "committee_terms",
         "phone_fixes",
@@ -381,7 +381,7 @@ async def test_payment_phone_boundary_and_property_counts_ignore_finished_work(d
 
     result = await _today(db_session, "manage_finance", "member.manage", "boundary.review", "property.review")
 
-    assert result["payment_verifications"] == {"installment": 1, "cost_share": 2, "total": 3}
+    assert result["payment_verifications"] == {"installment": 1, "cost_share": 2, "other_fee": 0, "total": 3}
     assert result["phone_fixes"] == {"open": 1}
     assert result["boundaries"] == {"pending": 1}
     assert result["property_requests"] == {"pending": 1}

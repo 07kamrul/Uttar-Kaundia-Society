@@ -5,6 +5,8 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
+
+from app.core.feature_flags import is_enabled
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.cost_share_payment import CostSharePayment
@@ -20,6 +22,7 @@ from app.models.picnic_payment import PicnicPayment
 from app.models.society_cost import CostSplitShare
 from app.schemas.other_fees import OtherFeeTypeOut
 from app.services import installment_payment as installment_service
+from app.services import other_fee_verification
 from app.services.cost_share_payment import pending_sums_by_share
 from app.services.other_fees import INSTALLMENT_FEE_TYPE, other_fee_history, resolve_other_fee_types
 
@@ -117,13 +120,15 @@ async def build_summary(db: AsyncSession, member: Member) -> dict:
         )
     ).one()
 
-    fee_types = await resolve_other_fee_types(db, date.today(), member=member)
+    verify = await is_enabled(db, other_fee_verification.FLAG)
+    pending_fee_count, pending_fee_amount = await other_fee_verification.pending_for_member(db, member.id)
+    fee_types = await resolve_other_fee_types(db, date.today(), member=member, verify=verify)
     return {
         "currency": "BDT",
         "total_due": total_due,
         "total_paid": total_paid,
-        "pending_count": int(pending_i[0]) + int(pending_c[0]),
-        "pending_amount": _dec(pending_i[1]) + _dec(pending_c[1]),
+        "pending_count": int(pending_i[0]) + int(pending_c[0]) + pending_fee_count,
+        "pending_amount": _dec(pending_i[1]) + _dec(pending_c[1]) + pending_fee_amount,
         "dues": dues,
         "payable_fee_types": [
             OtherFeeTypeOut(**t) for t in fee_types if not (t["pay_once"] and t["already_paid"])
@@ -178,9 +183,9 @@ def _fee_item(row: FeePayment) -> dict:
         "method": row.payment_method,
         "reference": row.receipt_no,
         "date": row.payment_date,
-        "status": STATUS_RECORDED,
-        "rejection_reason": None,
-        "proof_url": None,
+        "status": row.status,
+        "rejection_reason": row.rejection_reason,
+        "proof_url": row.proof_url,
     }
 
 
@@ -193,9 +198,9 @@ def _picnic_item(row: PicnicPayment) -> dict:
         "method": row.payment_method,
         "reference": row.receipt_no,
         "date": row.payment_date,
-        "status": STATUS_RECORDED,
-        "rejection_reason": None,
-        "proof_url": None,
+        "status": row.status,
+        "rejection_reason": row.rejection_reason,
+        "proof_url": row.proof_url,
     }
 
 
@@ -224,17 +229,22 @@ async def build_history(
         for p in rows.scalars().unique():
             if wanted(KIND_COST_SHARE, p.status):
                 entries.append((_sort_key(p.created_at, p.id), cost_share_item(p)))
-    if kind in (None, KIND_OTHER_FEE) and status_filter in (None, STATUS_RECORDED):
+    if kind in (None, KIND_OTHER_FEE):
+        # Legacy `recorded` filter: other fees are now approved/pending/rejected
+        # (all approved while the flag is off), so it maps to approved rows.
+        other_status = PAYMENT_STATUS_APPROVED if status_filter == STATUS_RECORDED else status_filter
         fee_rows = await db.execute(
             select(FeePayment).where(
                 FeePayment.member_id == member.id, FeePayment.fee_type != INSTALLMENT_FEE_TYPE
             )
         )
         for row in fee_rows.scalars().unique():
-            entries.append((_sort_key(row.created_at, row.id), _fee_item(row)))
+            if other_status in (None, row.status):
+                entries.append((_sort_key(row.created_at, row.id), _fee_item(row)))
         picnic_rows = await db.execute(select(PicnicPayment).where(PicnicPayment.member_id == member.id))
         for row in picnic_rows.scalars().unique():
-            entries.append((_sort_key(row.created_at, row.id), _picnic_item(row)))
+            if other_status in (None, row.status):
+                entries.append((_sort_key(row.created_at, row.id), _picnic_item(row)))
 
     entries.sort(key=lambda pair: (pair[0], pair[1]["kind"]), reverse=True)
     start = (page - 1) * page_size

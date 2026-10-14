@@ -53,3 +53,6 @@ class PicnicPaymentOut(BaseModel):
     receipt_no: str | None
     payment_method: str | None
     created_at: datetime
+    status: str = "approved"
+    rejection_reason: str | None = None
+    proof_url: str | None = None

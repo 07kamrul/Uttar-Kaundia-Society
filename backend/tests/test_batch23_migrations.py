@@ -24,7 +24,7 @@ def test_chain_and_single_head() -> None:
     cost_share, app_settings = _load("d2f6b0a4c8e1"), _load("e3a7c1b5d9f2")
     assert cost_share.down_revision == "c1e5a9d3b7f4"
     assert app_settings.down_revision == "d2f6b0a4c8e1"
-    assert ScriptDirectory(str(VERSIONS.parent)).get_heads() == ["f5b8d2a6c1e7"]
+    assert ScriptDirectory(str(VERSIONS.parent)).get_heads() == ["a8c2e4f6b1d3"]
 
 
 def _run(engine, fn) -> None:

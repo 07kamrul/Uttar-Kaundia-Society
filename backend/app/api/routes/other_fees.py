@@ -8,14 +8,16 @@ existing per-head calculation and table unchanged.
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import AccountActor, get_account_actor
 from app.core.security import ADMIN_ROLES
 from app.core.permissions import require_permission
+from app.core.feature_flags import is_enabled
 from app.db.session import get_db
+from app.models.installment_payment import PAYMENT_STATUS_PENDING
 from app.models.admin import AdminUser
 from app.models.member import Member
 from app.schemas.other_fees import (
@@ -24,6 +26,9 @@ from app.schemas.other_fees import (
     OtherFeePaymentIn,
     OtherFeeTypeOut,
 )
+from app.services import other_fee_verification as verification
+from app.services.audit import record_audit
+from app.services.storage import save_upload_file
 from app.services.other_fees import (
     create_other_fee_payment as create_other_fee_payment_record,
     other_fee_history,
@@ -63,7 +68,10 @@ async def list_other_fee_types(
     pay-once flags resolved against their own record; committee/admin
     accounts see the same catalog with `already_paid` left null."""
     types = await resolve_other_fee_types(
-        db, payment_date or date.today(), member=actor.member
+        db,
+        payment_date or date.today(),
+        member=actor.member,
+        verify=await is_enabled(db, verification.FLAG),
     )
     return [OtherFeeTypeOut(**fee_type) for fee_type in types]
 
@@ -105,11 +113,64 @@ async def create_other_fee_payment(
 ) -> dict:
     _reject_fee_manager(actor)
     member = _require_paying_member(actor)
-    payment = await create_other_fee_payment_record(db, member, payload)
+    payment = await create_other_fee_payment_record(
+        db, member, payload, verify=await is_enabled(db, verification.FLAG)
+    )
     db.add(payment)
     await db.commit()
     await db.refresh(payment)
     return other_fee_payment_out(payment)
+
+
+@router.post("/member/other-fees/payments/{payment_id}/proof")
+async def upload_other_fee_proof(
+    payment_id: int,
+    proof: UploadFile = File(...),
+    kind: str = Query(default=verification.KIND_FEE, pattern=r"^(fee|picnic)$"),
+    actor: AccountActor = Depends(get_account_actor),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    return await _attach_proof(db, actor, kind, payment_id, proof)
+
+
+@router.post("/member/picnic-payments/{payment_id}/proof")
+async def upload_picnic_proof(
+    payment_id: int,
+    proof: UploadFile = File(...),
+    actor: AccountActor = Depends(get_account_actor),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    return await _attach_proof(db, actor, verification.KIND_PICNIC, payment_id, proof)
+
+
+async def _attach_proof(db, actor, kind: str, payment_id: int, proof) -> dict:
+    """Attach a payment screenshot to the caller's own pending row. `kind` picks
+    the table (`fee` default, `picnic`) because the two id spaces overlap."""
+    _reject_fee_manager(actor)
+    member = _require_paying_member(actor)
+    payment = await verification.load_payment(db, kind, payment_id)
+    if payment.member_id != member.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    if payment.status != PAYMENT_STATUS_PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "NOT_PENDING",
+                "message": "A proof can only be attached to a payment awaiting verification.",
+            },
+        )
+    # Type and size are validated before anything is stored.
+    payment.proof_url = await save_upload_file(proof, f"other_fee_payments/member_{member.id}")
+    record_audit(
+        db,
+        actor_admin_id=None,
+        action="other_fee_payment.proof",
+        entity_type="other_fee_payment",
+        entity_id=verification.format_id_ref(kind, payment.id),
+        detail=f"member={member.id}",
+    )
+    await db.commit()
+    return other_fee_payment_out(await verification.load_payment(db, kind, payment_id))
 
 
 @router.get("/admin/other-fees/payments", response_model=AdminOtherFeeHistoryPage)

@@ -5,7 +5,7 @@ from enum import Enum
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
-from sqlalchemy import delete, func, select
+from sqlalchemy import case, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only, noload, selectinload
 
@@ -1156,7 +1156,10 @@ async def list_picnic_payments(
 
     # Summary over the same filtered set, done in SQL rather than summing in
     # Python so the aggregation stays correct as the list grows.
-    summary_query = select(func.count(PicnicPayment.id), func.coalesce(func.sum(PicnicPayment.total), 0)).where(
+    summary_query = select(
+        func.count(PicnicPayment.id),
+        func.coalesce(func.sum(case((PicnicPayment.status == "approved", PicnicPayment.total), else_=0)), 0),
+    ).where(
         *[
             condition
             for condition in (

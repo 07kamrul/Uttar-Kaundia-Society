@@ -258,7 +258,7 @@ async def test_one_item_no_longer_due_fails_alone_while_the_rest_are_approved(
     body = response.json()
     assert body["approved_count"] == 2
     assert body["approved_total"] == "700.00"
-    assert body["failed"] == [{"kind": "installment", "id": w.inst_b, "code": "NO_LONGER_DUE"}]
+    assert body["failed"] == [{"kind": "installment", "id": w.inst_b, "id_ref": None, "code": "NO_LONGER_DUE"}]
     statuses = await _statuses(db_session)
     assert statuses[f"installment:{w.inst_b}"] == "pending"
     assert statuses[f"installment:{w.inst_a}"] == "approved"
@@ -284,7 +284,7 @@ async def test_cost_share_that_would_overpay_fails_with_amount_exceeds_remaining
 
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["failed"] == [{"kind": "cost_share", "id": w.cost_a, "code": "AMOUNT_EXCEEDS_REMAINING"}]
+    assert body["failed"] == [{"kind": "cost_share", "id": w.cost_a, "id_ref": None, "code": "AMOUNT_EXCEEDS_REMAINING"}]
     assert [(a["kind"], a["id"]) for a in body["approved"]] == [("installment", w.inst_b)]
     assert (await _statuses(db_session))[f"cost_share:{w.cost_a}"] == "pending"
 

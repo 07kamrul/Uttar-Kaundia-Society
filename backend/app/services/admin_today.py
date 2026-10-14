@@ -26,6 +26,7 @@ from app.models.phone_fix import PhoneFixQueue
 from app.models.plot_boundary import PlotBoundary
 from app.models.property import Property
 from app.models.property_change_request import PropertyChangeRequest, PropertyChangeStatus
+from app.services import other_fee_verification
 from app.services.dag_guard import _needs_dag_clause
 from app.services.governance import DUE_SOON_WINDOW_DAYS
 
@@ -90,7 +91,13 @@ async def _payment_verifications(db: AsyncSession) -> dict:
         db,
         select(func.count(CostSharePayment.id)).where(CostSharePayment.status == PAYMENT_STATUS_PENDING),
     )
-    return {"installment": installment, "cost_share": cost_share, "total": installment + cost_share}
+    other_fee = await other_fee_verification.count_pending(db)
+    return {
+        "installment": installment,
+        "cost_share": cost_share,
+        "other_fee": other_fee,
+        "total": installment + cost_share + other_fee,
+    }
 
 
 async def _complaints(db: AsyncSession, today: date) -> dict:

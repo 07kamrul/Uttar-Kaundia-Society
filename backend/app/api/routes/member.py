@@ -54,6 +54,7 @@ from app.schemas.member import MemberDetail, MemberProfileUpdate
 from app.schemas.picnic_payment import PicnicPaymentIn, PicnicPaymentOut
 from app.services.audit import record_audit
 from app.services.email import send_email
+from app.services import other_fee_verification as verification
 from app.services.fee_calculation import calculate_picnic_fee, resolve_picnic_rates
 from app.services.storage import save_upload_file, slugify_path_segment
 
@@ -199,6 +200,8 @@ async def create_picnic_payment(
         receipt_no=payload.receipt_no,
         payment_method=payload.payment_method,
     )
+    if await is_enabled(db, "pay_verify_other_fees"):
+        await verification.stage_pending(db, member, payment)
     db.add(payment)
     await db.commit()
     await db.refresh(payment)

@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.installment_payment import PaymentAccountOut
 from app.schemas.other_fees import OtherFeeTypeOut
+from app.services.other_fee_verification import parse_id_ref
 
 
 class DueItemOut(BaseModel):
@@ -76,6 +77,7 @@ class CostSharePaymentAdminOut(BaseModel):
 class PendingVerificationsOut(BaseModel):
     installment: int
     cost_share: int
+    other_fee: int = 0
     total: int
 
 
@@ -83,8 +85,29 @@ BULK_MAX_ITEMS = 50
 
 
 class BulkItemIn(BaseModel):
-    kind: Literal["installment", "cost_share"]
-    id: int = Field(gt=0)
+    """installment / cost_share items use `id`. Other-fee items use
+    `kind: "other_fee"` with `id_ref: "fee:<id>"` or `"picnic:<id>"` (the two
+    tables share id numbers); `id` is then optional and ignored."""
+
+    kind: Literal["installment", "cost_share", "other_fee"]
+    id: int | None = Field(default=None, gt=0)
+    id_ref: str | None = None
+
+    @model_validator(mode="after")
+    def _addressing(self) -> "BulkItemIn":
+        if self.kind == "other_fee":
+            if self.id_ref is None:
+                raise ValueError("id_ref is required for other_fee items")
+            parse_id_ref(self.id_ref)
+        elif self.id is None:
+            raise ValueError("id is required")
+        return self
+
+    @property
+    def key(self) -> tuple[str, int | str]:
+        if self.kind == "other_fee":
+            return (self.kind, self.id_ref)
+        return (self.kind, self.id)
 
 
 class BulkApproveIn(BaseModel):
@@ -95,7 +118,7 @@ class BulkApproveIn(BaseModel):
 
     @model_validator(mode="after")
     def _items_are_unique(self) -> "BulkApproveIn":
-        if len({(item.kind, item.id) for item in self.items}) != len(self.items):
+        if len({item.key for item in self.items}) != len(self.items):
             raise ValueError("items must be unique")
         return self
 
@@ -103,12 +126,14 @@ class BulkApproveIn(BaseModel):
 class BulkApprovedOut(BaseModel):
     kind: str
     id: int
+    id_ref: str | None = None  # other_fee items: "fee:<id>" / "picnic:<id>"
     amount: Decimal
 
 
 class BulkFailedOut(BaseModel):
     kind: str
     id: int
+    id_ref: str | None = None
     code: str  # NO_LONGER_DUE | ALREADY_REVIEWED | AMOUNT_EXCEEDS_REMAINING | NOT_FOUND
 
 

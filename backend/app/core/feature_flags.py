@@ -96,6 +96,11 @@ _FLAGS = (
         False,
         "Offline / slow-network banner (Batch 7)",
     ),
+    FlagDef(
+        "pay_verify_other_fees",
+        False,
+        "Other-fee and picnic payments wait for committee verification (Batch 2b)",
+    ),
 )
 
 FEATURE_FLAGS: dict[str, FlagDef] = {flag.key: flag for flag in _FLAGS}

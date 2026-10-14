@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.fee_payment import FeePayment
 from app.models.fee_settings import FeeSetting, FeeType
+from app.models.installment_payment import PAYMENT_STATUS_APPROVED
 from app.models.member import Member
 from app.models.picnic_payment import PicnicPayment
 from app.services.fee_calculation import (
@@ -23,6 +24,7 @@ from app.services.fee_calculation import (
     calculate_picnic_fee,
     resolve_picnic_rates,
 )
+from app.services import other_fee_verification as verification
 from app.services.fee_catalog import (
     CALC_FIXED,
     CALC_VARIABLE,
@@ -83,10 +85,11 @@ async def _variable_bounds(
 
 
 async def resolve_other_fee_types(
-    db: AsyncSession, on_date: date, member: Member | None = None
+    db: AsyncSession, on_date: date, member: Member | None = None, verify: bool = False
 ) -> list[dict]:
     """The payable catalog for the Other Fees page, rates resolved as of
-    `on_date`. `member` (when given) marks pay-once types already settled."""
+    `on_date`. `member` (when given) marks pay-once types already settled; with `verify`
+    (flag pay_verify_other_fees) a pending or approved payment counts too."""
     types: dict[str, dict] = {}
 
     # Fixed types straight from Fee Settings - config-driven, so a newly
@@ -145,6 +148,9 @@ async def resolve_other_fee_types(
             or fee_type.calculation_type not in (CALC_FIXED, CALC_VARIABLE)
         ):
             continue
+        paid_flag = None
+        if verify and member is not None and fee_type.is_pay_once:
+            paid_flag = await verification.has_live_fee_payment(db, member.id, fee_type.key)
         if fee_type.calculation_type == CALC_VARIABLE:
             types[fee_type.key] = {
                 "key": fee_type.key,
@@ -153,7 +159,7 @@ async def resolve_other_fee_types(
                 "amount": None,
                 "unit": fee_type.unit,
                 "pay_once": fee_type.is_pay_once,
-                "already_paid": None,
+                "already_paid": paid_flag,
             }
             continue
         setting = await _active_setting(db, fee_type.key, on_date)
@@ -166,7 +172,7 @@ async def resolve_other_fee_types(
             "amount": float(setting.value),
             "unit": setting.unit or fee_type.unit,
             "pay_once": fee_type.is_pay_once,
-            "already_paid": None,
+            "already_paid": paid_flag,
         }
 
     # Admission fee: fixed, pay-once, settled at registration for every
@@ -181,6 +187,10 @@ async def resolve_other_fee_types(
         "pay_once": True,
         "already_paid": member.admission_fee is not None if member is not None else None,
     }
+    if verify and member is not None and not types["admission"]["already_paid"]:
+        types["admission"]["already_paid"] = await verification.has_live_fee_payment(
+            db, member.id, "admission"
+        )
 
     rates = await resolve_picnic_rates(db, on_date)
     types["picnic"] = {
@@ -199,7 +209,17 @@ async def resolve_other_fee_types(
 
 
 async def create_other_fee_payment(
-    db: AsyncSession, member: Member, payload
+    db: AsyncSession, member: Member, payload, verify: bool = False
+) -> FeePayment | PicnicPayment:
+    """With `verify` (flag pay_verify_other_fees) the row is staged pending."""
+    payment = await _build_other_fee_payment(db, member, payload, verify)
+    if verify:
+        await verification.stage_pending(db, member, payment)
+    return payment
+
+
+async def _build_other_fee_payment(
+    db: AsyncSession, member: Member, payload, verify: bool
 ) -> FeePayment | PicnicPayment:
     """Validate + persist one other-fee payment. Fixed and picnic totals are
     always recomputed server-side; only variable types accept a client
@@ -236,7 +256,9 @@ async def create_other_fee_payment(
         )
 
     if payload.fee_type == "admission":
-        if member.admission_fee is not None:
+        if member.admission_fee is not None or (
+            verify and await verification.has_live_fee_payment(db, member.id, "admission")
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={
@@ -271,6 +293,15 @@ async def create_other_fee_payment(
     # `fee_<key>_amount` alias.
     catalog_result = await db.execute(select(FeeType).where(FeeType.key == payload.fee_type))
     fee_type_def = catalog_result.scalar_one_or_none()
+    if verify and fee_type_def is not None and fee_type_def.is_pay_once:
+        if await verification.has_live_fee_payment(db, member.id, payload.fee_type):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "FEE_ALREADY_PAID",
+                    "message": "This fee was already paid or is awaiting verification.",
+                },
+            )
     setting = None
     for candidate in (
         (payload.fee_type,)
@@ -352,6 +383,9 @@ def other_fee_payment_out(payment: FeePayment | PicnicPayment) -> dict:
             "payment_method": payment.payment_method,
             "note": None,
             "created_at": payment.created_at,
+            "status": payment.status,
+            "rejection_reason": payment.rejection_reason,
+            "proof_url": payment.proof_url,
         }
     return {
         "id": payment.id,
@@ -364,6 +398,9 @@ def other_fee_payment_out(payment: FeePayment | PicnicPayment) -> dict:
         "payment_method": payment.payment_method,
         "note": payment.note,
         "created_at": payment.created_at,
+        "status": payment.status,
+        "rejection_reason": payment.rejection_reason,
+        "proof_url": payment.proof_url,
     }
 
 
@@ -413,6 +450,9 @@ async def other_fee_history(
         FeePayment.payment_method.label("payment_method"),
         FeePayment.note.label("note"),
         FeePayment.created_at.label("created_at"),
+        FeePayment.status.label("status"),
+        FeePayment.rejection_reason.label("rejection_reason"),
+        FeePayment.proof_url.label("proof_url"),
     ).where(*fee_conditions)
 
     picnic_side = select(
@@ -427,6 +467,9 @@ async def other_fee_history(
         PicnicPayment.payment_method.label("payment_method"),
         literal(None).label("note"),
         PicnicPayment.created_at.label("created_at"),
+        PicnicPayment.status.label("status"),
+        PicnicPayment.rejection_reason.label("rejection_reason"),
+        PicnicPayment.proof_url.label("proof_url"),
     ).where(*picnic_conditions)
 
     union = fee_side.union_all(picnic_side).subquery()
@@ -443,9 +486,12 @@ async def other_fee_history(
         )
     ).mappings().all()
 
-    summary_query = select(
-        func.coalesce(func.sum(union.c.amount), 0), union.c.fee_type
-    ).group_by(union.c.fee_type)
+    # Totals count approved rows only; pending and rejected rows are listed.
+    summary_query = (
+        select(func.coalesce(func.sum(union.c.amount), 0), union.c.fee_type)
+        .where(union.c.status == PAYMENT_STATUS_APPROVED)
+        .group_by(union.c.fee_type)
+    )
     by_type: dict[str, float] = {}
     total_paid = 0.0
     for amount_sum, row_fee_type in (await db.execute(summary_query)).all():

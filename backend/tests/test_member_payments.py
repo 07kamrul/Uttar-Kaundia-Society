@@ -153,7 +153,7 @@ async def test_history_merges_filters_paginates_and_isolates(client: AsyncClient
     }
 
     only = (await client.get(HISTORY, params={"kind": "other_fee"}, headers=headers)).json()
-    assert only["total"] == 1 and only["items"][0]["status"] == "recorded"
+    assert only["total"] == 1 and only["items"][0]["status"] == "approved"
     rec = (await client.get(HISTORY, params={"status": "recorded"}, headers=headers)).json()
     assert rec["total"] == 1
     pend = (await client.get(HISTORY, params={"status": "pending"}, headers=headers)).json()
@@ -348,7 +348,7 @@ async def test_admin_approve_updates_share_audits_and_counts(client: AsyncClient
     assert Decimal(str(listing[0]["remaining"])) == Decimal("1000")
     assert (await client.get("/api/admin/cost-share-payments/pending-count", headers=headers)).json() == {"count": 1}
     assert (await client.get("/api/admin/payment-verifications/pending-count", headers=headers)).json() == {
-        "installment": 0, "cost_share": 1, "total": 1}
+        "installment": 0, "cost_share": 1, "other_fee": 0, "total": 1}
 
     r = await client.post(f"/api/admin/cost-share-payments/{pid}/approve", headers=headers)
     assert r.status_code == 200, r.text
@@ -412,4 +412,4 @@ async def test_installment_pending_included_in_combined_count(client: AsyncClien
     await client.post(INST, data=_inst_form(due[0].id, "IP555555"), headers=_member_headers(member))
     headers = await _admin_headers_login(client)
     assert (await client.get("/api/admin/payment-verifications/pending-count", headers=headers)).json() == {
-        "installment": 1, "cost_share": 1, "total": 2}
+        "installment": 1, "cost_share": 1, "other_fee": 0, "total": 2}

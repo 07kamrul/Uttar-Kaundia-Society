@@ -29,6 +29,7 @@ from app.api.routes import (
     fee_types,
     fund_controls,
     other_fees,
+    other_fee_verification,
     finance,
     governance,
     helpline,
@@ -179,6 +180,7 @@ app.include_router(installment_payments.router, prefix=api_router_prefix)
 app.include_router(fee_payments.router, prefix=api_router_prefix)
 app.include_router(fee_types.router, prefix=api_router_prefix)
 app.include_router(other_fees.router, prefix=api_router_prefix)
+app.include_router(other_fee_verification.router, prefix=api_router_prefix)
 app.include_router(plot_map.router, prefix=api_router_prefix)
 app.include_router(land_data.router, prefix=api_router_prefix)
 app.include_router(shared_data.router, prefix=api_router_prefix)

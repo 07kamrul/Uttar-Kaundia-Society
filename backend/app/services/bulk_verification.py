@@ -23,11 +23,13 @@ from app.models.cost_share_payment import CostSharePayment
 from app.models.installment_payment import PAYMENT_STATUS_PENDING, InstallmentPayment
 from app.services import cost_share_payment as cost_share_service
 from app.services import installment_payment as installment_service
+from app.services import other_fee_verification as other_fee_service
 from app.services.audit import record_audit
 
-Kind = Literal["installment", "cost_share"]
+Kind = Literal["installment", "cost_share", "other_fee"]
 KIND_INSTALLMENT: Kind = "installment"
 KIND_COST_SHARE: Kind = "cost_share"
+KIND_OTHER_FEE: Kind = "other_fee"
 
 STALE_CODE = "BULK_SELECTION_STALE"
 NOT_FOUND = "NOT_FOUND"
@@ -35,7 +37,28 @@ NOT_FOUND = "NOT_FOUND"
 _MODELS = {KIND_INSTALLMENT: InstallmentPayment, KIND_COST_SHARE: CostSharePayment}
 _CENT = Decimal("0.01")
 
+# Other-fee items are addressed "fee:<id>" / "picnic:<id>" on the wire. Inside
+# this module the id is signed (fee = +id, picnic = -id) so an Item stays a
+# (kind, int) pair even though the two tables share id numbers.
 Item = tuple[Kind, int]
+
+
+def encode_other_fee(id_ref: str) -> int:
+    table, payment_id = other_fee_service.parse_id_ref(id_ref)
+    return -payment_id if table == other_fee_service.KIND_PICNIC else payment_id
+
+
+def decode_other_fee(signed_id: int) -> tuple[str, int]:
+    if signed_id < 0:
+        return other_fee_service.KIND_PICNIC, -signed_id
+    return other_fee_service.KIND_FEE, signed_id
+
+
+def id_ref_of(kind: Kind, signed_id: int) -> str | None:
+    if kind != KIND_OTHER_FEE:
+        return None
+    table, payment_id = decode_other_fee(signed_id)
+    return other_fee_service.format_id_ref(table, payment_id)
 
 
 @dataclass(frozen=True)
@@ -43,6 +66,7 @@ class Approved:
     kind: Kind
     id: int
     amount: Decimal
+    id_ref: str | None = None
 
 
 @dataclass(frozen=True)
@@ -50,6 +74,7 @@ class Failed:
     kind: Kind
     id: int
     code: str
+    id_ref: str | None = None
 
 
 @dataclass(frozen=True)
@@ -85,6 +110,12 @@ def stale_selection() -> HTTPException:
 
 async def _load_fresh(db: AsyncSession, kind: Kind, payment_id: int):
     """The payment as the database holds it right now (ignoring cached state)."""
+    if kind == KIND_OTHER_FEE:
+        table, real_id = decode_other_fee(payment_id)
+        try:
+            return await other_fee_service.load_payment(db, table, real_id)
+        except HTTPException:
+            return None
     model = _MODELS[kind]
     result = await db.execute(
         select(model).where(model.id == payment_id).execution_options(populate_existing=True)
@@ -106,6 +137,11 @@ async def check_selection(
         if len(rows) != len(ids) or any(row.status != PAYMENT_STATUS_PENDING for row in rows):
             raise stale_selection()
         amounts.extend(Decimal(str(row.amount)) for row in rows)
+    for signed_id in (payment_id for kind, payment_id in items if kind == KIND_OTHER_FEE):
+        row = await _load_fresh(db, KIND_OTHER_FEE, signed_id)
+        if row is None or row.status != PAYMENT_STATUS_PENDING:
+            raise stale_selection()
+        amounts.append(other_fee_service.payment_amount(row))
     if len(amounts) != expected_count or sum(amounts, start=Decimal("0")) != expected_total:
         raise stale_selection()
 
@@ -147,6 +183,11 @@ async def _approve_one(db: AsyncSession, admin_id: int, kind: Kind, payment_id: 
     payment = await _load_fresh(db, kind, payment_id)
     if payment is None:
         raise _ItemFailure(NOT_FOUND)
+    if kind == KIND_OTHER_FEE:
+        amount = other_fee_service.payment_amount(payment)
+        other_fee_service.approve_payment(payment, admin_id)
+        other_fee_service.stage_audit(db, admin_id, "approve", payment, suffix=suffix)
+        return amount
     amount = Decimal(str(payment.amount))
     if kind == KIND_INSTALLMENT:
         await installment_service.approve_payment(db, payment, admin_id)
@@ -168,12 +209,12 @@ async def approve_items(db: AsyncSession, admin_id: int, items: list[Item]) -> B
             async with db.begin_nested():
                 amount = await _approve_one(db, admin_id, kind, payment_id, suffix)
         except _ItemFailure as failure:
-            failed.append(Failed(kind, payment_id, failure.code))
+            failed.append(Failed(kind, abs(payment_id), failure.code, id_ref_of(kind, payment_id)))
         except HTTPException as exc:
             code = getattr(exc, "code", None) or (NOT_FOUND if exc.status_code == 404 else None)
             if code is None:
                 raise
-            failed.append(Failed(kind, payment_id, code))
+            failed.append(Failed(kind, abs(payment_id), code, id_ref_of(kind, payment_id)))
         else:
-            approved.append(Approved(kind, payment_id, amount.quantize(_CENT)))
+            approved.append(Approved(kind, abs(payment_id), amount.quantize(_CENT), id_ref_of(kind, payment_id)))
     return BulkResult(batch_id=batch_id, approved=approved, failed=failed)

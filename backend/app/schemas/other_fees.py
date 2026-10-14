@@ -72,6 +72,9 @@ class OtherFeePaymentOut(BaseModel):
     payment_method: str | None
     note: str | None
     created_at: datetime
+    status: str = "approved"
+    rejection_reason: str | None = None
+    proof_url: str | None = None
 
 
 class OtherFeeHistoryPage(BaseModel):

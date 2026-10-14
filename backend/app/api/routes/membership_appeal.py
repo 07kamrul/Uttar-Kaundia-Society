@@ -1861,7 +1861,7 @@ async def members_arrears(
     paid_rows = (
         await db.execute(
             select(FeePayment.member_id, func.coalesce(func.sum(FeePayment.amount), 0.0))
-            .where(FeePayment.fee_type == "maintenance")
+            .where(FeePayment.fee_type == "maintenance", FeePayment.status == "approved")
             .group_by(FeePayment.member_id)
         )
     ).all()

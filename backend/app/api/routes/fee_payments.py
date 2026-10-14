@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import AccountActor, get_account_actor
@@ -184,6 +184,9 @@ async def list_fee_payments(
                         f" additional × ৳{row.additional_price:g}"
                     ),
                     "created_at": row.created_at,
+                    "status": row.status,
+                    "rejection_reason": row.rejection_reason,
+                    "proof_url": row.proof_url,
                     "member_name": row.member.full_name if row.member else None,
                     "additional_heads": row.additional_count,
                     "source": "picnic_payment",
@@ -193,10 +196,14 @@ async def list_fee_payments(
         # date on picnic rows; ISO strings and dates sort identically.
         items.sort(key=lambda item: (str(item["payment_date"]), item["id"]), reverse=True)
         count = len(items)
-        total_collected = sum(float(item["amount"] or 0) for item in items)
+        # Totals count approved rows only; pending and rejected rows are listed.
+        total_collected = sum(
+            float(item["amount"] or 0) for item in items if item.get("status", "approved") == "approved"
+        )
     else:
         summary_query = select(
-            func.count(FeePayment.id), func.coalesce(func.sum(FeePayment.amount), 0)
+            func.count(FeePayment.id),
+            func.coalesce(func.sum(case((FeePayment.status == "approved", FeePayment.amount), else_=0)), 0),
         ).where(*conditions)
         count, total_collected = (await db.execute(summary_query)).one()
 

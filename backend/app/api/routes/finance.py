@@ -1148,7 +1148,7 @@ async def admin_unlinked_payments(
         linked = _unlinked_condition(FINANCE_SOURCE_PICNIC_PAYMENT).scalar_subquery()
         query = (
             select(PicnicPayment)
-            .where(~PicnicPayment.id.in_(linked))
+            .where(~PicnicPayment.id.in_(linked), PicnicPayment.status == "approved")
             .order_by(PicnicPayment.payment_date.desc())
             .limit(limit)
         )

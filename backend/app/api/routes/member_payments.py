@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.routes.installment_payments import _notify_member as _notify_installment_member
 from app.api.routes.installment_payments import _require_member
+from app.api.routes.other_fee_verification import notify_member as notify_other_fee_member
 from app.core.deps import AccountActor, get_account_actor
 from app.core.feature_flags import is_enabled
 from app.core.permissions import require_permission
@@ -31,6 +32,7 @@ from app.schemas.member_payments import (
 from app.services import bulk_verification
 from app.services import cost_share_payment as cost_share_service
 from app.services import member_payments as merged
+from app.services import other_fee_verification
 from app.services.audit import record_audit
 from app.services.email import send_email
 from app.services.storage import save_upload_file
@@ -213,7 +215,13 @@ async def admin_pending_verifications(
 ) -> dict[str, int]:
     installment = await _count_pending(db, InstallmentPayment)
     cost_share = await _count_pending(db, CostSharePayment)
-    return {"installment": installment, "cost_share": cost_share, "total": installment + cost_share}
+    other_fee = await other_fee_verification.count_pending(db)
+    return {
+        "installment": installment,
+        "cost_share": cost_share,
+        "other_fee": other_fee,
+        "total": installment + cost_share + other_fee,
+    }
 
 
 @router.post("/admin/cost-share-payments/{payment_id}/approve", response_model=CostSharePaymentAdminOut)
@@ -282,7 +290,9 @@ async def _notify_approved(db: AsyncSession, result: bulk_verification.BulkResul
             payment = await bulk_verification._load_fresh(db, item.kind, item.id)
             if payment is None:
                 continue
-            if item.kind == bulk_verification.KIND_INSTALLMENT:
+            if item.kind == bulk_verification.KIND_OTHER_FEE:
+                await notify_other_fee_member(payment)
+            elif item.kind == bulk_verification.KIND_INSTALLMENT:
                 await _notify_installment_member(payment)
             else:
                 await _notify_member(payment)
@@ -301,7 +311,10 @@ async def admin_bulk_approve(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "FEATURE_DISABLED", "message": "Bulk approval is not enabled."},
         )
-    items = [(item.kind, item.id) for item in payload.items]
+    items = [
+        (item.kind, bulk_verification.encode_other_fee(item.id_ref) if item.kind == "other_fee" else item.id)
+        for item in payload.items
+    ]
     await bulk_verification.check_selection(db, items, payload.expected_count, payload.expected_total)
     result = await bulk_verification.approve_items(db, admin.id, items)
     await db.commit()
@@ -310,6 +323,8 @@ async def admin_bulk_approve(
         "batch_id": result.batch_id,
         "approved_count": len(result.approved),
         "approved_total": result.approved_total,
-        "approved": [{"kind": a.kind, "id": a.id, "amount": a.amount} for a in result.approved],
-        "failed": [{"kind": f.kind, "id": f.id, "code": f.code} for f in result.failed],
+        "approved": [
+            {"kind": a.kind, "id": a.id, "id_ref": a.id_ref, "amount": a.amount} for a in result.approved
+        ],
+        "failed": [{"kind": f.kind, "id": f.id, "id_ref": f.id_ref, "code": f.code} for f in result.failed],
     }
