@@ -14,6 +14,7 @@ from app.services.plot_boundary import ValidationIssue
 
 from app.api.routes import (
     admin,
+    admin_today,
     amendments,
     auth,
     cache_admin,
@@ -32,6 +33,7 @@ from app.api.routes import (
     governance,
     helpline,
     installment_payments,
+    login_readiness,
     member_payments,
     member,
     member_governance,
@@ -161,7 +163,9 @@ api_router_prefix = "/api"
 app.include_router(submissions.router, prefix=api_router_prefix)
 app.include_router(auth.router, prefix=api_router_prefix)
 app.include_router(admin.router, prefix=api_router_prefix)
+app.include_router(admin_today.router, prefix=api_router_prefix)
 app.include_router(phone_fixes.router, prefix=api_router_prefix)
+app.include_router(login_readiness.router, prefix=api_router_prefix)
 app.include_router(notices.router, prefix=api_router_prefix)
 app.include_router(member.router, prefix=api_router_prefix)
 app.include_router(neighbours.router, prefix=api_router_prefix)

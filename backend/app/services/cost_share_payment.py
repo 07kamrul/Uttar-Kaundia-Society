@@ -26,7 +26,7 @@ from app.models.installment_payment import (
 )
 from app.models.member import Member
 from app.models.society_cost import SHARE_PAID, SHARE_PARTIAL, SHARE_UNPAID, CostSplitShare
-from app.services.installment_payment import _bad_request, _validate_method
+from app.services.installment_payment import PaymentConflict, _bad_request, _validate_method
 
 ZERO = Decimal("0")
 
@@ -137,7 +137,7 @@ async def submit_payment(
 
 def _ensure_pending(payment: CostSharePayment) -> None:
     if payment.status != PAYMENT_STATUS_PENDING:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This payment has already been reviewed.")
+        raise PaymentConflict("This payment has already been reviewed.", code="ALREADY_REVIEWED")
 
 
 async def approve_payment(db: AsyncSession, payment: CostSharePayment, admin_id: int) -> CostSplitShare:
@@ -153,9 +153,9 @@ async def approve_payment(db: AsyncSession, payment: CostSharePayment, admin_id:
     ).scalars().unique().one()
     new_paid = share.amount_paid + payment.amount
     if new_paid > share.amount_due:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This payment now exceeds the share's due amount; reject it instead.",
+        raise PaymentConflict(
+            "This payment now exceeds the share's due amount; reject it instead.",
+            code="AMOUNT_EXCEEDS_REMAINING",
         )
     now = datetime.now(timezone.utc)
     share.amount_paid = new_paid

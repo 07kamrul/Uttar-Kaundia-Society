@@ -35,6 +35,7 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     TokenResponse,
 )
+from app.services import login_identity
 from app.services.audit import record_audit
 from app.services.email import send_email
 
@@ -83,32 +84,54 @@ async def _admin_token_response(db: AsyncSession, admin: AdminUser) -> TokenResp
     )
 
 
+def _member_token_response(credential: MemberCredential) -> TokenResponse:
+    return TokenResponse(
+        access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
+        refresh_token=create_refresh_token(str(credential.member_id), "member", credential.token_version),
+        must_change_password=credential.must_change_password,
+        role="member",
+        permissions=MEMBER_PERMISSIONS,
+    )
+
+
+def _ambiguous_identifier(identity: login_identity.LoginIdentity) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail={
+            "code": "LOGIN_AMBIGUOUS_IDENTIFIER",
+            "kind": "mobile" if identity.kind == "phone" else "email",
+        },
+    )
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
-    identifier = payload.identifier.strip().lower()
-    _ensure_login_allowed(identifier)
-
-    admin_result = await db.execute(select(AdminUser).where(AdminUser.email == identifier))
-    admin = admin_result.scalar_one_or_none()
-    if admin is not None and await verify_password_async(payload.password, admin.password_hash):
-        return await _admin_token_response(db, admin)
-
-    credential_result = await db.execute(
-        select(MemberCredential).where(MemberCredential.username == identifier)
+    identity = login_identity.resolve(
+        payload.identifier, by_phone=await is_enabled(db, "login_by_phone")
     )
-    credential = credential_result.scalar_one_or_none()
-    if credential is not None and await verify_password_async(payload.password, credential.password_hash):
-        return TokenResponse(
-            access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
-            refresh_token=create_refresh_token(
-                str(credential.member_id), "member", credential.token_version
-            ),
-            must_change_password=credential.must_change_password,
-            role="member",
-            permissions=MEMBER_PERMISSIONS,
-        )
+    _ensure_login_allowed(identity.key)
 
-    raise _invalid_credentials(identifier)
+    if identity.kind != "phone":
+        admin_result = await db.execute(select(AdminUser).where(AdminUser.email == identity.text))
+        admin = admin_result.scalar_one_or_none()
+        if admin is not None and await verify_password_async(payload.password, admin.password_hash):
+            return await _admin_token_response(db, admin)
+
+    candidates = await login_identity.find_credentials(db, identity)
+    matches = [
+        credential
+        for credential in candidates
+        if await verify_password_async(payload.password, credential.password_hash)
+    ]
+    if len(candidates) > 1 and matches:
+        # Only someone who knows a valid password learns the identifier is shared,
+        # so the endpoint never reveals which numbers or emails collide. Not a
+        # failed attempt: the password was right.
+        raise _ambiguous_identifier(identity)
+    if len(candidates) == 1 and matches:
+        return _member_token_response(matches[0])
+
+    raise _invalid_credentials(identity.key)
 
 
 @router.post("/admin/login", response_model=TokenResponse)
@@ -134,13 +157,7 @@ async def member_login(payload: MemberLoginRequest, db: AsyncSession = Depends(g
     if credential is None or not await verify_password_async(payload.password, credential.password_hash):
         raise _invalid_credentials(username)
 
-    return TokenResponse(
-        access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
-        refresh_token=create_refresh_token(str(credential.member_id), "member", credential.token_version),
-        must_change_password=credential.must_change_password,
-        role="member",
-        permissions=MEMBER_PERMISSIONS,
-    )
+    return _member_token_response(credential)
 
 
 RESET_TOKEN_TTL_MINUTES = 30

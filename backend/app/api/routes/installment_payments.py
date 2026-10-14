@@ -68,8 +68,7 @@ def _admin_out(payment: InstallmentPayment) -> InstallmentPaymentAdminOut:
     )
 
 
-def _months_label(payment: InstallmentPayment) -> str:
-    return ", ".join(f"{i.month:02d}/{i.year}" for i in payment.installments)
+_months_label = payments.months_label
 
 
 async def _notify_member(payment: InstallmentPayment) -> None:

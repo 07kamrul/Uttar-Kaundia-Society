@@ -18,8 +18,10 @@ Behaviour (`GET /api/admin/members?search=` and `/api/admin/submissions?search=`
 import re
 
 from sqlalchemy import ColumnElement, or_
+from sqlalchemy.orm import InstrumentedAttribute
 
 from app.models.member import Member
+from app.models.membership_appeal import MembershipApplication
 from app.services.normalization import ascii_digits, phone_tail_digits
 
 SEARCH_MAX_LENGTH = 100
@@ -38,6 +40,19 @@ def _escape_like(term: str) -> str:
     )
 
 
+def phone_tail_clause(column: InstrumentedAttribute, term: str) -> ColumnElement[bool] | None:
+    """`column LIKE '%<tail>'` when `term` looks like a phone number with enough
+    digits (see the module docstring), else None. Shared by every search that
+    must find one person under `+880...`, `01...` or Bangla digits."""
+    text = term.strip()
+    if not _PHONE_LIKE_TERM.match(ascii_digits(text)):
+        return None
+    tail = phone_tail_digits(text, PHONE_SEARCH_TAIL_DIGITS)
+    if len(tail) < PHONE_SEARCH_MIN_DIGITS:
+        return None
+    return column.like(f"%{tail}")
+
+
 def member_search_clause(term: str | None) -> ColumnElement[bool] | None:
     """WHERE clause for `term`, or None when there is nothing to filter on."""
     if term is None or not term.strip():
@@ -49,8 +64,20 @@ def member_search_clause(term: str | None) -> ColumnElement[bool] | None:
         Member.member_id.ilike(pattern, escape=_LIKE_ESCAPE),
         Member.email.ilike(pattern, escape=_LIKE_ESCAPE),
     ]
-    if _PHONE_LIKE_TERM.match(ascii_digits(text)):
-        tail = phone_tail_digits(text, PHONE_SEARCH_TAIL_DIGITS)
-        if len(tail) >= PHONE_SEARCH_MIN_DIGITS:
-            clauses.append(Member.mobile.like(f"%{tail}"))
+    if (phone := phone_tail_clause(Member.mobile, text)) is not None:
+        clauses.append(phone)
+    return or_(*clauses)
+
+
+def application_search_clause(term: str | None) -> ColumnElement[bool] | None:
+    """Membership-application search: the applicant's name (case-insensitive
+    substring, `%`/`_` literal) or a phone number matched by its ending."""
+    if term is None or not term.strip():
+        return None
+    text = term.strip()
+    clauses = [
+        MembershipApplication.full_name.ilike(f"%{_escape_like(text)}%", escape=_LIKE_ESCAPE)
+    ]
+    if (phone := phone_tail_clause(MembershipApplication.mobile, text)) is not None:
+        clauses.append(phone)
     return or_(*clauses)

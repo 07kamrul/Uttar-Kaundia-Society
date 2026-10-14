@@ -31,8 +31,21 @@ from app.schemas.installment_payment import (
     PaymentAccountOut,
 )
 
+class PaymentConflict(HTTPException):
+    """A 409 that also carries a machine `code` (read by bulk approval). The
+    response body is the plain `detail` string, exactly as before."""
+
+    def __init__(self, detail: str, code: str) -> None:
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+        self.code = code
+
+
 PAYMENT_ACCOUNT_CATEGORY = "payment_account"
 MAX_INSTALLMENTS_PER_PAYMENT = 24
+
+
+def months_label(payment: InstallmentPayment) -> str:
+    return ", ".join(f"{i.month:02d}/{i.year}" for i in payment.installments)
 
 
 async def list_payment_accounts(db: AsyncSession) -> list[PaymentAccountOut]:
@@ -197,7 +210,7 @@ async def submit_payment(
 
 def _ensure_pending(payment: InstallmentPayment) -> None:
     if payment.status != PAYMENT_STATUS_PENDING:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This payment has already been reviewed.")
+        raise PaymentConflict("This payment has already been reviewed.", code="ALREADY_REVIEWED")
 
 
 async def approve_payment(db: AsyncSession, payment: InstallmentPayment, admin_id: int) -> None:
@@ -218,9 +231,8 @@ async def approve_payment(db: AsyncSession, payment: InstallmentPayment, admin_i
         )
     ).scalars().all()
     if len(locked) != len(ids) or any(i.status != InstallmentStatus.DUE for i in locked):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Some months in this payment are no longer due; reject it instead.",
+        raise PaymentConflict(
+            "Some months in this payment are no longer due; reject it instead.", code="NO_LONGER_DUE"
         )
     now = datetime.now(timezone.utc)
     paid_at = datetime(payment.paid_on.year, payment.paid_on.month, payment.paid_on.day, tzinfo=timezone.utc)

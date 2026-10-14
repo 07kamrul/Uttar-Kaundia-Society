@@ -13,7 +13,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, field_validator
 from sqlalchemy import func, select
@@ -79,6 +79,7 @@ from app.services.governance import (
     sla_status,
 )
 from app.services.letters_pdf import render_letter
+from app.services.member_search import SEARCH_MAX_LENGTH, application_search_clause
 from app.services.storage import save_upload_file
 
 settings = get_settings()
@@ -1078,6 +1079,7 @@ async def download_my_document(
 @router.get("/admin/membership-applications", response_model=list[ApplicationOut])
 async def list_applications(
     status_filter: str | None = None,
+    search: str | None = Query(default=None, max_length=SEARCH_MAX_LENGTH),
     db: AsyncSession = Depends(get_db),
     _admin: AdminUser = Depends(require_permission("membership_application.manage")),
 ) -> list[ApplicationOut]:
@@ -1089,6 +1091,8 @@ async def list_applications(
                 detail=f"status must be one of: {', '.join(APPLICATION_STATUSES)}",
             )
         query = query.where(MembershipApplication.status == status_filter)
+    if (search_clause := application_search_clause(search)) is not None:
+        query = query.where(search_clause)
     rows = (await db.execute(query)).scalars().all()
     # _application_timeline reads `application.audit_rows`, which the detail
     # loader assigns ad-hoc (see _application_detail). Batch-load the same

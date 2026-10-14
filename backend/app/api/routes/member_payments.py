@@ -1,6 +1,7 @@
 """Merged member payments (Batch 2): summary, history, cost-share self-payment,
 and committee verification of cost-share payments."""
 
+import logging
 from datetime import date
 from decimal import Decimal
 from html import escape
@@ -9,6 +10,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.routes.installment_payments import _notify_member as _notify_installment_member
 from app.api.routes.installment_payments import _require_member
 from app.core.deps import AccountActor, get_account_actor
 from app.core.feature_flags import is_enabled
@@ -18,12 +20,15 @@ from app.models.cost_share_payment import CostSharePayment
 from app.models.installment_payment import PAYMENT_STATUS_PENDING, PAYMENT_STATUSES, InstallmentPayment
 from app.schemas.installment_payment import PaymentRejectIn
 from app.schemas.member_payments import (
+    BulkApproveIn,
+    BulkApproveOut,
     CostSharePaymentAdminOut,
     PaymentHistoryItemOut,
     PaymentHistoryPageOut,
     PaymentSummaryOut,
     PendingVerificationsOut,
 )
+from app.services import bulk_verification
 from app.services import cost_share_payment as cost_share_service
 from app.services import member_payments as merged
 from app.services.audit import record_audit
@@ -31,6 +36,7 @@ from app.services.email import send_email
 from app.services.storage import save_upload_file
 
 router = APIRouter(tags=["member-payments"])
+logger = logging.getLogger(__name__)
 
 PAY_FLAG = "pay_merged_page"
 ADMIN_LIST_LIMIT = 200
@@ -263,3 +269,47 @@ async def admin_reject_cost_share_payment(
     payment = await _load_payment(db, payment_id)
     await _notify_member(payment)
     return _admin_out(payment)
+
+
+BULK_FLAG = "admin_bulk_verify"
+
+
+async def _notify_approved(db: AsyncSession, result: bulk_verification.BulkResult) -> None:
+    """Best effort, after the commit, approved items only: a mail failure never
+    undoes (or hides) an approval."""
+    for item in result.approved:
+        try:
+            payment = await bulk_verification._load_fresh(db, item.kind, item.id)
+            if payment is None:
+                continue
+            if item.kind == bulk_verification.KIND_INSTALLMENT:
+                await _notify_installment_member(payment)
+            else:
+                await _notify_member(payment)
+        except Exception:  # noqa: BLE001
+            logger.exception("bulk approval notification failed for %s %s", item.kind, item.id)
+
+
+@router.post("/admin/payment-verifications/bulk-approve", response_model=BulkApproveOut)
+async def admin_bulk_approve(
+    payload: BulkApproveIn,
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(require_permission("manage_finance")),
+) -> dict:
+    if not await is_enabled(db, BULK_FLAG):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "FEATURE_DISABLED", "message": "Bulk approval is not enabled."},
+        )
+    items = [(item.kind, item.id) for item in payload.items]
+    await bulk_verification.check_selection(db, items, payload.expected_count, payload.expected_total)
+    result = await bulk_verification.approve_items(db, admin.id, items)
+    await db.commit()
+    await _notify_approved(db, result)
+    return {
+        "batch_id": result.batch_id,
+        "approved_count": len(result.approved),
+        "approved_total": result.approved_total,
+        "approved": [{"kind": a.kind, "id": a.id, "amount": a.amount} for a in result.approved],
+        "failed": [{"kind": f.kind, "id": f.id, "code": f.code} for f in result.failed],
+    }

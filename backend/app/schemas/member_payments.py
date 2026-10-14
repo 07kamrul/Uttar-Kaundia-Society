@@ -1,7 +1,8 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.installment_payment import PaymentAccountOut
 from app.schemas.other_fees import OtherFeeTypeOut
@@ -76,3 +77,44 @@ class PendingVerificationsOut(BaseModel):
     installment: int
     cost_share: int
     total: int
+
+
+BULK_MAX_ITEMS = 50
+
+
+class BulkItemIn(BaseModel):
+    kind: Literal["installment", "cost_share"]
+    id: int = Field(gt=0)
+
+
+class BulkApproveIn(BaseModel):
+    items: list[BulkItemIn] = Field(min_length=1, max_length=BULK_MAX_ITEMS)
+    # What the admin saw and confirmed; any difference from the server is a 409.
+    expected_count: int = Field(ge=1)
+    expected_total: Decimal = Field(ge=0, max_digits=14, decimal_places=2)
+
+    @model_validator(mode="after")
+    def _items_are_unique(self) -> "BulkApproveIn":
+        if len({(item.kind, item.id) for item in self.items}) != len(self.items):
+            raise ValueError("items must be unique")
+        return self
+
+
+class BulkApprovedOut(BaseModel):
+    kind: str
+    id: int
+    amount: Decimal
+
+
+class BulkFailedOut(BaseModel):
+    kind: str
+    id: int
+    code: str  # NO_LONGER_DUE | ALREADY_REVIEWED | AMOUNT_EXCEEDS_REMAINING | NOT_FOUND
+
+
+class BulkApproveOut(BaseModel):
+    batch_id: str
+    approved_count: int
+    approved_total: Decimal
+    approved: list[BulkApprovedOut]
+    failed: list[BulkFailedOut]
