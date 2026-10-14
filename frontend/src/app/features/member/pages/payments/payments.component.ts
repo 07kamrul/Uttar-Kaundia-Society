@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import {
   MemberPaymentsService,
   type HistoryStatus,
@@ -38,6 +39,7 @@ export class PaymentsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly flags = inject(FeatureFlagService);
 
   readonly kinds = KINDS;
   readonly statuses = STATUSES;
@@ -69,6 +71,15 @@ export class PaymentsComponent implements OnInit {
         void this.router.navigate([], { queryParams: { pay: null }, queryParamsHandling: 'merge', replaceUrl: true });
       }
     });
+  }
+
+  /**
+   * With pay_verify_other_fees off an other fee is recorded as paid at once, so it reads
+   * "জমা হয়েছে" rather than the approved wording.
+   */
+  statusOf(item: PaymentHistoryItem): HistoryStatus {
+    const legacy = item.kind === 'other_fee' && item.status === 'approved' && !this.flags.isEnabled('pay_verify_other_fees');
+    return legacy ? 'recorded' : item.status;
   }
 
   get hasMore(): boolean {

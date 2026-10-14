@@ -65,6 +65,13 @@ describe('CostSharePaymentService', () => {
     let counts: unknown;
     service.pendingCounts().subscribe((c) => (counts = c));
     http.expectOne(`${BASE}/payment-verifications/pending-count`).flush({ installment: 2, cost_share: 1, total: 3 });
-    expect(counts).toEqual({ installment: 2, costShare: 1, total: 3 });
+    expect(counts).toEqual({ installment: 2, costShare: 1, otherFee: 0, total: 3 });
+  });
+
+  it('reads the other-fee pending count', () => {
+    let counts: unknown;
+    service.pendingCounts().subscribe((c) => (counts = c));
+    http.expectOne(`${BASE}/payment-verifications/pending-count`).flush({ installment: 2, cost_share: 1, other_fee: 4, total: 7 });
+    expect(counts).toEqual({ installment: 2, costShare: 1, otherFee: 4, total: 7 });
   });
 });

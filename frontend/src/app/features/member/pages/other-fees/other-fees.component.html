@@ -214,6 +214,9 @@
             <th>{{ 'member.otherFees.totalColumn' | translate }}</th>
             <th>{{ 'member.otherFees.receiptColumn' | translate }}</th>
             <th>{{ 'member.otherFees.methodColumn' | translate }}</th>
+            @if (verifyOn()) {
+              <th>{{ 'member.otherFees.statusColumn' | translate }}</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -229,10 +232,15 @@
               <td [attr.data-label]=" 'member.otherFees.totalColumn' | translate ">৳ {{ payment.amount }}</td>
               <td [attr.data-label]=" 'member.otherFees.receiptColumn' | translate ">{{ payment.receiptNo || '—' }}</td>
               <td [attr.data-label]=" 'member.otherFees.methodColumn' | translate ">{{ payment.paymentMethod || '—' }}</td>
+              @if (verifyOn()) {
+                <td [attr.data-label]=" 'member.otherFees.statusColumn' | translate " data-testid="fee-status">
+                  {{ 'member.payments.status.' + payment.status | translate: { reason: payment.rejectionReason ?? '' } }}
+                </td>
+              }
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="empty-state">
+              <td [attr.colspan]="verifyOn() ? 7 : 6" class="empty-state">
                 {{ (filterFeeType || filterFrom || filterTo ? 'member.otherFees.emptyStateFiltered' : 'member.otherFees.emptyState') | translate }}
               </td>
             </tr>

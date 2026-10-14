@@ -27,6 +27,7 @@ export const FEATURE_FLAG_KEYS = [
   'ui_a11y_v2',
   'data_saver',
   'net_status_banner',
+  'pay_verify_other_fees',
 ] as const;
 
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];

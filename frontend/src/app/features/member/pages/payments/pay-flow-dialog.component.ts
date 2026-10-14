@@ -9,8 +9,9 @@ import {
   signal,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { catchError, concatMap, from, map, of, toArray, type Observable } from 'rxjs';
+import { catchError, concatMap, from, map, of, switchMap, toArray, type Observable } from 'rxjs';
 import { toUserMessageKey } from '../../../../core/errors/user-error';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { InstallmentPaymentService } from '../../../../core/services/installment-payment.service';
 import {
   MemberPaymentsService,
@@ -90,6 +91,7 @@ export class PayFlowDialogComponent {
   private readonly paymentsService = inject(MemberPaymentsService);
   private readonly feesService = inject(OtherFeesService);
   private readonly translate = inject(TranslateService);
+  private readonly flags = inject(FeatureFlagService);
 
   readonly today = todayIso();
   readonly maxHeads = MAX_ADDITIONAL_HEADS;
@@ -317,17 +319,28 @@ export class PayFlowDialogComponent {
         keys: [feeKey(fee)],
         label: fee.label,
         run: () =>
-          this.feesService.createPayment({
-            feeType: fee.key,
-            paymentDate: common.paidOn,
-            paymentMethod: common.method,
-            receiptNo: common.transactionRef,
-            amount: fee.calculation === 'variable' ? this.amountOf(fee) : undefined,
-            additionalHeads: fee.calculation === 'picnic' ? this.headsOf(fee) : undefined,
-          }),
+          this.feesService
+            .createPayment({
+              feeType: fee.key,
+              paymentDate: common.paidOn,
+              paymentMethod: common.method,
+              receiptNo: common.transactionRef,
+              amount: fee.calculation === 'variable' ? this.amountOf(fee) : undefined,
+              additionalHeads: fee.calculation === 'picnic' ? this.headsOf(fee) : undefined,
+            })
+            .pipe(switchMap((created) => this.attachProof(created.id, proof))),
       });
     }
     return requests;
+  }
+
+  /**
+   * pay_verify_other_fees: the screenshot goes to the new pending payment. The payment
+   * itself is already saved, so a failed upload must not report the whole item as failed.
+   */
+  private attachProof(paymentId: number, proof: File | null): Observable<unknown> {
+    if (!proof || !this.flags.isEnabled('pay_verify_other_fees')) return of(null);
+    return this.feesService.uploadProof(paymentId, proof).pipe(catchError(() => of(null)));
   }
 
   /** Dues pre-ticked; a deep link (?kind=other_fee&fee=picnic) narrows that to what was asked for. */

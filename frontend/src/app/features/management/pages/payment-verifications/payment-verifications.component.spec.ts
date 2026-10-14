@@ -9,6 +9,7 @@ import {
   InstallmentPaymentService,
   type AdminInstallmentPayment,
 } from '../../../../core/services/installment-payment.service';
+import { OtherFeeVerificationService } from '../../../../core/services/other-fee-verification.service';
 import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { PaymentVerificationsComponent } from './payment-verifications.component';
 
@@ -71,6 +72,7 @@ function setup() {
       provideTranslateService(),
       { provide: InstallmentPaymentService, useValue: installments },
       { provide: CostSharePaymentService, useValue: shares },
+      { provide: OtherFeeVerificationService, useValue: { listForAdmin: () => of([]), approve: () => of({}), reject: () => of({}) } },
       { provide: FeatureFlagService, useValue: { isEnabled: () => false } },
     ],
   });

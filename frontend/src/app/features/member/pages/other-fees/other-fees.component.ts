@@ -19,6 +19,7 @@ import {
   OtherFeePayment,
   OtherFeeType,
 } from '../../../../core/services/other-fees.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
 const MAX_ADDITIONAL_HEADS = 20;
@@ -77,6 +78,9 @@ export class OtherFeesComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly otherFeesService = inject(OtherFeesService);
   private readonly route = inject(ActivatedRoute);
+  private readonly flags = inject(FeatureFlagService);
+  /** pay_verify_other_fees: show whether each payment is still being checked. */
+  readonly verifyOn = computed(() => this.flags.isEnabled('pay_verify_other_fees'));
 
   readonly selectedTypeInfo = computed(
     () => this.feeTypes().find((t) => t.key === this.selectedType()) ?? null,

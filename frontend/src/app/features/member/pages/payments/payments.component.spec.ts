@@ -13,6 +13,7 @@ import {
   type PaymentHistoryPage,
   type PaymentSummary,
 } from '../../../../core/services/member-payments.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { OtherFeesService } from '../../../../core/services/other-fees.service';
 import { PaymentsComponent } from './payments.component';
 import { makeHistoryItem, makeSummary } from './payments.fixtures';
@@ -20,6 +21,7 @@ import { makeHistoryItem, makeSummary } from './payments.fixtures';
 interface Opts {
   summary?: PaymentSummary;
   history?: PaymentHistoryItem[];
+  verifyOn?: boolean;
 }
 
 async function setup(url: string, opts: Opts = {}) {
@@ -33,7 +35,8 @@ async function setup(url: string, opts: Opts = {}) {
       provideRouter([{ path: 'payments', component: PaymentsComponent }]),
       { provide: MemberPaymentsService, useValue: { summary, history, submitCostShare: vi.fn() } },
       { provide: InstallmentPaymentService, useValue: { submit: vi.fn(() => of({ id: 1 })) } },
-      { provide: OtherFeesService, useValue: { createPayment: vi.fn() } },
+      { provide: OtherFeesService, useValue: { createPayment: vi.fn(), uploadProof: vi.fn() } },
+      { provide: FeatureFlagService, useValue: { isEnabled: (k: string) => k === 'pay_verify_other_fees' && opts.verifyOn === true } },
     ],
   });
   const translate = TestBed.inject(TranslateService);
@@ -153,5 +156,28 @@ describe('PaymentsComponent', () => {
     expect(text(harness)).toContain('জমা হয়েছে। অফিস যাচাই করছে।');
     expect(summary.mock.calls.length).toBeGreaterThan(before.summary);
     expect(history.mock.calls.length).toBeGreaterThan(before.history);
+  });
+});
+
+describe('PaymentsComponent other-fee status (pay_verify_other_fees)', () => {
+  const chips = (h: RouterTestingHarness) =>
+    [...(h.routeNativeElement?.querySelectorAll('.status-chip') ?? [])].map((e) => e.textContent?.trim());
+  const fee = makeHistoryItem({ kind: 'other_fee', id: 9, status: 'approved', title: 'পিকনিক' });
+
+  it('shows an approved other fee as "জমা হয়েছে" while the flag is off', async () => {
+    const { harness } = await setup('/payments', { history: [fee] });
+    expect(chips(harness)).toEqual(['জমা হয়েছে']);
+  });
+
+  it('shows the real status when the flag is on: গৃহীত, যাচাই চলছে and বাতিল — কারণ', async () => {
+    const { harness } = await setup('/payments', {
+      verifyOn: true,
+      history: [
+        fee,
+        makeHistoryItem({ kind: 'other_fee', id: 10, status: 'pending' }),
+        makeHistoryItem({ kind: 'other_fee', id: 11, status: 'rejected', rejectionReason: 'ভুল আইডি' }),
+      ],
+    });
+    expect(chips(harness)).toEqual(['গৃহীত', 'যাচাই চলছে', 'বাতিল — কারণ: ভুল আইডি']);
   });
 });

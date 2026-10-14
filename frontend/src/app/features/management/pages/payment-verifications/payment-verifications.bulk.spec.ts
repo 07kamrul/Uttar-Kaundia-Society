@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import bn from '../../../../../../public/i18n/bn.json';
 import { ConfigListService } from '../../../../core/services/config-list.service';
+import { OtherFeeVerificationService } from '../../../../core/services/other-fee-verification.service';
 import {
   CostSharePaymentService,
   type AdminCostSharePayment,
@@ -75,6 +76,7 @@ function setup(flags: FeatureFlagKey[], bulk = vi.fn((): ReturnType<CostSharePay
       provideTranslateService(),
       { provide: InstallmentPaymentService, useValue: installments },
       { provide: CostSharePaymentService, useValue: shares },
+      { provide: OtherFeeVerificationService, useValue: { listForAdmin: () => of([]), approve: () => of({}), reject: () => of({}) } },
       { provide: FeatureFlagService, useValue: { isEnabled: (k: FeatureFlagKey) => flags.includes(k) } },
       { provide: ConfigListService, useValue: { getItems: () => of([]) } },
     ],

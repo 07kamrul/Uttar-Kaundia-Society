@@ -29,10 +29,12 @@ export interface AdminCostSharePayment {
   createdAt: string;
 }
 
-export type BulkKind = 'installment' | 'cost_share';
+export type BulkKind = 'installment' | 'cost_share' | 'other_fee';
 export interface BulkItem {
   kind: BulkKind;
   id: number;
+  /** other_fee only: `fee:<id>` or `picnic:<id>` (the two tables share ids). */
+  id_ref?: string;
 }
 export interface BulkApproveResult {
   batchId: string;
@@ -52,6 +54,7 @@ interface BulkApproveApi {
 export interface PendingVerificationCounts {
   installment: number;
   costShare: number;
+  otherFee: number;
   total: number;
 }
 
@@ -147,7 +150,7 @@ export class CostSharePaymentService {
 
   pendingCounts(): Observable<PendingVerificationCounts> {
     return this.http
-      .get<{ installment: number; cost_share: number; total: number }>(`${this.base}/payment-verifications/pending-count`)
-      .pipe(map((r) => ({ installment: r.installment, costShare: r.cost_share, total: r.total })));
+      .get<{ installment: number; cost_share: number; other_fee?: number; total: number }>(`${this.base}/payment-verifications/pending-count`)
+      .pipe(map((r) => ({ installment: r.installment, costShare: r.cost_share, otherFee: r.other_fee ?? 0, total: r.total })));
   }
 }

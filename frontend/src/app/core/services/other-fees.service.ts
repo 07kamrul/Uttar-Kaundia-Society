@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toFileUrl } from './admin.service';
 
 /** One payable, non-installment fee type as offered on the Other Fees page.
  * The catalog is API data (driven by Fee Settings + fee_category), never a
@@ -29,6 +30,10 @@ export interface OtherFeePayment {
   paymentMethod: string | null;
   note: string | null;
   createdAt: string;
+  /** Always 'approved' while pay_verify_other_fees is off. */
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason: string | null;
+  proofUrl: string | null;
 }
 
 export interface OtherFeeHistorySummary {
@@ -81,6 +86,9 @@ interface OtherFeePaymentApi {
   payment_method: string | null;
   note: string | null;
   created_at: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string | null;
+  proof_url?: string | null;
 }
 
 interface OtherFeeHistoryPageApi {
@@ -117,6 +125,9 @@ function toPayment(api: OtherFeePaymentApi): OtherFeePayment {
     paymentMethod: api.payment_method,
     note: api.note,
     createdAt: api.created_at,
+    status: api.status ?? 'approved',
+    rejectionReason: api.rejection_reason ?? null,
+    proofUrl: toFileUrl(api.proof_url ?? null) ?? null,
   };
 }
 
@@ -169,5 +180,12 @@ export class OtherFeesService {
         additional_people: payload.additionalPeople?.length ? payload.additionalPeople : null,
       })
       .pipe(map(toPayment));
+  }
+
+  /** Attaches the screenshot to the member's own pending payment (pay_verify_other_fees). */
+  uploadProof(paymentId: number, proof: File): Observable<unknown> {
+    const form = new FormData();
+    form.append('proof', proof);
+    return this.http.post(`${this.base}/payments/${paymentId}/proof`, form);
   }
 }

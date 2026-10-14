@@ -41,7 +41,7 @@ describe('admin console services', () => {
         asOf: '2026-10-13T08:00:00Z',
         applications: { registrationsPending: 4, membershipApplicationsOpen: null, total: 4 },
         needsDag: 1,
-        paymentVerifications: { installment: 3, costShare: 1, total: 4 },
+        paymentVerifications: { installment: 3, costShare: 1, otherFee: 0, total: 4 },
         complaints: { open: 7, dueSoon: 2, overdue: 1 },
         propertyRequests: { pending: 2 },
         boundaries: null,

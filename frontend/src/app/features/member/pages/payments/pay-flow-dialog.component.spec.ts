@@ -6,20 +6,22 @@ import { describe, expect, it, vi } from 'vitest';
 import bn from '../../../../../../public/i18n/bn.json';
 import { InstallmentPaymentService } from '../../../../core/services/installment-payment.service';
 import { MemberPaymentsService, type PaymentSummary } from '../../../../core/services/member-payments.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { OtherFeesService } from '../../../../core/services/other-fees.service';
 import { PayFlowDialogComponent } from './pay-flow-dialog.component';
 import { makeHistoryItem, makeSummary } from './payments.fixtures';
 
-function setup(opts: { summary?: PaymentSummary; preselect?: { kind?: string; fee?: string } } = {}) {
+function setup(opts: { summary?: PaymentSummary; preselect?: { kind?: string; fee?: string }; verifyOn?: boolean } = {}) {
   const installments = { submit: vi.fn((_p: unknown) => of({ id: 1 })) };
   const payments = { submitCostShare: vi.fn((_p: unknown) => of(makeHistoryItem({ kind: 'cost_share' }))) };
-  const fees = { createPayment: vi.fn((_p: unknown) => of({ id: 5 })) };
+  const fees = { createPayment: vi.fn((_p: unknown) => of({ id: 5 })), uploadProof: vi.fn((_id: number, _f: File) => of({})) };
   TestBed.configureTestingModule({
     providers: [
       provideTranslateService(),
       { provide: InstallmentPaymentService, useValue: installments },
       { provide: MemberPaymentsService, useValue: payments },
       { provide: OtherFeesService, useValue: fees },
+      { provide: FeatureFlagService, useValue: { isEnabled: (k: string) => k === 'pay_verify_other_fees' && opts.verifyOn === true } },
     ],
   });
   const translate = TestBed.inject(TranslateService);
@@ -248,5 +250,59 @@ describe('PayFlowDialogComponent step 3: submit', () => {
     await flush(fixture);
     expect(installments.submit).toHaveBeenCalledTimes(1);
     expect(payments.submitCostShare).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('PayFlowDialogComponent other-fee verification (pay_verify_other_fees)', () => {
+  const proofFile = new File(['x'], 'p.png', { type: 'image/png' });
+
+  async function payPicnic(verifyOn: boolean) {
+    const ctx = setup({ verifyOn });
+    click(ctx.fixture, '[data-testid="fee-picnic"]');
+    ctx.fixture.componentInstance.proof.set(proofFile);
+    click(ctx.fixture, '[data-testid="next"]');
+    fillMethodAndRef(ctx.fixture, 'bkash', 'TX12345');
+    click(ctx.fixture, '[data-testid="submit"]');
+    await flush(ctx.fixture);
+    return ctx;
+  }
+
+  it('uploads the screenshot to the new fee payment when the flag is on', async () => {
+    const { fees } = await payPicnic(true);
+    expect(fees.uploadProof).toHaveBeenCalledWith(5, proofFile);
+  });
+
+  it('does not upload anything when the flag is off (unchanged behaviour)', async () => {
+    const { fees } = await payPicnic(false);
+    expect(fees.createPayment).toHaveBeenCalledTimes(1);
+    expect(fees.uploadProof).not.toHaveBeenCalled();
+  });
+
+  it('keeps the payment recorded and does not fail the item when only the proof upload fails', async () => {
+    const ctx = setup({ verifyOn: true });
+    ctx.fees.uploadProof.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const done = vi.fn();
+    ctx.fixture.componentInstance.finished.subscribe(done);
+    click(ctx.fixture, '[data-testid="fee-picnic"]');
+    ctx.fixture.componentInstance.proof.set(proofFile);
+    click(ctx.fixture, '[data-testid="next"]');
+    fillMethodAndRef(ctx.fixture, 'bkash', 'TX12345');
+    click(ctx.fixture, '[data-testid="submit"]');
+    await flush(ctx.fixture);
+    expect(done).toHaveBeenCalled();
+  });
+
+  it('shows the plain message for a missing reference', async () => {
+    const ctx = setup({ verifyOn: true });
+    ctx.fees.createPayment.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 422, error: { detail: { code: 'REFERENCE_REQUIRED', message: 'raw' } } })),
+    );
+    click(ctx.fixture, '[data-testid="fee-picnic"]');
+    click(ctx.fixture, '[data-testid="next"]');
+    fillMethodAndRef(ctx.fixture, 'bkash', 'TX12345');
+    click(ctx.fixture, '[data-testid="submit"]');
+    await flush(ctx.fixture);
+    expect(q(ctx.fixture, '[data-testid="results"]')?.textContent).not.toContain('raw');
+    expect(q(ctx.fixture, '[data-testid="results"]')?.textContent).toContain('ট্রানজেকশন আইডি');
   });
 });

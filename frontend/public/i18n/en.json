@@ -334,6 +334,7 @@
       "SHARE_NOT_FOUND": "That cost share was not found. Reload the page.",
       "SHARE_ALREADY_PAID": "This cost share is already paid.",
       "DUPLICATE_TRANSACTION_REF": "This transaction ID was already used. Check the ID again.",
+      "REFERENCE_REQUIRED": "A transaction ID is needed for mobile payments. Enter it and try again.",
       "AMOUNT_EXCEEDS_REMAINING": "The amount is more than what is left to pay. Enter a smaller amount.",
       "FEATURE_DISABLED": "This feature is not available right now.",
       "INVALID_BD_MOBILE": "That mobile number is not valid. Enter an 11-digit number such as 01712345678.",
@@ -1239,6 +1240,7 @@
       "totalColumn": "Total",
       "receiptColumn": "Receipt No",
       "methodColumn": "Method",
+      "statusColumn": "Status",
       "detailsHeads": "+{{n}} additional heads",
       "detailsAdmission": "Recorded at registration",
       "emptyState": "No other-fee payments yet.",
@@ -2467,7 +2469,8 @@
       "actionError": "Action failed. Please try again.",
       "kind": {
         "installment": "Installments",
-        "cost_share": "Cost shares"
+        "cost_share": "Cost shares",
+        "other_fee": "Other fees"
       },
       "costTitle": "Cost",
       "remaining": "Remaining"

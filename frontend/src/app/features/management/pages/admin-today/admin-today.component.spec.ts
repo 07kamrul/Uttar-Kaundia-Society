@@ -11,7 +11,7 @@ const FULL: AdminToday = {
   asOf: '2026-10-13T08:00:00Z',
   applications: { registrationsPending: 4, membershipApplicationsOpen: 2, total: 6 },
   needsDag: 1,
-  paymentVerifications: { installment: 3, costShare: 1, total: 4 },
+  paymentVerifications: { installment: 3, costShare: 1, otherFee: 0, total: 4 },
   complaints: { open: 7, dueSoon: 2, overdue: 1 },
   propertyRequests: { pending: 2 },
   boundaries: { pending: 3 },
@@ -69,7 +69,7 @@ describe('todayCards', () => {
 
   it('hides sections the admin may not see (null)', () => {
     expect(todayCards(NOTHING)).toEqual([]);
-    const finance = todayCards({ ...NOTHING, paymentVerifications: { installment: 1, costShare: 0, total: 1 } });
+    const finance = todayCards({ ...NOTHING, paymentVerifications: { installment: 1, costShare: 0, otherFee: 0, total: 1 } });
     expect(finance.map((c) => c.key)).toEqual(['payments']);
   });
 
@@ -105,7 +105,7 @@ describe('AdminTodayComponent', () => {
   });
 
   it('shows only the cards of the sections that are not null', () => {
-    const { cards } = setup(of({ ...NOTHING, paymentVerifications: { installment: 1, costShare: 0, total: 1 } }));
+    const { cards } = setup(of({ ...NOTHING, paymentVerifications: { installment: 1, costShare: 0, otherFee: 0, total: 1 } }));
     expect(cards().map((c) => c.dataset['key'])).toEqual(['payments']);
   });
 
