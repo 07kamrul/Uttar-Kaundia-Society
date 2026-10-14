@@ -50,7 +50,7 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-title {
   margin: 0;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 1.15rem;
   color: var(--emerald-900);
 }
@@ -113,7 +113,7 @@ $idcard-ink-soft: #4b5563;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-body);
   flex-shrink: 0;
 }
 
@@ -158,7 +158,7 @@ $idcard-ink-soft: #4b5563;
   font-weight: 700;
   font-size: 0.92rem;
   line-height: 1.2;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -97,13 +97,15 @@ class _SwitchRow extends StatelessWidget {
   final Future<void> Function(bool) onChanged;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-        contentPadding: EdgeInsets.zero,
-        minTileHeight: 56,
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: Switch(key: switchKey, value: value, onChanged: onChanged),
-        onTap: () => onChanged(!value),
+  Widget build(BuildContext context) => MergeSemantics(
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          minTileHeight: 56,
+          leading: Icon(icon),
+          title: Text(title),
+          subtitle: subtitle == null ? null : Text(subtitle!),
+          trailing: Switch(key: switchKey, value: value, onChanged: onChanged),
+          onTap: () => onChanged(!value),
+        ),
       );
 }

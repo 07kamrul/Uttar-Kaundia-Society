@@ -1,0 +1,4 @@
+/* Map libraries must be global: their DOM is created at runtime and never
+   carries Angular's scoping attributes (see plot-map.component.scss). */
+@use 'leaflet/dist/leaflet.css';
+@use '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';

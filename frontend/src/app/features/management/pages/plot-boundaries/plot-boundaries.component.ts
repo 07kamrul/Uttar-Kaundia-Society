@@ -19,6 +19,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import '../../../../shared/map/leaflet-geoman-setup';
+import { loadMapStyles } from '../../../../shared/map/load-map-styles';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PlotMapService } from '../../../../core/services/plot-map.service';
@@ -307,6 +308,8 @@ export class PlotBoundariesComponent implements OnInit {
     if (!el) return;
     // A passive preview: no panning/zooming - wheel events pass through so
     // the page (or the panel's own scroll) behaves normally over the map.
+    // map.css loads on demand; re-measure once it is in.
+    void loadMapStyles().then(() => this.previewMap?.invalidateSize());
     const map = L.map(el, {
       attributionControl: false,
       dragging: false,
@@ -549,6 +552,7 @@ export class PlotBoundariesComponent implements OnInit {
     const el = document.querySelector('.shape-map') as HTMLElement | null;
     if (!el) return;
     // Scroll-wheel zoom fights the modal's own scrolling, so it stays off.
+    void loadMapStyles().then(() => this.shapeMap?.invalidateSize());
     const map = L.map(el, { attributionControl: false, scrollWheelZoom: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
     this.shapeMap = map;

@@ -324,6 +324,7 @@ class AppTheme {
         style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
       ),
       textTheme: text.copyWith(
+        bodyLarge: text.bodyLarge?.copyWith(fontSize: 16),
         bodyMedium: text.bodyMedium?.copyWith(fontSize: 16),
         bodySmall: text.bodySmall?.copyWith(fontSize: 14),
         labelMedium: text.labelMedium?.copyWith(fontSize: 14),

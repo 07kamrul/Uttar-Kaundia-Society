@@ -8,7 +8,6 @@ import {
   signal,
 } from '@angular/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import QRCode from 'qrcode';
 import { MemberProfile, MemberService } from '../../../../core/services/member.service';
 import { AttachmentService } from '../../../../core/services/attachment.service';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -184,6 +183,8 @@ export class IdCardModalComponent implements OnInit {
 
   private async renderQr(profile: MemberProfile): Promise<HTMLCanvasElement> {
     const canvas = document.createElement('canvas');
+    // Loaded only when a card is drawn, so every signed-in page does not pay for it.
+    const { default: QRCode } = await import('qrcode');
     await QRCode.toCanvas(
       canvas,
       `KAUNDIA|${profile.memberId}|${profile.fullName}`,

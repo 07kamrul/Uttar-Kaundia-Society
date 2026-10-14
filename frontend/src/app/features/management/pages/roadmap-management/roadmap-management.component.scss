@@ -54,7 +54,7 @@
 }
 
 .rm-overall-pct {
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 2rem;
   font-weight: 700;
   color: var(--emerald-800);
@@ -106,7 +106,7 @@
 
   h2 {
     margin: 0;
-    font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+    font-family: var(--font-heading);
     font-size: 1.15rem;
     color: var(--gray-800);
   }

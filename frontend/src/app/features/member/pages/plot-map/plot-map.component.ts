@@ -23,6 +23,7 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { DagInfoDialogComponent, type DagTarget } from './dag-info-dialog/dag-info-dialog.component';
 import { IconComponent, type IconName } from '../../../../shared/icon/icon.component';
 import { AuthService } from '../../../../core/services/auth.service';
+import { loadMapStyles } from '../../../../shared/map/load-map-styles';
 import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { MemberService, type MemberProperty } from '../../../../core/services/member.service';
@@ -412,6 +413,8 @@ export class PlotMapComponent implements AfterViewInit {
 
   private initMap(): void {
     const society = this.societyBounds();
+    // map.css loads on demand; re-measure once it is in.
+    void loadMapStyles().then(() => this.map?.invalidateSize());
     const map = L.map(this.mapContainer().nativeElement, {
       center: SOCIETY_CENTER,
       zoom: 15,

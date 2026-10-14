@@ -1,14 +1,15 @@
 @use 'styles/forms';
 
-/* Map libraries must be global: their DOM is created at runtime and never
-   carries Angular's scoping attributes (see plot-map.component.scss). */
-@use 'leaflet/dist/leaflet.css';
-@use '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+/* Leaflet and Geoman CSS live in styles/map.scss, loaded only on the map routes (shared/map/load-map-styles.ts). */
 
 // Font is loaded via <link> tags in index.html (matches the prototype's
 // preconnect + stylesheet approach and avoids a render-blocking @import).
 
 :root {
+  /* One typeface (Hind Siliguri, loaded in index.html); headings use weight 600/700. */
+  --font-body: 'Hind Siliguri', system-ui, sans-serif;
+  --font-heading: 'Hind Siliguri', system-ui, sans-serif;
+
   /* Prototype-derived dark-green + gold palette, kept under the existing
      token names so every component that already references them repaints
      automatically instead of needing a class-by-class rewrite. */
@@ -119,7 +120,7 @@ body {
   margin: 0;
   background: var(--gray-50);
   color: var(--gray-800);
-  font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
@@ -130,7 +131,8 @@ h2,
 h3,
 .page-title,
 .reg-org-name {
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-weight: 700;
+  font-family: var(--font-heading);
 }
 
 .theme-toggle-btn {
@@ -328,7 +330,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Tiro Bangla', serif;
+  font-family: var(--font-heading);
   font-size: 1.2rem;
   flex-shrink: 0;
   overflow: hidden;
@@ -342,7 +344,7 @@ a {
 }
 
 .site-header-brand-name {
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 1.08rem;
   line-height: 1.2;
   font-weight: 700;
@@ -466,7 +468,7 @@ a {
 }
 
 .hero-heading {
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 2.5rem;
   line-height: 1.28;
   margin: 0.9rem 0 1.1rem;
@@ -501,7 +503,7 @@ a {
 }
 
 .hero-stat-title {
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 1.05rem;
   margin-bottom: 1.1rem;
   font-weight: 700;
@@ -2101,7 +2103,7 @@ a {
   border-radius: 50%;
   background: var(--emerald-800);
   color: #fff;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 700;
   overflow: hidden;
@@ -2308,7 +2310,7 @@ a {
 
 .ds-card-title {
   margin: 0;
-  font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -2336,7 +2338,7 @@ a {
 }
 
 .ds-field-label {
-  font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -2550,7 +2552,7 @@ a {
   border-radius: 50%;
   background: var(--emerald-800);
   color: #fff;
-  font-family: 'Inter', 'Hind Siliguri', sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -2692,7 +2694,7 @@ a {
 }
 
 .prop-item-index {
-  font-family: 'Inter', 'Hind Siliguri', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--emerald-800);
@@ -2766,7 +2768,7 @@ a {
   align-items: center;
   gap: 0.5rem;
   margin: 0;
-  font-family: 'Inter', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -2836,7 +2838,7 @@ a {
   padding: 0.6rem 0.85rem;
   background: var(--gray-50);
   color: var(--gray-600);
-  font-family: 'Inter', 'Hind Siliguri', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;

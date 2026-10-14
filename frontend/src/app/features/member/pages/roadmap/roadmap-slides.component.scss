@@ -39,7 +39,7 @@
 
 .deck-brand {
   flex: 1;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-weight: 700;
   color: var(--deck-gold);
   font-size: 1.05rem;
@@ -107,7 +107,7 @@
 
 .slide-title {
   margin: 0.2rem 0 0;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 4vw, 3.25rem);
   line-height: 1.2;
   color: var(--deck-ink);
@@ -168,7 +168,7 @@
 
 .overview-window {
   margin-top: 0.5rem;
-  font-family: 'Tiro Bangla', 'Hind Siliguri', serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.15rem, 2.2vw, 1.75rem);
   font-weight: 700;
 }

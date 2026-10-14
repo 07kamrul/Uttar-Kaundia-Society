@@ -47,7 +47,8 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              { "input": "src/styles/map.scss", "bundleName": "map", "inject": false }
             ]
           },
           "configurations": {
@@ -62,7 +63,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumError": "550kB"
                 },
                 {
                   "type": "anyComponentStyle",
