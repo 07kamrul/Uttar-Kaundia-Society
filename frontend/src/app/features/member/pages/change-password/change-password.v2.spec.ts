@@ -33,6 +33,9 @@ describe('ChangePasswordComponent (password_policy_v2)', () => {
 
   function setup(flags: string[]) {
     changePassword.mockReset();
+    // Some tests set up two components with different flags; a second
+    // configureTestingModule needs a fresh module.
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [ChangePasswordComponent],
       providers: [

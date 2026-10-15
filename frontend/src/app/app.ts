@@ -1,6 +1,7 @@
 import { Component, effect, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FeatureFlagService } from './core/services/feature-flag.service';
+import { TextSizeService } from './core/services/text-size.service';
 import { ThemeService } from './core/services/theme.service';
 import { GlobalLoaderComponent } from './shared/loader/global-loader.component';
 
