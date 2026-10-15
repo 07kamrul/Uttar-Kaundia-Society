@@ -38,7 +38,7 @@
     <div class="error-box"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   } @else {
     <div class="data-table-wrap">
-      <table class="data-table data-table-cards">
+      <table class="data-table data-table-cards data-table-cards-lg list-table">
         <thead>
           <tr>
             <th>{{ 'admin.submissionsList.tableHeaders.reference' | translate }}</th>
@@ -46,23 +46,25 @@
             <th>{{ 'admin.submissionsList.tableHeaders.mobile' | translate }}</th>
             <th>{{ 'admin.submissionsList.tableHeaders.status' | translate }}</th>
             <th>{{ 'admin.submissionsList.tableHeaders.date' | translate }}</th>
-            <th></th>
+            <th class="cell-actions"><span class="sr-only">{{ 'admin.submissionsList.detailsLink' | translate }}</span></th>
           </tr>
         </thead>
         <tbody>
           @for (s of submissions; track s.id) {
             <tr>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">
-                {{ s.fullName }}
+              <td class="cell-mono cell-nowrap" [attr.data-label]="'admin.submissionsList.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
+              <td class="cell-person" [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">
+                <span class="person"><span class="person-avatar" aria-hidden="true">{{ s.fullName.charAt(0) }}</span>
+                <span class="person-name">{{ s.fullName }}</span>
                 @if (s.needsDag) {
                   <span class="status-badge status-pending" data-testid="needs-dag-badge">
                     {{ 'admin.submissionsList.needsDag' | translate }}
                   </span>
                 }
+                </span>
               </td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" /></td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.status' | translate">
+              <td [attr.data-label]="'admin.submissionsList.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" [compact]="true" /></td>
+              <td class="cell-nowrap" [attr.data-label]="'admin.submissionsList.tableHeaders.status' | translate">
                 <span
                   class="status-badge"
                   [class.status-pending]="s.status === 'pending'"
@@ -72,8 +74,8 @@
                   {{ statusLabel(s.status) }}
                 </span>
               </td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.date' | translate">{{ s.createdAt | date: 'yyyy-MM-dd' }}</td>
-              <td [attr.data-label]="'admin.submissionsList.detailsLink' | translate">
+              <td class="cell-nowrap cell-muted" [attr.data-label]="'admin.submissionsList.tableHeaders.date' | translate">{{ s.createdAt | date: 'yyyy-MM-dd' }}</td>
+              <td class="cell-actions" [attr.data-label]="'admin.submissionsList.detailsLink' | translate">
                 <a
                   [routerLink]="['/submissions', s.id]"
                   class="btn btn-primary btn-sm"

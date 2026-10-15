@@ -26,8 +26,8 @@
     @if (success) {
       <div class="success-box"><p style="margin:0">{{ success }}</p></div>
     }
-    <div class="data-table-wrap table-scroll">
-      <table class="data-table data-table-cards">
+    <div class="data-table-wrap">
+      <table class="data-table data-table-cards data-table-cards-lg list-table">
         <thead>
           <tr>
             <th>{{ 'admin.membersList.tableHeaders.memberId' | translate }}</th>
@@ -35,16 +35,19 @@
             <th>{{ 'admin.membersList.tableHeaders.mobile' | translate }}</th>
             <th>{{ 'admin.membersList.tableHeaders.status' | translate }}</th>
             <th>{{ 'admin.membersList.tableHeaders.contributionStatus' | translate }}</th>
-            <th></th>
+            <th class="cell-actions"><span class="sr-only">{{ 'admin.membersList.actions' | translate }}</span></th>
           </tr>
         </thead>
         <tbody>
           @for (m of members; track m.id) {
             <tr>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.memberId' | translate">{{ m.memberId ?? '—' }}</td>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.name' | translate">{{ m.fullName }}</td>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate"><app-phone-link [value]="m.mobile" /></td>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.status' | translate">
+              <td class="cell-mono cell-nowrap" [attr.data-label]="'admin.membersList.tableHeaders.memberId' | translate">{{ m.memberId ?? '—' }}</td>
+              <td class="cell-person" [attr.data-label]="'admin.membersList.tableHeaders.name' | translate">
+                <span class="person"><span class="person-avatar" aria-hidden="true">{{ m.fullName.charAt(0) }}</span>
+                <span class="person-name">{{ m.fullName }}</span></span>
+              </td>
+              <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate"><app-phone-link [value]="m.mobile" [compact]="true" /></td>
+              <td class="cell-nowrap" [attr.data-label]="'admin.membersList.tableHeaders.status' | translate">
                 <span
                   class="status-badge"
                   [class.status-pending]="m.status === 'pending'"
@@ -54,7 +57,7 @@
                   {{ statusLabel(m.status) }}
                 </span>
               </td>
-              <td [attr.data-label]="'admin.membersList.tableHeaders.contributionStatus' | translate">
+              <td class="cell-nowrap" [attr.data-label]="'admin.membersList.tableHeaders.contributionStatus' | translate">
                 @if (m.status === 'approved') {
                   <span class="status-badge" [class.status-paid]="m.dueInstallments === 0" [class.status-due]="m.dueInstallments > 0">
                     {{ contributionLabel(m) }}
@@ -63,7 +66,7 @@
                   {{ contributionLabel(m) }}
                 }
               </td>
-              <td [attr.data-label]="'admin.membersList.actions' | translate">
+              <td class="cell-actions" [attr.data-label]="'admin.membersList.actions' | translate">
                 <div class="flex-row-wrap row-actions">
                   <button
                     type="button"

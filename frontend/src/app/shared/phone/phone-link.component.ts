@@ -30,7 +30,7 @@ const COPY_FEEDBACK_MS = 1600;
   imports: [TranslatePipe, IconComponent],
   template: `
     @if (info(); as phone) {
-      <span class="phone-link">
+      <span class="phone-link" [class.is-compact]="compact()">
         @if (phone.telHref; as telHref) {
           <a
             class="phone-link-number"
@@ -47,19 +47,24 @@ const COPY_FEEDBACK_MS = 1600;
             [href]="whatsAppHref"
             target="_blank"
             rel="noopener noreferrer"
+            [attr.aria-label]="compact() ? ('phoneLink.whatsapp' | translate) : null"
+            [attr.title]="compact() ? ('phoneLink.whatsapp' | translate) : null"
           >
             <app-icon name="whatsapp" [size]="16" />
-            <span>{{ 'phoneLink.whatsapp' | translate }}</span>
+            @if (!compact()) {
+              <span>{{ 'phoneLink.whatsapp' | translate }}</span>
+            }
           </a>
         }
         <button
           type="button"
           class="phone-link-action phone-link-copy no-print"
           [class.is-copied]="copyState() === 'copied'"
+          [attr.title]="compact() ? (copyLabelKey() | translate) : null"
           (click)="copy(phone.e164)"
         >
           <app-icon [name]="copyState() === 'copied' ? 'check-circle' : 'copy'" [size]="16" />
-          <span aria-live="polite">{{ copyLabelKey() | translate }}</span>
+          <span aria-live="polite" [class.sr-only]="compact()">{{ copyLabelKey() | translate }}</span>
         </button>
       </span>
     } @else if (text()) {
@@ -114,11 +119,46 @@ const COPY_FEEDBACK_MS = 1600;
         color: var(--emerald-700);
       }
     }
+
+    /* Compact: icon-only square actions on one line, for dense table rows. */
+    .phone-link.is-compact {
+      flex-wrap: nowrap;
+      gap: 0.4rem;
+
+      .phone-link-number {
+        margin-right: 0.2rem;
+      }
+
+      .phone-link-action {
+        justify-content: center;
+        width: 2.25rem;
+        min-height: 2.25rem;
+        padding: 0;
+        border-radius: 999px;
+        color: var(--gray-600);
+      }
+
+      .phone-link-whatsapp:hover {
+        border-color: #25d366;
+        color: #128c7e;
+        background: #e9fbf0;
+      }
+    }
+
+    /* Keep a full 44px touch target on touch screens. */
+    @media (pointer: coarse) {
+      .phone-link.is-compact .phone-link-action {
+        width: 2.75rem;
+        min-height: 2.75rem;
+      }
+    }
   `,
 })
 export class PhoneLinkComponent {
   /** E.164 ("+8801712345678") or a legacy national value ("01712345678"). */
   readonly value = input<string | null | undefined>();
+  /** Icon-only action buttons (labels move to tooltip / aria-label). */
+  readonly compact = input(false);
 
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);

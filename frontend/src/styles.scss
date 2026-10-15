@@ -1518,6 +1518,116 @@ a {
   }
 }
 
+/* Admin list tables (members, applications): roomy rows, cells that never
+   break words mid-way, an initial avatar beside the name, and actions pinned
+   right. Combine with .data-table-cards-lg for the card stack below 1024px. */
+.list-table tbody td {
+  padding: 0.9rem 1rem;
+  vertical-align: middle;
+}
+
+.list-table .cell-nowrap {
+  white-space: nowrap;
+}
+
+.list-table .cell-mono {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.list-table .cell-muted {
+  color: var(--gray-600);
+}
+
+.list-table .cell-person {
+  min-width: 10rem;
+}
+
+.list-table .person {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.65rem;
+}
+
+.list-table .person-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.list-table .person-name {
+  font-weight: 600;
+  color: var(--gray-800);
+  line-height: 1.3;
+}
+
+.list-table .cell-actions {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.list-table .cell-actions .btn,
+.list-table .status-badge {
+  white-space: nowrap;
+}
+
+.list-table .row-actions {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1023.98px) {
+  /* Card mode: the name row becomes the card's header. */
+  .list-table tbody tr {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .list-table tbody td.cell-person {
+    order: -1;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+  }
+
+  .list-table tbody td.cell-person::before {
+    content: none;
+  }
+
+  .list-table tbody td.cell-person .person-name {
+    font-size: 1rem;
+  }
+
+  .list-table tbody td {
+    align-items: center;
+  }
+
+  .list-table .cell-actions {
+    width: auto;
+  }
+
+  .list-table tbody td:last-child .row-actions {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .list-table tbody td:last-child .row-actions .btn {
+    width: auto;
+  }
+}
+
 .status-badge {
   display: inline-flex;
   align-items: center;
