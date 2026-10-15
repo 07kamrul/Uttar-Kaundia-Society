@@ -546,6 +546,7 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
 
   it('serves later BDS visits from cache instead of refetching the same area', () => {
     const { component, dagsInBbox } = setup();
+    dagsInBbox.mockClear(); // ignore the on-load prefetch
     component.selectMapMode('bds');
     expect(dagsInBbox).toHaveBeenCalledTimes(1);
     component.selectMapMode('boundaries');
@@ -563,6 +564,7 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
 
   it('does not stack a second download while the first is still in flight', () => {
     const { component, dagsInBbox } = setup();
+    dagsInBbox.mockClear(); // ignore the on-load prefetch
     dagsInBbox.mockReturnValue(new Subject<LandFeatureCollection>());
     component.selectMapMode('bds');
     // a moveend while the layer is still downloading
@@ -598,10 +600,18 @@ describe('plot-map RS dag overlay and snapping', () => {
     });
   });
 
-  it('does not fetch RS parcels on load when the overlay is off', () => {
+  it('only prefetches RS parcels into the cache on load when the overlay is off', () => {
     localStorage.setItem('krmf_plot_map_layers', JSON.stringify({ rsOverlay: false, snapToRs: true }));
-    const { masterplanInBbox } = setup();
-    expect(masterplanInBbox).not.toHaveBeenCalled();
+    const { component, masterplanInBbox } = setup();
+    expect(masterplanInBbox).toHaveBeenCalledTimes(1);
+    expect(component.rsLoading()).toBe(false);
+  });
+
+  it('prefetches both official layers as soon as the map is ready', () => {
+    const { dagsInBbox, masterplanInBbox } = setup();
+    const society = parseSocietyBbox(environment.societyBbox).join(',');
+    expect(dagsInBbox).toHaveBeenCalledWith(society);
+    expect(masterplanInBbox).toHaveBeenCalledWith(society);
   });
 
   it('defaults snapping on and can switch it off', () => {

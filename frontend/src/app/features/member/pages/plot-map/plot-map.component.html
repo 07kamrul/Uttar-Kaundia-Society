@@ -220,11 +220,7 @@
 
     <!-- Official-data status + disclaimer notices, stacked bottom-center -->
     <div class="map-notices">
-      @if (externalLoading()) {
-        <div class="external-status" role="status">
-          {{ 'member.plotMap.views.loading' | translate }}
-        </div>
-      } @else if (externalError()) {
+      @if (externalError()) {
         <div class="external-status error" role="alert">
           {{ 'member.plotMap.views.loadError' | translate }}
         </div>
@@ -234,6 +230,13 @@
         </div>
       }
     </div>
+
+    @if (layerLoading()) {
+      <div class="layer-loading" role="status" aria-live="polite">
+        <span class="layer-spinner" aria-hidden="true"></span>
+        <span>{{ 'member.plotMap.views.loading' | translate }}</span>
+      </div>
+    }
 
     @if (mapLoading()) {
       <div class="map-loading" aria-hidden="true">

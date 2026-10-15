@@ -307,6 +307,9 @@ export class PlotMapComponent implements AfterViewInit {
   // RAJUK DAP masterplan.
   readonly mapMode = signal<PlotMapMode>('boundaries');
   readonly externalLoading = signal(false);
+  readonly rsLoading = signal(false);
+  /** Spinner overlay while any official layer is still downloading. */
+  readonly layerLoading = computed(() => this.externalLoading() || this.rsLoading());
   readonly externalError = signal(false);
   /** Server had more plots than the response cap — warn instead of losing them silently. */
   readonly externalTruncated = signal(false);
@@ -524,6 +527,21 @@ export class PlotMapComponent implements AfterViewInit {
     });
 
     this.applyDrawingMode();
+    this.prefetchOfficialLayers();
+  }
+
+  /**
+   * Starts both official-layer downloads as soon as the map exists, so
+   * switching to the BDS / RS view renders from the warm service cache
+   * instead of waiting on the network. Failures are not cached by the
+   * service; the real load surfaces the error and retries.
+   */
+  private prefetchOfficialLayers(): void {
+    if (this.wizardOn()) return; // data-saver mode downloads layers only on request
+    const bbox = this.societyLayerBbox();
+    const ignore = { error: () => undefined };
+    this.landDataService.dagsInBbox(bbox).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(ignore);
+    this.landDataService.masterplanInBbox(bbox).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(ignore);
   }
 
   // ---- map_wizard: tiles, Geoman and RS-match loading ---------------------
@@ -948,16 +966,21 @@ export class PlotMapComponent implements AfterViewInit {
       return;
     }
     if (this.rsSub && !this.rsSub.closed) return; // already downloading
+    this.rsLoading.set(true);
     this.rsSub = this.landDataService
       .masterplanInBbox(this.societyLayerBbox())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collection) => {
+          this.rsLoading.set(false);
           this.rsCollection.set(collection);
           this.externalError.set(false);
           if (this.rsOverlayOn()) this.renderRs(collection);
         },
-        error: () => this.externalError.set(true),
+        error: () => {
+          this.rsLoading.set(false);
+          this.externalError.set(true);
+        },
       });
   }
 
