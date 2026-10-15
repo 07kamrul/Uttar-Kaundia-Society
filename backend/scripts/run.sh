@@ -27,12 +27,12 @@ cmd_migrate() {
     max_attempts="${MIGRATION_MAX_ATTEMPTS:-30}"
     sleep_seconds="${MIGRATION_SLEEP_SECONDS:-2}"
 
-    cmd_resolve_duplicates || { log "Duplicate resolution failed - aborting" >&2; exit 1; }
-
+    # Both steps need a live database, so both share the DB-ready retry loop.
+    # Duplicate resolution must succeed before the upgrade (unique constraints).
     attempt=1
     while :; do
-        log "Running Alembic upgrade head (attempt ${attempt}/${max_attempts})"
-        if alembic upgrade head; then
+        log "Resolve duplicates + Alembic upgrade head (attempt ${attempt}/${max_attempts})"
+        if cmd_resolve_duplicates && alembic upgrade head; then
             log "Migration completed successfully"
             return 0
         fi
