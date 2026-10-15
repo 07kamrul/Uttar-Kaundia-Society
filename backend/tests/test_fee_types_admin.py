@@ -1,14 +1,15 @@
 """Admin fee-type catalog endpoints: CRUD, versioned rates, calculator, and
 the merged admin fee-payments list (picnic ledger folded in)."""
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.models.admin import AdminUser
-from app.models.fee_settings import FeeType
+from app.models.fee_settings import FeeSetting, FeeType
 
 pytestmark = pytest.mark.asyncio
 
@@ -348,3 +349,33 @@ async def test_fee_type_endpoints_require_permission(
 ) -> None:
     response = await client.get("/api/admin/fee-types")
     assert response.status_code in (401, 403)
+
+
+async def test_fee_type_version_scheduled_ahead_keeps_current_rate_until_it_starts(
+    client: AsyncClient, admin_user: AdminUser, seeded_fee_types: None, db_session
+) -> None:
+    """A version starting in ten days closes the current one on the day before,
+    not today, so no day in between is left without a rate."""
+    headers = await _admin_headers(client)
+    start = date.today() + timedelta(days=10)
+    response = await client.post(
+        "/api/admin/fee-types/admission_fee/versions",
+        json={"value": 900, "start_date": start.isoformat()},
+        headers=headers,
+    )
+    assert response.status_code == 201, response.text
+
+    rows = (
+        (
+            await db_session.execute(
+                select(FeeSetting)
+                .where(FeeSetting.key == "admission_fee")
+                .order_by(FeeSetting.start_date)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    old, new = rows[-2], rows[-1]
+    assert (new.value, new.start_date, new.end_date) == (900, start, None)
+    assert old.end_date == start - timedelta(days=1)

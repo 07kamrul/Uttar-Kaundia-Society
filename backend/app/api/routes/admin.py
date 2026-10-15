@@ -1,6 +1,6 @@
 import html
 import re
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from enum import Enum
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
@@ -984,9 +984,12 @@ async def create_fee_setting_version(
         select(FeeSetting).where(FeeSetting.key == payload.key, FeeSetting.status == 1)
     )
     current = result.scalar_one_or_none()
-    new_start_date = payload.start_date or date.today()
+    today = date.today()
+    new_start_date = payload.start_date or today
     if current is not None:
-        current.end_date = date.today()
+        # A rate scheduled for later keeps the current one running until the
+        # day before it starts; closing it today would leave days with no rate.
+        current.end_date = new_start_date - timedelta(days=1) if new_start_date > today else today
         current.status = 0
 
     new_version = FeeSetting(

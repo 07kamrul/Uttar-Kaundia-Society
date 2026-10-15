@@ -148,3 +148,44 @@ async def test_subscription_quote_as_of_past_date_uses_that_versions_rate(
     assert float(before.json()["total"]) == 140
     assert float(after.json()["extra_rate"]) == 30
     assert float(after.json()["total"]) == 160
+
+
+async def test_rate_scheduled_days_ahead_leaves_no_gap_before_it_starts(
+    client: AsyncClient, admin_user: AdminUser, db_session
+) -> None:
+    """A rate that starts ten days from now must not shorten the current one:
+    every day up to the day before the start still resolves to the old rate,
+    and the start day resolves to the new one (no day without a rate)."""
+    headers = await _admin_headers(client)
+    start = date.today() + timedelta(days=10)
+    created = await _add_version(
+        client,
+        headers,
+        "monthly_subscription_additional_rate",
+        30,
+        start_date=start.isoformat(),
+    )
+
+    async def extra_rate_on(day: date) -> float:
+        response = await client.post(
+            "/api/public/registration/subscription-quote",
+            json={"land_size_decimal": "3", "billing_date": day.isoformat()},
+        )
+        assert response.status_code == 200, (day, response.text)
+        return float(response.json()["extra_rate"])
+
+    assert await extra_rate_on(date.today() + timedelta(days=5)) == 20
+    assert await extra_rate_on(start - timedelta(days=1)) == 20
+    assert await extra_rate_on(start) == 30
+
+    previous = (
+        await db_session.execute(
+            select(FeeSetting)
+            .where(
+                FeeSetting.key == "monthly_subscription_additional_rate",
+                FeeSetting.id != created["id"],
+            )
+            .order_by(FeeSetting.id.desc())
+        )
+    ).scalars().first()
+    assert previous.end_date == start - timedelta(days=1)

@@ -6,7 +6,7 @@ every pre-existing version history keeps working unchanged. Fee-type
 create/edit and every new version are written to the audit log.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import ROUND_CEILING, Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -326,7 +326,12 @@ async def _create_setting_version(
     fee_key: str,
     fee_category: str,
 ) -> None:
-    await _close_active_versions(db, [key], date.today())
+    today = date.today()
+    # A rate scheduled for later keeps the current one running until the day
+    # before it starts; closing it today would leave days with no rate.
+    await _close_active_versions(
+        db, [key], start_date - timedelta(days=1) if start_date > today else today
+    )
     db.add(
         FeeSetting(
             key=key,
