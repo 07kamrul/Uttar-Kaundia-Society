@@ -326,7 +326,11 @@
       "amendments": "Old versions of the constitution",
       "cacheStats": "What the cache holds — read only",
       "loginReadiness": "Checks to run before phone login goes on"
-    }
+    },
+    "searchMenu": "Search menu…",
+    "noResults": "No matching pages",
+    "clearSearch": "Clear search",
+    "toggleSection": "Show or hide section"
   },
   "errors": {
     "network": "No internet connection. Check your connection and try again.",

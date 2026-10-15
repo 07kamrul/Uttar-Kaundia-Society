@@ -87,7 +87,7 @@
   <div class="app-body">
     <aside class="sidebar" [class.sidebar-open]="sidebarOpen()">
       @if (welcomeName) {
-        <div class="card sidebar-user-card">
+        <div class="sidebar-user-card">
           <div class="sidebar-avatar">
             @if (avatarPhotoUrl(); as url) {
               <img [src]="url" [alt]="welcomeName" class="sidebar-avatar-img" (error)="onAvatarError()" loading="lazy" />
@@ -95,52 +95,102 @@
               {{ avatarInitial }}
             }
           </div>
-          <p class="sidebar-user-name">{{ welcomeName }}</p>
-          @if (memberId()) {
-            <p class="sidebar-user-id">{{ memberId() }}</p>
-          }
+          <div class="sidebar-user-text">
+            <p class="sidebar-user-name" [title]="welcomeName">{{ welcomeName }}</p>
+            @if (memberId()) {
+              <p class="sidebar-user-id">{{ memberId() }}</p>
+            }
+          </div>
           @if (auth.role === 'member') {
-            <button type="button" class="sidebar-idcard-btn" (click)="openIdCard()">
-              <app-icon name="id-card" [size]="15" />
-              <span>{{ 'idCard.button' | translate }}</span>
+            <button
+              type="button"
+              class="sidebar-idcard-btn"
+              (click)="openIdCard()"
+              [attr.aria-label]="'idCard.button' | translate"
+              [title]="'idCard.button' | translate"
+            >
+              <app-icon name="id-card" [size]="17" />
             </button>
           }
         </div>
       }
 
+      <div class="sidebar-search">
+        <app-icon name="search" [size]="16" class="sidebar-search-icon" />
+        <input
+          type="search"
+          class="sidebar-search-input"
+          [value]="navQuery()"
+          (input)="onNavSearch($event)"
+          (keydown.escape)="$event.stopPropagation(); clearNavSearch()"
+          [placeholder]="'nav.searchMenu' | translate"
+          [attr.aria-label]="'nav.searchMenu' | translate"
+          autocomplete="off"
+        />
+        @if (navQuery()) {
+          <button
+            type="button"
+            class="sidebar-search-clear"
+            (click)="clearNavSearch()"
+            [attr.aria-label]="'nav.clearSearch' | translate"
+          >
+            <app-icon name="close" [size]="14" />
+          </button>
+        }
+      </div>
+
       <nav class="sidebar-nav" aria-label="Main navigation">
-        @for (section of navSections; track section.labelKey) {
-          <div class="sidebar-section">
-            <p class="sidebar-section-title">{{ section.labelKey | translate }}</p>
-            @for (item of section.items; track item.route) {
-              @if (item.area) {
-                <a
-                  [routerLink]="item.route"
-                  class="sidebar-link sidebar-link-admin"
-                  [class.active]="isAreaActive(item)"
-                  [attr.aria-current]="isAreaActive(item) ? 'page' : null"
-                  (click)="closeSidebar()"
-                >
-                  <app-icon [name]="item.icon" [size]="19" />
-                  <span>{{ item.labelKey | translate }}</span>
-                </a>
-              } @else {
-              <a
-                [routerLink]="item.route"
-                routerLinkActive="active"
-                class="sidebar-link"
-                [class.sidebar-link-admin]="!!item.requiredPermission || !!item.openAccess"
-                (click)="closeSidebar()"
-              >
-                <app-icon [name]="item.icon" [size]="19" />
-                <span>{{ item.labelKey | translate }}</span>
-                @if (item.route === '/payment-verifications' && pendingVerifications() > 0) {
-                  <span class="sidebar-badge" data-testid="pending-badge">{{ pendingVerifications() | bnNumber }}</span>
+        @for (section of filteredSections; track section.labelKey) {
+          @let expanded = isSectionExpanded(section);
+          <div class="sidebar-section" [class.collapsed]="!expanded">
+            <button
+              type="button"
+              class="sidebar-section-title"
+              (click)="toggleSection(section)"
+              [attr.aria-expanded]="expanded"
+              [attr.title]="'nav.toggleSection' | translate"
+            >
+              <span class="sidebar-section-label">{{ section.labelKey | translate }}</span>
+              <span class="sidebar-section-count">{{ section.items.length | bnNumber }}</span>
+              <app-icon name="chevron-down" [size]="14" class="sidebar-section-chevron" />
+            </button>
+            @if (expanded) {
+              <div class="sidebar-section-items">
+                @for (item of section.items; track item.route) {
+                  @if (item.area) {
+                    <a
+                      [routerLink]="item.route"
+                      class="sidebar-link sidebar-link-admin"
+                      [class.active]="isAreaActive(item)"
+                      [attr.aria-current]="isAreaActive(item) ? 'page' : null"
+                      (click)="closeSidebar()"
+                    >
+                      <app-icon [name]="item.icon" [size]="18" />
+                      <span class="sidebar-link-label">{{ item.labelKey | translate }}</span>
+                    </a>
+                  } @else {
+                    <a
+                      [routerLink]="item.route"
+                      routerLinkActive="active"
+                      ariaCurrentWhenActive="page"
+                      class="sidebar-link"
+                      [class.sidebar-link-admin]="!!item.requiredPermission || !!item.openAccess"
+                      [title]="item.labelKey | translate"
+                      (click)="closeSidebar()"
+                    >
+                      <app-icon [name]="item.icon" [size]="18" />
+                      <span class="sidebar-link-label">{{ item.labelKey | translate }}</span>
+                      @if (item.route === '/payment-verifications' && pendingVerifications() > 0) {
+                        <span class="sidebar-badge" data-testid="pending-badge">{{ pendingVerifications() | bnNumber }}</span>
+                      }
+                    </a>
+                  }
                 }
-              </a>
-              }
+              </div>
             }
           </div>
+        } @empty {
+          <p class="sidebar-empty">{{ 'nav.noResults' | translate }}</p>
         }
       </nav>
     </aside>

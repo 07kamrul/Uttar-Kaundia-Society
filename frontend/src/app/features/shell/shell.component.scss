@@ -142,11 +142,12 @@
 }
 
 .sidebar {
-  width: 14.4rem;
+  width: 16rem;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1.1rem;
+  gap: 0.9rem;
+  padding: 1.25rem 0.85rem 1.5rem;
   border-right: 1px solid var(--gray-200);
 }
 
@@ -167,57 +168,63 @@
 
 .sidebar-user-card {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.75rem;
   background: var(--surface-2);
-  border: none;
-  box-shadow: none;
-  padding: 0.9rem;
-  margin-bottom: 1.3rem;
+  border: 1px solid var(--gray-200);
 }
 
 .sidebar-avatar {
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
   border-radius: 999px;
   background: var(--emerald-50);
   color: var(--emerald-800);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px color-mix(in srgb, var(--gold) 55%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 0.6rem;
+  font-size: 1rem;
+}
+
+.sidebar-user-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .sidebar-user-name {
   margin: 0;
   font-weight: 700;
   color: var(--emerald-900);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-user-id {
-  margin: 0.15rem 0 0;
+  margin: 0.1rem 0 0;
   color: var(--gray-600);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Opens the society ID card modal (front + back preview, PNG download). */
 .sidebar-idcard-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-  padding: 0.34rem 0.8rem;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
   border: 1px solid var(--emerald-700);
-  border-radius: 999px;
+  border-radius: 0.55rem;
   background: var(--emerald-50);
   color: var(--emerald-800);
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
@@ -227,58 +234,174 @@
   color: var(--surface);
 }
 
+/* Quick filter: with 40+ admin pages, typing beats scrolling. */
+.sidebar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-search-icon {
+  position: absolute;
+  left: 0.7rem;
+  color: var(--gray-500);
+  pointer-events: none;
+}
+
+.sidebar-search-input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 2.2rem 0.5rem 2.1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  color: var(--gray-700);
+  font: inherit;
+  font-size: 0.85rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.sidebar-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.sidebar-search-input:focus {
+  outline: none;
+  border-color: var(--emerald-700);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald-700) 18%, transparent);
+}
+
+.sidebar-search-clear {
+  position: absolute;
+  right: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--gray-600);
+  cursor: pointer;
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.35rem;
 }
 
-/* Sectioned navigation: each group gets a small uppercase heading so the
-   member pages and the admin tools stay visually separated. */
+/* Sectioned navigation: each group has a collapsible heading so the member
+   pages and the long admin tool lists stay manageable. */
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  padding-top: 0.9rem;
-  margin-top: 0.55rem;
+  padding-top: 0.45rem;
   border-top: 1px solid var(--gray-200);
 }
 
 .sidebar-section:first-child {
   padding-top: 0;
-  margin-top: 0;
   border-top: none;
 }
 
 .sidebar-section-title {
-  margin: 0 0 0.3rem;
-  padding-left: 0.9rem;
-  font-size: 0.66rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 0.45rem;
+  background: none;
+  font: inherit;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+  text-align: left;
   color: var(--gray-500);
+  cursor: pointer;
   user-select: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.sidebar-section-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-section-title:hover {
+  background: var(--surface-2);
+  color: var(--gray-700);
+}
+
+.sidebar-section-count {
+  min-width: 1.3rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--gray-600);
+  font-size: 0.66rem;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.sidebar-section-chevron {
+  display: flex;
+  transition: transform 0.18s ease;
+}
+
+.sidebar-section.collapsed .sidebar-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.sidebar-section-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-bottom: 0.3rem;
+}
+
+.sidebar-empty {
+  margin: 0.5rem 0.6rem;
+  color: var(--gray-500);
+  font-size: 0.85rem;
 }
 
 .sidebar-link {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  min-height: 2.75rem;
-  padding: 0.56rem 0.9rem;
-  border-radius: 0.56rem;
-  border-left: 2.5px solid transparent;
+  gap: 0.7rem;
+  min-height: 2.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.55rem;
   color: var(--gray-700);
   text-decoration: none;
-  font-size: 0.885rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.3;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1.25;
+  transition: background-color 0.15s, color 0.15s;
 }
 
 .sidebar-link app-icon {
   flex-shrink: 0;
+  color: var(--gray-500);
+  transition: color 0.15s;
+}
+
+.sidebar-link-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .sidebar-link:hover:not(.active) {
@@ -286,23 +409,43 @@
   color: var(--emerald-800);
 }
 
+.sidebar-link:hover:not(.active) app-icon {
+  color: var(--emerald-700);
+}
+
 .sidebar-link.active {
   background: var(--emerald-50);
-  color: var(--emerald-700);
-  border-left-color: var(--gold);
+  color: var(--emerald-800);
   font-weight: 700;
 }
 
-.sidebar-link-admin {
-  color: var(--gold-strong);
+.sidebar-link.active app-icon {
+  color: var(--emerald-700);
 }
 
-.sidebar-link-admin:hover:not(.active) {
+/* Gold accent bar marks the current page. */
+.sidebar-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gold);
+}
+
+/* Admin tools: neutral text, gold icon - distinct without shouting. */
+.sidebar-link-admin app-icon {
   color: var(--gold-strong);
 }
 
 .sidebar-link-admin.active {
-  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  background: color-mix(in srgb, var(--gold) 13%, transparent);
+  color: var(--gold-strong);
+}
+
+.sidebar-link-admin.active app-icon {
   color: var(--gold-strong);
 }
 
@@ -333,8 +476,8 @@
     inset-block: 0;
     left: 0;
     top: 0;
-    width: min(17rem, 84vw);
-    padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    width: min(18rem, 86vw);
+    padding: calc(1rem + env(safe-area-inset-top, 0px)) 0.85rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
     height: 100dvh;
     background: var(--surface);
     border-right: 1px solid var(--gray-200);
@@ -460,6 +603,8 @@
 .topbar-menu-btn:focus-visible,
 .topbar-menu-item:focus-visible,
 .sidebar-link:focus-visible,
+.sidebar-section-title:focus-visible,
+.sidebar-search-clear:focus-visible,
 .sidebar-idcard-btn:focus-visible,
 .bottom-bar-link:focus-visible {
   outline: 2px solid var(--emerald-700);
@@ -474,6 +619,8 @@
   .sidebar,
   .topbar-menu-panel,
   .sidebar-link,
+  .sidebar-link app-icon,
+  .sidebar-section-chevron,
   .topbar-menu-item {
     animation: none;
     transition: none;

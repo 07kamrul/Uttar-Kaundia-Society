@@ -1798,3 +1798,7 @@ registration.validation.urgentContactLabel	জরুরি যোগাযোগ
 welcome	স্বাগতম, {{name}}	Welcome, {{name}}
 welfareActivities.formHint	কার্যক্রমের তথ্য কল্যাণমূলক রেকর্ডে দেখা যাবে।	Activity details appear in the welfare records.
 welfareFund.applySuccess	আবেদন সফলভাবে জমা হয়েছে।	Request submitted successfully.
+nav.searchMenu	মেনু খুঁজুন…	Search menu…
+nav.noResults	কোনো পাতা পাওয়া যায়নি	No matching pages
+nav.clearSearch	খোঁজা মুছুন	Clear search
+nav.toggleSection	অংশ দেখান বা লুকান	Show or hide section

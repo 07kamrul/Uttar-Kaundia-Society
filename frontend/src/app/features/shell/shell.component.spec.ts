@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import bn from '../../../../public/i18n/bn.json';
 import { AuthService } from '../../core/services/auth.service';
 import { CostSharePaymentService } from '../../core/services/cost-share-payment.service';
@@ -89,7 +89,7 @@ type F = ReturnType<typeof setup>['fixture'];
 const all = (f: F, sel: string) => [...(f.nativeElement as HTMLElement).querySelectorAll(sel)] as HTMLElement[];
 const one = (f: F, sel: string) => (f.nativeElement as HTMLElement).querySelector(sel) as HTMLElement | null;
 const sidebarHrefs = (f: F) => all(f, '.sidebar-link').map((a) => a.getAttribute('href'));
-const sectionTitles = (f: F) => all(f, '.sidebar-section-title').map((e) => e.textContent?.trim());
+const sectionTitles = (f: F) => all(f, '.sidebar-section-label').map((e) => e.textContent?.trim());
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -231,5 +231,49 @@ describe('ShellComponent pending payments badge', () => {
   it('shows no badge to accounts without manage_finance', () => {
     const { fixture } = setup();
     expect(one(fixture, '[data-testid="pending-badge"]')).toBeNull();
+  });
+});
+
+describe('ShellComponent sidebar search and collapsible sections', () => {
+  let store: Map<string, string>;
+  const localStorage = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, v),
+  };
+  beforeEach(() => {
+    store = new Map();
+    vi.stubGlobal('localStorage', localStorage);
+  });
+
+  it('filters links by translated label and shows an empty state when nothing matches', () => {
+    const { fixture } = setup();
+    fixture.componentInstance.navQuery.set('প্রোফাইল');
+    fixture.detectChanges();
+    expect(sidebarHrefs(fixture)).toContain('/profile');
+    expect(sidebarHrefs(fixture)).not.toContain('/dashboard');
+
+    fixture.componentInstance.navQuery.set('zzz-no-match');
+    fixture.detectChanges();
+    expect(sidebarHrefs(fixture)).toEqual([]);
+    expect(one(fixture, '.sidebar-empty')).not.toBeNull();
+  });
+
+  it('collapses a section on header click and remembers it', () => {
+    const { fixture } = setup();
+    const payments = all(fixture, '.sidebar-section-title')[1];
+    payments.click();
+    fixture.detectChanges();
+    expect(sidebarHrefs(fixture)).not.toContain('/installments');
+    expect(payments.getAttribute('aria-expanded')).toBe('false');
+    expect(localStorage.getItem('uks.sidebar.collapsed')).toContain('nav.section.payments');
+  });
+
+  it('keeps a collapsed section open while searching', () => {
+    localStorage.setItem('uks.sidebar.collapsed', JSON.stringify(['nav.section.payments']));
+    const { fixture } = setup();
+    expect(sidebarHrefs(fixture)).not.toContain('/installments');
+    fixture.componentInstance.navQuery.set('কিস্তি');
+    fixture.detectChanges();
+    expect(sidebarHrefs(fixture)).toContain('/installments');
   });
 });

@@ -2,7 +2,7 @@ import { Component, DestroyRef, Injector, OnInit, inject, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { LanguageService } from '../../core/services/language.service';
@@ -26,6 +26,8 @@ const ADMIN_SECTIONS = ['nav.section.management', 'nav.section.administration'];
 // Moved into "অভিযোগ / সাহায্য" and the floating help button (nav_merged_entries).
 const SERVICE_STANDARD_ROUTE = '/service-standard';
 const EMERGENCY_HELP_ROUTE = '/emergency-help';
+/** Sidebar sections the user folded away; remembered per browser. */
+const COLLAPSED_STORAGE_KEY = 'uks.sidebar.collapsed';
 
 @Component({
   selector: 'app-shell',
@@ -61,6 +63,10 @@ export class ShellComponent implements OnInit {
   private readonly injector = inject(Injector);
   /** Installment + cost-share payments waiting for a verifier (manage_finance only). */
   readonly pendingVerifications = signal(0);
+  /** Text typed in the sidebar search box. */
+  readonly navQuery = signal('');
+  readonly collapsedSections = signal<ReadonlySet<string>>(readCollapsedSections());
+  private readonly translate = inject(TranslateService);
 
   openIdCard(): void {
     this.closeSidebar();
@@ -186,6 +192,50 @@ export class ShellComponent implements OnInit {
       .filter((section) => section.items.length > 0);
   }
 
+  /** Sections narrowed to the items whose translated label matches the search box. */
+  get filteredSections(): NavSection[] {
+    const query = this.navQuery().trim().toLocaleLowerCase();
+    const sections = this.navSections;
+    if (!query) return sections;
+    return sections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) =>
+          String(this.translate.instant(item.labelKey)).toLocaleLowerCase().includes(query),
+        ),
+      }))
+      .filter((section) => section.items.length > 0);
+  }
+
+  /** Searching or holding the current page always keeps a section open. */
+  isSectionExpanded(section: NavSection): boolean {
+    if (this.navQuery().trim()) return true;
+    if (!this.collapsedSections().has(section.labelKey)) return true;
+    return section.items.some((item) => this.isItemActive(item));
+  }
+
+  toggleSection(section: NavSection): void {
+    const next = new Set(this.collapsedSections());
+    if (this.isSectionExpanded(section)) next.add(section.labelKey);
+    else next.delete(section.labelKey);
+    this.collapsedSections.set(next);
+    writeCollapsedSections(next);
+  }
+
+  onNavSearch(event: Event): void {
+    this.navQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  clearNavSearch(): void {
+    this.navQuery.set('');
+  }
+
+  private isItemActive(item: NavItem): boolean {
+    if (item.area) return this.isAreaActive(item);
+    const url = this.router.url.split(/[?#]/)[0];
+    return url === item.route || url.startsWith(`${item.route}/`);
+  }
+
   isAreaActive(item: NavItem): boolean {
     return !!item.area && item.area === this.activeArea();
   }
@@ -245,6 +295,7 @@ export class ShellComponent implements OnInit {
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+    this.navQuery.set('');
   }
 
   toggleUserMenu(): void {
@@ -259,5 +310,23 @@ export class ShellComponent implements OnInit {
     this.closeUserMenu();
     this.auth.logout();
     this.router.navigate(['/login']);
+  }
+}
+
+function readCollapsedSections(): ReadonlySet<string> {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeCollapsedSections(sections: ReadonlySet<string>): void {
+  try {
+    localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...sections]));
+  } catch {
+    // Storage blocked (private mode): the fold state just won't persist.
   }
 }
