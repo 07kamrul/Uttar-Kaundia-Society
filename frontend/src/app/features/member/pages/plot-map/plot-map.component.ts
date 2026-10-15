@@ -81,6 +81,12 @@ export type PlotMapMode = 'boundaries' | 'bds';
 /** Pane for the RS dag reference layer: below member polygons (overlayPane = 400). */
 const RS_PANE = 'rsPane';
 const RS_PANE_Z_INDEX = '390';
+/** Pane for the BDS dag layer: below RS dags and member polygons, so plot boundaries stay visible. */
+const BDS_PANE = 'bdsPane';
+const BDS_PANE_Z_INDEX = '380';
+/** Pane for member plot boundaries: always above both BDS and RS dag layers. */
+const MEMBER_PANE = 'memberPane';
+const MEMBER_PANE_Z_INDEX = '420';
 const RS_LABEL_MIN_ZOOM = 16;
 /** Smaller parcels stay unlabeled until zoomed in, so labels thin out at low zoom. */
 const RS_LABEL_MIN_PX = 22;
@@ -447,6 +453,8 @@ export class PlotMapComponent implements AfterViewInit {
     map.setView(SOCIETY_CENTER, 14);
     // RS dag parcels sit under member polygons; Geoman snaps to them for any pane.
     map.createPane(RS_PANE).style.zIndex = RS_PANE_Z_INDEX;
+    map.createPane(BDS_PANE).style.zIndex = BDS_PANE_Z_INDEX;
+    map.createPane(MEMBER_PANE).style.zIndex = MEMBER_PANE_Z_INDEX;
 
     const street = L.tileLayer(environment.mapTileUrl, {
       maxZoom: 19,
@@ -633,9 +641,9 @@ export class PlotMapComponent implements AfterViewInit {
     if (this.mapMode() === 'bds') {
       this.loadBdsMouza();
       this.updateBdsLabels();
-    } else if (this.mapMode() === 'boundaries') {
-      this.loadFeatures();
     }
+    // Member plot boundaries stay on top of every view (BDS / RS dag maps too).
+    this.loadFeatures();
   }
 
   private bboxString(): string {
@@ -698,6 +706,7 @@ export class PlotMapComponent implements AfterViewInit {
         weight: 2,
         fillOpacity: 0.25,
         dashArray: isProposal ? '6,6' : undefined,
+        pane: MEMBER_PANE,
         snapIgnore: true,
       } as L.PolylineOptions);
       layer.on('click', (event) =>
@@ -885,9 +894,10 @@ export class PlotMapComponent implements AfterViewInit {
     const map = this.map;
     if (!map) return;
     this.removeBdsLayer();
-    this.bdsRenderer ??= L.canvas();
-    // `renderer` is valid on Leaflet path options but missing from GeoJSONOptions typings.
+    this.bdsRenderer ??= L.canvas({ pane: BDS_PANE });
+    // `pane`/`renderer` are valid on Leaflet path options but missing from GeoJSONOptions typings.
     const options = {
+      pane: BDS_PANE,
       renderer: this.bdsRenderer,
       snapIgnore: true,
       style: (feature?: unknown) => this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
