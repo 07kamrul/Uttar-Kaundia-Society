@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { KeyValuePipe } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, computed, inject } from '@angular/core';
+import { KeyValuePipe, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -10,6 +10,8 @@ import type {
   FeeTypeCalculation,
 } from '../../../../core/services/admin.service';
 import { FEE_MANAGER_PERMISSION, AuthService } from '../../../../core/services/auth.service';
+import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
+import { FeeRateWizardComponent } from './fee-rate-wizard.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -53,6 +55,8 @@ const EMPTY_DRAFT: FeeTypeDraft = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     KeyValuePipe,
+    NgTemplateOutlet,
+    FeeRateWizardComponent,
     FormsModule,
     TranslatePipe,
     ConfirmModalComponent,
@@ -69,6 +73,10 @@ export class FeeSettingsComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
+  private readonly flags = inject(FeatureFlagService);
+
+  /** fee_wizard: the guided rate change comes first; the classic tools move under "more options". */
+  readonly wizardOn = computed(() => this.flags.isEnabled('fee_wizard'));
 
   readonly unitOptions = UNIT_OPTIONS;
   readonly canManage = this.auth.hasPermission(FEE_MANAGER_PERMISSION);

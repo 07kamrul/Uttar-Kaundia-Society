@@ -22,6 +22,18 @@
     </div>
   }
 
+  @if (wizardOn()) {
+    <app-fee-rate-wizard [feeTypes]="feeTypes" (saved)="load(true)" />
+    <details class="card card-pad advanced-options" data-testid="fee-advanced">
+      <summary class="advanced-summary">{{ 'admin.feeSettings.wizard.advancedSummary' | translate }}</summary>
+      <p class="field-hint">{{ 'admin.feeSettings.wizard.advancedHint' | translate }}</p>
+      <ng-container *ngTemplateOutlet="classicTools" />
+    </details>
+  } @else {
+    <ng-container *ngTemplateOutlet="classicTools" />
+  }
+
+  <ng-template #classicTools>
   <!-- ============ Add New Version ============ -->
   <div class="card card-pad section-card">
     <h2 class="section-title">{{ 'admin.feeSettings.addVersion' | translate }}</h2>
@@ -359,6 +371,7 @@
       }
     }
   </div>
+  </ng-template>
 </div>
 
 <!-- ============ New / edit fee type dialog ============ -->
