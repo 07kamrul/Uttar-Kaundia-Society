@@ -115,6 +115,7 @@ const hoisted = vi.hoisted(() => {
     polygon: vi.fn((latlngs: [number, number][]) => makePolygon(latlngs)),
     rectangle: vi.fn(() => layerStub()),
     geoJSON: vi.fn(() => layerStub()),
+    canvas: vi.fn(() => ({})),
     latLngBounds: vi.fn(() => ({
       pad: vi.fn(() => ({ getCenter: vi.fn(() => ({ lat: 23.809, lng: 90.323 })) })),
     })),

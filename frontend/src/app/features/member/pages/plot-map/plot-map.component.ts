@@ -93,6 +93,14 @@ const RS_STYLE: L.PathOptions = {
   fillOpacity: 0.06,
 };
 const SNAP_CUE_COLOR = '#ff6d00';
+/** Searched-dag highlight; the pulse needs a CSS class, so it is drawn on an SVG copy. */
+const SEARCH_HIT_STYLE: L.PathOptions = {
+  color: '#e65100',
+  weight: 4,
+  fillColor: '#e65100',
+  fillOpacity: 0.5,
+  className: 'dag-search-hit',
+};
 
 /** Leaflet default marker/icons are unused; polygons only. */
 const STATUS_COLORS: Record<string, string> = {
@@ -351,13 +359,17 @@ export class PlotMapComponent implements AfterViewInit {
   private bdsLayer: L.GeoJSON | null = null;
   private rsLayer: L.GeoJSON | null = null;
   private rsSub: Subscription | null = null;
+  private bdsSub: Subscription | null = null;
   private snapCue: L.CircleMarker | null = null;
-  // Last fetched collection + requested bounds per official view. The whole
-  // mouza dataset fits one capped response, so a covered viewport re-renders
-  // from cache instead of re-downloading on every pan.
+  // The official layers hold thousands of polygons: one canvas per layer
+  // draws them far faster than one SVG node each.
+  private bdsRenderer: L.Canvas | null = null;
+  private rsRenderer: L.Canvas | null = null;
+  private searchHitLayer: L.GeoJSON | null = null;
+  // The whole mouza fits one response and the map cannot leave the society
+  // bbox, so each official layer is downloaded once (the service keeps it for
+  // the session) and every pan/zoom re-renders from memory.
   private bdsCollection: LandFeatureCollection | null = null;
-  private bdsLoadedBounds: L.LatLngBounds | null = null;
-  private rsLoadedBounds: L.LatLngBounds | null = null;
 
   private properties = signal<MemberProperty[]>([]);
 
@@ -803,26 +815,28 @@ export class PlotMapComponent implements AfterViewInit {
     this.isSnapped.set(false);
   }
 
+  /** Both official layers are requested for the whole society area. */
+  private societyLayerBbox(): string {
+    return parseSocietyBbox(environment.societyBbox).join(',');
+  }
+
   private loadBdsMouza(): void {
-    const map = this.map;
-    if (!map) return;
-    const viewport = map.getBounds();
-    if (this.bdsCollection && this.bdsLoadedBounds?.contains(viewport)) {
+    if (!this.map) return;
+    if (this.bdsCollection) {
       this.externalTruncated.set(!!this.bdsCollection.truncated);
       if (!this.bdsLayer) this.renderBds(this.bdsCollection);
       return;
     }
-    const requestBounds = viewport.pad(0.25);
+    if (this.bdsSub && !this.bdsSub.closed) return; // already downloading
     this.externalLoading.set(true);
-    this.landDataService
-      .dagsInBbox(requestBounds.toBBoxString())
+    this.bdsSub = this.landDataService
+      .dagsInBbox(this.societyLayerBbox())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collection) => {
           this.externalLoading.set(false);
-          if (this.mapMode() !== 'bds' || !this.map) return;
           this.bdsCollection = collection;
-          this.bdsLoadedBounds = requestBounds;
+          if (this.mapMode() !== 'bds' || !this.map) return;
           this.externalTruncated.set(!!collection.truncated);
           this.renderBds(collection);
         },
@@ -853,15 +867,20 @@ export class PlotMapComponent implements AfterViewInit {
     const map = this.map;
     if (!map) return;
     this.removeBdsLayer();
-    this.bdsLayer = L.geoJSON(collection as never, {
+    this.bdsRenderer ??= L.canvas();
+    // `renderer` is valid on Leaflet path options but missing from GeoJSONOptions typings.
+    const options = {
+      renderer: this.bdsRenderer,
       snapIgnore: true,
-      style: (feature) => this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
-      onEachFeature: (feature, layer) =>
+      style: (feature?: unknown) => this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
+      onEachFeature: (feature: unknown, layer: L.Layer) =>
         layer.on('click', () =>
           this.zone.run(() => this.openDagDialog((feature as LandPlotFeature).properties)),
         ),
-    }).addTo(map);
+    };
+    this.bdsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
     this.updateBdsLabels();
+    this.refreshSearchHitOverlay();
   }
 
   /** Opens the official-style dialog for a clicked BDS dag and lights it up. */
@@ -922,23 +941,19 @@ export class PlotMapComponent implements AfterViewInit {
   }
 
   private loadRsPlots(): void {
-    const map = this.map;
-    if (!map) return;
-    const viewport = map.getBounds();
+    if (!this.map) return;
     const cached = this.rsCollection();
-    if (cached && this.rsLoadedBounds?.contains(viewport)) {
+    if (cached) {
       if (this.rsOverlayOn() && !this.rsLayer) this.renderRs(cached);
       return;
     }
-    const requestBounds = viewport.pad(0.25);
-    this.rsSub?.unsubscribe();
+    if (this.rsSub && !this.rsSub.closed) return; // already downloading
     this.rsSub = this.landDataService
-      .masterplanInBbox(requestBounds.toBBoxString())
+      .masterplanInBbox(this.societyLayerBbox())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collection) => {
           this.rsCollection.set(collection);
-          this.rsLoadedBounds = requestBounds;
           this.externalError.set(false);
           if (this.rsOverlayOn()) this.renderRs(collection);
         },
@@ -950,9 +965,11 @@ export class PlotMapComponent implements AfterViewInit {
     const map = this.map;
     if (!map) return;
     this.removeRsLayer();
-    // `pane` is valid on Leaflet path options but missing from GeoJSONOptions typings.
+    this.rsRenderer ??= L.canvas({ pane: RS_PANE });
+    // `pane`/`renderer` are valid on Leaflet path options but missing from GeoJSONOptions typings.
     const options = {
       pane: RS_PANE,
+      renderer: this.rsRenderer,
       style: (feature?: unknown) => this.rsStyle((feature as LandPlotFeature | undefined)?.properties),
       onEachFeature: (feature: unknown, layer: L.Layer) =>
         layer.bindPopup(
@@ -963,6 +980,7 @@ export class PlotMapComponent implements AfterViewInit {
     this.rsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
     void this.loadRsMatch(); // popups show the area once the module is in
     this.updateRsLabels();
+    this.refreshSearchHitOverlay();
   }
 
   private rsStyle(props?: LandPlotFeature['properties']): L.PathOptions {
@@ -1070,12 +1088,36 @@ export class PlotMapComponent implements AfterViewInit {
   private styleSearchedLayer(): void {
     const isBds = this.mapMode() === 'bds';
     const layer = isBds ? this.bdsLayer : this.rsLayer;
-    if (!layer) return;
-    layer.eachLayer((child: L.Layer) => {
+    layer?.eachLayer((child: L.Layer) => {
       const polygon = child as L.Polygon;
       const props = polygon.feature?.properties;
       polygon.setStyle(isBds ? this.bdsStyle(props) : this.rsStyle(props));
     });
+    this.refreshSearchHitOverlay();
+  }
+
+  /** Canvas paths cannot carry the pulsing CSS class, so the searched dag is
+   * redrawn as a small non-interactive SVG copy on top of its layer. */
+  private refreshSearchHitOverlay(): void {
+    const map = this.map;
+    this.searchHitLayer?.remove();
+    this.searchHitLayer = null;
+    const highlight = this.highlightDag();
+    if (!map || !highlight) return;
+    const isBds = this.mapMode() === 'bds';
+    const source = isBds ? this.bdsCollection : this.rsCollection();
+    const hits = (source?.features ?? []).filter((f) => this.dagKeyOf(f.properties) === highlight);
+    if (!hits.length) return;
+    const options = {
+      interactive: false,
+      snapIgnore: true,
+      style: () => SEARCH_HIT_STYLE,
+      ...(isBds ? {} : { pane: RS_PANE }),
+    };
+    this.searchHitLayer = L.geoJSON(
+      { type: 'FeatureCollection', features: hits } as never,
+      options as L.GeoJSONOptions,
+    ).addTo(map);
   }
 
   onDagQueryInput(value: string): void {
@@ -1125,7 +1167,7 @@ export class PlotMapComponent implements AfterViewInit {
     });
   }
 
-  /** Flies to the looked-up plots; the moveend reload re-renders them in view. */
+  /** Flies to the looked-up plots (already in memory: the whole layer is loaded). */
   private fitToFeatures(features: LandPlotFeature[]): void {
     const map = this.map;
     if (!map) return;

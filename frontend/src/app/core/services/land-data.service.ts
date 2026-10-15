@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { Observable, catchError, shareReplay, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { NO_CACHE } from '../interceptors/cache-context';
+
+type MapLayer = 'dags' | 'masterplan';
+
+/** Distinct (layer, bbox) downloads kept per session; the map asks for one bbox per layer. */
+const LAYER_CACHE_MAX_ENTRIES = 4;
 
 /** One khatian row of a dag, as served by GET /land/dag/{survey}/{sheet}/{dag}. */
 export interface DagKhatian {
@@ -66,7 +72,20 @@ export interface LandFeatureCollection {
  */
 @Injectable({ providedIn: 'root' })
 export class LandDataService {
+  /**
+   * The map layers only change on redeploy, so each download is kept for the
+   * session (and revalidated by ETag across reloads). In-flight requests are
+   * shared, failures are forgotten so the next call retries. Subscribers get
+   * the same collection object and must treat it as read-only.
+   */
+  private readonly layerCache = new Map<string, Observable<LandFeatureCollection>>();
+
   constructor(private http: HttpClient) {}
+
+  /** Forgets downloaded map layers; called on logout. */
+  clearCache(): void {
+    this.layerCache.clear();
+  }
 
   /**
    * Land details + khatian/owner rows for one dag. Members only, rate-limited
@@ -81,9 +100,7 @@ export class LandDataService {
 
   /** BDS dag polygons for the viewport (minLng,minLat,maxLng,maxLat order). */
   dagsInBbox(bbox: string): Observable<LandFeatureCollection> {
-    return this.http.get<LandFeatureCollection>(`${environment.apiBaseUrl}/land/dags`, {
-      params: { bbox },
-    });
+    return this.cachedLayer('dags', bbox);
   }
 
   /** Every sheet containing a BDS dag number (Bangla digits accepted). */
@@ -95,9 +112,7 @@ export class LandDataService {
 
   /** RAJUK DAP 2022–2035 RS plots for the viewport. */
   masterplanInBbox(bbox: string): Observable<LandFeatureCollection> {
-    return this.http.get<LandFeatureCollection>(`${environment.apiBaseUrl}/land/masterplan`, {
-      params: { bbox },
-    });
+    return this.cachedLayer('masterplan', bbox);
   }
 
   /** RS plots matching a dag number ("4611", "RS-4611", Bangla digits). */
@@ -105,5 +120,36 @@ export class LandDataService {
     return this.http.get<LandFeatureCollection>(
       `${environment.apiBaseUrl}/land/masterplan/lookup/${encodeURIComponent(rsPlotNo)}`,
     );
+  }
+
+  private cachedLayer(layer: MapLayer, bbox: string): Observable<LandFeatureCollection> {
+    const key = `${layer}|${bbox}`;
+    const cached = this.layerCache.get(key);
+    if (cached) return cached;
+    const request$: Observable<LandFeatureCollection> = this.http
+      .get<LandFeatureCollection>(`${environment.apiBaseUrl}/land/${layer}`, {
+        params: { bbox },
+        // The generic GET cache deep-copies every body per hit; this one shares it.
+        context: new HttpContext().set(NO_CACHE, true),
+      })
+      .pipe(
+        catchError((error: unknown) => {
+          // Only evict our own entry: a logout may have replaced it meanwhile.
+          if (this.layerCache.get(key) === request$) this.layerCache.delete(key);
+          return throwError(() => error);
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    this.layerCache.set(key, request$);
+    this.evictOldestLayers();
+    return request$;
+  }
+
+  private evictOldestLayers(): void {
+    while (this.layerCache.size > LAYER_CACHE_MAX_ENTRIES) {
+      const oldest = this.layerCache.keys().next().value;
+      if (oldest === undefined) return;
+      this.layerCache.delete(oldest);
+    }
   }
 }

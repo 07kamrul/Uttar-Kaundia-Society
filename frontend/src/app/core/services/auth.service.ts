@@ -5,6 +5,7 @@ import { Observable, map, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MemberService, type SessionTokens } from './member.service';
 import { MediaTokenService } from './media-token.service';
+import { LandDataService } from './land-data.service';
 import { clearHttpCache } from '../interceptors/cache.interceptor';
 
 export type UserRole = 'super_admin' | 'executive_committee' | 'administrator' | 'member';
@@ -93,6 +94,7 @@ export class AuthService {
   readonly isAuthenticated = signal<boolean>(!!this.accessToken());
 
   private readonly mediaToken = inject(MediaTokenService);
+  private readonly landData = inject(LandDataService);
 
   constructor(
     private http: HttpClient,
@@ -180,6 +182,7 @@ export class AuthService {
   logout(): void {
     clearHttpCache();
     this.memberService.clearProfileCache();
+    this.landData.clearCache();
     this.mediaToken.clear();
     this.accessToken.set(null);
     this.refreshTokenValue.set(null);

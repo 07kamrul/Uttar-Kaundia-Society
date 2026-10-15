@@ -6,10 +6,12 @@ same guards as the plot-map feature: approved members only, bbox required,
 result caps, rate limiting. No outbound network calls.
 """
 
+import hashlib
 import logging
 import math
+from collections.abc import Callable
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -19,6 +21,7 @@ from app.db.session import get_db
 from app.models.member import Member, MemberStatus
 from app.services.audit import record_audit
 from app.services.land_data import (
+    BBox,
     LandDataProvider,
     get_land_data_provider,
 )
@@ -49,6 +52,53 @@ def _enforce_detail_rate_limit(member_id: int) -> None:
         },
         headers={"Retry-After": str(max(1, math.ceil(retry_after)))},
     )
+
+
+# Bump when the served bbox payload shape changes so browsers drop old copies.
+_LAYER_PAYLOAD_VERSION = "2"
+# Browsers keep the layer but revalidate every time: a 304 costs one round trip
+# and still runs the auth check, so a suspended member stops getting data.
+_LAYER_CACHE_CONTROL = "private, no-cache"
+
+
+def _layer_etag(provider: LandDataProvider, layer: str, viewport: BBox, cap: int) -> str:
+    key = f"{_LAYER_PAYLOAD_VERSION}|{layer}|{viewport}|{cap}".encode()
+    return f'"{provider.cache_tag}-{hashlib.sha256(key).hexdigest()[:16]}"'
+
+
+def _etag_matches(if_none_match: str | None, etag: str) -> bool:
+    """RFC 9110 weak comparison; proxies that gzip may add a W/ prefix."""
+    if not if_none_match:
+        return False
+    candidates = {tag.strip().removeprefix("W/") for tag in if_none_match.split(",")}
+    return "*" in candidates or etag in candidates
+
+
+def feature_collection_response(
+    request: Request,
+    provider: LandDataProvider,
+    layer: str,
+    viewport: BBox,
+    load_chunks: Callable[[BBox, int], list[bytes]],
+) -> Response:
+    """GeoJSON FeatureCollection for a map layer, assembled from the provider's
+    pre-encoded features (no per-request JSON walk) and revalidated by ETag.
+
+    ``load_chunks`` runs only on a cache miss, so a 304 skips the scan too."""
+    cap = get_settings().land_map_result_cap
+    etag = _layer_etag(provider, layer, viewport, cap)
+    headers = {"ETag": etag, "Cache-Control": _LAYER_CACHE_CONTROL}
+    if _etag_matches(request.headers.get("if-none-match"), etag):
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+    chunks = load_chunks(viewport, cap + 1)
+    truncated = len(chunks) > cap
+    served = chunks[:cap]
+    head = (
+        f'{{"type":"FeatureCollection","count":{len(served)},'
+        f'"truncated":{"true" if truncated else "false"},"features":['
+    ).encode()
+    body = b"".join((head, b",".join(served), b"]}"))
+    return Response(content=body, media_type="application/json", headers=headers)
 
 
 def _approved(member: Member) -> Member:
@@ -88,22 +138,16 @@ def get_land_sheets(
 
 @router.get("/dags")
 def get_dags_in_bbox(
+    request: Request,
     bbox: str = Query(..., description="minLng,minLat,maxLng,maxLat"),
     member: Member = Depends(require_member_permission(VIEW_PERMISSION)),
     provider: LandDataProvider = Depends(get_land_data_provider),
-) -> dict:
+) -> Response:
     """Dag polygons (number + geometry only) whose centroid falls in the bbox."""
     _approved(member)
-    viewport = _parse_bbox(bbox)
-    cap = get_settings().land_map_result_cap
-    features = provider.features_in_bbox(viewport, limit=cap + 1)
-    truncated = len(features) > cap
-    return {
-        "type": "FeatureCollection",
-        "count": min(len(features), cap),
-        "truncated": truncated,
-        "features": features[:cap],
-    }
+    return feature_collection_response(
+        request, provider, "dags", _parse_bbox(bbox), provider.features_json_in_bbox
+    )
 
 
 @router.get("/dag/{survey}/lookup/{dag_no}")
@@ -162,21 +206,16 @@ async def get_dag_details(
 
 @router.get("/masterplan")
 def get_masterplan_in_bbox(
+    request: Request,
     bbox: str = Query(..., description="minLng,minLat,maxLng,maxLat"),
     member: Member = Depends(require_member_permission(VIEW_PERMISSION)),
     provider: LandDataProvider = Depends(get_land_data_provider),
-) -> dict:
+) -> Response:
     """RAJUK DAP 2022–2035 RS-plot overlay (ingested once at deploy time)."""
     _approved(member)
-    viewport = _parse_bbox(bbox)
-    cap = get_settings().land_map_result_cap
-    features = provider.masterplan_features_in_bbox(viewport, limit=cap + 1)
-    return {
-        "type": "FeatureCollection",
-        "count": min(len(features), cap),
-        "truncated": len(features) > cap,
-        "features": features[:cap],
-    }
+    return feature_collection_response(
+        request, provider, "masterplan", _parse_bbox(bbox), provider.masterplan_json_in_bbox
+    )
 
 
 @router.get("/masterplan/lookup/{rs_plot_no}")
@@ -191,4 +230,4 @@ def lookup_masterplan_plot(
     return {"type": "FeatureCollection", "count": len(features), "features": features}
 
 
-__all__ = ["router"]
+__all__ = ["feature_collection_response", "router"]

@@ -7,6 +7,7 @@ import {
 import { AuthService } from './auth.service';
 import { getMediaToken } from './media-token.service';
 import { MemberService } from './member.service';
+import { LandDataService } from './land-data.service';
 import { environment } from '../../../environments/environment';
 
 const API = environment.apiBaseUrl;
@@ -38,14 +39,17 @@ function installMemoryStorage(): void {
 describe('AuthService', () => {
   let http: HttpTestingController;
   let auth: AuthService;
+  let landData: { clearCache: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     installMemoryStorage();
+    landData = { clearCache: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: MemberService, useValue: { clearProfileCache: () => {} } },
+        { provide: LandDataService, useValue: landData },
       ],
     });
     http = TestBed.inject(HttpTestingController);
@@ -89,6 +93,7 @@ describe('AuthService', () => {
     expect(localStorage.getItem('krmf_access_token')).toBeNull();
     expect(localStorage.getItem('krmf_permissions')).toBeNull();
     expect(getMediaToken()).toBeNull();
+    expect(landData.clearCache).toHaveBeenCalled();
   });
 
   it('handleUnauthorized logs out and routes to /login', () => {

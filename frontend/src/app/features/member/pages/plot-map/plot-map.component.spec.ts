@@ -22,6 +22,8 @@ import { LandDataService, type LandFeatureCollection } from '../../../../core/se
 import { MemberService } from '../../../../core/services/member.service';
 import { PlotMapService } from '../../../../core/services/plot-map.service';
 import { toBoundaryOwner, toPlotMapPage } from '../../../../core/models/plot-boundary.model';
+import { parseSocietyBbox } from '../../../../core/services/geo.helper';
+import { environment } from '../../../../../environments/environment';
 import {
   PlotMapComponent,
   normalizeDagNo,
@@ -112,7 +114,8 @@ export const L = vi.hoisted(() => {
     map: vi.fn(() => makeMapStub()),
     tileLayer: vi.fn(() => layerStub()),
     polygon: vi.fn(() => layerStub()),
-    geoJSON: vi.fn(() => layerStub()),
+    geoJSON: vi.fn((_data?: unknown, _options?: { renderer?: unknown }) => layerStub()),
+    canvas: vi.fn(() => ({ kind: 'canvas-renderer' })),
     latLngBounds: vi.fn(() => ({
       pad: vi.fn(() => ({ getCenter: vi.fn(() => ({ lat: 23.809, lng: 90.323 })) })),
     })),
@@ -548,6 +551,33 @@ describe('plot-map dag search (BDS / RAJUK views)', () => {
     component.selectMapMode('boundaries');
     component.selectMapMode('bds');
     expect(dagsInBbox).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads the whole society area once, so panning and zooming never refetch', () => {
+    const { component, dagsInBbox, masterplanInBbox } = setup();
+    component.selectMapMode('bds');
+    const society = parseSocietyBbox(environment.societyBbox).join(',');
+    expect(dagsInBbox).toHaveBeenCalledWith(society);
+    expect(masterplanInBbox).toHaveBeenCalledWith(society);
+  });
+
+  it('does not stack a second download while the first is still in flight', () => {
+    const { component, dagsInBbox } = setup();
+    dagsInBbox.mockReturnValue(new Subject<LandFeatureCollection>());
+    component.selectMapMode('bds');
+    // a moveend while the layer is still downloading
+    (component as unknown as { loadBdsMouza(): void }).loadBdsMouza();
+    expect(dagsInBbox).toHaveBeenCalledTimes(1);
+    expect(component.externalLoading()).toBe(true);
+  });
+
+  it('draws the official layers on a canvas renderer instead of one SVG node per polygon', () => {
+    const { component } = setup();
+    L.geoJSON.mockClear();
+    component.selectMapMode('bds');
+    const renderers = L.geoJSON.mock.calls.map((call) => call[1]?.renderer);
+    expect(renderers.length).toBeGreaterThan(0);
+    expect(renderers.every((renderer) => renderer && (renderer as { kind?: string }).kind === 'canvas-renderer')).toBe(true);
   });
 });
 

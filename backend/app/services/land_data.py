@@ -24,14 +24,38 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import NamedTuple
 
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
 BBox = tuple[float, float, float, float]  # min_lng, min_lat, max_lng, max_lat
+
+# Overlay properties the map layers never read; left out of the pre-serialized
+# bbox payload (lookups still return the full feature).
+MASTERPLAN_BBOX_OMIT = frozenset({"address_search"})
+
+
+class _Row(NamedTuple):
+    """One map polygon: centroid for the bbox scan, the feature itself, and
+    its compact JSON encoding built once at load so bbox responses are a join
+    of ready-made bytes instead of a per-request walk over every coordinate."""
+
+    lng: float
+    lat: float
+    feature: dict
+    json: bytes
+
+
+@dataclass(frozen=True)
+class _VerifiedDataset:
+    meta: dict
+    fingerprint: str  # sha256 of meta.json, which pins every file's checksum
+    files: dict[str, bytes]  # checksum-verified raw bytes, keyed by relative path
 
 
 class LandDataError(RuntimeError):
@@ -71,6 +95,19 @@ class LandDataProvider(ABC):
     def masterplan_find(self, rs_plot_no: str) -> list[dict]:
         """All overlay plots whose RS number equals ``rs_plot_no``."""
 
+    @abstractmethod
+    def features_json_in_bbox(self, bbox: BBox, limit: int = 500) -> list[bytes]:
+        """``features_in_bbox`` as pre-encoded compact JSON, one item per feature."""
+
+    @abstractmethod
+    def masterplan_json_in_bbox(self, bbox: BBox, limit: int = 500) -> list[bytes]:
+        """Overlay plots as pre-encoded JSON, without ``MASTERPLAN_BBOX_OMIT`` properties."""
+
+    @property
+    @abstractmethod
+    def cache_tag(self) -> str:
+        """Short token that changes whenever the dataset content changes."""
+
 
 def _ascii_digits(text: str) -> str:
     return (text or "").translate(str.maketrans("০১২৩৪৫৬৭৮৯", "0123456789")).strip()
@@ -84,6 +121,23 @@ def _normalize_sheet(sheet: str) -> str:
     return s
 
 
+def _compact_json(value: object) -> bytes:
+    """Same encoding as Starlette's JSONResponse, so pre-built bytes and
+    regular responses are byte-for-byte interchangeable."""
+    return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+
+
+def _rows_in_bbox(rows: Iterable[_Row], bbox: BBox, limit: int) -> list[_Row]:
+    min_lng, min_lat, max_lng, max_lat = bbox
+    out: list[_Row] = []
+    for row in rows:
+        if min_lng <= row.lng <= max_lng and min_lat <= row.lat <= max_lat:
+            out.append(row)
+            if len(out) >= limit:
+                break
+    return out
+
+
 def _normalize_rs(rs_plot_no: str) -> str:
     """RS plots are stored as "RS-4611"; index and query them by digits only,
     so "4611", "RS-4611" and Bangla digits all match the same plot."""
@@ -95,59 +149,72 @@ class LocalJsonLandDataProvider(LandDataProvider):
 
     def __init__(self, root: Path):
         self.root = root
-        self._meta = self._load_and_verify()
-        self._sheets: dict[str, list[str]] = self._meta_sheets()
+        # Each file is read exactly once: the checksum pass keeps the verified
+        # bytes and the loaders parse those (startup is disk-bound).
+        verified = self._load_and_verify()
+        self._meta = verified.meta
+        self._cache_tag = verified.fingerprint[:16]
+        self._sheets: dict[str, list[str]] = self._meta_sheets(verified)
         self._features: dict[str, dict] = {}  # "survey:sheet:dag" -> feature
         self._by_dag: dict[str, list[str]] = {}  # "survey:dag" -> keys
-        self._centroids: dict[str, tuple[float, float]] = {}
-        self._build_index()
+        self._dag_rows: list[_Row] = []
+        self._build_index(verified)
         self._khatians: dict[str, dict] = self._load_khatians()
-        self._masterplan = self._load_masterplan()
+        self._masterplan: list[_Row] = self._load_masterplan(verified)
 
     # -- loading -----------------------------------------------------------
 
-    def _load_and_verify(self) -> dict:
+    def _load_and_verify(self) -> _VerifiedDataset:
         meta_path = self.root / "meta.json"
         if not meta_path.is_file():
             raise LandDataError(
                 f"Land dataset meta file missing: {meta_path}. "
                 "Run scripts/ingest_land_data/ingest.py to produce it."
             )
+        meta_bytes = meta_path.read_bytes()
         try:
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            meta = json.loads(meta_bytes)
         except json.JSONDecodeError as exc:
             raise LandDataError(f"Land dataset meta.json is corrupt: {exc}") from exc
 
+        files: dict[str, bytes] = {}
         for rel, expected in (meta.get("sha256") or {}).items():
             path = self.root / rel
             if not path.is_file():
                 raise LandDataError(f"Land dataset file missing: {path}")
-            actual = hashlib.sha256(path.read_bytes()).hexdigest()
-            if actual != expected:
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != expected:
                 raise LandDataError(
                     f"Land dataset checksum mismatch for {rel} — "
                     "the file changed after ingestion; re-run the ingest script."
                 )
-        return meta
+            files[rel] = raw
+        return _VerifiedDataset(
+            meta=meta, fingerprint=hashlib.sha256(meta_bytes).hexdigest(), files=files
+        )
 
-    def _meta_sheets(self) -> dict[str, list[str]]:
-        sheets_path = self.root / "sheets.json"
-        if not sheets_path.is_file():
-            raise LandDataError(f"Land dataset file missing: {sheets_path}")
-        raw = json.loads(sheets_path.read_text(encoding="utf-8"))
+    def _read_json(self, rel: str, verified: _VerifiedDataset) -> dict:
+        """Parse a dataset file, reusing its verified bytes when it was checksummed."""
+        path = self.root / rel
+        raw = verified.files.get(rel)
+        if raw is None:
+            if not path.is_file():
+                raise LandDataError(f"Land dataset file missing: {path}")
+            raw = path.read_bytes()
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise LandDataError(f"Land dataset file corrupt ({path}): {exc}") from exc
+
+    def _meta_sheets(self, verified: _VerifiedDataset) -> dict[str, list[str]]:
+        raw = self._read_json("sheets.json", verified)
         return {survey: sorted(sheets) for survey, sheets in raw.items()}
 
-    def _build_index(self) -> None:
+    def _build_index(self, verified: _VerifiedDataset) -> None:
         count = 0
         for survey in self._sheets:
             for sheet in self._sheets[survey]:
-                path = self.root / "dags" / survey / f"{sheet}.geojson"
-                if not path.is_file():
-                    raise LandDataError(f"Land dataset file missing: {path}")
-                try:
-                    fc = json.loads(path.read_text(encoding="utf-8"))
-                except json.JSONDecodeError as exc:
-                    raise LandDataError(f"Land dataset file corrupt ({path}): {exc}") from exc
+                fc = self._read_json(f"dags/{survey}/{sheet}.geojson", verified)
                 for feature in fc.get("features", []):
                     props = feature.get("properties", {})
                     dag = _ascii_digits(str(props.get("dag", "")))
@@ -156,7 +223,8 @@ class LocalJsonLandDataProvider(LandDataProvider):
                     key = f"{survey}:{sheet}:{dag}"
                     self._features[key] = feature
                     self._by_dag.setdefault(f"{survey}:{dag}", []).append(key)
-                    self._centroids[key] = self._centroid_of(feature)
+                    lng, lat = self._centroid_of(feature)
+                    self._dag_rows.append(_Row(lng, lat, feature, _compact_json(feature)))
                     count += 1
         expected = (self._meta.get("counts") or {}).get("dags")
         if expected is not None and expected != count:
@@ -214,20 +282,23 @@ class LocalJsonLandDataProvider(LandDataProvider):
             )
         return records
 
-    def _load_masterplan(self) -> list[tuple[dict, tuple[float, float]]]:
+    def _load_masterplan(self, verified: _VerifiedDataset) -> list[_Row]:
         """RAJUK DAP overlay, optional — an absent file is not an error."""
         self._masterplan_by_rs: dict[str, list[dict]] = {}
-        path = self.root / "masterplan.geojson"
-        if not path.is_file():
+        rel = "masterplan.geojson"
+        if rel not in verified.files and not (self.root / rel).is_file():
             return []
-        try:
-            fc = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise LandDataError(f"Land dataset file corrupt ({path}): {exc}") from exc
-        out = []
+        fc = self._read_json(rel, verified)
+        out: list[_Row] = []
         for feature in fc.get("features", []):
-            out.append((feature, self._centroid_of(feature)))
-            rs = feature.get("properties", {}).get("rs_plot_no")
+            props = feature.get("properties", {})
+            served = {
+                **feature,
+                "properties": {k: v for k, v in props.items() if k not in MASTERPLAN_BBOX_OMIT},
+            }
+            lng, lat = self._centroid_of(feature)
+            out.append(_Row(lng, lat, feature, _compact_json(served)))
+            rs = props.get("rs_plot_no")
             if rs:
                 self._masterplan_by_rs.setdefault(_normalize_rs(rs), []).append(feature)
         return out
@@ -266,14 +337,14 @@ class LocalJsonLandDataProvider(LandDataProvider):
         return [self._features[k] for k in keys]
 
     def features_in_bbox(self, bbox: BBox, limit: int = 500) -> list[dict]:
-        min_lng, min_lat, max_lng, max_lat = bbox
-        out: list[dict] = []
-        for key, (lng, lat) in self._centroids.items():
-            if min_lng <= lng <= max_lng and min_lat <= lat <= max_lat:
-                out.append(self._features[key])
-                if len(out) >= limit:
-                    break
-        return out
+        return [row.feature for row in _rows_in_bbox(self._dag_rows, bbox, limit)]
+
+    def features_json_in_bbox(self, bbox: BBox, limit: int = 500) -> list[bytes]:
+        return [row.json for row in _rows_in_bbox(self._dag_rows, bbox, limit)]
+
+    @property
+    def cache_tag(self) -> str:
+        return self._cache_tag
 
     def dataset_meta(self) -> dict:
         # Checksums are an integrity mechanism, not client data.
@@ -285,14 +356,10 @@ class LocalJsonLandDataProvider(LandDataProvider):
         return meta
 
     def masterplan_features_in_bbox(self, bbox: BBox, limit: int = 500) -> list[dict]:
-        min_lng, min_lat, max_lng, max_lat = bbox
-        out: list[dict] = []
-        for feature, (lng, lat) in self._masterplan:
-            if min_lng <= lng <= max_lng and min_lat <= lat <= max_lat:
-                out.append(feature)
-                if len(out) >= limit:
-                    break
-        return out
+        return [row.feature for row in _rows_in_bbox(self._masterplan, bbox, limit)]
+
+    def masterplan_json_in_bbox(self, bbox: BBox, limit: int = 500) -> list[bytes]:
+        return [row.json for row in _rows_in_bbox(self._masterplan, bbox, limit)]
 
     def masterplan_find(self, rs_plot_no: str) -> list[dict]:
         return list(self._masterplan_by_rs.get(_normalize_rs(rs_plot_no), []))
@@ -319,6 +386,7 @@ def point_in_polygon(lng: float, lat: float, feature: dict) -> bool:
 
 
 __all__ = [
+    "MASTERPLAN_BBOX_OMIT",
     "BBox",
     "LandDataError",
     "LandDataProvider",

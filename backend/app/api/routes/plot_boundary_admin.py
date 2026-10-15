@@ -9,13 +9,13 @@ admin is the verifier; member submissions wait in the pending queue.
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.routes.land_data import feature_collection_response
 from app.api.routes.plot_map import _parse_bbox
-from app.core.config import get_settings
 from app.core.permissions import require_permission
 from app.db.session import get_db
 from app.models.admin import AdminUser
@@ -131,21 +131,16 @@ async def _boundary_out_or_404(db: AsyncSession, boundary_id: int) -> AdminBound
 
 @router.get("/rs-dag-layer")
 def rs_dag_layer(
+    request: Request,
     bbox: str = Query(..., description="minLng,minLat,maxLng,maxLat"),
     _admin: AdminUser = Depends(require_permission(REVIEW_PERMISSION)),
     provider: LandDataProvider = Depends(get_land_data_provider),
-) -> dict:
+) -> Response:
     """RS dag (RAJUK masterplan) parcels under a viewport, so the reviewer sees
     the drawn boundary on the reference grid. Reference data only — no owners."""
-    viewport = _parse_bbox(bbox)
-    cap = get_settings().land_map_result_cap
-    features = provider.masterplan_features_in_bbox(viewport, limit=cap + 1)
-    return {
-        "type": "FeatureCollection",
-        "count": min(len(features), cap),
-        "truncated": len(features) > cap,
-        "features": features[:cap],
-    }
+    return feature_collection_response(
+        request, provider, "masterplan", _parse_bbox(bbox), provider.masterplan_json_in_bbox
+    )
 
 
 @router.get("/plot-boundaries/pending/count", response_model=PendingCountOut)

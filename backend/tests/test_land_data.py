@@ -274,6 +274,97 @@ async def test_masterplan_lookup_unknown_plot_is_empty_collection(client, db_ses
     assert resp.json() == {"type": "FeatureCollection", "count": 0, "features": []}
 
 
+def test_provider_reads_each_dataset_file_once(provider, monkeypatch):
+    """Startup cost is disk-bound: verifying a checksum and then parsing the
+    same file must not read it from disk twice."""
+    from collections import Counter
+    from pathlib import Path
+
+    reads: Counter = Counter()
+    real_read_bytes, real_read_text = Path.read_bytes, Path.read_text
+
+    def counting_read_bytes(self):
+        reads[str(self)] += 1
+        return real_read_bytes(self)
+
+    def counting_read_text(self, *args, **kwargs):
+        reads[str(self)] += 1
+        return real_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_bytes", counting_read_bytes)
+    monkeypatch.setattr(Path, "read_text", counting_read_text)
+    LocalJsonLandDataProvider(provider.root)
+
+    assert reads, "provider must read the dataset"
+    twice = {path: n for path, n in reads.items() if n > 1}
+    assert not twice, f"files read more than once: {sorted(twice)[:3]}"
+
+
+async def test_dags_bbox_payload_matches_provider_features(client, db_session, provider):
+    member = await _approved_member(db_session, "DagsPayloadMember")
+    bbox = (90.326, 23.820, 90.335, 23.830)
+    resp = await client.get(
+        "/api/land/dags",
+        params={"bbox": ",".join(map(str, bbox))},
+        headers=_member_headers(member),
+    )
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/json")
+    assert resp.json()["features"] == provider.features_in_bbox(bbox, limit=10_000)
+
+
+async def test_masterplan_bbox_payload_drops_unused_search_field(client, db_session, provider):
+    member = await _approved_member(db_session, "MasterplanTrimMember")
+    bbox = (90.3039, 23.7851, 90.3423, 23.8327)
+    resp = await client.get(
+        "/api/land/masterplan",
+        params={"bbox": ",".join(map(str, bbox))},
+        headers=_member_headers(member),
+    )
+    assert resp.status_code == 200
+    served = resp.json()["features"]
+    expected = provider.masterplan_features_in_bbox(bbox, limit=10_000)
+    assert len(served) == len(expected) > 0
+    assert all("address_search" not in f["properties"] for f in served)
+    assert served[0]["geometry"] == expected[0]["geometry"]
+    assert served[0]["properties"]["rs_plot_no"] == expected[0]["properties"]["rs_plot_no"]
+
+
+async def test_bbox_layers_report_truncation_at_cap(client, db_session, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "land_map_result_cap", 1)
+    member = await _approved_member(db_session, "CapMember")
+    for path in ("/api/land/dags", "/api/land/masterplan"):
+        resp = await client.get(
+            path, params={"bbox": "90.295,23.78,90.36,23.84"}, headers=_member_headers(member)
+        )
+        body = resp.json()
+        assert (body["count"], body["truncated"], len(body["features"])) == (1, True, 1), path
+
+
+async def test_bbox_layers_revalidate_with_etag(client, db_session):
+    """The dataset only changes on redeploy, so repeat map loads must cost a
+    304 instead of re-downloading every polygon."""
+    member = await _approved_member(db_session, "EtagMember")
+    headers = _member_headers(member)
+    for path in ("/api/land/dags", "/api/land/masterplan"):
+        params = {"bbox": "90.326,23.820,90.335,23.830"}
+        first = await client.get(path, params=params, headers=headers)
+        etag = first.headers["etag"]
+        assert "private" in first.headers["cache-control"]
+
+        again = await client.get(path, params=params, headers={**headers, "If-None-Match": etag})
+        assert again.status_code == 304
+        assert again.content == b""
+
+        other = await client.get(path, params={"bbox": "90.30,23.79,90.34,23.83"}, headers=headers)
+        assert other.headers["etag"] != etag
+
+        anonymous = await client.get(path, params=params, headers={"If-None-Match": etag})
+        assert anonymous.status_code == 401
+
+
 async def test_dag_lookup_endpoint(client, db_session):
     member = await _approved_member(db_session, "DagLookupMember")
     resp = await client.get("/api/land/dag/bds/lookup/১৩", headers=_member_headers(member))
