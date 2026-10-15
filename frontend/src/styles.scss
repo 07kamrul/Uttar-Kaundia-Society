@@ -4606,6 +4606,13 @@ canvas {
   max-width: 100%;
 }
 
+/* Leaflet's canvas renderer is deliberately larger than the map (it pads the
+   viewport); capping it squashes the BDS / RS dag lines out of place. */
+.leaflet-container canvas {
+  max-width: none !important;
+  max-height: none !important;
+}
+
 img,
 video {
   height: auto;
