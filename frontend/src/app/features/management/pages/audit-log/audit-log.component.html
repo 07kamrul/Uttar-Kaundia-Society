@@ -177,8 +177,8 @@
 <!-- Detail drawer -->
 @if (detailEntry) {
   <div class="modal-backdrop audit-backdrop" (click)="closeDetail()">
-    <div class="modal-card modal-card-wide audit-sheet" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <h3 class="modal-title">{{ 'admin.auditLog.details.title' | translate }}</h3>
+    <div class="modal-card modal-card-wide audit-sheet" role="dialog" aria-modal="true" aria-labelledby="audit-detail-title" tabindex="-1" (click)="$event.stopPropagation()" (keydown.escape)="closeDetail(); $event.stopPropagation()">
+      <h3 class="modal-title" id="audit-detail-title">{{ 'admin.auditLog.details.title' | translate }}</h3>
       <p class="modal-message audit-sheet-meta">
         {{ detailEntry.createdAt | date: dateTimeFormat }} ·
         {{ actorLabel(detailEntry.actorAdminId) }} ·

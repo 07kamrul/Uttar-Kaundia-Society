@@ -13,7 +13,7 @@ import { describePhone } from '../phone/phone-format';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe, RouterLink],
-  host: { '(document:keydown.escape)': 'open.set(false)' },
+  host: { '(keydown.escape)': 'onEscape($event)' },
   template: `
     @if (helpline().enabled) {
       <button type="button" class="help-fab" data-testid="help-fab" [attr.aria-expanded]="open()" (click)="open.set(true)">
@@ -74,6 +74,12 @@ export class HelpFabComponent {
   private readonly service = inject(HelplineService);
   readonly helpline = this.service.helpline;
   readonly open = signal(false);
+
+  onEscape(event: Event): void {
+    if (!this.open()) return;
+    event.stopPropagation();
+    this.open.set(false);
+  }
   readonly call = computed(() => describePhone(this.helpline().phone));
   readonly whatsapp = computed(() => describePhone(this.helpline().whatsapp));
 

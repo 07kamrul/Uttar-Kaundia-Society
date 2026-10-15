@@ -183,6 +183,8 @@ export class AuditLogComponent implements OnInit {
   openDetail(entry: AuditLogEntry): void {
     this.detailEntry = entry;
     this.detailPairs = this.parseDetail(entry.detail);
+    // Move focus into the popup so Escape and Tab work from the keyboard.
+    setTimeout(() => document.querySelector<HTMLElement>('.audit-sheet')?.focus());
   }
 
   closeDetail(): void {

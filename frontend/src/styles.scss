@@ -910,6 +910,8 @@ a {
 
   .reg-card-body {
     padding: 2rem 3rem;
+    --reg-pad-x: 3rem;
+    --reg-pad-y: 2rem;
   }
 }
 
@@ -4408,7 +4410,7 @@ label.checkbox-row {
   background: var(--gray-200);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .dlg-backdrop {
     padding: 0;
     align-items: stretch;
@@ -4526,16 +4528,9 @@ th {
   flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .dlg-backdrop {
     height: 100dvh;
-  }
-
-  .dlg-head {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--modal-surface);
   }
 }
 
@@ -4585,7 +4580,7 @@ th {
   padding-right: max(1.25rem, env(safe-area-inset-right));
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .dlg-backdrop {
     padding-left: 0;
     padding-right: 0;
@@ -5033,7 +5028,7 @@ button:focus-visible,
   opacity: 0.65;
 }
 
-@media (max-width: 1023.98px) {
+@media (hover: none) and (pointer: coarse) {
   .btn,
   .btn-primary,
   .btn-secondary,

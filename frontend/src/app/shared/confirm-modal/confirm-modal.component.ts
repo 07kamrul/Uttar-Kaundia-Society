@@ -1,5 +1,10 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component, ElementRef, EventEmitter, Injector, Input, OnChanges, Output, SimpleChanges,
+  ChangeDetectionStrategy, afterNextRender, inject,
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+
+let nextConfirmModalId = 0;
 
 @Component({
   selector: 'app-confirm-modal',
@@ -7,9 +12,8 @@ import { TranslateService } from '@ngx-translate/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './confirm-modal.component.html',
   styleUrl: './confirm-modal.component.scss',
-  host: { '(document:keydown.escape)': 'onEscape()' },
 })
-export class ConfirmModalComponent {
+export class ConfirmModalComponent implements OnChanges {
   @Input() open = false;
   @Input() title = '';
   @Input() message = '';
@@ -24,9 +28,28 @@ export class ConfirmModalComponent {
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
+  readonly titleId = `confirm-modal-title-${nextConfirmModalId++}`;
+
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
+  private previouslyFocused: HTMLElement | null = null;
 
   constructor(private translate: TranslateService) {}
+
+  /** Moves focus into the dialog on open and hands it back to the trigger on close. */
+  ngOnChanges(changes: SimpleChanges): void {
+    const change = changes['open'];
+    if (!change || change.firstChange && !change.currentValue) return;
+    if (change.currentValue) {
+      this.previouslyFocused = document.activeElement as HTMLElement | null;
+      afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('.modal-card')?.focus(), {
+        injector: this.injector,
+      });
+    } else {
+      this.previouslyFocused?.focus?.();
+      this.previouslyFocused = null;
+    }
+  }
 
   get resolvedConfirmLabel(): string {
     return this.confirmLabel || this.translate.instant('common.confirmModal.confirmButton');
@@ -42,8 +65,10 @@ export class ConfirmModalComponent {
     }
   }
 
-  onEscape(): void {
-    if (this.open && !this.loading) this.cancel.emit();
+  /** Bound on the dialog itself so the keypress never reaches layers underneath. */
+  onEscape(event: Event): void {
+    event.stopPropagation();
+    if (!this.loading) this.cancel.emit();
   }
 
   /** Keeps Tab focus inside the dialog while it is open. */

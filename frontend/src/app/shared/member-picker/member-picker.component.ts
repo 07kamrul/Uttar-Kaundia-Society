@@ -17,7 +17,7 @@ export interface MemberPickerOption {
   standalone: true,
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '(document:keydown.escape)': 'closeDropdown()' },
+  host: { '(keydown.escape)': 'onEscape($event)' },
   template: `
     <div class="picker" [class.picker-open]="open()">
       <div
@@ -28,8 +28,8 @@ export interface MemberPickerOption {
         [attr.aria-expanded]="open()"
         [attr.aria-disabled]="disabled()"
         (click)="toggleOpen()"
-        (keydown.enter)="toggleOpen(); $event.preventDefault()"
-        (keydown.space)="toggleOpen(); $event.preventDefault()"
+        (keydown.enter)="onControlKey($event)"
+        (keydown.space)="onControlKey($event)"
       >
         @if (selected().length === 0) {
           <span class="picker-placeholder">{{ placeholder() }}</span>
@@ -301,6 +301,19 @@ export class MemberPickerComponent {
 
   closeDropdown(): void {
     this.open.set(false);
+  }
+
+  /** Enter/Space toggles only when the control itself has focus, not a chip's remove button. */
+  onControlKey(event: Event): void {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    this.toggleOpen();
+  }
+
+  onEscape(event: Event): void {
+    if (!this.open()) return;
+    event.stopPropagation();
+    this.closeDropdown();
   }
 
   toggleOpen(): void {
