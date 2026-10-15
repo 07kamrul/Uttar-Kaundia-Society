@@ -36,14 +36,22 @@ class PropertyChangeRequest(Base):
         ForeignKey("properties.id", ondelete="SET NULL"), nullable=True, index=True
     )
     action: Mapped[PropertyChangeAction] = mapped_column(
-        Enum(PropertyChangeAction, name="property_change_action"), nullable=False
+        Enum(
+            PropertyChangeAction,
+            name="property_change_action",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ), nullable=False
     )
     # PropertyRequestPayload snapshot: scalar fields, co_owners and the final
     # desired docs list (doc_type + file_path; new uploads are saved to disk
     # at request time and recorded here).
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     status: Mapped[PropertyChangeStatus] = mapped_column(
-        Enum(PropertyChangeStatus, name="property_change_status"),
+        Enum(
+            PropertyChangeStatus,
+            name="property_change_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=PropertyChangeStatus.PENDING,
         nullable=False,
         index=True,
