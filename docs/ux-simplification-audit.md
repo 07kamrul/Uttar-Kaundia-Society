@@ -296,7 +296,7 @@ Each batch ships with before/after screenshots, build and test status, metrics, 
   - "লেখা বড় করুন": one step (18 px).
   - No new dependencies.
 
-## 14. Implementation status (2026-10-14)
+## 14. Implementation status (2026-10-15)
 
 All seven batches are implemented in the backend, Angular and Flutter. Every change sits behind a feature flag that is **off by default**.
 
@@ -304,24 +304,25 @@ All seven batches are implemented in the backend, Angular and Flutter. Every cha
 |---|---|---|
 | 0 Foundation, 0b international phones | — | Done |
 | 1 Registration | `reg_*` (8 flags) | Done |
-| 2 Payments merge | `pay_merged_page` | Done. Other-fee verification (B2-R1) is **not built**. |
+| 2 Payments merge | `pay_merged_page` | Done |
+| 2b Other-fee verification (B2-R1) | `pay_verify_other_fees` | Done in the backend, Angular and Flutter. Off by default; existing fee and picnic rows stay "approved". |
 | 3 Navigation and home | `nav_five_areas`, `nav_merged_entries` | Done. `nav_advanced_section` is applied in Batch 5. |
 | 4 Map wizard | `map_wizard` | Done |
-| 5 Admin console | `admin_console`, `admin_bulk_verify`, `fee_wizard`, `nav_advanced_section` | Done |
+| 5 Admin console | `admin_console`, `admin_bulk_verify`, `fee_wizard`, `nav_advanced_section` | Done, including the fee-rate wizard in Angular and Flutter |
 | 6 Login and passwords | `login_by_phone`, `password_policy_v2` | Done |
 | 7 Performance and accessibility | `ui_a11y_v2`, `data_saver`, `net_status_banner` | Done |
 
-**Migrations to apply on staging, in order:** `a7c3e9b1d5f2` (flags) → `b4d6f8a0c2e5` (phones) → `c1e5a9d3b7f4` (registration) → `d2f6b0a4c8e1` (cost-share payments) → `e3a7c1b5d9f2` (settings) → `f5b8d2a6c1e7` (reject reasons). Run the phone dry-run first. Run `python -m scripts.report_duplicate_mobiles` before switching on `login_by_phone`.
+**Migrations to apply on staging, in order:** `a7c3e9b1d5f2` (flags) → `b4d6f8a0c2e5` (phones) → `c1e5a9d3b7f4` (registration) → `d2f6b0a4c8e1` (cost-share payments) → `e3a7c1b5d9f2` (settings) → `f5b8d2a6c1e7` (reject reasons) → `a8c2e4f6b1d3` (other-fee verification). Run the phone dry-run first. Run `python -m scripts.report_duplicate_mobiles` before switching on `login_by_phone`.
 
 **Measured:**
 
 | Metric | Result |
 |---|---|
-| Angular initial bundle | 522.23 kB → **483.63 kB** (budget 500 kB; error limit now 550 kB) |
+| Angular initial bundle | 522.23 kB → **486.79 kB** (budget 500 kB; error limit now 550 kB) |
 | Font families loaded | 4 → 1 (Hind Siliguri 400/600/700) |
 | Pay a fee from Home | **4 interactions** (component test) |
 | Every former member menu page | Reachable from the five areas (mapping-guard test fails otherwise) |
-| Tests | Backend 1070 pass; Angular 1057 of 1057; Flutter 958 of 958 |
+| Tests | Backend 1093 pass (2 older failures, below); Angular 1180 of 1180; Flutter 1077 of 1077 |
 
 **Not measured, because it needs real people or devices:**
 - Registration under 5 minutes and about 25 taps for a prepared member.
@@ -331,7 +332,14 @@ All seven batches are implemented in the backend, Angular and Flutter. Every cha
 
 **Known gaps:**
 - Flutter now has the help desk, complaints (incl. land protection), service standard, elections, petitions, welfare fund and amendments pages, all listed in the "সংগঠন" hub. Not ported: election complaints, PDF downloads (land-form copy, welfare decision letter, amendment certificate).
-- The Flutter admin side covers the "আজকের কাজ" page, search and bulk approve only; the merged queue, notices + events, phone fixes, cache stats and the fee wizard are Angular only.
+- The Flutter admin pages now match Angular: "আজকের কাজ", search, bulk approve, the merged applications queue, notices + events, phone fixes, cache stats (no flush button) and the fee-rate wizard.
+- The fee-rate wizard changes fixed-amount fees only. Tiered, per-head and variable fees stay under "আরও অপশন".
+- Intermittent test: once, during a heavy parallel run, the Angular "other-fee tab" test showed a translation key instead of Bangla text. It passed alone three times and in two further full runs.
+
+**Fixed while finishing:**
+- **Scheduled rates left a gap.** When a new fee rate was scheduled for a future date, the old rate was closed on the day the change was made. The days in between had no rate, and subscription quotes failed with 409 (`SUBSCRIPTION_RATES_NOT_CONFIGURED`). The old rate now runs until the day before the new one starts. This affected both the fee-settings and the fee-type version endpoints and could have occurred in the existing form, not only in the new wizard.
+- **Angular production build was broken** at commit `87077cd` (a missing import in `app.ts`), although the tests passed. Fixed.
+- **Change-password v2 spec** reconfigured an already-created test module in two tests. Fixed.
 - Two backend tests fail on `main` without these changes (resolution-book audit test, CORS preflight test).
 
 ## 15. Original questions (answered in §13)
