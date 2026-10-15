@@ -27,6 +27,24 @@ cmd_migrate() {
     max_attempts="${MIGRATION_MAX_ATTEMPTS:-30}"
     sleep_seconds="${MIGRATION_SLEEP_SECONDS:-2}"
 
+    # Print the DB host (never the password) and whether this container can
+    # resolve it - a name that never resolves is a deploy config error, not a
+    # slow database, so retrying will not help.
+    python - <<'PY' || true
+import os, socket
+from urllib.parse import urlsplit
+u = urlsplit(os.environ.get("DATABASE_URL", ""))
+host, port = u.hostname, u.port or 5432
+print(f"[run] DATABASE_URL host={host!r} port={port}")
+if host:
+    try:
+        socket.getaddrinfo(host, port)
+    except socket.gaierror:
+        print(f"[run] ERROR: host {host!r} does not resolve from this container. "
+              "Put the backend on the same Docker network as Postgres, or set "
+              "DATABASE_URL to the database's internal host name.")
+PY
+
     # Both steps need a live database, so both share the DB-ready retry loop.
     # Duplicate resolution must succeed before the upgrade (unique constraints).
     attempt=1
