@@ -20,10 +20,11 @@
 }
 
 .date-picker-clear {
-  color: var(--gray-500, #6b7280);
-  font-size: 1rem;
+  color: var(--gray-600, #4b5563);
+  font-size: 1.25rem;
   line-height: 1;
-  padding: 0 0.15rem;
+  padding: 0.5rem 0.6rem;
+  margin: -0.5rem -0.6rem;
   cursor: pointer;
 }
 

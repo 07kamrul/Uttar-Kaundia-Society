@@ -20,8 +20,8 @@
   </div>
 
   <div class="field filter-field property-requests-filter">
-    <label>{{ 'admin.submissionsList.filterLabel' | translate }}</label>
-    <select [value]="statusFilter" [disabled]="loading" (change)="onFilterChange($event)">
+    <label for="pr-status-filter">{{ 'admin.submissionsList.filterLabel' | translate }}</label>
+    <select id="pr-status-filter" [value]="statusFilter" [disabled]="loading" (change)="onFilterChange($event)">
       @for (s of statuses; track s) {
         <option [value]="s">{{ s ? statusLabel(s) : ('admin.submissionsList.allOption' | translate) }}</option>
       }
@@ -35,7 +35,7 @@
   @if (loading) {
     <app-section-loader variant="rows" [count]="5" />
   } @else if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+    <div class="error-box" role="alert"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   } @else {
     <div class="data-table-wrap">
       <table class="data-table data-table-cards">

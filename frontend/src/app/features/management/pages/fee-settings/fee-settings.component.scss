@@ -1,3 +1,5 @@
+@use '../../../../../styles/responsive' as r;
+
 // Fee Settings screen — generic fee-type catalog styling.
 // Relies on the shared design tokens / .card / .form-grid / .data-table rules
 // in styles.scss; only page-specific pieces live here.
@@ -102,6 +104,7 @@
 
 .fee-switch {
   position: relative;
+  flex-shrink: 0;
   display: inline-block;
   width: 2.6rem;
   height: 1.4rem;
@@ -262,7 +265,7 @@
 
 // ---- Responsive ------------------------------------------------------------------
 
-@media (max-width: 640px) {
+@include r.down(sm) {
   .fee-form-grid {
     grid-template-columns: 1fr;
   }
@@ -274,6 +277,16 @@
   .table-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .table-search {
+    min-width: 0;
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .table-card {
+    padding: 0.85rem;
   }
 }
 
@@ -287,4 +300,15 @@
   min-height: 48px;
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fee-skeleton-row {
+    animation: none;
+  }
+
+  .fee-switch-slider,
+  .fee-switch-slider::before {
+    transition: none;
+  }
 }

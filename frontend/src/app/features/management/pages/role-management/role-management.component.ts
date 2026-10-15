@@ -22,6 +22,7 @@ interface PermissionGroup {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TranslatePipe, PasswordFieldComponent, SectionLoaderComponent],
   templateUrl: './role-management.component.html',
+  styleUrl: './role-management.component.scss',
 })
 export class RoleManagementComponent implements OnInit {
   roles: RoleDef[] = [];

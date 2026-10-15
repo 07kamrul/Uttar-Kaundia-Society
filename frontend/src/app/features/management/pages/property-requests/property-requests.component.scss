@@ -1,7 +1,9 @@
+@use '../../../../../styles/responsive' as r;
+
 .status-badge.status-cancelled {
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
+  background: var(--surface-2);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
 }
 
 .property-requests-filter {
@@ -19,11 +21,18 @@
   font-family: monospace;
   color: inherit;
   cursor: pointer;
+  min-height: 2.25rem;
+}
+
+.pr-reference-btn:focus-visible {
+  outline: 2px solid var(--emerald-600);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 
 .pr-member-code {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--gray-700);
 }
 
 .pr-action-buttons {
@@ -33,7 +42,7 @@
 }
 
 .pr-detail-row > td {
-  background: #f9fafb;
+  background: var(--surface-2);
 }
 
 .pr-detail {
@@ -46,13 +55,13 @@
 .pr-detail-note {
   margin: 0;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--gray-700);
 }
 
 .pr-cancel-reason {
   margin: 0;
   font-size: 0.875rem;
-  color: #b91c1c;
+  color: var(--red-700);
 }
 
 .pr-payload-rows {
@@ -69,7 +78,7 @@
 
   dt {
     flex: 0 0 12rem;
-    color: #6b7280;
+    color: var(--gray-700);
   }
 
   dd {
@@ -88,18 +97,19 @@
 
 .pr-doc-entry {
   font-size: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--gray-300);
   border-radius: 0.375rem;
   padding: 0.25rem 0.5rem;
-  background: #fff;
+  background: var(--surface);
 }
 
 .pr-doc-link {
   margin-left: 0.375rem;
-  color: #047857;
+  color: var(--emerald-700);
+  text-decoration: underline;
 }
 
-@media (max-width: 640px) {
+@include r.down(sm) {
   .property-requests-filter {
     max-width: none;
   }
@@ -113,8 +123,24 @@
     }
   }
 
+  .pr-action-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .pr-action-buttons .btn,
   .pr-reference-btn {
-    min-height: 2.5rem;
+    min-height: 2.75rem;
+  }
+
+  .pr-action-buttons .btn {
+    flex: 1 1 8rem;
+  }
+}
+
+// Tablet: detail rows stack label above value in narrower space.
+@include r.down(md) {
+  .pr-payload-row dt {
+    flex-basis: 8rem;
   }
 }

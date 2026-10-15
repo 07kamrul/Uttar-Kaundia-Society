@@ -25,6 +25,7 @@ const CATEGORIES = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, HelplineCardComponent],
   templateUrl: './config-lists.component.html',
+  styleUrl: './config-lists.component.scss',
 })
 export class ConfigListsComponent implements OnInit {
   readonly categories = CATEGORIES;

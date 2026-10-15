@@ -23,6 +23,7 @@ interface DetailPair {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, FormsModule, TranslatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './audit-log.component.html',
+  styleUrl: './audit-log.component.scss',
 })
 export class AuditLogComponent implements OnInit {
   readonly pageSizes = PAGE_SIZES;

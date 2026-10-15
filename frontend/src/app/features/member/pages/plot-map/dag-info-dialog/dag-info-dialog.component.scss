@@ -57,6 +57,7 @@
   width: 68vw;
   max-width: 1100px;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow: hidden;
   border-radius: 16px;
   background: var(--dag-surface);
@@ -234,6 +235,7 @@
 }
 
 .dag-close-btn {
+  min-height: 2.75rem;
   padding: 0.55rem 1.4rem;
   border: 0;
   border-radius: 4px;

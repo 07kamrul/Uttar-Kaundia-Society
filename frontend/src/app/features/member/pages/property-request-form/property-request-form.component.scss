@@ -154,14 +154,14 @@
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
   white-space: nowrap;
-  color: #047857;
+  color: var(--emerald-700);
   background: var(--emerald-50);
   border: 1px solid color-mix(in srgb, var(--emerald-200) 60%, transparent);
 
   &.pr-doc-dropped {
-    color: #92600a;
-    background: #fef7e6;
-    border-color: #f3dfae;
+    color: var(--gold-strong);
+    background: var(--amber-50);
+    border-color: var(--amber-200);
   }
 }
 
@@ -254,7 +254,7 @@
   }
 }
 
-@media (max-width: 479.98px) {
+@media (max-width: 639.98px) {
   .pr-form-actions {
     flex-direction: column;
 

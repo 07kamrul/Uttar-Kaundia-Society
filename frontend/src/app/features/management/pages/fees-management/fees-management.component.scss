@@ -17,3 +17,9 @@
   border-color: var(--amber-200);
   color: var(--gold-strong);
 }
+
+.fee-type-chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

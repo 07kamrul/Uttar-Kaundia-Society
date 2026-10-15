@@ -36,13 +36,13 @@
 
 @if (nominees.length > 1) {
   <div style="margin-top:1rem">
-    <h3 style="font-size:0.9rem;color:#374151;margin-bottom:0.75rem">{{ 'registration.nominee.additionalNomineesTitle' | translate }}</h3>
+    <h3 style="font-size:0.9rem;color:var(--gray-700);margin-bottom:0.75rem">{{ 'registration.nominee.additionalNomineesTitle' | translate }}</h3>
     @for (n of nominees.controls; track n; let i = $index) {
       @if (i > 0) {
         <div class="card" style="padding:1rem;margin-bottom:1rem" [formGroup]="group(i)">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
-            <h4 style="margin:0;color:#374151">{{ 'registration.nominee.nomineeNumberTitle' | translate: { number: i + 1 } }}</h4>
-            <button type="button" (click)="removeNominee(i)" style="color:#dc2626;background:none;border:none;cursor:pointer;font-size:0.875rem">
+            <h4 style="margin:0;color:var(--gray-700)">{{ 'registration.nominee.nomineeNumberTitle' | translate: { number: i + 1 } }}</h4>
+            <button type="button" (click)="removeNominee(i)" class="reg-text-btn reg-text-btn-danger">
               {{ 'registration.nominee.remove' | translate }}
             </button>
           </div>
@@ -79,7 +79,7 @@
 }
 
 @if (nominees.length < 5) {
-  <button type="button" (click)="addNominee()" style="color:#065f46;background:none;border:none;cursor:pointer;font-size:0.875rem;margin-top:0.5rem">
+  <button type="button" (click)="addNominee()" class="reg-text-btn">
     + {{ 'registration.nominee.addMore' | translate }}
   </button>
 }

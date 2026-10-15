@@ -1,15 +1,15 @@
 .pay-flow { display: flex; flex-direction: column; gap: 0.75rem; max-height: 92vh; overflow-y: auto; }
 .pay-flow-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.pay-flow-group { margin: 0.5rem 0 0.25rem; font-size: 0.95rem; color: var(--gray-600, #4b5563); }
+.pay-flow-group { margin: 0.5rem 0 0.25rem; font-size: 0.95rem; color: var(--gray-600); }
 .pay-flow-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .pay-flow-row {
   display: flex; align-items: center; gap: 0.75rem; min-height: 56px; padding: 0.5rem 0.75rem;
-  border: 2px solid var(--gray-300, #d1d5db); border-radius: 0.75rem; cursor: pointer;
+  border: 2px solid var(--gray-300); border-radius: 0.75rem; cursor: pointer;
   input[type='checkbox'] { width: 1.5rem; height: 1.5rem; flex: none; }
-  &.is-selected { border-color: var(--emerald-600, #059669); background: var(--emerald-50, #ecfdf5); }
+  &.is-selected { border-color: var(--emerald-600); background: var(--emerald-50, var(--emerald-50)); }
 }
 .pay-flow-name { flex: 1; font-weight: 600; display: flex; flex-direction: column; }
-.pay-flow-kind { font-weight: 400; color: var(--gray-600, #4b5563); }
+.pay-flow-kind { font-weight: 400; color: var(--gray-600); }
 .pay-flow-amount { font-weight: 700; white-space: nowrap; }
 .pay-flow-extra { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.5rem 0.75rem 0; }
 .pay-flow-stepper { display: flex; align-items: center; gap: 0.75rem; button { min-width: 48px; min-height: 48px; font-size: 1.25rem; } }
@@ -20,15 +20,26 @@
 .pay-flow-attach { align-self: flex-start; min-height: 48px; display: inline-flex; align-items: center; gap: 0.5rem; }
 .pay-flow-file { display: flex; align-items: center; gap: 0.5rem; }
 .pay-flow-filename { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pay-flow-abroad { padding: 0.75rem; background: #fffbeb; border-radius: 0.5rem; color: #92400e; margin: 0; }
-.pay-flow-results { padding: 0.75rem; border: 1px solid #fca5a5; background: #fef2f2; border-radius: 0.5rem; ul { margin: 0.25rem 0 0; padding-left: 1.25rem; } }
+.pay-flow-abroad { padding: 0.75rem; background: var(--amber-50); border-radius: 0.5rem; color: var(--gold-strong); margin: 0; }
+.pay-flow-results { padding: 0.75rem; border: 1px solid var(--red-200); background: var(--red-50); border-radius: 0.5rem; ul { margin: 0.25rem 0 0; padding-left: 1.25rem; } }
 .pay-flow-results-title { margin: 0; font-weight: 700; }
 .pay-flow-empty { padding: 1.5rem 0; text-align: center; font-size: 1.1rem; }
 .pay-flow-footer {
   position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.75rem;
-  padding-top: 0.75rem; background: var(--surface, #fff); border-top: 1px solid var(--gray-200, #e5e7eb);
+  padding-top: 0.75rem; background: var(--surface); border-top: 1px solid var(--gray-200);
   .btn { min-height: 48px; }
 }
 .pay-flow-total { margin-right: auto; display: flex; flex-direction: column; strong { font-size: 1.35rem; } }
 .pay-flow-row-pending { opacity: 0.85; cursor: default; border-style: dashed; }
-.status-chip { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; background: #fffbeb; color: #92400e; white-space: nowrap; }
+.status-chip { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; background: var(--amber-50); color: var(--gold-strong); white-space: nowrap; }
+.pay-flow { padding-bottom: env(safe-area-inset-bottom); overscroll-behavior: contain; }
+.pay-flow-footer { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); z-index: 1; }
+.pay-flow-name { min-width: 0; overflow-wrap: anywhere; }
+.pay-flow-row:focus-within { outline: 2px solid var(--emerald-600); outline-offset: 2px; }
+@media (max-width: 639.98px) {
+  .pay-flow { max-height: 100dvh; }
+  .pay-flow-footer { flex-direction: column; align-items: stretch; .btn { width: 100%; } }
+  .pay-flow-total { margin-right: 0; }
+  .pay-flow-input { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .pay-flow * { transition: none !important; animation: none !important; } }

@@ -1,4 +1,4 @@
-<div style="max-width:52rem;margin:0 auto">
+<div class="of-page">
   <div class="page-header">
     <div>
       <h1 class="page-title">{{ 'member.otherFees.title' | translate }}</h1>
@@ -7,19 +7,19 @@
   </div>
 
   @if (typesError === 'not_configured') {
-    <div class="error-box"><p style="margin:0">{{ 'member.otherFees.notConfigured' | translate }}</p></div>
+    <div class="error-box"><p class="of-msg">{{ 'member.otherFees.notConfigured' | translate }}</p></div>
   } @else if (typesError === 'access') {
-    <div class="error-box"><p style="margin:0">{{ 'member.otherFees.accessDenied' | translate }}</p></div>
+    <div class="error-box"><p class="of-msg">{{ 'member.otherFees.accessDenied' | translate }}</p></div>
   } @else if (typesError === 'generic') {
     <div class="error-box">
-      <p style="margin:0">{{ 'member.otherFees.feeLoadFailed' | translate }}</p>
-      <button type="button" class="btn btn-secondary" style="margin-top:0.5rem" (click)="retryRates()">
+      <p class="of-msg">{{ 'member.otherFees.feeLoadFailed' | translate }}</p>
+      <button type="button" class="btn btn-secondary of-retry" (click)="retryRates()">
         {{ 'member.otherFees.retry' | translate }}
       </button>
     </div>
   }
 
-  <div class="card" style="padding:1.25rem;margin-bottom:1.5rem">
+  <div class="card of-form-card">
     <div class="field">
       <label for="feeTypeSelect">{{ 'member.otherFees.typeLabel' | translate }} <span class="required">*</span></label>
       <select id="feeTypeSelect" [ngModel]="selectedType()" (ngModelChange)="selectType($event)" [disabled]="feeLoading">
@@ -42,7 +42,7 @@
           <span>{{ 'member.otherFees.alreadyPaid' | translate: { type: feeTypeLabel(type.key) } }}</span>
         </div>
       } @else {
-        <div class="grid-2" style="margin-top:0.75rem">
+        <div class="grid-2 of-mt">
           <div class="field">
             <label for="otherFeesDate">{{ 'member.otherFees.dateLabel' | translate }} <span class="required">*</span></label>
             <app-date-picker
@@ -89,7 +89,7 @@
 
         @if (type.calculation === 'picnic') {
           @for (label of labels; track $index) {
-            <div class="grid-2" style="margin-top:0.25rem">
+            <div class="grid-2 of-mt-sm">
               <div class="field">
                 <label [for]="'headName' + $index">{{ 'member.otherFees.headNameLabel' | translate: { n: $index + 1 } }}</label>
                 <input [id]="'headName' + $index" type="text" [(ngModel)]="label.name" [maxlength]="255" />
@@ -108,32 +108,32 @@
 
         <!-- Live breakdown, display-only: totals come from server-side rates. -->
         @if (breakdown(); as b) {
-          <div class="breakdown" style="margin-top:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;padding:0.75rem">
+          <div class="breakdown">
             @if (b.mode === 'picnic') {
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+              <div class="breakdown-row">
                 <span>{{ 'member.otherFees.memberHead' | translate }}</span>
-                <span style="white-space:nowrap">1 × ৳ {{ b.headFee }} = ৳ {{ b.headFee }}</span>
+                <span class="of-nowrap">1 × ৳ {{ b.headFee }} = ৳ {{ b.headFee }}</span>
               </div>
               @if (b.count > 0) {
-                <div class="breakdown-row" style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div class="breakdown-row">
                   <span>{{ 'member.otherFees.additionalHeads' | translate }}</span>
-                  <span style="white-space:nowrap">{{ b.count }} × ৳ {{ b.additionalHeadFee }} = ৳ {{ b.additionalAmount }}</span>
+                  <span class="of-nowrap">{{ b.count }} × ৳ {{ b.additionalHeadFee }} = ৳ {{ b.additionalAmount }}</span>
                 </div>
               }
             } @else {
-              <div class="breakdown-row" style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+              <div class="breakdown-row">
                 <span>{{ feeTypeLabel(type.key) }}</span>
-                <span style="white-space:nowrap">1 × ৳ {{ b.total }}</span>
+                <span class="of-nowrap">1 × ৳ {{ b.total }}</span>
               </div>
             }
-            <div class="breakdown-row" style="display:flex;justify-content:space-between;gap:1rem;border-top:1px solid #d1d5db;margin-top:0.5rem;padding-top:0.5rem">
+            <div class="breakdown-row breakdown-total">
               <strong>{{ 'member.otherFees.total' | translate }}</strong>
-              <strong style="white-space:nowrap">৳ {{ b.total }} {{ 'member.otherFees.taka' | translate }}</strong>
+              <strong class="of-nowrap">৳ {{ b.total }} {{ 'member.otherFees.taka' | translate }}</strong>
             </div>
           </div>
         }
 
-        <div class="grid-2" style="margin-top:0.75rem">
+        <div class="grid-2 of-mt">
           <div class="field">
             <label for="otherFeesMethod">{{ 'member.otherFees.methodLabel' | translate }}</label>
             <select id="otherFeesMethod" [(ngModel)]="paymentMethod">
@@ -149,22 +149,22 @@
         </div>
 
         @if (type.calculation === 'variable') {
-          <div class="field" style="margin-top:0.5rem">
+          <div class="field of-mt-sm">
             <label for="otherFeesNote">{{ 'member.otherFees.noteLabel' | translate }}</label>
             <input id="otherFeesNote" type="text" [(ngModel)]="note" [maxlength]="500" />
           </div>
         }
 
         @if (formError) {
-          <div class="error-box"><p style="margin:0">{{ formError }}</p></div>
+          <div class="error-box"><p class="of-msg">{{ formError }}</p></div>
         }
         @if (success) {
-          <div class="success-box"><p style="margin:0">{{ success }}</p></div>
+          <div class="success-box"><p class="of-msg">{{ success }}</p></div>
         }
 
-        <button type="button" class="btn btn-primary" style="margin-top:1rem" [disabled]="!canSubmit" (click)="submit()">
+        <button type="button" class="btn btn-primary of-submit" [disabled]="!canSubmit" (click)="submit()">
           @if (saving) {
-            <span class="spinner" style="width:1rem;height:1rem"></span>
+            <span class="spinner of-spinner"></span>
           }
           {{ (saving ? 'member.otherFees.saving' : 'member.otherFees.submit') | translate }}
         </button>
@@ -173,7 +173,7 @@
   </div>
 
   <div class="history-header">
-    <h2 class="section-title" style="margin:0">{{ 'member.otherFees.historyTitle' | translate }}</h2>
+    <h2 class="section-title of-history-title">{{ 'member.otherFees.historyTitle' | translate }}</h2>
     <div class="history-filters">
       <select [ngModel]="filterFeeType" (ngModelChange)="filterFeeType = $event" [attr.aria-label]="'member.otherFees.filterType' | translate">
         <option value="">{{ 'member.otherFees.filterAll' | translate }}</option>
@@ -202,7 +202,7 @@
   @if (loading) {
     <div class="card"><app-section-loader variant="rows" [count]="3" /></div>
   } @else if (historyError) {
-    <div class="error-box"><p style="margin:0">{{ historyError }}</p></div>
+    <div class="error-box"><p class="of-msg">{{ historyError }}</p></div>
   } @else {
     <div class="data-table-wrap">
       <table class="data-table data-table-cards">
@@ -250,7 +250,7 @@
     </div>
 
     @if ((history()?.total ?? 0) > 0) {
-      <div class="pagination" style="display:flex;gap:0.5rem;align-items:center;justify-content:center;margin-top:0.75rem">
+      <div class="pagination of-pagination">
         <button type="button" class="btn btn-secondary" [disabled]="historyPage <= 1" (click)="goToPage(historyPage - 1)">
           {{ 'member.otherFees.prevPage' | translate }}
         </button>

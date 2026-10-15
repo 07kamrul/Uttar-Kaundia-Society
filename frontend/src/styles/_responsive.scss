@@ -1,0 +1,39 @@
+// Responsive foundation: one set of breakpoints + mixins shared by global and
+// component styles. Component SCSS: `@use 'styles/responsive' as r;` (path is
+// relative to the angular.json stylePreprocessorOptions includePaths, or use a
+// relative `../../..` path) then `@include r.down(md) { ... }`.
+//
+// Breakpoints (mobile-first, rem-independent px so text-lg does not shift layouts):
+//   sm 640  large phone / small tablet portrait
+//   md 768  tablet portrait
+//   lg 1024 tablet landscape / small laptop
+//   xl 1280 desktop
+@use 'sass:map';
+
+$breakpoints: (
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+);
+
+/// Styles for viewports at or above the named breakpoint.
+@mixin up($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+/// Styles for viewports strictly below the named breakpoint.
+@mixin down($name) {
+  @media (max-width: map.get($breakpoints, $name) - 0.02px) {
+    @content;
+  }
+}
+
+/// Touch devices without hover (phones/tablets) — use for 44px tap targets.
+@mixin touch {
+  @media (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}

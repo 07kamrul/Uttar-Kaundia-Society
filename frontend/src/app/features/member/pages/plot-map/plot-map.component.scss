@@ -8,9 +8,9 @@
 
 .plot-map-page {
   position: relative;
-  height: calc(100vh - 64px);
-  height: calc(100dvh - 64px);
-  min-height: 480px;
+  height: calc(100vh - 64px - var(--shell-bottom-bar-h, 0px));
+  height: calc(100dvh - 64px - var(--shell-bottom-bar-h, 0px));
+  min-height: min(480px, calc(100dvh - 64px - var(--shell-bottom-bar-h, 0px)));
 }
 
 /* Full-bleed map: every control floats over the tiles on glass surfaces so
@@ -963,8 +963,8 @@
 /* Wide desktop: roomier cards. */
 @media (min-width: 1280px) {
   .plot-map-page {
-    height: calc(100vh - 72px);
-    height: calc(100dvh - 72px);
+    height: calc(100vh - 72px - var(--shell-bottom-bar-h, 0px));
+    height: calc(100dvh - 72px - var(--shell-bottom-bar-h, 0px));
   }
 
   .details-sheet {
@@ -974,7 +974,7 @@
 
 /* Phones: hide button labels, keep icons (with aria-labels) so the toolbar
    fits on one row; larger hit areas. */
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .map-topbar {
     top: 0.5rem;
     inset-inline: 0.5rem;

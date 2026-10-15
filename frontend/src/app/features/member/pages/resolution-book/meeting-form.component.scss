@@ -135,7 +135,7 @@
 
   &.rb-toggle-active {
     background: var(--emerald-600, #2e5138);
-    color: #fff;
+    color: var(--surface, #fff);
     font-weight: 600;
   }
 }
@@ -265,7 +265,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .rb-field-grid,
   .rb-votes-grid,
   .rb-attendance-editor {

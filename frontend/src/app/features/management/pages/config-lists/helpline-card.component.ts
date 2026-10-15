@@ -10,8 +10,8 @@ import { HelplineService, type Helpline } from '../../../../core/services/helpli
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe],
   template: `
-    <section class="card card-pad" data-testid="helpline-card" style="margin-bottom:1.5rem">
-      <h2 style="font-size:1rem;margin-top:0">{{ 'admin.helpline.title' | translate }}</h2>
+    <section data-testid="helpline-card" class="card card-pad helpline-card">
+      <h2 class="helpline-title">{{ 'admin.helpline.title' | translate }}</h2>
       <p class="field-hint">{{ 'admin.helpline.hint' | translate }}</p>
       <div class="form-grid">
         <div class="field">
@@ -37,6 +37,13 @@ import { HelplineService, type Helpline } from '../../../../core/services/helpli
         {{ 'admin.helpline.save' | translate }}
       </button>
     </section>
+  `,
+  styles: `
+    .helpline-card { margin-bottom: 1.25rem; }
+    .helpline-title { margin: 0 0 0.35rem; font-size: 1rem; }
+    @media (max-width: 639.98px) {
+      .helpline-card .btn { width: 100%; min-height: 2.75rem; }
+    }
   `,
 })
 export class HelplineCardComponent implements OnInit {

@@ -9,7 +9,7 @@
   @if (loading) {
     <app-section-loader variant="cards" [count]="4" />
   } @else if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+    <div class="error-box" role="alert"><p style="margin:0">{{ error }}</p><button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.5rem" (click)="load()">{{ 'common.retry' | translate }}</button></div>
   } @else {
     @if (actionError) {
       <div class="error-box" role="alert"><p style="margin:0">{{ actionError }}</p></div>
@@ -49,6 +49,7 @@
             <input
               type="search"
               class="role-mgmt-search"
+              [attr.aria-label]="'admin.roleManagement.searchPlaceholder' | translate"
               [placeholder]="'admin.roleManagement.searchPlaceholder' | translate"
               [(ngModel)]="permissionSearch"
               [disabled]="role.name === 'super_admin'"
@@ -125,19 +126,19 @@
 
       <div class="card role-mgmt-card">
         @if (createUserError) {
-          <div class="error-box"><p style="margin:0">{{ createUserError }}</p></div>
+          <div class="error-box" role="alert"><p style="margin:0">{{ createUserError }}</p></div>
         }
         @if (createUserSuccess) {
           <div class="status-badge status-approved role-mgmt-success">{{ createUserSuccess }}</div>
         }
         <div class="grid-2">
           <div class="field">
-            <label>{{ 'admin.roleManagement.createAdmin.nameLabel' | translate }}</label>
-            <input type="text" [(ngModel)]="newUserName" [placeholder]="'admin.roleManagement.createAdmin.namePlaceholder' | translate" />
+            <label for="rm-new-name">{{ 'admin.roleManagement.createAdmin.nameLabel' | translate }}</label>
+            <input id="rm-new-name" type="text" [(ngModel)]="newUserName" [placeholder]="'admin.roleManagement.createAdmin.namePlaceholder' | translate" />
           </div>
           <div class="field">
-            <label>{{ 'admin.roleManagement.createAdmin.emailLabel' | translate }}</label>
-            <input type="email" [(ngModel)]="newUserEmail" placeholder="admin@example.com" />
+            <label for="rm-new-email">{{ 'admin.roleManagement.createAdmin.emailLabel' | translate }}</label>
+            <input id="rm-new-email" type="email" autocomplete="off" [(ngModel)]="newUserEmail" placeholder="admin@example.com" />
           </div>
         </div>
         <div class="grid-2">
@@ -146,8 +147,8 @@
             <app-password-field [(ngModel)]="newUserPassword" autocomplete="new-password" [placeholder]="'admin.roleManagement.createAdmin.passwordPlaceholder' | translate" />
           </div>
           <div class="field">
-            <label>{{ 'admin.roleManagement.createAdmin.roleLabel' | translate }}</label>
-            <select [(ngModel)]="newUserRole">
+            <label for="rm-new-role">{{ 'admin.roleManagement.createAdmin.roleLabel' | translate }}</label>
+            <select id="rm-new-role" [(ngModel)]="newUserRole">
               <option value="administrator">{{ roleLabel('administrator') }}</option>
               <option value="executive_committee">{{ roleLabel('executive_committee') }}</option>
               <option value="super_admin">{{ roleLabel('super_admin') }}</option>
@@ -170,8 +171,8 @@
           <app-section-loader variant="form" [count]="2" />
         } @else {
         <div class="field">
-          <label>{{ 'admin.roleManagement.userOverrides.userLabel' | translate }}</label>
-          <select [ngModel]="selectedUserId" [disabled]="loadingOverrides" (ngModelChange)="onSelectUser($event)">
+          <label for="rm-override-user">{{ 'admin.roleManagement.userOverrides.userLabel' | translate }}</label>
+          <select id="rm-override-user" [ngModel]="selectedUserId" [disabled]="loadingOverrides" (ngModelChange)="onSelectUser($event)">
             @for (user of users; track user.id) {
               <option [value]="user.id">{{ user.name }} ({{ user.email }})</option>
             }
@@ -181,8 +182,8 @@
         @if (selectedUserId) {
           <div class="grid-2 role-mgmt-stack">
             <div class="field">
-              <label>{{ 'admin.roleManagement.userOverrides.assignRoleLabel' | translate }}</label>
-              <select [(ngModel)]="roleAssignDraft">
+              <label for="rm-assign-role">{{ 'admin.roleManagement.userOverrides.assignRoleLabel' | translate }}</label>
+              <select id="rm-assign-role" [(ngModel)]="roleAssignDraft">
                 <option value="administrator">{{ roleLabel('administrator') }}</option>
                 <option value="executive_committee">{{ roleLabel('executive_committee') }}</option>
                 <option value="super_admin">{{ roleLabel('super_admin') }}</option>
@@ -204,16 +205,16 @@
         @if (selectedUserId) {
           <div class="grid-2 role-mgmt-stack">
             <div class="field">
-              <label>{{ 'admin.roleManagement.userOverrides.permissionLabel' | translate }}</label>
-              <select [(ngModel)]="overrideDraftKey">
+              <label for="rm-override-permission">{{ 'admin.roleManagement.userOverrides.permissionLabel' | translate }}</label>
+              <select id="rm-override-permission" [(ngModel)]="overrideDraftKey">
                 @for (permission of permissions; track permission.key) {
                   <option [value]="permission.key">{{ permission.description }}</option>
                 }
               </select>
             </div>
             <div class="field">
-              <label>{{ 'admin.roleManagement.userOverrides.actionLabel' | translate }}</label>
-              <select [(ngModel)]="overrideDraftAction">
+              <label for="rm-override-action">{{ 'admin.roleManagement.userOverrides.actionLabel' | translate }}</label>
+              <select id="rm-override-action" [(ngModel)]="overrideDraftAction">
                 <option value="grant">{{ 'admin.roleManagement.userOverrides.grantOption' | translate }}</option>
                 <option value="revoke">{{ 'admin.roleManagement.userOverrides.revokeOption' | translate }}</option>
               </select>

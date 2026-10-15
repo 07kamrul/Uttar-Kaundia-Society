@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
   overflow-y: auto;
 }
 
@@ -228,7 +228,7 @@
   color: var(--emerald-800);
 }
 
-@media (max-width: 560px) {
+@media (max-width: 639.98px) {
   .pay-step-label {
     display: none;
   }
@@ -236,4 +236,16 @@
   .pay-footer .btn {
     flex: 1;
   }
+}
+
+.pay-dialog { padding-bottom: env(safe-area-inset-bottom); overscroll-behavior: contain; }
+.pay-footer { position: sticky; bottom: 0; padding-bottom: max(0.25rem, env(safe-area-inset-bottom)); background: var(--surface); }
+
+@media (max-width: 639.98px) {
+  .pay-dialog { max-height: 100dvh; }
+  .pay-footer .btn { min-height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-dialog * { transition: none !important; animation: none !important; }
 }

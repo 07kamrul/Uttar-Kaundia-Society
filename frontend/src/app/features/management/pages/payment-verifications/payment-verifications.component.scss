@@ -1,3 +1,5 @@
+@use '../../../../../styles/responsive' as r;
+
 .pv-page {
   max-width: 56rem;
   margin: 0 auto;
@@ -48,6 +50,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.pv-card-head > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .pv-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
@@ -91,15 +98,15 @@
 }
 
 .pv-actions .btn {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
 }
 
-@media (max-width: 480px) {
+@include r.down(sm) {
   .pv-actions {
     justify-content: stretch;
 
     .btn {
-      flex: 1 1 auto;
+      flex: 1 1 8rem;
     }
   }
 }
@@ -143,7 +150,7 @@
 
 .pv-bulk-bar {
   position: sticky;
-  bottom: 0.5rem;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
   z-index: 20;
   display: flex;
   flex-wrap: wrap;
@@ -159,5 +166,11 @@
 
   .btn {
     min-height: 48px;
+  }
+}
+
+@include r.down(sm) {
+  .pv-bulk-bar .btn {
+    flex: 1 1 100%;
   }
 }

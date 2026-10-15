@@ -1,4 +1,5 @@
 @use 'styles/forms';
+@use 'styles/responsive';
 
 /* Leaflet and Geoman CSS live in styles/map.scss, loaded only on the map routes (shared/map/load-map-styles.ts). */
 
@@ -461,7 +462,7 @@ a {
   align-items: center;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023.98px) {
   .hero-grid {
     grid-template-columns: 1fr;
   }
@@ -557,7 +558,7 @@ a {
   gap: 1.3rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023.98px) {
   .feature-grid {
     grid-template-columns: 1fr;
   }
@@ -879,7 +880,10 @@ a {
   width: min(95vw, 40rem);
   margin: 1.5rem auto;
   position: relative;
+  /* clip keeps rounded corners without creating a scroll container, so the
+     sticky step-nav bar can stick to the viewport. */
   overflow: hidden;
+  overflow: clip;
 }
 
 .reg-card-body {
@@ -977,7 +981,7 @@ a {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 639.98px) {
   .card {
     border-radius: 0.5rem;
   }
@@ -985,24 +989,6 @@ a {
   .btn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
-  }
-
-  .stepper {
-    flex-wrap: wrap;
-    row-gap: 0.5rem;
-  }
-
-  .stepper-circle {
-    width: 1.75rem;
-    height: 1.75rem;
-    font-size: 0.75rem;
-  }
-
-  .stepper-label {
-    font-size: 0.625rem;
-    white-space: normal;
-    max-width: 3.5rem;
-    text-align: center;
   }
 
   .stepper-line {
@@ -1459,7 +1445,7 @@ a {
 /* Wide-card variant: same card stack as .data-table-cards but from 900px down,
    for many-column tables that are already too squeezed at tablet width beside
    the sidebar (complaints-admin: 6 columns). Opt-in. */
-@media (max-width: 900px) {
+@media (max-width: 1023.98px) {
   .data-table-cards-lg {
     border-collapse: separate;
     border-spacing: 0 0.6rem;
@@ -2375,7 +2361,7 @@ a {
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1024px) {
   .ds-field-grid-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -3053,7 +3039,7 @@ a {
   gap: 1rem;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .nominee-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3108,7 +3094,7 @@ a {
   gap: 0.875rem;
 }
 
-@media (min-width: 480px) {
+@media (min-width: 640px) {
   .nominee-card-body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4487,5 +4473,684 @@ html.ui-v2 {
   .cell-secondary,
   .topbar-welcome {
     font-size: 0.875rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Responsive safeguards (global). Additive only: they stop the classes of bug
+// that show up on small screens regardless of the page (horizontal page
+// scroll, clipped dialogs, tiny tap targets, unreadable long Bengali strings).
+// ---------------------------------------------------------------------------
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* Long unbroken strings (emails, URLs, reference numbers) wrap instead of
+   pushing the layout wider than the viewport. */
+.page-title,
+.card-title,
+.dlg-title,
+.cell-secondary,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
+/* Dialogs: dynamic viewport units so mobile browser chrome never hides the
+   footer buttons; contain scroll so the page behind does not move. */
+.dlg {
+  max-height: min(90vh, 100%);
+  max-height: min(90dvh, 100%);
+}
+
+.dlg-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dlg-foot {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .dlg-backdrop {
+    height: 100dvh;
+  }
+
+  .dlg-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--modal-surface);
+  }
+}
+
+/* Tablets: dialogs keep a comfortable margin instead of touching the edges. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .dlg {
+    width: min(var(--dlg-width, 40rem), calc(100% - 2rem));
+  }
+}
+
+/* Touch devices: 44px minimum hit area on common controls, no tap flash. */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .ds-icon-btn,
+  .dlg-close,
+  .chip,
+  select,
+  input:not([type='checkbox']):not([type='radio']) {
+    min-height: 44px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Inputs at 16px on phones: iOS Safari zooms the page on focus below that. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/* Grid/flex children may shrink below their content size, preventing the
+   classic "one wide child blows out the card" overflow. */
+.card,
+.ds-card,
+.page-header > * {
+  min-width: 0;
+}
+
+/* Honour the iPhone notch / home indicator for full-width fixed UI. */
+.dlg-backdrop {
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+}
+
+@media (max-width: 640px) {
+  .dlg-backdrop {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+
+/* ==========================================================================
+   Responsive pass: public / auth / registration screens + shared primitives.
+   Appended last so it refines the earlier rules without renaming anything.
+   ========================================================================== */
+
+/* Generic keyboard focus ring for links/buttons that had none. */
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible,
+.stepper-circle:focus-visible,
+.ds-tab:focus-visible,
+.tab-row .tab:focus-visible,
+.filters .tab:focus-visible {
+  outline: 2px solid var(--emerald-600);
+  outline-offset: 2px;
+}
+
+/* Public header: brand name wraps instead of pushing the toggle off-screen;
+   the mobile drawer respects the notch. */
+.site-header-brand {
+  min-width: 0;
+}
+
+.site-header-brand-name {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639.98px) {
+  .site-header-actions {
+    padding-right: max(1.2rem, env(safe-area-inset-right));
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+}
+
+.site-footer {
+  padding-bottom: max(1.2rem, env(safe-area-inset-bottom));
+  overflow-wrap: anywhere;
+}
+
+/* Home hero: fluid heading, tighter gutters on phones, wrapping stat rows. */
+.hero-heading {
+  font-size: clamp(1.75rem, 1.2rem + 2.6vw, 2.5rem);
+  overflow-wrap: anywhere;
+}
+
+.hero-stat-row {
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.hero-stat-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hero-stat-value {
+  flex-shrink: 0;
+}
+
+@media (max-width: 639.98px) {
+  .hero-section {
+    padding: 1.75rem 1rem 1.5rem;
+  }
+
+  .feature-section,
+  .public-page {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .public-page {
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .hero-grid {
+    gap: 1.5rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-stat-card {
+    padding: 1.1rem;
+  }
+}
+
+/* Long-form public pages (notices / events). */
+.pp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pp-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.pp-card-link:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.pp-meta {
+  display: flex;
+  gap: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.pp-date {
+  color: var(--gray-600);
+  font-size: 0.85rem;
+}
+
+.pp-title {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pp-excerpt {
+  margin: 0.35rem 0 0;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.pp-heading {
+  margin-bottom: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.pp-body {
+  white-space: pre-line;
+  margin: 0;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.pp-back {
+  margin-bottom: 1rem;
+}
+
+/* Auth screens (login / forgot / reset) and the 403 page. */
+.auth-card {
+  width: 100%;
+  max-width: 28rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.auth-logo {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.auth-subtitle {
+  color: var(--gray-600);
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+}
+
+.auth-form {
+  text-align: left;
+}
+
+.auth-box-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.error-box .auth-box-text {
+  color: var(--red-600);
+}
+
+.auth-forgot-row {
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+.auth-link {
+  display: inline-block;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.auth-link-muted {
+  color: var(--gray-600);
+}
+
+.auth-divider {
+  border: none;
+  border-top: 1px solid var(--gray-200);
+  margin: 1.5rem 0;
+}
+
+.auth-alt-text {
+  margin: 0 0 0.75rem;
+}
+
+.auth-back {
+  margin: 1rem 0 0;
+}
+
+.auth-btn-block {
+  width: 100%;
+  display: flex;
+}
+
+.forbidden-page {
+  max-width: 32rem;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.forbidden-action {
+  margin-top: 1rem;
+}
+
+@media (max-width: 639.98px) {
+  .auth-card {
+    padding: 1.5rem 1.1rem;
+  }
+
+  .forbidden-page {
+    margin: 2.5rem auto;
+  }
+}
+
+/* Registration wizard. */
+.reg-card {
+  max-width: 100%;
+}
+
+.reg-org-name,
+.reg-org-subtitle,
+.reg-form-badge,
+.reg-step-header {
+  overflow-wrap: anywhere;
+}
+
+.stepper {
+  scrollbar-width: none;
+  padding: 0.25rem 0.1rem;
+}
+
+.stepper::-webkit-scrollbar {
+  display: none;
+}
+
+.stepper-circle {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* 44px hit area without enlarging the visual circle. */
+.stepper-circle::before {
+  content: '';
+  position: absolute;
+  inset: -0.4rem;
+}
+
+.stepper-label {
+  overflow-wrap: anywhere;
+  text-align: center;
+  max-width: 5rem;
+  white-space: normal;
+}
+
+@media (max-width: 639.98px) {
+  /* Phone: one compact, non-wrapping row; only the active step shows its
+     label so six steps always fit at 360px. */
+  .stepper {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    row-gap: 0;
+  }
+
+  .stepper-item {
+    min-width: 0;
+  }
+
+  .stepper-item:not(.active) .stepper-label {
+    display: none;
+  }
+
+  .stepper-item.active .stepper-label {
+    max-width: 4.5rem;
+    font-size: 0.65rem;
+  }
+
+  .stepper-line {
+    margin-bottom: 0;
+    min-width: 0.4rem;
+  }
+}
+
+.reg-card-body {
+  --reg-pad-x: 1.5rem;
+  --reg-pad-y: 1rem;
+}
+
+.step-nav-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  gap: 0.75rem;
+  margin: 1.5rem calc(-1 * var(--reg-pad-x)) calc(-1 * var(--reg-pad-y));
+  padding: 0.75rem var(--reg-pad-x) max(0.75rem, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--gray-200);
+}
+
+.step-nav-row .btn {
+  min-height: 2.75rem;
+}
+
+@media (max-width: 639.98px) {
+  .reg-card-body {
+    --reg-pad-x: 0.75rem;
+    --reg-pad-y: 0.75rem;
+  }
+
+  .reg-card {
+    margin: 0.5rem auto;
+    width: calc(100% - 1rem);
+  }
+
+  .step-nav-row .btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .step-nav-row > span {
+    display: none;
+  }
+
+  .submit-btn {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .draft-toast {
+    flex-wrap: wrap;
+  }
+
+  .draft-saved-indicator {
+    text-align: left;
+  }
+}
+
+@media (min-width: 768px) {
+  .reg-card-body {
+    --reg-pad-x: 2rem;
+    --reg-pad-y: 1.5rem;
+  }
+}
+
+.page-with-banner {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (max-width: 639.98px) {
+  .page-with-banner {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Text-only action buttons inside registration steps (remove / add nominee,
+   remove receipt): link look, real tap target. */
+.reg-text-btn {
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  background: none;
+  border: none;
+  color: var(--emerald-800);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.reg-text-btn-danger {
+  color: var(--red-600);
+}
+
+/* Form fields: labels/errors wrap for long Bengali text. */
+.field label {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.field-error,
+.field-hint {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* Buttons: wrap long Bengali labels, 44px tap target below desktop. */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  text-align: center;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.btn-secondary:disabled,
+.btn-ghost:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 1023.98px) {
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .btn-danger {
+    min-height: 2.75rem;
+  }
+}
+
+/* Dialog primitive on phones: tighter padding, 44px close, wrapping footer
+   with safe-area space, bottom-anchored sheet. */
+.dlg-heading {
+  flex: 1;
+}
+
+.dlg-title,
+.dlg-sub {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639.98px) {
+  .dlg-head {
+    padding: 0.9rem 1rem 0.8rem;
+  }
+
+  .dlg-body {
+    padding: 1rem;
+  }
+
+  .dlg-foot {
+    padding: 0.8rem 1rem max(0.8rem, env(safe-area-inset-bottom));
+  }
+
+  .dlg-foot > .btn,
+  .dlg-foot > button {
+    flex: 1 1 9rem;
+  }
+
+  .dlg-close {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .dlg-backdrop {
+    align-items: flex-end;
+  }
+
+  .dlg {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}
+
+/* Tables: scroll container never exceeds its parent; pagination stacks. */
+.data-table-wrap {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 639.98px) {
+  .table-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .table-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Tabs / chips: 44px on touch. */
+@media (hover: none) and (pointer: coarse) {
+  .ds-tab,
+  .tab-row .tab,
+  .filters .tab {
+    min-height: 2.75rem;
+  }
+}
+
+/* Badges: long Bengali labels wrap rather than overflow their container. */
+.ds-badge,
+.status-badge {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+/* Stat tiles: readable with large numbers / long labels at 360px. */
+.stat-tile {
+  min-width: 0;
+}
+
+.stat-tile-label,
+.stat-tile-value {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639.98px) {
+  .stat-tile {
+    padding: 1rem;
+  }
+
+  .stat-tile-value {
+    font-size: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header-actions,
+  .dlg,
+  .feature-card,
+  .stepper-circle,
+  input[type='checkbox']::after,
+  input[type='radio']::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

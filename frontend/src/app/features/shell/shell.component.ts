@@ -44,7 +44,7 @@ const EMERGENCY_HELP_ROUTE = '/emergency-help';
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
-  host: { '(document:keydown.escape)': 'closeUserMenu()' },
+  host: { '(document:keydown.escape)': 'closeUserMenu(); closeSidebar()' },
 })
 export class ShellComponent implements OnInit {
   isUserMenuOpen = false;

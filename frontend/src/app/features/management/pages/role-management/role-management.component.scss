@@ -1,0 +1,172 @@
+@use '../../../../../styles/responsive' as r;
+
+// Layered over the shared .role-mgmt-* rules in styles.scss. Fixes theme
+// tokens (white backgrounds, white-on-emerald text), contrast of small
+// captions, focus visibility and phone ergonomics of the permission matrix.
+
+.role-mgmt {
+  min-width: 0;
+}
+
+// --- Role tabs: scroll-snapping strip, theme-aware ---
+.role-mgmt-tabs {
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  margin-inline: -0.25rem;
+  padding-inline: 0.25rem;
+}
+
+.role-mgmt-tab {
+  flex: none;
+  min-height: 2.5rem;
+  scroll-snap-align: start;
+  background: var(--surface);
+
+  &:focus-visible,
+  &.active:focus-visible {
+    outline: 2px solid var(--gold-strong);
+    outline-offset: 2px;
+  }
+
+  &.active {
+    color: var(--surface);
+  }
+}
+
+.role-mgmt-tab-count {
+  background: var(--surface-2);
+  color: var(--gray-700);
+}
+
+.role-mgmt-tab.active .role-mgmt-tab-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--surface);
+}
+
+// --- Panel ---
+.role-mgmt-search {
+  min-height: 2.5rem;
+  background: var(--surface);
+  color: var(--gray-800);
+
+  &:focus-visible {
+    outline: 2px solid var(--emerald-600);
+    outline-offset: 1px;
+  }
+}
+
+.role-mgmt-count {
+  color: var(--gray-700);
+}
+
+.role-mgmt-super-note {
+  background: var(--surface-2);
+  color: var(--gray-700);
+}
+
+.role-mgmt-groups {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+}
+
+.role-mgmt-group {
+  background: var(--surface-2);
+}
+
+.role-mgmt-group-title,
+.role-mgmt-group-count {
+  color: var(--gray-700);
+}
+
+.role-mgmt-group-title {
+  overflow-wrap: anywhere;
+}
+
+.role-mgmt-group-toggle {
+  flex: none;
+  min-height: 2rem;
+  padding-inline: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background: var(--emerald-700);
+    color: var(--surface);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--emerald-600);
+    outline-offset: 1px;
+  }
+}
+
+.role-mgmt-permission-label {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.role-mgmt-section-subtitle {
+  color: var(--gray-700);
+}
+
+.role-mgmt-override-remove {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  border-radius: 50%;
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+  }
+}
+
+.role-mgmt-override-list .status-badge {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+// Create-admin / override forms: 2 columns from tablet, 1 on phones (via .grid-2).
+.role-mgmt-card .btn {
+  min-height: 2.5rem;
+}
+
+@include r.down(sm) {
+  .role-mgmt-card {
+    padding: 1rem;
+  }
+
+  .role-mgmt-card > .btn,
+  .role-mgmt-field-end .btn {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  // Permission matrix on a phone: roomy rows, 44px+ touch area per permission.
+  .role-mgmt-permission {
+    min-height: 3rem;
+    padding-block: 0.4rem;
+  }
+
+  .role-mgmt-group-toggle {
+    min-height: 2.75rem;
+  }
+
+  .role-mgmt-panel-header .status-badge {
+    white-space: normal;
+  }
+}
+
+@include r.touch {
+  .role-mgmt-tab {
+    min-height: 2.75rem;
+  }
+
+  .role-mgmt-override-remove {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-mgmt-tab {
+    transition: none;
+  }
+}

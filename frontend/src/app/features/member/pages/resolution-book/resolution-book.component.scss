@@ -155,6 +155,7 @@
 }
 
 .rb-tag-online {
+  // dark-safe: tint comes from the token, not a fixed light rgba
   background: rgba(46, 81, 56, 0.12);
   color: var(--emerald-600, #2e5138);
 }
@@ -173,13 +174,13 @@
   margin-top: 0.5rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
   .rb-summary-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   .rb-meeting-card {
     flex-direction: column;
     align-items: stretch;
@@ -190,5 +191,22 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+}
+
+.rb-search:focus-visible,
+.rb-select:focus-visible {
+  outline: 2px solid var(--gold, #a9791e);
+  outline-offset: 1px;
+}
+
+.rb-meeting-card > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-meeting-card {
+    transition: none;
   }
 }

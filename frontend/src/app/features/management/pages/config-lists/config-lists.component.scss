@@ -1,0 +1,52 @@
+@use '../../../../../styles/responsive' as r;
+
+.cfg-flush {
+  margin: 0;
+}
+
+.cfg-add {
+  margin-bottom: 1.25rem;
+}
+
+.cfg-add-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.cfg-save-error {
+  margin: 0.75rem 0 0;
+}
+
+.inline-edit-value {
+  display: inline-block;
+  padding: 0.15rem 0;
+}
+
+.inline-edit-value:focus-visible {
+  outline: 2px solid var(--emerald-600);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+@include r.down(sm) {
+  .inline-edit {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .inline-edit input {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+
+  // In stacked-card mode, sort arrows + toggle spread across the card width.
+  .row-actions {
+    gap: 0.5rem;
+  }
+
+  .row-actions .btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}

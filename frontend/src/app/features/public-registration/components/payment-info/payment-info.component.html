@@ -82,7 +82,7 @@
         type="number"
         formControlName="admissionFee"
         readonly
-        style="background:#f3f4f6;color:#374151"
+        style="background:var(--surface-2);color:var(--gray-700)"
       />
       @if (feeLoading) {
         <p class="field-hint">{{ 'registration.payment.admissionFeeLoading' | translate }}</p>
@@ -105,7 +105,7 @@
         type="number"
         formControlName="subscription"
         readonly
-        style="background:#f3f4f6;color:#374151"
+        style="background:var(--surface-2);color:var(--gray-700)"
       />
       @if (subscriptionLoading()) {
         <p class="field-hint">{{ 'registration.payment.subscriptionLoading' | translate }}</p>
@@ -138,23 +138,23 @@
     <label>{{ 'registration.payment.receiptImageLabel' | translate }}</label>
     <div style="margin-top:0.5rem;max-width:24rem;width:100%">
       @if (form.get('receiptFileDataUrl')?.value) {
-        <div style="display:flex;align-items:center;gap:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;padding:0.5rem">
-          <span style="flex:1;font-size:0.75rem;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        <div style="display:flex;align-items:center;gap:0.75rem;border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.5rem">
+          <span style="flex:1;font-size:0.75rem;color:var(--gray-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
             {{ form.get('receiptFileName')?.value }}
           </span>
-          <button type="button" (click)="removeReceiptFile()" style="font-size:0.75rem;color:#dc2626;background:none;border:none;cursor:pointer">
+          <button type="button" (click)="removeReceiptFile()" class="reg-text-btn reg-text-btn-danger">
             {{ 'registration.payment.removeFile' | translate }}
           </button>
         </div>
       } @else {
         <label
-          style="display:flex;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.75rem;cursor:pointer"
+          style="display:flex;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed var(--gray-300);border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.75rem;cursor:pointer"
         >
           📎 {{ 'registration.payment.attachReceipt' | translate }}
           <input type="file" accept="image/jpeg,image/png,application/pdf" (change)="onReceiptFileChange($event)" style="display:none" />
         </label>
       }
-      <p style="font-size:0.6875rem;color:#6b7280;margin:0.25rem 0 0">
+      <p style="font-size:0.6875rem;color:var(--gray-600);margin:0.25rem 0 0">
         {{ 'registration.payment.maxFileSizeHint' | translate: { maxMb: maxReceiptFileMb } }}
       </p>
       @if (receiptFileError) {
@@ -180,7 +180,7 @@
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
     }
     @if (isBankSelected) {
-      <div class="field-hint" style="border:1px solid #d1d5db;border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
+      <div class="field-hint" style="border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
         <p><strong>{{ 'registration.payment.bankNameLabel' | translate }}:</strong> {{ bankInfo.bankName }}</p>
         <p><strong>{{ 'registration.payment.branchLabel' | translate }}:</strong> {{ bankInfo.branch }}</p>
         <p><strong>{{ 'registration.payment.accountNameLabel' | translate }}:</strong> {{ bankInfo.accountName }}</p>
@@ -189,7 +189,7 @@
       </div>
     }
     @if (isMfsSelected) {
-      <div class="field-hint" style="border:1px solid #d1d5db;border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
+      <div class="field-hint" style="border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
         <p><strong>{{ 'registration.payment.mfsNumberLabel' | translate }}:</strong> {{ mfsInfo.number }} ({{ mfsInfo.type }})</p>
       </div>
     }

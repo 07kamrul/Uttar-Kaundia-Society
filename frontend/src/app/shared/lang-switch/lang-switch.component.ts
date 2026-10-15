@@ -26,7 +26,8 @@ import { LanguageService, type LanguageCode } from '../../core/services/language
   `,
   styles: `
     .lang-switch { display: inline-flex; border: 1px solid var(--gray-300, #d1d5db); border-radius: 999px; overflow: hidden; }
-    .lang-btn { min-height: 40px; padding: 0 0.8rem; border: 0; background: transparent; color: inherit; font: inherit; font-size: 0.9rem; cursor: pointer; }
+    .lang-btn { min-height: 44px; white-space: nowrap; padding: 0 0.8rem; border: 0; background: transparent; color: inherit; font: inherit; font-size: 0.9rem; cursor: pointer; }
+    .lang-btn:focus-visible { outline: 2px solid var(--gold, #d4a017); outline-offset: -3px; }
     .lang-btn.is-active { background: var(--emerald-700, #047857); color: #fff; font-weight: 700; }
   `,
 })

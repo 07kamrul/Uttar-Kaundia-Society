@@ -1,5 +1,5 @@
 <div class="public-page">
-  <a routerLink="/notices" class="btn btn-ghost btn-sm" style="margin-bottom: 1rem">
+  <a routerLink="/notices" class="btn btn-ghost btn-sm pp-back">
     ← {{ 'notices.backToList' | translate }}
   </a>
 
@@ -9,24 +9,16 @@
     <div class="card empty-state">{{ 'notices.notFound' | translate }}</div>
   } @else {
     <article class="card">
-      <div
-        style="
-          display: flex;
-          gap: 0.75rem;
-          flex-wrap: wrap;
-          align-items: center;
-          margin-bottom: 0.5rem;
-        "
-      >
+      <div class="pp-meta">
         @if (categoryLabel) {
           <span class="ds-badge ds-badge-blue">{{ categoryLabel }}</span>
         }
-        <span style="color: var(--gray-600); font-size: 0.85rem">
+        <span class="pp-date">
           {{ notice.publishAt ?? notice.createdAt | date: 'MMMM d, y' }}
         </span>
       </div>
-      <h1 class="page-title" style="margin-bottom: 0.75rem">{{ notice.title }}</h1>
-      <p style="white-space: pre-line; margin: 0; line-height: 1.7">{{ notice.body }}</p>
+      <h1 class="page-title pp-heading">{{ notice.title }}</h1>
+      <p class="pp-body">{{ notice.body }}</p>
     </article>
   }
 </div>

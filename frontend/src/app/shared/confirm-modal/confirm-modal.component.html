@@ -1,7 +1,14 @@
 @if (open) {
   <div class="modal-backdrop" (click)="onBackdropClick($event)">
-    <div class="modal-card">
-      <h3 class="modal-title">{{ title }}</h3>
+    <div
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+      tabindex="-1"
+      (keydown)="onKeydown($event)"
+    >
+      <h3 class="modal-title" id="confirm-modal-title">{{ title }}</h3>
       @if (message) {
         <p class="modal-message">{{ message }}</p>
       }

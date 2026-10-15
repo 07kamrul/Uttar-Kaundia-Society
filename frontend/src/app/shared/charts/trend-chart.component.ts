@@ -64,7 +64,7 @@ interface TrendSeries {
           </svg>
 
           @if (hoverIndex !== null && hoverIndex < labels.length) {
-            <div class="trend-tooltip" [style.left.%]="tooltipLeft">
+            <div class="trend-tooltip" [style.left]="'clamp(5.5rem, ' + tooltipLeft + '%, calc(100% - 5.5rem))'">
               <p class="trend-tooltip-label">{{ labels[hoverIndex] }}</p>
               <p class="trend-tooltip-row"><span class="trend-swatch trend-income"></span>{{ incomeLabel }}: {{ formatValue(incomeValues[hoverIndex]) }}</p>
               <p class="trend-tooltip-row"><span class="trend-swatch trend-expense"></span>{{ expenseLabel }}: {{ formatValue(expenseValues[hoverIndex]) }}</p>
@@ -141,6 +141,7 @@ interface TrendSeries {
     .trend-band {
       fill: transparent;
       cursor: pointer;
+      touch-action: pan-y;
     }
     .trend-tooltip {
       position: absolute;
@@ -156,6 +157,7 @@ interface TrendSeries {
       white-space: nowrap;
       z-index: 2;
       min-width: 10rem;
+      max-width: calc(100% - 0.5rem);
     }
     .trend-tooltip-label {
       margin: 0 0 0.25rem;
@@ -182,6 +184,10 @@ interface TrendSeries {
       padding: 0.35rem 0.25rem 0;
     }
     .trend-x-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-size: 0.72rem;
       color: var(--gray-500);
     }

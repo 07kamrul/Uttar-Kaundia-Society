@@ -1,0 +1,104 @@
+@use '../../../../../../styles/responsive' as r;
+
+// Layered over the shared .drawer-* rules in styles.scss: safe-area aware,
+// full-height sheet on phones, 44px tap targets, subtle slide-in.
+
+.drawer-backdrop {
+  overscroll-behavior: contain;
+}
+
+.drawer-panel {
+  max-width: min(40rem, 100vw);
+  height: 100dvh;
+  animation: drawer-slide-in 0.2s ease-out;
+}
+
+.drawer-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  gap: 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right)) 0.75rem 1.25rem;
+  background: var(--modal-surface);
+}
+
+.drawer-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.drawer-header .btn-icon {
+  flex: none;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.drawer-body {
+  overscroll-behavior: contain;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.drawer-section h3 {
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.drawer-grid dd,
+.drawer-audit li {
+  overflow-wrap: anywhere;
+}
+
+.drawer-doc {
+  min-height: 2.75rem;
+}
+
+.drawer-doc:focus-visible {
+  outline: 2px solid var(--emerald-600);
+  outline-offset: 2px;
+}
+
+.drawer-audit em {
+  color: var(--gray-600);
+}
+
+@include r.down(md) {
+  .drawer-header {
+    padding-inline: 1rem;
+  }
+
+  .drawer-body {
+    padding-inline: 1rem;
+  }
+
+  .drawer-identity {
+    align-items: center;
+  }
+
+  .drawer-identity .drawer-grid {
+    width: 100%;
+  }
+
+  .drawer-section > .btn {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .drawer-docs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+    justify-items: center;
+  }
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(2rem);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-panel {
+    animation: none;
+  }
+}

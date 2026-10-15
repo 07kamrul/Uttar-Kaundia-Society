@@ -7,7 +7,7 @@
   </div>
 
   @if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    <div class="error-box" role="alert"><p class="audit-flush">{{ error }}</p></div>
   }
 
   @if (loading) {
@@ -18,7 +18,7 @@
     </div>
   } @else {
     <!-- Filters -->
-    <div class="card card-pad" style="margin-bottom:1.5rem">
+    <div class="card card-pad audit-filters">
       <div class="form-grid">
         <div class="field">
           <label for="filterDateFrom">{{ 'admin.auditLog.filters.dateFrom' | translate }}</label>
@@ -87,7 +87,7 @@
 
     <!-- Table -->
     <div class="data-table-wrap table-scroll">
-      <table class="data-table">
+      <table class="data-table data-table-cards">
         <thead>
           <tr>
             <th>{{ 'admin.auditLog.table.time' | translate }}</th>
@@ -100,11 +100,11 @@
         <tbody>
           @for (e of pageEntries; track e.id) {
             <tr>
-              <td class="ds-mono">{{ e.createdAt | date: dateTimeFormat }}</td>
-              <td [attr.title]="e.actorAdminId !== null ? '#' + e.actorAdminId : null">
+              <td class="ds-mono" [attr.data-label]="'admin.auditLog.table.time' | translate">{{ e.createdAt | date: dateTimeFormat }}</td>
+              <td [attr.data-label]="'admin.auditLog.table.actor' | translate" [attr.title]="e.actorAdminId !== null ? '#' + e.actorAdminId : null">
                 {{ actorLabel(e.actorAdminId) }}
               </td>
-              <td>
+              <td [attr.data-label]="'admin.auditLog.table.action' | translate">
                 <span
                   class="action-badge"
                   [class.action-approve]="actionClass(e.action) === 'approve'"
@@ -116,8 +116,8 @@
                   {{ e.action }}
                 </span>
               </td>
-              <td>{{ e.entityType }} #{{ e.entityId }}</td>
-              <td>
+              <td [attr.data-label]="'admin.auditLog.table.entity' | translate">{{ e.entityType }} #{{ e.entityId }}</td>
+              <td [attr.data-label]="'admin.auditLog.table.detail' | translate">
                 @if (e.detail) {
                   <button type="button" class="table-link link-button" (click)="openDetail(e)">
                     {{ truncate(e.detail) }}
@@ -176,10 +176,10 @@
 
 <!-- Detail drawer -->
 @if (detailEntry) {
-  <div class="modal-backdrop" (click)="closeDetail()">
-    <div class="modal-card modal-card-wide" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop audit-backdrop" (click)="closeDetail()">
+    <div class="modal-card modal-card-wide audit-sheet" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <h3 class="modal-title">{{ 'admin.auditLog.details.title' | translate }}</h3>
-      <p class="modal-message" style="margin-bottom:0.75rem">
+      <p class="modal-message audit-sheet-meta">
         {{ detailEntry.createdAt | date: dateTimeFormat }} ·
         {{ actorLabel(detailEntry.actorAdminId) }} ·
         {{ detailEntry.entityType }} #{{ detailEntry.entityId }}

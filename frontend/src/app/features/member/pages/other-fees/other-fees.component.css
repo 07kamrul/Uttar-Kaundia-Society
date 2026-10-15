@@ -26,13 +26,13 @@
   justify-content: space-between;
   gap: 0.75rem;
   background: var(--emerald-900, #14532d);
-  color: #fff;
+  color: var(--surface);
   border-radius: 0.5rem 0.5rem 0 0;
   padding: 0.85rem 1rem;
   margin-top: 1.5rem;
 
   .section-title {
-    color: #fff;
+    color: var(--surface);
   }
 }
 
@@ -71,7 +71,7 @@
 .summary-chip-total {
   background: var(--emerald-700, #166534);
   border-color: var(--emerald-700, #166534);
-  color: #fff;
+  color: var(--surface);
 }
 
 .fee-type-chip {
@@ -109,7 +109,7 @@
 }
 
 /* History filters wrap below the header on narrow screens. */
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .history-header {
     flex-direction: column;
     align-items: stretch;
@@ -120,4 +120,31 @@
     max-width: none;
     flex: 1 1 45%;
   }
+}
+
+.of-page { max-width: 52rem; margin: 0 auto; }
+.of-msg { margin: 0; overflow-wrap: anywhere; }
+.of-retry { margin-top: 0.5rem; min-height: 44px; }
+.of-form-card { padding: 1.25rem; margin-bottom: 1.5rem; }
+.of-mt { margin-top: 0.75rem; }
+.of-mt-sm { margin-top: 0.5rem; }
+.of-nowrap { white-space: nowrap; }
+.of-submit { margin-top: 1rem; min-height: 48px; }
+.of-spinner { width: 1rem; height: 1rem; }
+.of-history-title { margin: 0; }
+.of-pagination { display: flex; gap: 0.5rem; align-items: center; justify-content: center; margin-top: 0.75rem; }
+
+.breakdown { margin-top: 0.75rem; border: 1px solid var(--gray-300); border-radius: 0.5rem; padding: 0.75rem; }
+.breakdown-row { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.breakdown-total { border-top: 1px solid var(--gray-300); margin-top: 0.5rem; padding-top: 0.5rem; }
+
+.history-filters select, .history-filters input, .history-filters .btn { min-height: 44px; }
+
+@media (max-width: 639.98px) {
+  .of-form-card { padding: 1rem; }
+  .history-filters .btn { flex: 1 1 45%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fee-skeleton-row { animation: none; }
 }

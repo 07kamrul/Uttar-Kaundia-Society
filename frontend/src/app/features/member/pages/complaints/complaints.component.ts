@@ -185,7 +185,7 @@ function saveBlob(blob: Blob, filename: string): void {
   styles: [
     `
       .retry-btn { flex-wrap: wrap; }
-      @media (max-width: 640px) { .retry-btn { width: 100%; } }
+      @media (max-width: 639px) { .retry-btn { width: 100%; } }
       .page-container { display: grid; gap: 1rem; }
       .co-tiles {
         display: grid;

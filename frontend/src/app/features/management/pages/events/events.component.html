@@ -10,7 +10,7 @@
   </div>
 
   @if (error) {
-    <div class="error-box">
+    <div class="error-box" role="alert">
       <p style="margin: 0">{{ error }}</p>
     </div>
   }
@@ -161,7 +161,7 @@
         </button>
       </div>
       @if (saveError) {
-        <p class="error-box" style="margin-top: 0.75rem">{{ saveError }}</p>
+        <p class="error-box" role="alert" style="margin-top: 0.75rem">{{ saveError }}</p>
       }
     </div>
   }
@@ -285,6 +285,13 @@
                 }}
               </span>
             </div>
+            @if (row.isMembersOnly) {
+              <div class="stacked-card-row">
+                <span class="status-badge status-members-only stacked-members-only">
+                  {{ 'admin.events.membersOnlyBadge' | translate }}
+                </span>
+              </div>
+            }
             <div class="stacked-card-row">
               <span class="stacked-card-label">{{ 'admin.events.table.when' | translate }}</span>
               <span

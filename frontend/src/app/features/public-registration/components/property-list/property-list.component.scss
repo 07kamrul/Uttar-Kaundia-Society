@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   white-space: nowrap;
 }
 
@@ -69,7 +69,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 639.98px) {
   .property-toolbar {
     flex-direction: column;
     align-items: stretch;

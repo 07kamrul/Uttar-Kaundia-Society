@@ -13,6 +13,7 @@ import { describePhone } from '../phone/phone-format';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe, RouterLink],
+  host: { '(document:keydown.escape)': 'open.set(false)' },
   template: `
     @if (helpline().enabled) {
       <button type="button" class="help-fab" data-testid="help-fab" [attr.aria-expanded]="open()" (click)="open.set(true)">
@@ -43,7 +44,7 @@ import { describePhone } from '../phone/phone-format';
   `,
   styles: `
     .help-fab {
-      position: fixed; right: 1rem; bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); z-index: 40;
+      position: fixed; right: max(1rem, env(safe-area-inset-right, 0px)); bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); z-index: 40;
       min-height: 56px; padding: 0 1.25rem; border: 0; border-radius: 999px; cursor: pointer;
       background: var(--emerald-700, #047857); color: #fff; font: inherit; font-weight: 700; font-size: 1.05rem;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
@@ -54,7 +55,10 @@ import { describePhone } from '../phone/phone-format';
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; display: flex; flex-direction: column; gap: 0.75rem;
       padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); background: var(--surface, #fff);
       border-radius: 1rem 1rem 0 0; max-width: 32rem; margin: 0 auto;
+      max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; color: var(--gray-800);
     }
+    .help-fab:focus-visible, .help-close:focus-visible, .help-action:focus-visible { outline: 3px solid var(--gold, #d4a017); outline-offset: 2px; }
+    @media (max-width: 360px) { .help-fab { right: 0.75rem; padding: 0 1rem; font-size: 1rem; } }
     .help-sheet-head { display: flex; align-items: center; justify-content: space-between; }
     .help-sheet-head h2 { margin: 0; font-size: 1.2rem; }
     .help-close { min-width: 48px; min-height: 48px; border: 0; background: transparent; font-size: 1.2rem; cursor: pointer; color: inherit; }

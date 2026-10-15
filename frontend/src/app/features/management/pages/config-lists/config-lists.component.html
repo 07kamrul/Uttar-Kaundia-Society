@@ -9,7 +9,7 @@
   <app-helpline-card />
 
   @if (error) {
-    <div class="error-box"><p style="margin:0">{{ error }}</p></div>
+    <div class="error-box" role="alert"><p class="cfg-flush">{{ error }}</p></div>
   }
 
   <!-- Category tabs: horizontally scrollable on mobile -->
@@ -29,8 +29,8 @@
     }
   </div>
 
-  <div class="card card-pad" style="margin-bottom:1.5rem">
-    <h2 style="font-size:1rem;margin-top:0;margin-bottom:1rem">
+  <div class="card card-pad cfg-add">
+    <h2 class="cfg-add-title">
       {{ 'admin.configLists.addItem' | translate }}
     </h2>
     <form (ngSubmit)="addItem()">
@@ -69,7 +69,7 @@
       </div>
     </form>
     @if (saveError) {
-      <p class="error-box" style="margin-top:0.75rem;margin-bottom:0">{{ saveError }}</p>
+      <p class="error-box cfg-save-error" role="alert">{{ saveError }}</p>
     }
   </div>
 
@@ -81,7 +81,7 @@
     </div>
   } @else {
     <div class="data-table-wrap table-scroll">
-      <table class="data-table">
+      <table class="data-table data-table-cards">
         <thead>
           <tr>
             <th>{{ 'admin.configLists.table.value' | translate }}</th>
@@ -93,8 +93,8 @@
         <tbody>
           @for (item of items; track item.id; let i = $index) {
             <tr>
-              <td>{{ item.value }}</td>
-              <td>
+              <td [attr.data-label]="'admin.configLists.table.value' | translate">{{ item.value }}</td>
+              <td [attr.data-label]="'admin.configLists.table.label' | translate">
                 @if (editingId === item.id) {
                   <div class="inline-edit">
                     <input
@@ -133,7 +133,7 @@
                   </span>
                 }
               </td>
-              <td>
+              <td [attr.data-label]="'admin.configLists.table.status' | translate">
                 <span
                   class="status-badge"
                   [class.status-active]="item.isActive"
@@ -142,7 +142,7 @@
                   {{ item.isActive ? ('admin.configLists.active' | translate) : ('admin.configLists.inactive' | translate) }}
                 </span>
               </td>
-              <td>
+              <td [attr.data-label]="'admin.configLists.table.actions' | translate">
                 <div class="row-actions">
                   <!-- Sort order controls -->
                   <button

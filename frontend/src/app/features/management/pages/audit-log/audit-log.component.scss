@@ -1,0 +1,83 @@
+@use '../../../../../styles/responsive' as r;
+
+.audit-filters {
+  margin-bottom: 1.25rem;
+}
+
+.audit-flush {
+  margin: 0;
+}
+
+// Keep long entity ids / JSON snippets from widening the detail sheet.
+.audit-sheet {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.audit-sheet-meta {
+  margin-bottom: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.table-pagination-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@include r.down(sm) {
+  .audit-filters .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .table-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .table-pagination-controls {
+    justify-content: space-between;
+  }
+
+  .table-pagination-controls .btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  // Detail sheet: bottom sheet on phones, actions pinned and safe-area aware.
+  .audit-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .audit-sheet {
+    max-width: none;
+    max-height: 90dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding-bottom: 0;
+  }
+
+  .audit-sheet .detail-kv > div {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .audit-sheet .detail-kv dt {
+    min-width: 0;
+  }
+
+  .audit-sheet .modal-actions {
+    position: sticky;
+    bottom: 0;
+    margin: 1rem -1.5rem 0;
+    padding: 0.75rem 1.5rem max(0.75rem, env(safe-area-inset-bottom));
+    background: var(--modal-surface);
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .audit-sheet .modal-actions .btn {
+    flex: 1;
+    min-height: 2.75rem;
+  }
+}

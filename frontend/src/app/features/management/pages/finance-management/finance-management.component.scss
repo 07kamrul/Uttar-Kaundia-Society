@@ -1,3 +1,5 @@
+@use '../../../../../styles/responsive' as r;
+
 .finance-page {
   max-width: 76rem;
   margin: 0 auto;
@@ -672,7 +674,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 640px) {
+@include r.down(sm) {
   .header-actions {
     width: 100%;
   }

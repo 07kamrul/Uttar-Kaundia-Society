@@ -62,7 +62,7 @@
       <label>{{ 'registration.property.dagNoLabel' | translate }} <span class="required">*</span></label>
       <div class="flex-row-wrap">
         <div style="display:flex;align-items:center;gap:0.5rem;flex:1 1 8rem">
-          <label [attr.for]="'prop' + index + '_dagNoCs'" style="font-size:0.875rem;color:#4b5563">CS:</label>
+          <label [attr.for]="'prop' + index + '_dagNoCs'" style="font-size:0.875rem;color:var(--gray-600)">CS:</label>
           <input
             [id]="'prop' + index + '_dagNoCs'"
             type="text"
@@ -73,7 +73,7 @@
           />
         </div>
         <div style="display:flex;align-items:center;gap:0.5rem;flex:1 1 8rem">
-          <label [attr.for]="'prop' + index + '_dagNoRs'" style="font-size:0.875rem;color:#4b5563">RS:</label>
+          <label [attr.for]="'prop' + index + '_dagNoRs'" style="font-size:0.875rem;color:var(--gray-600)">RS:</label>
           <input
             [id]="'prop' + index + '_dagNoRs'"
             type="text"
@@ -221,30 +221,30 @@
           @if (findDocEntry(doc); as entry) {
             <div style="margin-top:0.5rem;margin-left:1.5rem;max-width:24rem;width:100%">
               @if (entry.get('fileDataUrl')?.value) {
-                <div style="display:flex;align-items:center;gap:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;padding:0.5rem">
-                  <span style="flex:1;font-size:0.75rem;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                <div style="display:flex;align-items:center;gap:0.75rem;border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.5rem">
+                  <span style="flex:1;font-size:0.75rem;color:var(--gray-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     {{ entry.get('fileName')?.value }}
                   </span>
-                  <button type="button" (click)="removeDocFile(doc)" style="font-size:0.75rem;color:#dc2626;background:none;border:none;cursor:pointer">
+                  <button type="button" (click)="removeDocFile(doc)" class="reg-text-btn reg-text-btn-danger">
                     {{ 'registration.property.removeFileButton' | translate }}
                   </button>
                 </div>
               } @else {
                 <label
-                  style="display:flex;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.75rem;cursor:pointer"
+                  style="display:flex;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed var(--gray-300);border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.75rem;cursor:pointer"
                 >
                   📎 {{ 'registration.property.attachFileButton' | translate }}
                   <input type="file" accept="image/jpeg,image/png,application/pdf" (change)="onDocFileChange(doc, $event)" style="display:none" />
                 </label>
               }
-              <p style="font-size:0.6875rem;color:#6b7280;margin:0.25rem 0 0">
+              <p style="font-size:0.6875rem;color:var(--gray-600);margin:0.25rem 0 0">
                 {{ 'registration.property.maxFileSizeNote' | translate: { maxMb: maxDocFileMb } }}
               </p>
               @if (docFileErrors[doc]) {
-                <p style="font-size:0.6875rem;color:#dc2626;margin:0.25rem 0 0">{{ docFileErrors[doc] }}</p>
+                <p style="font-size:0.6875rem;color:var(--red-600);margin:0.25rem 0 0">{{ docFileErrors[doc] }}</p>
               }
               @if (isDocMissing(doc) && !docFileErrors[doc]) {
-                <p style="font-size:0.6875rem;color:#dc2626;margin:0.25rem 0 0">{{ 'registration.property.docFileMissing' | translate }}</p>
+                <p style="font-size:0.6875rem;color:var(--red-600);margin:0.25rem 0 0">{{ 'registration.property.docFileMissing' | translate }}</p>
               }
             </div>
           }

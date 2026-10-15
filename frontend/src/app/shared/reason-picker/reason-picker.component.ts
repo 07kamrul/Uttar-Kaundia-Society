@@ -36,7 +36,9 @@ import { FALLBACK_REASONS, type ReasonCategory } from './reject-reasons';
     .reason-label { margin: 0 0 0.25rem; font-weight: 600; }
     .reason-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
     .reason-chip { min-height: 48px; padding: 0.25rem 0.9rem; font: inherit; border: 1px solid var(--emerald-600); border-radius: 999px; background: var(--surface-2); color: inherit; cursor: pointer; }
-    .reason-text { width: 100%; font: inherit; }
+    .reason-text { width: 100%; box-sizing: border-box; font: inherit; resize: vertical; }
+    .reason-chip { max-width: 100%; text-align: left; overflow-wrap: anywhere; }
+    .reason-chip:focus-visible { outline: 2px solid var(--emerald-700); outline-offset: 2px; }
   `,
 })
 export class ReasonPickerComponent {

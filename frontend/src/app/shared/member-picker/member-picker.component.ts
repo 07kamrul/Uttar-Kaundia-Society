@@ -17,9 +17,20 @@ export interface MemberPickerOption {
   standalone: true,
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown.escape)': 'closeDropdown()' },
   template: `
     <div class="picker" [class.picker-open]="open()">
-      <div class="picker-control" (click)="toggleOpen()">
+      <div
+        class="picker-control"
+        role="button"
+        tabindex="0"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="open()"
+        [attr.aria-disabled]="disabled()"
+        (click)="toggleOpen()"
+        (keydown.enter)="toggleOpen(); $event.preventDefault()"
+        (keydown.space)="toggleOpen(); $event.preventDefault()"
+      >
         @if (selected().length === 0) {
           <span class="picker-placeholder">{{ placeholder() }}</span>
         } @else {
@@ -48,6 +59,7 @@ export interface MemberPickerOption {
       </div>
 
       @if (open() && !disabled()) {
+        <div class="picker-backdrop" (click)="closeDropdown()"></div>
         <div class="picker-dropdown">
           <input
             type="text"
@@ -198,6 +210,57 @@ export interface MemberPickerOption {
         font-size: 0.75rem;
         color: var(--text-muted, #888);
       }
+      .picker-control:focus-visible,
+      .picker-search:focus-visible,
+      .picker-option:focus-visible,
+      .picker-chip-remove:focus-visible {
+        outline: 2px solid var(--emerald-700, #2e5138);
+        outline-offset: -2px;
+      }
+      .picker-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 29;
+        background: transparent;
+      }
+      .picker-chip-name {
+        overflow-wrap: anywhere;
+      }
+      @media (hover: none) and (pointer: coarse) {
+        .picker-chip-remove {
+          min-width: 2rem;
+          min-height: 2rem;
+        }
+      }
+      /* Phones: the dropdown becomes a bottom sheet instead of overflowing. */
+      @media (max-width: 639.98px) {
+        .picker-backdrop {
+          z-index: 1290;
+          background: rgba(15, 23, 42, 0.45);
+        }
+        .picker-dropdown {
+          position: fixed;
+          z-index: 1291;
+          top: auto;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: var(--radius-lg, 16px) var(--radius-lg, 16px) 0 0;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          max-height: 80dvh;
+          display: flex;
+          flex-direction: column;
+        }
+        .picker-search {
+          font-size: 1rem;
+          min-height: 48px;
+        }
+        .picker-list {
+          max-height: none;
+          flex: 1;
+          overscroll-behavior: contain;
+        }
+      }
       .picker-empty {
         padding: 0.8rem;
         font-size: 0.85rem;
@@ -235,6 +298,10 @@ export class MemberPickerComponent {
         (option.memberId ?? '').toLowerCase().includes(needle),
     );
   });
+
+  closeDropdown(): void {
+    this.open.set(false);
+  }
 
   toggleOpen(): void {
     if (this.disabled()) return;

@@ -41,7 +41,7 @@
               {{ event.startAt | date: 'EEEE, MMM d, y, h:mm a' }}
             </span>
           </div>
-          <p style="margin: 0; font-weight: 700">{{ event.title }}</p>
+          <p style="margin: 0; font-weight: 700; overflow-wrap: anywhere">{{ event.title }}</p>
           @if (event.location) {
             <p style="margin: 0.35rem 0 0; color: var(--gray-600); font-size: 0.9rem">
               {{ event.location }}
@@ -74,7 +74,7 @@
               {{ event.startAt | date: 'MMM d, y' }}
             </span>
           </div>
-          <p style="margin: 0; font-weight: 700">{{ event.title }}</p>
+          <p style="margin: 0; font-weight: 700; overflow-wrap: anywhere">{{ event.title }}</p>
           @if (event.location) {
             <p style="margin: 0.35rem 0 0; color: var(--gray-600); font-size: 0.9rem">
               {{ event.location }}

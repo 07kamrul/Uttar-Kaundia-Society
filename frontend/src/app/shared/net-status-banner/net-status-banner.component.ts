@@ -31,7 +31,9 @@ const RECONNECTED_VISIBLE_MS = 3000;
   `,
   styles: `
     .net-banner {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem max(1rem, env(safe-area-inset-right, 0px)) 0.5rem max(1rem, env(safe-area-inset-left, 0px));
+      overflow-wrap: anywhere;
+      font-size: 0.9rem;
       text-align: center;
       background: var(--amber-100, #fff7e0);
       color: var(--amber-900, #6b4d00);

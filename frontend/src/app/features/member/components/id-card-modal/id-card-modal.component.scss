@@ -391,3 +391,40 @@ $idcard-ink-soft: #4b5563;
   gap: 0.6rem;
   margin-top: 1.2rem;
 }
+
+// ---- Responsive / a11y (screen only; print rules untouched) ----------------
+.idcard-backdrop {
+  padding-top: max(2.2rem, env(safe-area-inset-top));
+  padding-bottom: max(2.2rem, env(safe-area-inset-bottom));
+}
+
+.idcard-actions {
+  flex-wrap: wrap;
+
+  .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .idcard-backdrop {
+    padding: max(0.75rem, env(safe-area-inset-top)) 0.5rem max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .idcard-actions .btn {
+    flex: 1 1 45%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idcard-modal {
+    animation: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .idcard-close {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}

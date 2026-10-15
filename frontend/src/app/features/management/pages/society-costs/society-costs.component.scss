@@ -1,3 +1,5 @@
+@use '../../../../../styles/responsive' as r;
+
 .header-actions {
   display: flex;
   gap: 0.5rem;
@@ -240,7 +242,7 @@
   color: var(--red-600);
 }
 
-@media (max-width: 640px) {
+@include r.down(sm) {
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -266,5 +268,24 @@
 
   .header-actions .btn {
     flex: 1 1 100%;
+  }
+}
+
+@include r.touch {
+  .toggle-option,
+  .link-button,
+  .file-drop {
+    min-height: 2.75rem;
+  }
+}
+
+@include r.down(sm) {
+  .manual-row {
+    flex-wrap: wrap;
+  }
+
+  .manual-row input {
+    max-width: none;
+    flex: 1 1 8rem;
   }
 }

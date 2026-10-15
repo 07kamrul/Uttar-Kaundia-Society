@@ -135,7 +135,9 @@ import { ComplaintConstants, GovernanceService } from '../../../../core/services
       .page-header h1 { display: flex; align-items: center; gap: 0.5rem; }
       .muted { color: var(--gray-600, #667); }
       .danger-card { border: 2px solid var(--red-600, #9c3a2c); }
-      .field-row { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .field-row > *, .page-container > * { min-width: 0; }
+      @media (max-width: 639px) { form button[type="submit"] { width: 100%; min-height: 44px; } }
+      .field-row { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); }
     `,
   ],
 })

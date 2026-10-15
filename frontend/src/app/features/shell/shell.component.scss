@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--gray-50);
 }
 
@@ -13,8 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--gray-200);
   background: var(--surface);
@@ -57,6 +58,7 @@
   right: 0;
   z-index: 45;
   min-width: 13.5rem;
+  max-width: calc(100vw - 1.5rem);
   background: var(--surface);
   border: 1px solid var(--gray-200);
   border-radius: 0.75rem;
@@ -85,6 +87,7 @@
   align-items: center;
   gap: 0.7rem;
   width: 100%;
+  min-height: 2.75rem;
   padding: 0.6rem 0.75rem;
   border: none;
   border-radius: 0.5rem;
@@ -149,12 +152,13 @@
 
 /* Desktop: the sidebar stays pinned while the page content scrolls, with its
    own scroll area for long admin lists on short viewports. */
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .sidebar {
     position: sticky;
     top: 0;
     align-self: flex-start;
     max-height: 100vh;
+    max-height: 100dvh;
     overflow-y: auto;
     scrollbar-width: thin;
     overscroll-behavior: contain;
@@ -261,6 +265,7 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  min-height: 2.75rem;
   padding: 0.56rem 0.9rem;
   border-radius: 0.56rem;
   border-left: 2.5px solid transparent;
@@ -312,16 +317,25 @@
   flex: 1;
   min-width: 0;
   padding: 1.7rem 1.5rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
 }
 
-@media (max-width: 899px) {
+@media (max-width: 640px) {
+  .app-content {
+    padding: 1.1rem 1rem;
+  }
+}
+
+@media (max-width: 959.98px) {
   .sidebar {
     position: fixed;
     inset-block: 0;
     left: 0;
     top: 0;
     width: min(17rem, 84vw);
-    padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-bottom));
+    padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    height: 100dvh;
     background: var(--surface);
     border-right: 1px solid var(--gray-200);
     box-shadow: 0 0 32px rgba(0, 0, 0, 0.25);
@@ -357,7 +371,7 @@
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   /* Hide only the sidebar hamburger; the 3-dot user menu (theme/lang/logout)
      must stay visible on desktop. */
   .app-shell .topbar-menu-btn:not(.topbar-more-btn) {
@@ -422,7 +436,14 @@
 }
 
 .app-content.has-bottom-bar {
+  --shell-bottom-bar-h: calc(56px + env(safe-area-inset-bottom, 0px));
   padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Full-bleed map page: no padding, and its height already leaves room for the
+   bottom bar (see --shell-bottom-bar-h), so the page itself never scrolls. */
+:host ::ng-deep .app-body:has(app-plot-map) .app-content.has-bottom-bar {
+  padding: 0;
 }
 
 .sidebar-badge {
@@ -434,4 +455,37 @@
   color: #fff;
   font-size: 0.8rem;
   text-align: center;
+}
+
+.topbar-menu-btn:focus-visible,
+.topbar-menu-item:focus-visible,
+.sidebar-link:focus-visible,
+.sidebar-idcard-btn:focus-visible,
+.bottom-bar-link:focus-visible {
+  outline: 2px solid var(--emerald-700);
+  outline-offset: 2px;
+}
+
+.bottom-bar-label {
+  font-size: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .topbar-menu-panel,
+  .sidebar-link,
+  .topbar-menu-item {
+    animation: none;
+    transition: none;
+  }
+}
+
+:root[data-theme='dark'] .topbar-menu-item-danger {
+  color: #f0928a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .topbar-menu-item-danger {
+    color: #f0928a;
+  }
 }

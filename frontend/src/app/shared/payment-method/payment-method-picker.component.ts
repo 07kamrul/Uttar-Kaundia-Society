@@ -67,6 +67,9 @@ const COPIED_RESET_MS = 2000;
     }
     .method-card.is-selected { border-color: var(--emerald-600, #059669); background: var(--emerald-50, #ecfdf5); }
     .account-box { padding: 0.75rem 1rem; margin: 0.75rem 0; border: 1px solid var(--gray-300, #d1d5db); border-radius: 0.75rem; }
+    @media (max-width: 340px) { .method-cards { grid-template-columns: 1fr; } }
+    .method-card { min-width: 0; overflow-wrap: anywhere; }
+    .account-details { min-width: 0; overflow-wrap: anywhere; }
     .account-box h3 { margin: 0 0 0.5rem; font-size: 1rem; }
     .account-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
     .copy-btn { min-height: 48px; display: inline-flex; align-items: center; gap: 0.5rem; }

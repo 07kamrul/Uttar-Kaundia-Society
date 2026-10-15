@@ -339,7 +339,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  height: 38px;
+  min-height: 44px;
   padding: 0 0.9rem;
   border-radius: 999px;
   border: 1px solid var(--gray-200);
@@ -611,7 +611,7 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .where-card {
     grid-template-columns: 1fr;
   }
@@ -623,7 +623,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .header-actions {
     width: 100%;
 
@@ -634,7 +634,7 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 639px) {
   .where-card {
     padding: 1.1rem;
   }

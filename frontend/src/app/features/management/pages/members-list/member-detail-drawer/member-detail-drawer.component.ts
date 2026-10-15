@@ -42,6 +42,7 @@ function joinAddress(a: AddressParts): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, TranslatePipe, IconComponent, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './member-detail-drawer.component.html',
+  styleUrl: './member-detail-drawer.component.scss',
 })
 export class MemberDetailDrawerComponent implements OnChanges, OnDestroy {
   /** Id of the member to show; null keeps the drawer closed. */

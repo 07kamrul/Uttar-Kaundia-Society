@@ -88,6 +88,7 @@
                       type="button"
                       class="btn btn-danger btn-sm btn-icon"
                       [title]="'admin.membersList.deleteMemberTitle' | translate"
+                      [attr.aria-label]="'admin.membersList.deleteMemberTitle' | translate"
                       (click)="askDelete(m)"
                     >
                       <app-icon name="trash" [size]="16" />

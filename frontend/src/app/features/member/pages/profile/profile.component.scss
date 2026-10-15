@@ -135,8 +135,8 @@
   }
 
   &.pending {
-    color: var(--amber-700, #92600a);
-    background: var(--amber-50, #fef7e6);
+    color: var(--gold-strong);
+    background: var(--amber-50);
     border-color: var(--amber-200, #f3dfae);
   }
 
@@ -208,8 +208,8 @@
   }
 
   &.profile-banner-warning {
-    color: var(--amber-700, #92600a);
-    background: var(--amber-50, #fef7e6);
+    color: var(--gold-strong);
+    background: var(--amber-50);
     border: 1px solid var(--amber-200, #f3dfae);
   }
 
@@ -492,7 +492,7 @@
 
 /* ---- Responsive: hero stacks on small screens ---- */
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
   .profile-hero {
     flex-direction: column;
     align-items: stretch;
@@ -593,9 +593,9 @@
 .pr-pending-pill {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
+  color: var(--gold-strong);
+  background: var(--amber-50);
+  border: 1px solid var(--amber-200);
   border-radius: 999px;
   padding: 0.1rem 0.6rem;
 }

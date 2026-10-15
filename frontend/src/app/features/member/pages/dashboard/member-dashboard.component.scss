@@ -15,7 +15,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--emerald-800);
-  color: #fff;
+  color: var(--surface);
   font-family: var(--font-heading);
   font-size: 1.05rem;
   font-weight: 700;
@@ -40,7 +40,7 @@
   height: 2.25rem;
   border-radius: 0.55rem;
   background: var(--emerald-800);
-  color: #fff;
+  color: var(--surface);
   box-shadow: 0 4px 10px -4px rgba(31, 61, 42, 0.55);
 }
 

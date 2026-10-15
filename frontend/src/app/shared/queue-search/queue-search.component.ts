@@ -34,8 +34,8 @@ export const QUEUE_SEARCH_MIN_CHARS = 2;
     </div>
   `,
   styles: `
-    .queue-search { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0 1rem; }
-    .queue-search-input { flex: 1; min-height: 48px; padding: 0.5rem 0.75rem; font: inherit; }
+    .queue-search { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0 1rem; }
+    .queue-search-input { flex: 1 1 12rem; min-width: 0; box-sizing: border-box; min-height: 48px; padding: 0.5rem 0.75rem; font: inherit; }
     .queue-search-clear { min-height: 48px; min-width: 48px; padding: 0 0.75rem; font: inherit; cursor: pointer; }
   `,
 })

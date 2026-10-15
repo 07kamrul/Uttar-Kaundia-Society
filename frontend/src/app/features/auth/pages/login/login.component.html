@@ -1,16 +1,17 @@
 <div class="page-with-banner">
-  <div class="card" style="max-width:28rem;width:100%;padding:2rem;text-align:center">
-    <img src="/images/logo.jpeg" [attr.alt]="'auth.login.logoAlt' | translate" style="width:5rem;height:5rem;object-fit:cover;border-radius:50%;margin:0 auto 1rem" />
-    <h1 style="font-size:1.5rem;margin-bottom:0.5rem">{{ 'auth.login.title' | translate }}</h1>
-    <p style="color:var(--gray-600);margin-bottom:1.5rem">{{ 'auth.login.subtitle' | translate }}</p>
+  <div class="card auth-card">
+    <img class="auth-logo" src="/images/logo.jpeg" [attr.alt]="'auth.login.logoAlt' | translate" />
+    <h1 class="auth-title">{{ 'auth.login.title' | translate }}</h1>
+    <p class="auth-subtitle">{{ 'auth.login.subtitle' | translate }}</p>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" style="text-align:left">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
       @if (error) {
-        <div class="error-box"><p style="margin:0;color:var(--red-700)">{{ error }}</p></div>
+        <div class="error-box" role="alert"><p class="auth-box-text">{{ error }}</p></div>
       }
       <div class="field">
-        <label>{{ identifierLabel | translate }}</label>
+        <label for="login-identifier">{{ identifierLabel | translate }}</label>
         <input
+          id="login-identifier"
           type="text"
           formControlName="identifier"
           autocapitalize="none"
@@ -33,24 +34,24 @@
           <p class="field-error">{{ errorMessage('password') }}</p>
         }
       </div>
-      <div class="field" style="text-align:right;margin-top:-0.5rem">
-        <a routerLink="/forgot-password" style="font-size:0.85rem">
+      <div class="field auth-forgot-row">
+        <a routerLink="/forgot-password" class="auth-link">
           {{ 'auth.login.forgotPasswordLink' | translate }}
         </a>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%" [disabled]="submitting || form.invalid">
+      <button type="submit" class="btn btn-primary auth-btn-block" [disabled]="submitting || form.invalid">
         {{ (submitting ? 'auth.login.loggingInButton' : 'auth.login.submitButton') | translate }}
       </button>
     </form>
 
-    <hr style="border:none;border-top:1px solid var(--gray-200);margin:1.5rem 0" />
+    <hr class="auth-divider" />
 
-    <p style="margin-bottom:0.75rem">{{ 'auth.login.notAMemberYet' | translate }}</p>
-    <a routerLink="/register" class="btn btn-secondary" style="width:100%;display:block">
+    <p class="auth-alt-text">{{ 'auth.login.notAMemberYet' | translate }}</p>
+    <a routerLink="/register" class="btn btn-secondary auth-btn-block">
       {{ 'auth.login.registerButton' | translate }}
     </a>
-    <p style="margin-top:1rem">
-      <a routerLink="/" style="font-size:0.85rem;color:var(--gray-600)">← {{ 'auth.login.backToHome' | translate }}</a>
+    <p class="auth-back">
+      <a routerLink="/" class="auth-link auth-link-muted">← {{ 'auth.login.backToHome' | translate }}</a>
     </p>
   </div>
 </div>

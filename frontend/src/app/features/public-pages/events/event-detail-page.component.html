@@ -26,7 +26,7 @@
         }
       </div>
 
-      <h1 class="page-title" style="margin-bottom: 0.75rem">{{ event.title }}</h1>
+      <h1 class="page-title" style="margin-bottom: 0.75rem; overflow-wrap: anywhere">{{ event.title }}</h1>
 
       <div class="detail-card" style="margin-bottom: 1rem">
         <div class="detail-card-row">
@@ -52,7 +52,7 @@
       </div>
 
       @if (event.description) {
-        <p style="white-space: pre-line; margin: 0; line-height: 1.7">{{ event.description }}</p>
+        <p style="white-space: pre-line; margin: 0; line-height: 1.7; overflow-wrap: anywhere">{{ event.description }}</p>
       }
     </article>
   }

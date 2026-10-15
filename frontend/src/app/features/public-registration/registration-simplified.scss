@@ -59,7 +59,8 @@ button.tap-48 {
     margin: 0.15rem 0 0;
     padding: 0;
     list-style: none;
-    background: #fff;
+    background: var(--modal-surface, var(--surface));
+    color: var(--gray-900);
     border: 1px solid var(--gray-300, #d1d5db);
     border-radius: 0.5rem;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
@@ -97,7 +98,9 @@ button.tap-48 {
     padding: 0.9rem 0.5rem;
     font-size: 1.05rem;
     font-weight: 600;
-    background: #fff;
+    min-height: 48px;
+    background: var(--surface);
+    color: var(--gray-900);
     border: 2px solid var(--gray-300, #d1d5db);
     border-radius: 0.75rem;
     cursor: pointer;
@@ -140,9 +143,9 @@ button.tap-48 {
 
   .abroad-note {
     padding: 0.75rem;
-    background: #fffbeb;
+    background: var(--amber-50);
     border-radius: 0.5rem;
-    color: #92400e;
+    color: var(--gold-strong);
   }
 
   .proof-slots {
@@ -214,12 +217,13 @@ button.tap-48 {
 
     dd {
       margin: 0;
+      overflow-wrap: anywhere;
       font-weight: 600;
     }
   }
 
   // One column on phones.
-  @media (max-width: 600px) {
+  @media (max-width: 639.98px) {
     .grid-2,
     .grid-3,
     .step-content-grid,
@@ -231,6 +235,31 @@ button.tap-48 {
     .step-nav-row .btn {
       min-height: 48px;
     }
+
+    .review-list > div dt {
+      min-width: 100%;
+    }
+
+    .method-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // Keep the three-part date picker usable at 360px with long Bengali month names.
+  @media (max-width: 400px) {
+    .dob-select {
+      grid-template-columns: 1fr 1.8fr 1.3fr;
+      gap: 0.35rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-sheet,
+  .sheet-backdrop,
+  .success-screen {
+    animation: none;
+    transition: none;
   }
 }
 
@@ -241,9 +270,12 @@ button.tap-48 {
   right: 0;
   bottom: 0;
   max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   padding: 1rem 1.25rem 1.5rem;
-  background: #fff;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  background: var(--modal-surface, var(--surface));
+  color: var(--gray-900);
   border-radius: 1rem 1rem 0 0;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
 }
@@ -281,7 +313,9 @@ button.tap-48 {
   gap: 1rem;
   padding: 2rem 1.25rem;
   text-align: center;
-  background: #fff;
+  background: var(--surface);
+  color: var(--gray-900);
+  overflow-y: auto;
 }
 
 .success-mark {

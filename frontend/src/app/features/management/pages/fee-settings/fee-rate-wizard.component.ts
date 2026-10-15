@@ -53,6 +53,11 @@ const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
         <p class="field-hint" data-testid="wiz-step">
           {{ 'admin.feeSettings.wizard.step' | translate: stepParams() }}
         </p>
+        <div class="wizard-progress" aria-hidden="true">
+          @for (n of [1, 2, 3]; track n) {
+            <span class="wizard-progress-seg" [class.is-done]="n <= step()"></span>
+          }
+        </div>
 
         @if (step() === 1) {
           <h3 class="wizard-heading">{{ 'admin.feeSettings.wizard.feeStep' | translate }}</h3>
@@ -174,6 +179,28 @@ const AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
     }
     .wizard-actions .btn {
       min-height: 48px;
+    }
+    .wizard-progress {
+      display: flex;
+      gap: 0.35rem;
+      margin: 0.25rem 0 0.75rem;
+    }
+    .wizard-progress-seg {
+      flex: 1;
+      height: 0.35rem;
+      border-radius: 999px;
+      background: var(--gray-200);
+    }
+    .wizard-progress-seg.is-done {
+      background: var(--emerald-600);
+    }
+    @media (max-width: 639.98px) {
+      .wizard-actions {
+        flex-direction: column-reverse;
+      }
+      .wizard-actions .btn {
+        width: 100%;
+      }
     }
   `,
 })

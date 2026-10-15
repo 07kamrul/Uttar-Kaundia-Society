@@ -101,6 +101,8 @@ import { ComplaintConstants, GovernanceService } from '../../../../core/services
         background: var(--red-50); border: 1px solid var(--red-200); text-decoration: none;
         transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
       }
+      .contact:focus-visible { outline: 3px solid var(--red-600); outline-offset: 2px; }
+      @media (prefers-reduced-motion: reduce) { .contact { transition: none; } .contact:hover { transform: none; } }
       .contact:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--red-600); }
       .contact-number { font-size: 1.75rem; font-weight: 800; line-height: 1.1; color: var(--red-600); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
       .contact-label { font-size: 0.88rem; font-weight: 600; color: var(--gray-800); }
@@ -117,7 +119,7 @@ import { ComplaintConstants, GovernanceService } from '../../../../core/services
       .step-text { padding-top: 0.18rem; line-height: 1.55; color: var(--gray-800); }
 
       .actions-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-      @media (max-width: 540px) {
+      @media (max-width: 639px) {
         .actions-row { flex-direction: column; }
         .actions-row .btn { width: 100%; }
         .danger-card, .steps-card { padding: 1rem; }

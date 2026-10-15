@@ -78,6 +78,7 @@ export function extractServerErrors(err: unknown): { fields: Record<string, stri
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TranslatePipe, PasswordFieldComponent],
   templateUrl: './change-password.component.html',
+  styleUrl: './change-password.component.scss',
 })
 export class ChangePasswordComponent {
   form: FormGroup;
