@@ -1403,6 +1403,8 @@ nav.moreOptions	আরও বিকল্প	More options
 nav.notices	নোটিশ	Notices
 nav.noticesManagement	নোটিশ ব্যবস্থাপনা	Manage Notices
 nav.openMenu	মেনু খুলুন	Open menu
+nav.collapseSidebar	মেনু ছোট করুন	Collapse menu
+nav.expandSidebar	মেনু বড় করুন	Expand menu
 nav.paymentVerifications	পেমেন্ট যাচাই	Payment Verifications
 nav.picnicPayment	পিকনিক ফি	Picnic Fee
 nav.picnicPayments	পিকনিক পরিশোধ	Picnic Payments

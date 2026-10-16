@@ -28,6 +28,8 @@ const SERVICE_STANDARD_ROUTE = '/service-standard';
 const EMERGENCY_HELP_ROUTE = '/emergency-help';
 /** Sidebar sections the user folded away; remembered per browser. */
 const COLLAPSED_STORAGE_KEY = 'uks.sidebar.collapsed';
+/** Desktop sidebar folded down to an icon rail; remembered per browser. */
+const RAIL_STORAGE_KEY = 'uks.sidebar.rail';
 
 @Component({
   selector: 'app-shell',
@@ -51,6 +53,8 @@ const COLLAPSED_STORAGE_KEY = 'uks.sidebar.collapsed';
 export class ShellComponent implements OnInit {
   isUserMenuOpen = false;
   readonly sidebarOpen = signal(false);
+  /** Desktop only: the sidebar is folded down to an icon rail. */
+  readonly sidebarCollapsed = signal(readRailState());
   readonly displayName = signal('');
   readonly memberId = signal('');
   readonly avatarPhotoUrl = signal<string | undefined>(undefined);
@@ -209,6 +213,8 @@ export class ShellComponent implements OnInit {
 
   /** Searching or holding the current page always keeps a section open. */
   isSectionExpanded(section: NavSection): boolean {
+    // The rail hides section headings, so every link must stay reachable.
+    if (this.sidebarCollapsed() && !this.isNarrow()) return true;
     if (this.navQuery().trim()) return true;
     if (!this.collapsedSections().has(section.labelKey)) return true;
     return section.items.some((item) => this.isItemActive(item));
@@ -289,8 +295,24 @@ export class ShellComponent implements OnInit {
     this.destroyRef.onDestroy(() => query.removeEventListener('change', onChange));
   }
 
+  /** Phones open/close the drawer; desktops fold the sidebar to an icon rail. */
   toggleSidebar(): void {
-    this.sidebarOpen.update((open) => !open);
+    if (this.isNarrow()) {
+      this.sidebarOpen.update((open) => !open);
+      return;
+    }
+    this.setRail(!this.sidebarCollapsed());
+  }
+
+  /** Searching from the rail needs room, so it expands the sidebar first. */
+  expandForSearch(): void {
+    this.setRail(false);
+    setTimeout(() => document.querySelector<HTMLInputElement>('.sidebar-search-input')?.focus());
+  }
+
+  private setRail(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
+    writeRailState(collapsed);
   }
 
   closeSidebar(): void {
@@ -328,5 +350,21 @@ function writeCollapsedSections(sections: ReadonlySet<string>): void {
     localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...sections]));
   } catch {
     // Storage blocked (private mode): the fold state just won't persist.
+  }
+}
+
+function readRailState(): boolean {
+  try {
+    return localStorage.getItem(RAIL_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeRailState(collapsed: boolean): void {
+  try {
+    localStorage.setItem(RAIL_STORAGE_KEY, collapsed ? '1' : '0');
+  } catch {
+    // Storage blocked (private mode): the rail state just won't persist.
   }
 }

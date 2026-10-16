@@ -135,10 +135,14 @@
   flex: 1;
   display: flex;
   align-items: stretch;
-  max-width: 76rem;
   width: 100%;
-  margin: 0 auto;
   gap: 0;
+}
+
+/* The portal uses the full viewport width; public pages keep the centred
+   76rem header from styles.scss. */
+.app-shell .site-header-inner {
+  max-width: none;
 }
 
 .sidebar {
@@ -149,6 +153,11 @@
   gap: 0.9rem;
   padding: 1.25rem 0.85rem 1.5rem;
   border-right: 1px solid var(--gray-200);
+}
+
+/* Shown only in the collapsed rail; stands in for the search box. */
+.sidebar-search-expand {
+  display: none;
 }
 
 /* Desktop: the sidebar stays pinned while the page content scrolls, with its
@@ -515,14 +524,89 @@
 }
 
 @media (min-width: 960px) {
-  /* Hide only the sidebar hamburger; the 3-dot user menu (theme/lang/logout)
-     must stay visible on desktop. */
-  .app-shell .topbar-menu-btn:not(.topbar-more-btn) {
+  .sidebar-backdrop {
     display: none;
   }
 
-  .sidebar-backdrop {
+  .sidebar {
+    transition: width 0.22s ease, padding 0.22s ease;
+  }
+
+  /* Collapsed rail: icons only, labels move to the link tooltips. */
+  .sidebar.sidebar-rail {
+    width: 4.5rem;
+    padding-inline: 0.6rem;
+    align-items: center;
+  }
+
+  .sidebar-rail .sidebar-user-card {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    justify-content: center;
+  }
+
+  .sidebar-rail .sidebar-user-text,
+  .sidebar-rail .sidebar-idcard-btn,
+  .sidebar-rail .sidebar-search,
+  .sidebar-rail .sidebar-section-title,
+  .sidebar-rail .sidebar-link-label,
+  .sidebar-rail .sidebar-empty {
     display: none;
+  }
+
+  .sidebar-rail .sidebar-search-expand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200);
+    background: var(--surface);
+    color: var(--gray-600);
+    cursor: pointer;
+  }
+
+  .sidebar-rail .sidebar-search-expand:hover {
+    background: var(--gray-50);
+    color: var(--emerald-700);
+  }
+
+  .sidebar-rail .sidebar-nav {
+    width: 100%;
+  }
+
+  .sidebar-rail .sidebar-section {
+    padding-top: 0.5rem;
+  }
+
+  .sidebar-rail .sidebar-link {
+    position: relative;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .sidebar-rail .sidebar-badge {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    min-width: 0.55rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .app-content {
+    padding: 1.75rem 2rem;
+  }
+}
+
+@media (min-width: 960px) and (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
   }
 }
 

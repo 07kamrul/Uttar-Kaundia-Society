@@ -253,6 +253,8 @@
     "notices": "Notices",
     "noticesManagement": "Manage Notices",
     "openMenu": "Open menu",
+    "collapseSidebar": "Collapse menu",
+    "expandSidebar": "Expand menu",
     "paymentVerifications": "Payment Verifications",
     "picnicPayment": "Picnic Fee",
     "plotBoundaries": "Plot Boundaries",

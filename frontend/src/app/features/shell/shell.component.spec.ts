@@ -277,3 +277,64 @@ describe('ShellComponent sidebar search and collapsible sections', () => {
     expect(sidebarHrefs(fixture)).toContain('/installments');
   });
 });
+
+describe('ShellComponent collapsible desktop sidebar', () => {
+  let store: Map<string, string>;
+  beforeEach(() => {
+    store = new Map();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    });
+  });
+
+  it('starts expanded and collapses to an icon rail on a wide screen, remembering the choice', () => {
+    const { fixture } = setup();
+    const toggle = one(fixture, '.topbar-menu-btn:not(.topbar-more-btn)')!;
+    expect(one(fixture, '.sidebar')!.classList).not.toContain('sidebar-rail');
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(one(fixture, '.sidebar')!.classList).toContain('sidebar-rail');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(store.get('uks.sidebar.rail')).toBe('1');
+    expect(fixture.componentInstance.sidebarOpen()).toBe(false);
+  });
+
+  it('restores the collapsed rail from storage', () => {
+    store.set('uks.sidebar.rail', '1');
+    const { fixture } = setup();
+    expect(one(fixture, '.sidebar')!.classList).toContain('sidebar-rail');
+  });
+
+  it('keeps the drawer behaviour on a narrow screen', () => {
+    const { fixture } = setup({ narrow: true });
+    one(fixture, '.topbar-menu-btn:not(.topbar-more-btn)')!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sidebarOpen()).toBe(true);
+    expect(one(fixture, '.sidebar')!.classList).not.toContain('sidebar-rail');
+  });
+
+  it('expands the rail when the search icon is used', () => {
+    store.set('uks.sidebar.rail', '1');
+    const { fixture } = setup();
+    one(fixture, '.sidebar-search-expand')!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sidebarCollapsed()).toBe(false);
+  });
+
+  it('falls back to expanded when storage throws', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+    });
+    const { fixture } = setup();
+    expect(fixture.componentInstance.sidebarCollapsed()).toBe(false);
+    expect(() => fixture.componentInstance.toggleSidebar()).not.toThrow();
+  });
+});

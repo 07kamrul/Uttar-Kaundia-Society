@@ -253,6 +253,8 @@
     "notices": "নোটিশ",
     "noticesManagement": "নোটিশ ব্যবস্থাপনা",
     "openMenu": "মেনু খুলুন",
+    "collapseSidebar": "মেনু ছোট করুন",
+    "expandSidebar": "মেনু বড় করুন",
     "paymentVerifications": "পেমেন্ট যাচাই",
     "picnicPayment": "পিকনিক ফি",
     "plotBoundaries": "প্লট সীমানা",

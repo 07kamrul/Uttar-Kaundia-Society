@@ -20,7 +20,10 @@ import type { Subscription } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import * as L from 'leaflet';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
-import { DagInfoDialogComponent, type DagTarget } from './dag-info-dialog/dag-info-dialog.component';
+import {
+  DagInfoDialogComponent,
+  type DagTarget,
+} from './dag-info-dialog/dag-info-dialog.component';
 import { IconComponent, type IconName } from '../../../../shared/icon/icon.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { loadMapStyles } from '../../../../shared/map/load-map-styles';
@@ -36,10 +39,7 @@ import {
 } from '../../../../core/services/land-data.service';
 import { telHref, whatsAppHref } from '../../../../shared/phone-input/contact-links';
 import { toAsciiDigits } from '../../../../core/services/digits.helper';
-import {
-  latLngsToGeometry,
-  parseSocietyBbox,
-} from '../../../../core/services/geo.helper';
+import { latLngsToGeometry, parseSocietyBbox } from '../../../../core/services/geo.helper';
 import type {
   BoundaryOwner,
   MyBoundary,
@@ -128,8 +128,7 @@ const OWNER_ERROR_KEYS = {
 /** Maps owner-fetch failures to i18n keys - server text is never shown. */
 export function ownerErrorKey(error: unknown): string {
   if (!(error instanceof HttpErrorResponse)) return OWNER_ERROR_KEYS.loadError;
-  const code =
-    (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
+  const code = (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
   if (error.status === 429 || code === 'BOUNDARY_OWNER_RATE_LIMITED')
     return OWNER_ERROR_KEYS.rateLimited;
   if (error.status === 403 && code === 'BOUNDARY_NOT_APPROVED') return OWNER_ERROR_KEYS.notApproved;
@@ -166,8 +165,7 @@ export function normalizeDagNo(value: string): string {
 
 export function boundaryErrorKey(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
-    const code =
-      (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
+    const code = (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
     if (error.status === 429 || code === 'BOUNDARY_OWNER_RATE_LIMITED') {
       return OWNER_ERROR_KEYS.rateLimited;
     }
@@ -251,11 +249,7 @@ export class PlotMapComponent implements AfterViewInit {
   readonly selectedPropertyId = signal<number | null>(null);
   readonly drawnGeometry = signal<PolygonGeometry | null>(null);
   readonly validation = computed(() =>
-    validateDrawing(
-      this.drawnGeometry(),
-      this.declaredQuantity(),
-      environment.societyBbox,
-    ),
+    validateDrawing(this.drawnGeometry(), this.declaredQuantity(), environment.societyBbox),
   );
   readonly saving = signal(false);
   readonly saveErrorKey = signal<string | null>(null);
@@ -284,7 +278,9 @@ export class PlotMapComponent implements AfterViewInit {
   readonly tourOpen = signal(this.flags.isEnabled('map_wizard') && !isMapTourDone());
   readonly wizardLegend = WIZARD_LEGEND;
   readonly wizardStep = signal<WizardStep>('find');
-  readonly wizardStepNumber = computed(() => ({ find: 1, adjust: 2, submit: 3 })[this.wizardStep()]);
+  readonly wizardStepNumber = computed(
+    () => ({ find: 1, adjust: 2, submit: 3 })[this.wizardStep()],
+  );
   readonly rsLookup = signal<RsLookupState>('idle');
   readonly rsCandidates = signal<LandPlotFeature[]>([]);
   readonly rsCandidateIndex = signal(0);
@@ -294,9 +290,13 @@ export class PlotMapComponent implements AfterViewInit {
   /** True from the moment the draw tool starts until the polygon closes. */
   readonly freehand = signal(false);
   readonly freehandVertices = signal(0);
-  readonly canUndoEdit = computed(() => (this.freehand() ? this.freehandVertices() > 0 : canUndo(this.history())));
+  readonly canUndoEdit = computed(() =>
+    this.freehand() ? this.freehandVertices() > 0 : canUndo(this.history()),
+  );
   readonly canRedoEdit = computed(() => !this.freehand() && canRedo(this.history()));
-  readonly selectedProperty = computed(() => this.properties().find((p) => p.id === this.selectedPropertyId()) ?? null);
+  readonly selectedProperty = computed(
+    () => this.properties().find((p) => p.id === this.selectedPropertyId()) ?? null,
+  );
 
   // Floating legend card: open by default on desktop, collapsed on phones.
   readonly legendOpen = signal(
@@ -327,7 +327,9 @@ export class PlotMapComponent implements AfterViewInit {
   // RS দাগ reference layer (RAJUK masterplan RS plots) + snapping, persisted per browser.
   private readonly layerPrefs = readLayerPrefs();
   // The wizard fetches the RS layer only when asked (switched on, or steps 1-2).
-  readonly rsOverlayOn = signal(this.layerPrefs.rsOverlay && (!this.flags.isEnabled('map_wizard') || hasStoredLayerPrefs()));
+  readonly rsOverlayOn = signal(
+    this.layerPrefs.rsOverlay && (!this.flags.isEnabled('map_wizard') || hasStoredLayerPrefs()),
+  );
   readonly snapEnabled = signal(this.layerPrefs.snapToRs);
   /** True while the cursor/vertex is snapped onto an RS dag edge or corner. */
   readonly isSnapped = signal(false);
@@ -359,7 +361,8 @@ export class PlotMapComponent implements AfterViewInit {
   private satelliteLayer: L.TileLayer | null = null;
   private geomanReady: Promise<void> | null = null;
   /** Dynamic import of Geoman; a seam the tests replace. */
-  protected loadGeomanModule: () => Promise<unknown> = () => import('../../../../shared/map/leaflet-geoman-setup');
+  protected loadGeomanModule: () => Promise<unknown> = () =>
+    import('../../../../shared/map/leaflet-geoman-setup');
   private resizeObserver: ResizeObserver | null = null;
   private readonly featureLayers = new Map<string, L.Polygon>();
   private moveDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -427,9 +430,7 @@ export class PlotMapComponent implements AfterViewInit {
   private insideSociety(lat: number, lng: number): boolean {
     const [minLng, minLat, maxLng, maxLat] = parseSocietyBbox(environment.societyBbox);
     const pad = 0.004; // ~400 m tolerance around the society edge
-    return (
-      lat >= minLat - pad && lat <= maxLat + pad && lng >= minLng - pad && lng <= maxLng + pad
-    );
+    return lat >= minLat - pad && lat <= maxLat + pad && lng >= minLng - pad && lng <= maxLng + pad;
   }
 
   private initMap(): void {
@@ -481,16 +482,18 @@ export class PlotMapComponent implements AfterViewInit {
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     if (this.wizardOn()) {
       // Data-saver start: society outline on a plain background, tiles only on request.
-      L.rectangle(society, { color: '#2e5138', weight: 2, fill: false, interactive: false, snapIgnore: true } as L.PolylineOptions).addTo(map);
+      L.rectangle(society, {
+        color: '#2e5138',
+        weight: 2,
+        fill: false,
+        interactive: false,
+        snapIgnore: true,
+      } as L.PolylineOptions).addTo(map);
       if (this.tilesAllowed()) this.addBaseTiles();
     } else {
       street.addTo(map);
       L.control
-        .layers(
-          { Street: street, Satellite: satellite },
-          {},
-          { position: 'bottomright' },
-        )
+        .layers({ Street: street, Satellite: satellite }, {}, { position: 'bottomright' })
         .addTo(map);
     }
 
@@ -501,7 +504,10 @@ export class PlotMapComponent implements AfterViewInit {
 
     map.on('moveend', () => {
       if (this.moveDebounce) clearTimeout(this.moveDebounce);
-      this.moveDebounce = setTimeout(() => this.zone.run(() => this.onViewMoved()), MOVE_DEBOUNCE_MS);
+      this.moveDebounce = setTimeout(
+        () => this.zone.run(() => this.onViewMoved()),
+        MOVE_DEBOUNCE_MS,
+      );
     });
     // RAJUK popups fill in after open; re-run layout so they stay below the
     // floating top bar.
@@ -518,7 +524,9 @@ export class PlotMapComponent implements AfterViewInit {
     );
     map.on('move', () => this.updateSheetPos());
 
-    map.on('pm:drawstart', (event: { workingLayer?: L.Layer }) => this.bindSnapCue(event.workingLayer));
+    map.on('pm:drawstart', (event: { workingLayer?: L.Layer }) =>
+      this.bindSnapCue(event.workingLayer),
+    );
     map.on('pm:drawend', () => this.clearSnapCue());
     map.on('pm:drawmove', () => this.zone.run(() => this.syncDrawnGeometry()));
     map.on('pm:vertexadded', () =>
@@ -552,8 +560,14 @@ export class PlotMapComponent implements AfterViewInit {
     if (this.wizardOn()) return; // data-saver mode downloads layers only on request
     const bbox = this.societyLayerBbox();
     const ignore = { error: () => undefined };
-    this.landDataService.dagsInBbox(bbox).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(ignore);
-    this.landDataService.masterplanInBbox(bbox).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(ignore);
+    this.landDataService
+      .dagsInBbox(bbox)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(ignore);
+    this.landDataService
+      .masterplanInBbox(bbox)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(ignore);
   }
 
   // ---- map_wizard: tiles, Geoman and RS-match loading ---------------------
@@ -681,9 +695,10 @@ export class PlotMapComponent implements AfterViewInit {
       .subscribe({
         next: (profile) => {
           this.properties.set(profile.properties);
-          if (this.drawStep() !== 'idle') this.plotMapService.listMine().subscribe({
-            next: (mine) => this.myBoundaries.set(mine),
-          });
+          if (this.drawStep() !== 'idle')
+            this.plotMapService.listMine().subscribe({
+              next: (mine) => this.myBoundaries.set(mine),
+            });
         },
         error: () => this.properties.set([]),
       });
@@ -704,7 +719,9 @@ export class PlotMapComponent implements AfterViewInit {
       const entry = wizard ? legendEntryFor(feature.reviewStatus, feature.isMine) : null;
       if (wizard && !entry) continue;
       // Live shapes are solid; the owner's pending/rejected proposal is dashed.
-      const isProposal = entry ? entry.dashed : feature.isMine && feature.reviewStatus !== 'approved';
+      const isProposal = entry
+        ? entry.dashed
+        : feature.isMine && feature.reviewStatus !== 'approved';
       const layer = L.polygon(this.geoRingToLatLngs(feature.geometry), {
         color: entry ? entry.colour : this.featureColor(feature),
         weight: 2,
@@ -725,7 +742,7 @@ export class PlotMapComponent implements AfterViewInit {
 
   selectMapMode(mode: PlotMapMode): void {
     if (this.mapMode() === mode) {
-        return;
+      return;
     }
     this.cancelDraw();
     this.closeSheet();
@@ -816,7 +833,9 @@ export class PlotMapComponent implements AfterViewInit {
     if (!map.pm) return; // Geoman is still loading; ensureGeoman() calls this again
     const options = this.snapOptions();
     map.pm.setGlobalOptions(options as never);
-    const draw = (map.pm.Draw as unknown as Record<string, { setOptions?: (o: unknown) => void }>)['Polygon'];
+    const draw = (map.pm.Draw as unknown as Record<string, { setOptions?: (o: unknown) => void }>)[
+      'Polygon'
+    ];
     draw?.setOptions?.(options);
     this.drawnLayer?.pm?.setOptions(options as never);
   }
@@ -904,7 +923,8 @@ export class PlotMapComponent implements AfterViewInit {
       pane: BDS_PANE,
       renderer: this.bdsRenderer,
       snapIgnore: true,
-      style: (feature?: unknown) => this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
+      style: (feature?: unknown) =>
+        this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
       onEachFeature: (feature: unknown, layer: L.Layer) =>
         layer.on('click', () =>
           this.zone.run(() => this.openDagDialog((feature as LandPlotFeature).properties)),
@@ -948,7 +968,11 @@ export class PlotMapComponent implements AfterViewInit {
       const visible = show && view.intersects(polygon.getBounds());
       if (visible && !polygon.__dagLabel) {
         const label = L.marker(polygon.getBounds().getCenter(), {
-          icon: L.divIcon({ className: 'bds-dag-label', html: String(dag), iconSize: null as never }),
+          icon: L.divIcon({
+            className: 'bds-dag-label',
+            html: String(dag),
+            iconSize: null as never,
+          }),
           interactive: false,
           keyboard: false,
         });
@@ -1007,7 +1031,8 @@ export class PlotMapComponent implements AfterViewInit {
     const options = {
       pane: RS_PANE,
       renderer: this.rsRenderer,
-      style: (feature?: unknown) => this.rsStyle((feature as LandPlotFeature | undefined)?.properties),
+      style: (feature?: unknown) =>
+        this.rsStyle((feature as LandPlotFeature | undefined)?.properties),
       onEachFeature: (feature: unknown, layer: L.Layer) =>
         layer.bindPopup(
           () => this.rsPopupHtml(feature as LandPlotFeature, layer as L.Polygon),
@@ -1068,10 +1093,17 @@ export class PlotMapComponent implements AfterViewInit {
       const bounds = polygon.getBounds();
       const text = rsLabelNumber((polygon.feature as LandPlotFeature | undefined)?.properties);
       const visible =
-        !!text && zoom >= RS_LABEL_MIN_ZOOM && view.intersects(bounds) && this.isParcelLabelable(bounds, zoom);
+        !!text &&
+        zoom >= RS_LABEL_MIN_ZOOM &&
+        view.intersects(bounds) &&
+        this.isParcelLabelable(bounds, zoom);
       if (visible && !polygon.__rsLabel) {
         polygon.__rsLabel = L.marker(bounds.getCenter(), {
-          icon: L.divIcon({ className: 'rs-dag-label', html: this.digits(text), iconSize: null as never }),
+          icon: L.divIcon({
+            className: 'rs-dag-label',
+            html: this.digits(text),
+            iconSize: null as never,
+          }),
           interactive: false,
           keyboard: false,
           snapIgnore: true,
@@ -1111,7 +1143,12 @@ export class PlotMapComponent implements AfterViewInit {
 
   /** BDS layer style that keeps the searched dag highlighted across bbox reloads. */
   private bdsStyle(props?: LandPlotFeature['properties']): L.PathOptions {
-    const base: L.PathOptions = { color: '#1a3fd4', weight: 2, fillColor: '#2b50e0', fillOpacity: 0.2 };
+    const base: L.PathOptions = {
+      color: '#1a3fd4',
+      weight: 2,
+      fillColor: '#2b50e0',
+      fillOpacity: 0.2,
+    };
     const dialogDag = this.dagDialog()?.dag;
     if (dialogDag && this.dagKeyOf(props) === dialogDag) {
       return { ...base, color: '#d32f2f', weight: 3, fillColor: '#d32f2f', fillOpacity: 0.4 };
@@ -1239,9 +1276,7 @@ export class PlotMapComponent implements AfterViewInit {
   }
 
   private geoRingToLatLngs(geometry: PolygonGeometry): L.LatLngTuple[] {
-    return geometry.coordinates[0].map(
-      (pair) => [pair[1], pair[0]] as L.LatLngTuple,
-    );
+    return geometry.coordinates[0].map((pair) => [pair[1], pair[0]] as L.LatLngTuple);
   }
 
   // ---- Details sheet ------------------------------------------------------
@@ -1494,7 +1529,10 @@ export class PlotMapComponent implements AfterViewInit {
 
   undoEdit(): void {
     if (this.freehand()) {
-      const draw = (this.map?.pm.Draw as unknown as Record<string, { _removeLastVertex?: () => void }> | undefined)?.['Polygon'];
+      const draw = (
+        this.map?.pm.Draw as unknown as
+          Record<string, { _removeLastVertex?: () => void }> | undefined
+      )?.['Polygon'];
       draw?._removeLastVertex?.();
       this.freehandVertices.update((n) => Math.max(0, n - 1));
       return;
@@ -1575,7 +1613,10 @@ export class PlotMapComponent implements AfterViewInit {
   }
 
   candidateLabel(feature: LandPlotFeature): { dag: string; sheet: string } {
-    return { dag: this.digits(rsLabelNumber(feature.properties)), sheet: this.digits(feature.properties?.sheet ?? '') };
+    return {
+      dag: this.digits(rsLabelNumber(feature.properties)),
+      sheet: this.digits(feature.properties?.sheet ?? ''),
+    };
   }
 
   async confirmRsCandidate(): Promise<void> {
@@ -1640,7 +1681,9 @@ export class PlotMapComponent implements AfterViewInit {
   }
 
   dagLabelFor(property: MemberProperty | null): string {
-    return property ? this.digits([property.dagNoRs, property.dagNoCs].filter(Boolean).join(' / ')) : '—';
+    return property
+      ? this.digits([property.dagNoRs, property.dagNoCs].filter(Boolean).join(' / '))
+      : '—';
   }
 
   cancelDraw(): void {
