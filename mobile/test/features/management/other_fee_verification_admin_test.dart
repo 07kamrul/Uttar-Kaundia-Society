@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaundia_app/core/network/api_client.dart';
 import 'package:kaundia_app/features/management/data/admin_repository.dart';
+import 'package:kaundia_app/features/management/data/cost_share_payment_repository.dart';
+import 'package:kaundia_app/features/management/domain/cost_share_verification_entities.dart';
 import 'package:kaundia_app/features/management/data/other_fee_verification_repository.dart';
 import 'package:kaundia_app/features/management/domain/bulk_entities.dart';
 import 'package:kaundia_app/features/management/domain/other_fee_verification_entities.dart';
@@ -17,6 +19,16 @@ class _MockApi extends Mock implements ApiClient {}
 class _MockRepo extends Mock implements OtherFeeVerificationRepository {}
 
 class _MockInstallments extends Mock implements InstallmentPaymentRepository {}
+
+class _MockCostShares extends Mock implements CostSharePaymentRepository {}
+
+_MockCostShares _costShares() {
+  final m = _MockCostShares();
+  when(() => m.list(status: any(named: 'status'))).thenAnswer((_) async => []);
+  when(() => m.pendingCounts()).thenAnswer(
+      (_) async => const PendingVerificationCounts(installment: 0, costShare: 0, otherFee: 0, total: 0));
+  return m;
+}
 
 Map<String, dynamic> _json(int id, String kind, {String status = 'pending', String amount = '500.00'}) => {
       'id': id,
@@ -157,7 +169,7 @@ void main() {
       await pumpBn(
           tester,
           PaymentVerificationsPage(
-              repository: installments, otherFeesEnabled: false, otherFeeRepository: other));
+              repository: installments, otherFeesEnabled: false, otherFeeRepository: other, costShareRepository: _costShares()));
       expect(find.byKey(const Key('pvTab_other_fee')), findsNothing);
       verifyNever(() => other.list(status: any(named: 'status')));
     });
@@ -166,7 +178,7 @@ void main() {
       await pumpBn(
           tester,
           PaymentVerificationsPage(
-              repository: installments, otherFeesEnabled: true, otherFeeRepository: other));
+              repository: installments, otherFeesEnabled: true, otherFeeRepository: other, costShareRepository: _costShares()));
       expect(find.byKey(const Key('pvTab_other_fee')), findsOneWidget);
       await tester.tap(find.byKey(const Key('pvTab_other_fee')));
       await tester.pumpAndSettle();

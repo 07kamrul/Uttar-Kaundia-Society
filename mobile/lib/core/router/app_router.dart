@@ -13,6 +13,10 @@ import '../../features/governance/pages/land_complaint_page.dart';
 import '../../features/governance/pages/petitions_page.dart';
 import '../../features/governance/pages/service_standard_page.dart';
 import '../../features/governance/pages/welfare_fund_page.dart';
+import '../../features/registers/pages/asset_register_page.dart';
+import '../../features/registers/pages/committee_registry_page.dart';
+import '../../features/registers/pages/fund_controls_page.dart';
+import '../../features/registers/pages/welfare_activities_page.dart';
 import '../../features/home/home_status_page.dart';
 import '../../features/home/my_land_hub_page.dart';
 import '../../features/home/organisation_hub_page.dart';
@@ -43,7 +47,7 @@ import '../../features/member/pages/change_password_page.dart';
 import '../../features/member/pages/cost_shares_page.dart';
 import '../../features/member/pages/fund_transparency_page.dart';
 import '../../features/member/pages/installments_page.dart';
-import '../../features/member/pages/picnic_payment_page.dart';
+import '../../features/member/pages/other_fees_page.dart';
 import '../../features/member/pages/profile_page.dart';
 import '../../features/member/pages/property_request_form_page.dart';
 import '../../features/member/pages/resolution_book_detail_page.dart';
@@ -159,7 +163,13 @@ GoRouter buildRouter() {
             builder: (_, s) =>
                 PropertyRequestFormPage(propertyId: s.pathParameters['propertyId']),
           ),
-          GoRoute(path: '/picnic-payment', builder: (_, __) => const PicnicPaymentPage()),
+          GoRoute(
+            path: '/other-fees',
+            builder: (_, s) => OtherFeesPage(initialType: s.uri.queryParameters['type']),
+          ),
+          // Angular folded Picnic Fee and the plain Fees page into Other Fees.
+          GoRoute(path: '/picnic-payment', redirect: (_, __) => '/other-fees?type=picnic'),
+          GoRoute(path: '/fees', redirect: (_, __) => '/other-fees'),
           GoRoute(
             path: '/submissions',
             builder: (_, __) => const SubmissionsListPage(),
@@ -208,6 +218,11 @@ GoRouter buildRouter() {
             builder: (_, s) => NoticesEventsPage(initialTab: s.uri.queryParameters['tab']),
           ),
           GoRoute(path: '/phone-fixes', builder: (_, __) => const PhoneFixesPage()),
+          // Governance registers (Modules 2, 3 and 7).
+          GoRoute(path: '/committee-registry', builder: (_, __) => const CommitteeRegistryPage()),
+          GoRoute(path: '/fund-controls', builder: (_, __) => const FundControlsPage()),
+          GoRoute(path: '/asset-register', builder: (_, __) => const AssetRegisterPage()),
+          GoRoute(path: '/welfare-activities', builder: (_, __) => const WelfareActivitiesPage()),
           GoRoute(path: '/advanced/cache', builder: (_, __) => const CacheStatsPage()),
           GoRoute(path: '/roles', builder: (_, __) => const RolesPage()),
           GoRoute(path: '/audit-log', builder: (_, __) => const AuditLogPage()),

@@ -9,6 +9,8 @@ import 'package:kaundia_app/core/feature_flags/feature_flags_service.dart';
 import 'package:kaundia_app/core/network/api_exception.dart';
 import 'package:kaundia_app/core/router/app_router.dart';
 import 'package:kaundia_app/features/management/data/admin_repository.dart';
+import 'package:kaundia_app/features/management/data/cost_share_payment_repository.dart';
+import 'package:kaundia_app/features/management/domain/cost_share_verification_entities.dart';
 import 'package:kaundia_app/features/management/domain/admin_entities.dart';
 import 'package:kaundia_app/features/management/domain/bulk_entities.dart';
 import 'package:kaundia_app/features/management/domain/finance_entities.dart';
@@ -27,6 +29,16 @@ import '../../support/pump_app.dart';
 class _MockAdmin extends Mock implements AdminRepository {}
 
 class _MockPay extends Mock implements InstallmentPaymentRepository {}
+
+class _MockCostShares extends Mock implements CostSharePaymentRepository {}
+
+_MockCostShares _costShares() {
+  final m = _MockCostShares();
+  when(() => m.list(status: any(named: 'status'))).thenAnswer((_) async => []);
+  when(() => m.pendingCounts()).thenAnswer(
+      (_) async => const PendingVerificationCounts(installment: 0, costShare: 0, otherFee: 0, total: 0));
+  return m;
+}
 
 class _FlagsRepo implements FeatureFlagsRepository {
   _FlagsRepo(this.flags);
@@ -277,7 +289,8 @@ void main() {
     Future<void> open(WidgetTester tester,
         {bool bulk = true, Future<List<String>> Function()? reasons}) =>
         _pumpRouter(tester,
-            PaymentVerificationsPage(repository: repo, bulkEnabled: bulk, reasonSuggestions: reasons));
+            PaymentVerificationsPage(repository: repo, bulkEnabled: bulk, reasonSuggestions: reasons,
+                costShareRepository: _costShares()));
 
     testWidgets('flag off: no checkboxes and no bar', (tester) async {
       await open(tester, bulk: false);

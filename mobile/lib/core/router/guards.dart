@@ -32,6 +32,9 @@ String? appRedirect(BuildContext context, GoRouterState state) {
     if (merged != null) return merged;
   }
 
+  final memberPaymentRedirect = memberPaymentRoleRedirect(session, loc);
+  if (memberPaymentRedirect != null) return memberPaymentRedirect;
+
   final required = _requiredPermissionFor(loc);
   if (required != null && !session.canAny(required)) return '/403';
   return null;
@@ -47,8 +50,16 @@ String? mergedPaymentsRedirect(String loc) {
     '/installments' => '/payments?kind=installment',
     '/cost-shares' => '/payments?kind=cost_share',
     '/picnic-payment' => '/payments?kind=other_fee&fee=picnic',
+    '/other-fees' => _otherFeesMergedRedirect(loc),
     _ => null,
   };
+}
+
+/// `/other-fees?type=x` keeps the preselected fee as `fee=x`.
+String _otherFeesMergedRedirect(String loc) {
+  final type = Uri.tryParse(loc)?.queryParameters['type'];
+  if (type == null || type.isEmpty) return '/payments?kind=other_fee';
+  return '/payments?kind=other_fee&fee=${Uri.encodeQueryComponent(type)}';
 }
 
 const _publicPrefixes = [
@@ -82,7 +93,6 @@ const _areaPermissions = <String, List<String>>{
   '/audit-log': ['view_audit_log'],
   '/property-requests': ['property.review'],
   '/neighbours': [AppPermissions.neighbourView],
-  '/plot-map': ['boundary.view'],
   // Governance pages (same permissions as the Angular route guards).
   '/elections': ['election.vote', 'election.candidate'],
   '/petitions': ['petition.create'],
@@ -90,12 +100,19 @@ const _areaPermissions = <String, List<String>>{
   '/amendments': ['amendment.propose', 'service_standard.view'],
   '/service-standard': ['service_standard.view'],
   '/complaints/land-protection': ['land_complaint.create'],
+  // Governance registers (same permissions as the Angular route guards).
+  '/committee-registry': ['committee_registry.manage'],
+  '/fund-controls': ['fund.manage', 'signatory.manage', 'audit_report.manage', 'welfare_fund.review'],
+  '/asset-register': ['asset_register.manage'],
+  '/welfare-activities': ['welfare_activity.manage'],
 };
 
 /// Prefix-matched areas (list + detail routes).
 const _areaPrefixPermissions = <String, List<String>>{
   '/submissions': ['membership.review'],
   '/members': ['member.view_all'],
+  // Includes /plot-map/draw (boundary editor) so it is not login-only.
+  '/plot-map': ['boundary.view'],
   '/resolution-book/add': ['manage_resolution_book'],
   '/resolution-book/edit': ['manage_resolution_book'],
 };
@@ -106,9 +123,11 @@ const _memberPages = [
   '/installments',
   '/cost-shares',
   '/payments',
+  '/complaints',
   '/my-land',
   '/property-requests/new',
   '/picnic-payment',
+  '/other-fees',
 ];
 
 /// Permissions required to open [loc]; null when the route is unguarded.
@@ -127,6 +146,15 @@ List<String>? _requiredPermissionFor(String loc) {
     if (path == entry.key || path.startsWith('${entry.key}/')) return entry.value;
   }
   return null;
+}
+
+/// Mirrors Angular `roleGuard(MEMBER_PAYMENT_ROLES)` on /other-fees: only
+/// member-tier payers see the form; fee managers go to /fee-settings and
+/// everyone else to the dashboard. Null when access is allowed.
+@visibleForTesting
+String? memberPaymentRoleRedirect(Session session, String loc) {
+  if (loc.split('?').first != '/other-fees' || session.isMemberTier) return null;
+  return landingRoute(session);
 }
 
 /// Landing route after login, mirroring Angular roleGuard: fee managers ->

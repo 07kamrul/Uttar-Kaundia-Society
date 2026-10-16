@@ -12,7 +12,10 @@ import '../../registration/data/config_list_repository.dart';
 import '../presentation/bloc/payment_verifications_bloc.dart';
 
 import '../data/admin_repository.dart';
+import '../data/cost_share_payment_repository.dart';
 import '../data/other_fee_verification_repository.dart';
+import '../domain/cost_share_verification_entities.dart';
+import 'cost_share_verifications_view.dart';
 import 'other_fee_verifications_view.dart';
 import '../domain/bulk_entities.dart';
 import '../domain/finance_entities.dart';
@@ -36,7 +39,12 @@ class PaymentVerificationsPage extends StatelessWidget {
     this.reasonSuggestions,
     this.otherFeesEnabled,
     this.otherFeeRepository,
+    this.costShareRepository,
   });
+
+  /// "খরচের ভাগ" tab (always on, like Angular BASE_KINDS). Test seam; the
+  /// live repository by default.
+  final CostSharePaymentRepository? costShareRepository;
 
   /// "অন্যান্য ফি" tab (pay_verify_other_fees); the flag when null.
   final bool? otherFeesEnabled;
@@ -66,31 +74,88 @@ class PaymentVerificationsPage extends StatelessWidget {
       )..add(const PaymentVerificationsLoadRequested()),
       child: _PaymentVerificationsView(bulkEnabled: bulk, reasonSuggestions: suggestions),
     );
-    if (!(otherFeesEnabled ?? flagEnabled(FeatureFlag.payVerifyOtherFees))) return installments;
+    final otherOn = otherFeesEnabled ?? flagEnabled(FeatureFlag.payVerifyOtherFees);
+    final costShares = costShareRepository ?? CostSharePaymentRepository(apiClient: sl<ApiClient>());
     return _TabbedVerifications(
       installments: installments,
-      otherFees: OtherFeeVerificationsView(
-        repository: otherFeeRepository ?? OtherFeeVerificationRepository(apiClient: sl<ApiClient>()),
-        bulkEnabled: bulk,
-        reasonSuggestions: suggestions,
-      ),
+      costShareRepository: costShares,
+      reasonSuggestions: suggestions,
+      otherFees: otherOn
+          ? OtherFeeVerificationsView(
+              repository: otherFeeRepository ?? OtherFeeVerificationRepository(apiClient: sl<ApiClient>()),
+              bulkEnabled: bulk,
+              reasonSuggestions: suggestions,
+            )
+          : null,
     );
   }
 }
 
-/// Kind switch above the queues: installments | other fees.
+enum _Kind { installment, costShare, otherFee }
+
+/// Kind switch above the queues: installments | cost shares | other fees,
+/// with pending counts on the chips (Angular payment-verifications kinds).
 class _TabbedVerifications extends StatefulWidget {
-  const _TabbedVerifications({required this.installments, required this.otherFees});
+  const _TabbedVerifications({
+    required this.installments,
+    required this.costShareRepository,
+    this.otherFees,
+    this.reasonSuggestions,
+  });
 
   final Widget installments;
-  final Widget otherFees;
+  final CostSharePaymentRepository costShareRepository;
+  final Widget? otherFees;
+  final Future<List<String>> Function()? reasonSuggestions;
 
   @override
   State<_TabbedVerifications> createState() => _TabbedVerificationsState();
 }
 
 class _TabbedVerificationsState extends State<_TabbedVerifications> {
-  bool _other = false;
+  _Kind _kind = _Kind.installment;
+  PendingVerificationCounts? _counts;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    try {
+      final counts = await widget.costShareRepository.pendingCounts();
+      if (mounted) setState(() => _counts = counts);
+    } on Exception {
+      // Counts are decorative; the chips simply render without them.
+    }
+  }
+
+  int? _countOf(_Kind kind) => switch (kind) {
+        _Kind.installment => _counts?.installment,
+        _Kind.costShare => _counts?.costShare,
+        _Kind.otherFee => _counts?.otherFee,
+      };
+
+  Widget _chip(AppLocalizations loc, _Kind kind, String key, String label) {
+    final n = _countOf(kind);
+    return ChoiceChip(
+      key: Key('pvTab_$key'),
+      label: Text(n == null || n == 0 ? label : '$label (${bnNumber(n, locale: loc.localeName)})'),
+      selected: _kind == kind,
+      onSelected: (_) => setState(() => _kind = kind),
+    );
+  }
+
+  Widget _body() => switch (_kind) {
+        _Kind.installment => widget.installments,
+        _Kind.costShare => CostShareVerificationsView(
+            repository: widget.costShareRepository,
+            reasonSuggestions: widget.reasonSuggestions,
+            onReviewed: _loadCounts,
+          ),
+        _Kind.otherFee => widget.otherFees!,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -102,22 +167,14 @@ class _TabbedVerificationsState extends State<_TabbedVerifications> {
           child: Wrap(
             spacing: 8,
             children: [
-              ChoiceChip(
-                key: const Key('pvTab_installment'),
-                label: Text(loc.mpayKindInstallment),
-                selected: !_other,
-                onSelected: (_) => setState(() => _other = false),
-              ),
-              ChoiceChip(
-                key: const Key('pvTab_other_fee'),
-                label: Text(loc.mpayKindOtherFee),
-                selected: _other,
-                onSelected: (_) => setState(() => _other = true),
-              ),
+              _chip(loc, _Kind.installment, 'installment', loc.mpayKindInstallment),
+              _chip(loc, _Kind.costShare, 'cost_share', loc.mpayKindCostShare),
+              if (widget.otherFees != null)
+                _chip(loc, _Kind.otherFee, 'other_fee', loc.mpayKindOtherFee),
             ],
           ),
         ),
-        Expanded(child: _other ? widget.otherFees : widget.installments),
+        Expanded(child: _body()),
       ],
     );
   }

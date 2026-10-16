@@ -64,6 +64,10 @@ class AppNav {
 
   static String Function(AppLocalizations) _t(String Function(AppLocalizations) f) => f;
 
+  /// Label for pages whose text is not in the ARB files yet.
+  static String Function(AppLocalizations) _bnEn(String bn, String en) =>
+      (l) => l.localeName.startsWith('bn') ? bn : en;
+
   static final List<NavItem> items = [
     NavItem(
       labelKey: _t((l) => l.navDashboard),
@@ -305,8 +309,8 @@ class AppNav {
   /// must be listed here (the menu-guard test fails otherwise).
   static const _adminGroupRoutes = <List<String>>[
     ['/submissions', '/members', '/property-requests'],
-    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management'],
-    ['/notices-management', '/events-management'],
+    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management', '/fund-controls'],
+    ['/notices-management', '/events-management', ..._registerOrgRoutes],
     ['/fee-settings'],
     ['/config-lists', '/roles', '/audit-log', '/advanced/cache'],
   ];
@@ -315,11 +319,14 @@ class AppNav {
   /// events, and the phone-fix page.
   static const _consoleGroupRoutes = <List<String>>[
     ['/applications', '/members', '/property-requests', '/phone-fixes'],
-    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management'],
-    ['/notices-events'],
+    ['/payment-verifications', '/installments-management', '/society-costs', '/finance-management', '/fund-controls'],
+    ['/notices-events', ..._registerOrgRoutes],
     ['/fee-settings'],
     ['/config-lists', '/roles', '/audit-log', '/advanced/cache'],
   ];
+
+  /// Register pages in the organisation group (Angular admin-groups order).
+  static const _registerOrgRoutes = ['/committee-registry', '/welfare-activities', '/asset-register'];
 
   static final List<String Function(AppLocalizations)> _adminGroupLabels = [
     _t((l) => l.adminGroupApplications),
@@ -343,6 +350,31 @@ class AppNav {
       route: '/property-requests',
       icon: Icons.home_work_outlined,
       requiredPermission: 'property.review',
+    ),
+    // Governance registers (same permissions as the Angular nav-config).
+    NavItem(
+      labelKey: _bnEn('কমিটি রেজিস্ট্রি', 'Committee registry'),
+      route: '/committee-registry',
+      icon: Icons.badge_outlined,
+      requiredPermission: 'committee_registry.manage',
+    ),
+    NavItem(
+      labelKey: _bnEn('তহবিল নিয়ন্ত্রণ', 'Fund controls'),
+      route: '/fund-controls',
+      icon: Icons.shield_outlined,
+      requiredAny: const ['fund.manage', 'signatory.manage', 'audit_report.manage', 'welfare_fund.review'],
+    ),
+    NavItem(
+      labelKey: _bnEn('সম্পদ রেজিস্টার', 'Asset register'),
+      route: '/asset-register',
+      icon: Icons.inventory_2_outlined,
+      requiredPermission: 'asset_register.manage',
+    ),
+    NavItem(
+      labelKey: _bnEn('কল্যাণ কার্যক্রম', 'Welfare activities'),
+      route: '/welfare-activities',
+      icon: Icons.groups_2_outlined,
+      requiredPermission: 'welfare_activity.manage',
     ),
   ];
 
@@ -445,7 +477,7 @@ class AppNav {
 
   static const _areaPrefixes = <NavArea, List<String>>{
     NavArea.home: ['/dashboard'],
-    NavArea.payments: ['/payments', '/installments', '/cost-shares', '/picnic-payment'],
+    NavArea.payments: ['/payments', '/installments', '/cost-shares', '/picnic-payment', '/other-fees'],
     NavArea.land: ['/my-land', '/neighbours', '/plot-map', '/property-requests'],
     NavArea.organisation: [
       '/organisation', '/notices', '/events', '/fund-transparency', '/roadmap', '/resolution-book',

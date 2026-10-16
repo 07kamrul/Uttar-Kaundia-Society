@@ -87,8 +87,8 @@ void main() {
       expect(requiredPermissionFor('/complaints/land-protection'), ['land_complaint.create']);
     });
 
-    test('complaints and help desk stay open to any signed-in account', () {
-      expect(requiredPermissionFor('/complaints'), isNull);
+    test('complaints needs the member area; help desk stays open to any signed-in account', () {
+      expect(requiredPermissionFor('/complaints'), ['profile.view_own']);
       expect(requiredPermissionFor('/emergency-help'), isNull);
     });
   });
