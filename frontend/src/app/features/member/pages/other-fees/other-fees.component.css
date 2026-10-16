@@ -122,7 +122,7 @@
   }
 }
 
-.of-page { max-width: 52rem; margin: 0 auto; }
+.of-page { width: 100%; }
 .of-msg { margin: 0; overflow-wrap: anywhere; }
 .of-retry { margin-top: 0.5rem; min-height: 44px; }
 .of-form-card { padding: 1.25rem; margin-bottom: 1.5rem; }

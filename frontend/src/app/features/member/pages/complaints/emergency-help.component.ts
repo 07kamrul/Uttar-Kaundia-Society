@@ -69,7 +69,7 @@ import { ComplaintConstants, GovernanceService } from '../../../../core/services
   `,
   styles: [
     `
-      .page-container { display: grid; gap: 1.25rem; max-width: 56rem; }
+      .page-container { display: grid; gap: 1.25rem; width: 100%; }
       .page-title { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--emerald-900); }
       .title-badge {
         display: inline-flex; align-items: center; justify-content: center;

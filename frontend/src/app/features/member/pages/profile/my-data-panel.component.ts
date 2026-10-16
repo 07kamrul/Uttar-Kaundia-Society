@@ -128,7 +128,7 @@ function saveBlob(blob: Blob, filename: string): void {
   `,
   styles: [
     `
-      .data-panel { padding: 1.25rem; display: grid; gap: 1.4rem; max-width: 56rem; }
+      .data-panel { padding: 1.25rem; display: grid; gap: 1.4rem; }
       .panel-head { display: flex; align-items: center; gap: 0.55rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--gray-200); }
       .panel-head h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--emerald-800); }
       .panel-icon {
