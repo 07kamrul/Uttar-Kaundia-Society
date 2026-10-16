@@ -454,7 +454,11 @@ export class PlotMapComponent implements AfterViewInit {
     // RS dag parcels sit under member polygons; Geoman snaps to them for any pane.
     map.createPane(RS_PANE).style.zIndex = RS_PANE_Z_INDEX;
     map.createPane(BDS_PANE).style.zIndex = BDS_PANE_Z_INDEX;
-    map.createPane(MEMBER_PANE).style.zIndex = MEMBER_PANE_Z_INDEX;
+    const memberPane = map.createPane(MEMBER_PANE);
+    memberPane.style.zIndex = MEMBER_PANE_Z_INDEX;
+    // The member SVG spans the whole viewport; let clicks fall through to the BDS/RS
+    // canvases below. Member paths stay clickable via `.leaflet-interactive`.
+    memberPane.style.pointerEvents = 'none';
 
     const street = L.tileLayer(environment.mapTileUrl, {
       maxZoom: 19,
