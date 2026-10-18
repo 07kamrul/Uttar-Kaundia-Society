@@ -54,6 +54,7 @@
     <ul class="account-list">
       @for (account of accounts; track account.id) {
         <li class="account-row" [class.is-inactive]="account.status === 'inactive'">
+          <span class="row-icon" aria-hidden="true">{{ account.type === 'bank' ? '🏦' : '📱' }}</span>
           <div class="row-main">
             <span class="row-label">{{ account.label }}</span>
             <span class="row-identity">{{ identityLine(account) }}</span>
@@ -101,32 +102,58 @@
   <!-- Create / edit form -->
   @if (formOpen) {
     <div class="modal-backdrop" (click)="closeForm()">
-      <div class="modal-card form-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-        <h2>{{ (editing ? 'paymentAccounts.form.editTitle' : 'paymentAccounts.form.createTitle') | translate }}</h2>
+      <div
+        class="modal-card form-card"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pa-form-title"
+      >
+        <header class="form-head">
+          <h2 id="pa-form-title">
+            {{ (editing ? 'paymentAccounts.form.editTitle' : 'paymentAccounts.form.createTitle') | translate }}
+          </h2>
+          <button
+            type="button"
+            class="close-btn"
+            [attr.aria-label]="'common.cancel' | translate"
+            [disabled]="saving"
+            (click)="closeForm()"
+          >
+            ✕
+          </button>
+        </header>
 
-        <div class="field">
+        <div class="form-body">
+        <div class="field full">
           <span class="field-label">{{ 'paymentAccounts.form.type' | translate }} *</span>
           <div class="type-cards" role="radiogroup">
             <button
               type="button"
+              role="radio"
               class="type-card"
               [class.is-selected]="formType === 'bank'"
+              [attr.aria-checked]="formType === 'bank'"
               (click)="setFormType('bank')"
             >
-              🏦 {{ 'paymentAccounts.typeTabs.bank' | translate }}
+              <span aria-hidden="true">🏦</span>
+              {{ 'paymentAccounts.typeTabs.bank' | translate }}
             </button>
             <button
               type="button"
+              role="radio"
               class="type-card"
               [class.is-selected]="formType === 'mfs'"
+              [attr.aria-checked]="formType === 'mfs'"
               (click)="setFormType('mfs')"
             >
-              📱 {{ 'paymentAccounts.typeTabs.mfs' | translate }}
+              <span aria-hidden="true">📱</span>
+              {{ 'paymentAccounts.typeTabs.mfs' | translate }}
             </button>
           </div>
         </div>
 
-        <div class="field">
+        <div class="field full">
           <label for="pa-label">{{ 'paymentAccounts.form.label' | translate }} *</label>
           <input id="pa-label" type="text" [(ngModel)]="formLabel" maxlength="120" />
         </div>
@@ -140,7 +167,7 @@
             <label for="pa-branch">{{ 'paymentAccounts.form.branchName' | translate }}</label>
             <input id="pa-branch" type="text" [(ngModel)]="formBranchName" maxlength="120" />
           </div>
-          <div class="field">
+          <div class="field full">
             <label for="pa-acname">{{ 'paymentAccounts.form.accountName' | translate }} *</label>
             <input id="pa-acname" type="text" [(ngModel)]="formAccountName" maxlength="120" />
           </div>
@@ -180,12 +207,12 @@
           </div>
         }
 
-        <div class="field">
+        <div class="field full">
           <label for="pa-instructions">{{ 'paymentAccounts.form.instructions' | translate }}</label>
           <textarea id="pa-instructions" rows="2" [(ngModel)]="formInstructions" maxlength="500"></textarea>
         </div>
 
-        <div class="field">
+        <div class="field full">
           <label for="pa-qr">{{ 'paymentAccounts.form.qrImage' | translate }}</label>
           <input id="pa-qr" type="file" accept="image/jpeg,image/png,image/webp" (change)="onQrSelected($event)" />
           @if (qrPreview) {
@@ -194,17 +221,18 @@
         </div>
 
         @if (formError) {
-          <p class="form-error" data-testid="form-error">{{ formError }}</p>
+          <p class="form-error" data-testid="form-error" role="alert">{{ formError }}</p>
         }
+        </div>
 
-        <div class="form-actions">
+        <footer class="form-actions">
           <button type="button" class="btn btn-secondary" (click)="closeForm()" [disabled]="saving">
             {{ 'common.cancel' | translate }}
           </button>
           <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving">
             {{ (saving ? 'common.saving' : 'common.save') | translate }}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   }
