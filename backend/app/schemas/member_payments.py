@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.schemas.installment_payment import PaymentAccountOut
+from app.schemas.payment_account import PaymentAccountPublicOut
 from app.schemas.other_fees import OtherFeeTypeOut
 from app.services.other_fee_verification import parse_id_ref
 
@@ -26,7 +26,7 @@ class PaymentSummaryOut(BaseModel):
     pending_amount: Decimal
     dues: list[DueItemOut]
     payable_fee_types: list[OtherFeeTypeOut]
-    accounts: list[PaymentAccountOut]
+    accounts: list[PaymentAccountPublicOut]
 
 
 class PaymentHistoryItemOut(BaseModel):

@@ -16,14 +16,35 @@ pytestmark = pytest.mark.asyncio
 URL = "/api/member/installment-payments"
 
 
-async def _seed_accounts(db: AsyncSession) -> None:
-    db.add_all(
-        [
-            ConfigListItem(category="payment_account", value="bKash", label="01700000000 (Merchant)"),
-            ConfigListItem(category="payment_account", value="Bank", label="Sonali Bank A/C 123"),
-        ]
-    )
+async def _seed_accounts(db: AsyncSession) -> dict[str, object]:
+    """Seed one MFS + one bank account; returns {method_key: id}."""
+    from app.models.payment_account import PaymentAccount
+
+    rows = [
+        PaymentAccount(
+            type="mfs",
+            status="active",
+            display_order=1,
+            label="01700000000 (Merchant)",
+            provider="bkash",
+            mfs_number="01700000000",
+            account_kind="merchant",
+        ),
+        PaymentAccount(
+            type="bank",
+            status="active",
+            display_order=1,
+            label="Sonali Bank A/C 123",
+            bank_name="Sonali Bank",
+            account_name="Kaundia Society",
+            account_number="12345678",
+        ),
+    ]
+    db.add_all(rows)
     await db.commit()
+    LAST_SEED_ACCOUNT_IDS.clear()
+    LAST_SEED_ACCOUNT_IDS.update({"bkash": rows[0].id, "bank": rows[1].id})
+    return {"bkash": rows[0].id, "bank": rows[1].id}
 
 
 async def _seed_member(db: AsyncSession, email: str) -> Member:
@@ -78,14 +99,22 @@ def _admin_headers(admin: AdminUser) -> dict[str, str]:
     return {"Authorization": f"Bearer {create_access_token(str(admin.id), admin.role.value)}"}
 
 
-def _form(ids: list[int], ref: str = "TRX12345", method: str = "bkash", **extra: str) -> dict[str, str]:
-    return {
+def _form(ids: list[int], ref: str = "TRX12345", method: str = "bkash", account_id: int | None = None, **extra: str) -> dict[str, str]:
+    form = {
         "installment_ids": ",".join(str(i) for i in ids),
         "method": method,
         "transaction_ref": ref,
         "paid_on": date.today().isoformat(),
         **extra,
     }
+    resolved = account_id or LAST_SEED_ACCOUNT_IDS.get(method)
+    if resolved:
+        form["payment_account_id"] = str(resolved)
+    return form
+
+
+# Filled in by _seed_accounts so _form can reference the bkash account.
+LAST_SEED_ACCOUNT_IDS: dict[str, int] = {}
 
 
 async def test_payable_summary_lists_due_months_and_accounts(client: AsyncClient, db_session: AsyncSession) -> None:
@@ -99,7 +128,7 @@ async def test_payable_summary_lists_due_months_and_accounts(client: AsyncClient
     body = response.json()
     assert [i["month"] for i in body["due"]] == [1, 2]
     assert float(body["total_due"]) == 400
-    assert {a["method"] for a in body["accounts"]} == {"bKash", "Bank"}
+    assert {a["method"] for a in body["accounts"]} == {"bkash", "bank"}
 
 
 async def test_submit_computes_amount_server_side_and_marks_pending(
@@ -117,7 +146,7 @@ async def test_submit_computes_amount_server_side_and_marks_pending(
     body = response.json()
     assert float(body["amount"]) == 400
     assert body["status"] == "pending"
-    assert body["method"] == "bKash"
+    assert body["method"] == "bkash"
     assert body["transaction_ref"] == "AB12CD"
     assert [i["month"] for i in body["installments"]] == [3, 4]
 
@@ -178,6 +207,7 @@ async def test_submit_validation_errors(
 async def test_submit_fails_when_no_payment_account_configured(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
+    LAST_SEED_ACCOUNT_IDS.clear()
     member = await _seed_member(db_session, "e@example.com")
     due = await _seed_due(db_session, member, [7])
 

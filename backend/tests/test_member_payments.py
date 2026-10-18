@@ -15,6 +15,7 @@ from app.models.rbac import Permission, UserPermissionOverride
 from app.models.society_cost import CostSplit, CostSplitShare, SocietyCost
 from tests.test_installment_payments import (
     _member_headers,
+    LAST_SEED_ACCOUNT_IDS,
     _seed_accounts,
     _seed_due,
     _seed_member,
@@ -73,6 +74,7 @@ def _inst_form(installment_id, ref):
     return {
         "installment_ids": str(installment_id),
         "method": "bkash",
+        "payment_account_id": str(LAST_SEED_ACCOUNT_IDS["bkash"]),
         "transaction_ref": ref,
         "paid_on": date.today().isoformat(),
     }
@@ -108,7 +110,7 @@ async def test_summary_totals_across_sources(client: AsyncClient, db_session) ->
     assert Decimal(body["pending_amount"]) == Decimal("100")
     kinds = sorted((d["kind"], d["pending"]) for d in body["dues"])
     assert kinds == [("cost_share", False), ("installment", False), ("installment", False), ("installment", True)]
-    assert {a["method"] for a in body["accounts"]} == {"bKash", "Bank"}
+    assert {a["method"] for a in body["accounts"]} == {"bkash", "bank"}
     assert any(t["key"] == "picnic" for t in body["payable_fee_types"])
     assert all(not (t["pay_once"] and t["already_paid"]) for t in body["payable_fee_types"])
 
