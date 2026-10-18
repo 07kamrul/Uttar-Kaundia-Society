@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { provideTranslateService } from '@ngx-translate/core';
+import { TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import bn from '../../../../../../public/i18n/bn.json';
@@ -107,17 +107,17 @@ describe('PaymentInfoComponent (simplified)', () => {
   it('offers cash, the methods that actually have active accounts, and other — nothing else', () => {
     const f = create();
     const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
-    expect([...cards].map((c) => c.dataset.testid)).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
+    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
   });
 
   it('labels the account-backed cards from the society account names', () => {
     const f = create();
     const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
-    expect([...cards].map((c) => c.textContent?.replace(/[^ঀ-৿]/g, ''))).toEqual([
-      'নগদটাকা',
-      'বিকাশ',
-      'ব্যাংক',
-      'অন্যান্য',
+    expect([...cards].map((c) => (c.textContent ?? '').trim().replace(/\s+/g, ' '))).toEqual([
+      '💵 নগদ টাকা',
+      '📱 বিকাশ',
+      '🏦 ব্যাংক',
+      '➕ অন্যান্য',
     ]);
   });
 
@@ -180,7 +180,7 @@ describe('PaymentInfoComponent (simplified)', () => {
   it('offers no bank/MFS cards and no account box when the server has no active accounts', () => {
     const f = create({ simplified: true }, { consentVersion: '2026-10', paymentAccounts: [] });
     const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
-    expect([...cards].map((c) => c.dataset.testid)).toEqual(['method-cash', 'method-other']);
+    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash', 'method-other']);
     expect(q(f, '[data-testid="account-box"]')).toBeNull();
   });
 

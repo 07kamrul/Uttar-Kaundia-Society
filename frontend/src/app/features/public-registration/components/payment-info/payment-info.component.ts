@@ -15,11 +15,11 @@ import { debounceTime } from 'rxjs';
 import {
   ALLOWED_DOC_MIME_TYPES,
   MAX_DOC_FILE_BYTES,
-  accountsForMethod,
   type PaymentAccount,
   type RegistrationConfig,
   SubscriptionQuote,
 } from '../../../../core/models/registration.model';
+import { accountsForMethod } from '../../../../shared/payment-method/payment-methods';
 import { RegistrationService } from '../../../../core/services/registration.service';
 import { propertiesArray } from '../../registration-form.builder';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';

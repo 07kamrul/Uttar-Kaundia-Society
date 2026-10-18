@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { switchMap } from 'rxjs';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { map, switchMap } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   AdminPaymentAccountsService,
   accountIdentityLine,
@@ -47,7 +48,7 @@ const ERROR_KEYS: Record<string, string> = {
   selector: 'app-payment-accounts',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslateModule, IconComponent, SectionLoaderComponent, ConfirmModalComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent],
   templateUrl: './payment-accounts.component.html',
   styleUrl: './payment-accounts.component.scss',
 })
@@ -228,8 +229,11 @@ export class PaymentAccountsComponent implements OnInit {
       ? this.accountsService.update(this.editing.id, this.payload())
       : this.accountsService.create(this.payload());
     const withQr = this.qrFile
-      ? request.pipe(switchMap(() => this.accountsService.uploadQr(this.qrFile!)))
-      : request;
+      ? request.pipe(
+          switchMap(() => this.accountsService.uploadQr(this.qrFile!)),
+          map(() => null as AdminPaymentAccount | null),
+        )
+      : request.pipe(map((r) => r as AdminPaymentAccount | null));
     withQr.subscribe({
       next: () => {
         this.saving = false;

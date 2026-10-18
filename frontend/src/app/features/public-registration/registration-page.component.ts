@@ -15,9 +15,9 @@ import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   MAX_PHOTO_BYTES,
-  accountsForMethod,
   type RegistrationConfig,
 } from '../../core/models/registration.model';
+import { accountsForMethod } from '../../shared/payment-method/payment-methods';
 import { FeatureFlagService, type FeatureFlagKey } from '../../core/services/feature-flag.service';
 import { toAsciiDigits } from '../../core/services/digits.helper';
 import { isValidNid } from '../../core/utils/bd-input';

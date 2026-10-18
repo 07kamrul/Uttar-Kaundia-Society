@@ -338,6 +338,90 @@
     "clearSearch": "Clear search",
     "toggleSection": "Show or hide section"
   },
+  "paymentAccounts": {
+    "title": "Payment Accounts",
+    "subtitle": "Society bank accounts and mobile-banking numbers members pay into",
+    "new": "New Account",
+    "retry": "Retry",
+    "empty": "No accounts yet. Add one so members can pay.",
+    "typeTabs": {
+      "all": "All",
+      "bank": "Bank",
+      "mfs": "Mobile Banking"
+    },
+    "statusFilters": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "providers": {
+      "bkash": "bKash",
+      "nagad": "Nagad",
+      "rocket": "Rocket",
+      "upay": "upay",
+      "other": "Other"
+    },
+    "kinds": {
+      "personal": "Personal",
+      "agent": "Agent",
+      "merchant": "Merchant"
+    },
+    "methodNames": {
+      "bank": "Bank",
+      "bkash": "bKash",
+      "nagad": "Nagad",
+      "rocket": "Rocket",
+      "other": "Other"
+    },
+    "loadFailed": "Could not load payment accounts.",
+    "required": "Please select which society account you paid into.",
+    "confirm": {
+      "activateTitle": "Activate account",
+      "deactivateTitle": "Deactivate account",
+      "activateMessage": "Make “{{label}}” available to members for new payments?",
+      "deactivateMessage": "Hide “{{label}}” from all payment screens? Payment history keeps its record.",
+      "deactivateLastWarning": "“{{label}}” is the last active account of its type. Deactivating it removes that payment option for everyone. Continue?"
+    },
+    "form": {
+      "createTitle": "New payment account",
+      "editTitle": "Edit payment account",
+      "type": "Account type",
+      "label": "Display name",
+      "bankName": "Bank name",
+      "branchName": "Branch",
+      "accountName": "Account holder name",
+      "accountNumber": "Account number",
+      "routingNumber": "Routing number (9 digits)",
+      "provider": "Provider",
+      "mfsNumber": "Mobile banking number",
+      "mfsNumberHint": "11 digits, e.g. 01712345678",
+      "accountKind": "Account type (MFS)",
+      "accountHolder": "Account holder (optional)",
+      "instructions": "Instructions for payers (optional)",
+      "qrImage": "QR image (optional)"
+    },
+    "errors": {
+      "loadFailed": "Could not load payment accounts.",
+      "saveFailed": "Could not save the account.",
+      "typeInvalid": "Invalid account type.",
+      "bankNameRequired": "Bank name is required for a bank account.",
+      "accountNumberInvalid": "Account number must contain digits only.",
+      "routingNumberInvalid": "Routing number must be exactly 9 digits.",
+      "mfsNumberInvalid": "Enter a valid Bangladeshi mobile number (e.g. 01712345678).",
+      "duplicate": "An active account with these details already exists.",
+      "notFound": "This account no longer exists.",
+      "typeMismatch": "The account does not match the selected payment method.",
+      "inactive": "This account is currently inactive."
+    }
+  },
   "errors": {
     "network": "No internet connection. Check your connection and try again.",
     "unauthorized": "Your session has expired. Please log in again.",
@@ -1686,72 +1770,6 @@
         "loadMembersFailed": "Could not load member list.",
         "loadInstallmentsFailed": "Could not load installment data.",
         "markPaidFailed": "Could not mark installment as paid."
-      }
-    },
-    "paymentAccounts": {
-      "title": "Payment Accounts",
-      "subtitle": "Society bank accounts and mobile-banking numbers members pay into",
-      "new": "New Account",
-      "retry": "Retry",
-      "empty": "No accounts yet. Add one so members can pay.",
-      "typeTabs": { "all": "All", "bank": "Bank", "mfs": "Mobile Banking" },
-      "statusFilters": { "all": "All", "active": "Active", "inactive": "Inactive" },
-      "status": { "active": "Active", "inactive": "Inactive" },
-      "actions": { "activate": "Activate", "deactivate": "Deactivate" },
-      "providers": {
-        "bkash": "bKash",
-        "nagad": "Nagad",
-        "rocket": "Rocket",
-        "upay": "upay",
-        "other": "Other"
-      },
-      "kinds": { "personal": "Personal", "agent": "Agent", "merchant": "Merchant" },
-      "methodNames": {
-        "bank": "Bank",
-        "bkash": "bKash",
-        "nagad": "Nagad",
-        "rocket": "Rocket",
-        "other": "Other"
-      },
-      "loadFailed": "Could not load payment accounts.",
-      "required": "Please select which society account you paid into.",
-      "confirm": {
-        "activateTitle": "Activate account",
-        "deactivateTitle": "Deactivate account",
-        "activateMessage": "Make “{{label}}” available to members for new payments?",
-        "deactivateMessage": "Hide “{{label}}” from all payment screens? Payment history keeps its record.",
-        "deactivateLastWarning": "“{{label}}” is the last active account of its type. Deactivating it removes that payment option for everyone. Continue?"
-      },
-      "form": {
-        "createTitle": "New payment account",
-        "editTitle": "Edit payment account",
-        "type": "Account type",
-        "label": "Display name",
-        "bankName": "Bank name",
-        "branchName": "Branch",
-        "accountName": "Account holder name",
-        "accountNumber": "Account number",
-        "routingNumber": "Routing number (9 digits)",
-        "provider": "Provider",
-        "mfsNumber": "Mobile banking number",
-        "mfsNumberHint": "11 digits, e.g. 01712345678",
-        "accountKind": "Account type (MFS)",
-        "accountHolder": "Account holder (optional)",
-        "instructions": "Instructions for payers (optional)",
-        "qrImage": "QR image (optional)"
-      },
-      "errors": {
-        "loadFailed": "Could not load payment accounts.",
-        "saveFailed": "Could not save the account.",
-        "typeInvalid": "Invalid account type.",
-        "bankNameRequired": "Bank name is required for a bank account.",
-        "accountNumberInvalid": "Account number must contain digits only.",
-        "routingNumberInvalid": "Routing number must be exactly 9 digits.",
-        "mfsNumberInvalid": "Enter a valid Bangladeshi mobile number (e.g. 01712345678).",
-        "duplicate": "An active account with these details already exists.",
-        "notFound": "This account no longer exists.",
-        "typeMismatch": "The account does not match the selected payment method.",
-        "inactive": "This account is currently inactive."
       }
     },
     "feeSettings": {

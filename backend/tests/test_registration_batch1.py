@@ -258,8 +258,18 @@ async def test_canonical_payment_methods_accepted(client: AsyncClient):
 
 
 async def test_registration_config(client: AsyncClient, db_session):
+    from app.models.payment_account import PaymentAccount
+
     db_session.add(
-        ConfigListItem(category="payment_account", value="bkash", label="01711-000000 (Society)", is_active=1)
+        PaymentAccount(
+            type="mfs",
+            status="active",
+            display_order=1,
+            label="01711-000000 (Society)",
+            provider="bkash",
+            mfs_number="01711000000",
+            account_kind="personal",
+        )
     )
     await db_session.commit()
     response = await client.get("/api/public/registration-config")
@@ -269,7 +279,8 @@ async def test_registration_config(client: AsyncClient, db_session):
     account = body["payment_accounts"][0]
     assert account["method"] == "bkash"
     assert account["label"] == "01711-000000 (Society)"
-    assert {"number", "account_name"} <= set(account)
+    assert account["mfs_number"] == "01711000000"
+    assert account["id"] >= 1
 
 
 async def test_registration_config_empty(client: AsyncClient):

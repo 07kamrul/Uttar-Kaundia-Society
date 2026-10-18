@@ -91,7 +91,7 @@ describe('PaymentMethodPickerComponent', () => {
   it('offers cash, account-backed methods in server order, then other — never a method without accounts', () => {
     const f = create();
     const keys = [...f.nativeElement.querySelectorAll('[data-testid^="method-"]')].map(
-      (el) => (el as HTMLElement).dataset.testid,
+      (el) => (el as HTMLElement).dataset['testid'],
     );
     expect(keys).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
   });
@@ -99,7 +99,7 @@ describe('PaymentMethodPickerComponent', () => {
   it('with no active accounts only cash and other remain (no built-in fallback)', () => {
     const f = create('', []);
     const keys = [...f.nativeElement.querySelectorAll('[data-testid^="method-"]')].map(
-      (el) => (el as HTMLElement).dataset.testid,
+      (el) => (el as HTMLElement).dataset['testid'],
     );
     expect(keys).toEqual(['method-cash', 'method-other']);
     expect(f.nativeElement.querySelector('[data-testid="account-box"]')).toBeNull();
