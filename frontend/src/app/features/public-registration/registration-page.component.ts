@@ -13,7 +13,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { MAX_PHOTO_BYTES, type RegistrationConfig } from '../../core/models/registration.model';
+import {
+  MAX_PHOTO_BYTES,
+  accountsForMethod,
+  type RegistrationConfig,
+} from '../../core/models/registration.model';
 import { FeatureFlagService, type FeatureFlagKey } from '../../core/services/feature-flag.service';
 import { toAsciiDigits } from '../../core/services/digits.helper';
 import { isValidNid } from '../../core/utils/bd-input';
@@ -512,6 +516,13 @@ export class RegistrationPageComponent implements OnInit {
       errs.push(this.translate.instant('registration.payment.subscriptionRequired'));
     if (!v.paymentMethod)
       errs.push(this.translate.instant('registration.payment.paymentMethodRequired'));
+    // Account-backed methods must name the account; no submitting before the
+    // server's active accounts (or none) have actually loaded.
+    else if (
+      accountsForMethod(v.paymentMethod, this.config()?.paymentAccounts ?? []).length > 0 &&
+      !v.paymentAccountId
+    )
+      errs.push(this.translate.instant('paymentAccounts.required'));
 
     return errs;
   }

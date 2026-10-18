@@ -35,6 +35,9 @@ class OtherFeePaymentIn(BaseModel):
     fee_type: str
     payment_date: date
     payment_method: str | None = Field(default=None, max_length=64)
+    # Which society account (admin-managed payment_accounts) the fee was paid
+    # into; the server validates it and stores a snapshot.
+    payment_account_id: int | None = None
     receipt_no: str | None = Field(default=None, max_length=64)
     note: str | None = Field(default=None, max_length=500)
     # Only used by variable (custom-amount) types; ignored everywhere else -
@@ -70,6 +73,8 @@ class OtherFeePaymentOut(BaseModel):
     additional_heads: int | None
     receipt_no: str | None
     payment_method: str | None
+    # Masked name of the admin-managed account the member says they paid into.
+    payment_account_snapshot: str | None = None
     note: str | None
     created_at: datetime
     status: str = "approved"

@@ -70,6 +70,7 @@ TABLE_DEPENDENCIES: dict[str, tuple[CacheName, ...]] = {
     "fee_settings": (CacheName.FEE_RATES,),
     "fee_types": (CacheName.FEE_RATES,),
     "financial_transactions": (CacheName.FINANCE_SUMMARY,),
+    "payment_accounts": (CacheName.PUBLIC_LISTS,),
 }
 
 

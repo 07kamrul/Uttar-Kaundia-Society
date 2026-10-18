@@ -19,7 +19,9 @@ from app.core.feature_flags import is_enabled
 from app.db.session import get_db
 from app.models.installment_payment import PAYMENT_STATUS_PENDING
 from app.models.admin import AdminUser
+from app.models.fee_payment import FeePayment
 from app.models.member import Member
+from app.services.payment_accounts import resolve_for_submission
 from app.schemas.other_fees import (
     AdminOtherFeeHistoryPage,
     OtherFeeHistoryPage,
@@ -116,6 +118,13 @@ async def create_other_fee_payment(
     payment = await create_other_fee_payment_record(
         db, member, payload, verify=await is_enabled(db, verification.FLAG)
     )
+    if isinstance(payment, FeePayment) and payload.payment_account_id is not None:
+        account, snapshot = await resolve_for_submission(
+            db, payload.payment_account_id,
+            "bank" if (payload.payment_method or "").strip() == "bank" else "mfs",
+        )
+        payment.payment_account_id = account.id if account else None
+        payment.payment_account_snapshot = snapshot
     db.add(payment)
     await db.commit()
     await db.refresh(payment)

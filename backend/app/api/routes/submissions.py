@@ -19,6 +19,7 @@ from app.models.nominee import Nominee
 from app.schemas.member import SubmissionCreateResponse
 from app.schemas.submission import SubmissionPayload
 from app.services.fee_calculation import calculate_monthly_subscription
+from app.services.payment_accounts import resolve_for_submission
 from app.services.normalization import (
     mobile_lookup_variants,
     normalize_email,
@@ -328,6 +329,13 @@ async def create_submission(
     normalized_mobile = normalize_mobile(data.mobile)
     normalized_email = normalize_email(data.email)
 
+    # The claimed account must exist, match the chosen method's type and be
+    # active right now; the snapshot stored below keeps history correct if it
+    # is later edited or deactivated.
+    _account, payment_account_snapshot = await resolve_for_submission(
+        db, data.payment_account_id, "bank" if data.payment_method.strip() == "bank" else "mfs"
+    )
+
     await _reject_duplicate_submission(db, normalized_nid, normalized_mobile, normalized_email)
 
     member = Member(
@@ -379,6 +387,8 @@ async def create_submission(
         ),
         receipt_no=data.receipt_no,
         payment_method=data.payment_method,
+        payment_account_id=data.payment_account_id,
+        payment_account_snapshot=payment_account_snapshot,
         member_signature=data.member_signature,
         submission_date=data.submission_date,
         # Seed both collections so they read as already-loaded: after the

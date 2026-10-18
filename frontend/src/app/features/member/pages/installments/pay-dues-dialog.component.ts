@@ -20,6 +20,7 @@ import {
   type PaymentAccount,
 } from '../../../../core/services/installment-payment.service';
 import { monthNameKey } from '../../../../shared/constants/months';
+import { accountCopyNumber } from '../../../../core/models/registration.model';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 
@@ -57,6 +58,8 @@ export class PayDuesDialogComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   readonly today = todayIso();
+  /** Template-facing alias of the model helper (templates cannot call imported functions). */
+  readonly accountCopyNumber = accountCopyNumber;
   readonly step = signal<Step>(1);
   readonly selectedIds = signal<ReadonlySet<number>>(new Set());
   readonly method = signal('');
@@ -83,14 +86,31 @@ export class PayDuesDialogComponent implements OnInit {
       .reduce((sum, i) => sum + i.amount, 0),
   );
 
+  readonly selectedAccountId = signal<number | null>(null);
+
   readonly selectedAccount = computed<PaymentAccount | undefined>(() =>
-    this.summary.accounts.find((a) => a.method === this.method()),
+    this.summary.accounts.find((a) => a.id === this.selectedAccountId()),
   );
 
   ngOnInit(): void {
     // Smart default: every outstanding month pre-selected, first account chosen.
     this.selectedIds.set(new Set(this.payable().map((i) => i.id)));
     this.method.set(this.summary.accounts[0]?.method ?? '');
+    this.selectedAccountId.set(this.summary.accounts[0]?.id ?? null);
+  }
+
+  /** Accounts that can receive money for the chosen method. */
+  methodAccounts(): PaymentAccount[] {
+    return this.summary.accounts.filter((a) => a.method === this.method());
+  }
+
+  chooseAccount(account: PaymentAccount): void {
+    this.method.set(account.method);
+    this.selectedAccountId.set(account.id);
+  }
+
+  copyNumber(account: PaymentAccount): void {
+    void this.copy(accountCopyNumber(account));
   }
 
   @HostListener('document:keydown.escape')
@@ -103,7 +123,15 @@ export class PayDuesDialogComponent implements OnInit {
   }
 
   get canSubmit(): boolean {
-    return this.refValid && !!this.paidOn && this.paidOn <= this.today && !this.proofError && !this.submitting();
+    const needsAccount = ['bank', 'bkash', 'nagad', 'rocket'].includes(this.method());
+    return (
+      this.refValid &&
+      !!this.paidOn &&
+      this.paidOn <= this.today &&
+      !this.proofError &&
+      !this.submitting() &&
+      (!needsAccount || !!this.selectedAccountId())
+    );
   }
 
   get allSelected(): boolean {
@@ -157,6 +185,7 @@ export class PayDuesDialogComponent implements OnInit {
       .submit({
         installmentIds: [...this.selectedIds()],
         method: this.method(),
+        paymentAccountId: this.selectedAccountId(),
         transactionRef: this.transactionRef,
         paidOn: this.paidOn,
         senderAccount: this.senderAccount,

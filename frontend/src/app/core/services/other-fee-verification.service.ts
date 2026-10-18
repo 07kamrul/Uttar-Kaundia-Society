@@ -18,6 +18,8 @@ export interface AdminOtherFeePayment {
   feeLabel: string;
   amount: number;
   method: string | null;
+  /** Masked society account the member says they paid into (fee payments only). */
+  paymentAccountSnapshot: string | null;
   receiptNo: string | null;
   paymentDate: string;
   proofUrl: string | null;
@@ -34,6 +36,7 @@ interface AdminOtherFeePaymentApi {
   fee_label: string;
   amount: string | number;
   payment_method: string | null;
+  payment_account_snapshot: string | null;
   receipt_no: string | null;
   payment_date: string;
   proof_url: string | null;
@@ -50,6 +53,7 @@ const toRow = (api: AdminOtherFeePaymentApi): AdminOtherFeePayment => ({
   feeLabel: api.fee_label,
   amount: Number(api.amount),
   method: api.payment_method,
+  paymentAccountSnapshot: api.payment_account_snapshot,
   receiptNo: api.receipt_no,
   paymentDate: api.payment_date,
   proofUrl: toFileUrl(api.proof_url) ?? null,

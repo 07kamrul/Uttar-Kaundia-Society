@@ -49,6 +49,7 @@ class FeePaymentOut(BaseModel):
     payment_date: date
     receipt_no: str | None
     payment_method: str | None
+    payment_account_snapshot: str | None = None
     note: str | None
     created_at: datetime
     status: str = "approved"

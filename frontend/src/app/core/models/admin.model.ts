@@ -86,6 +86,8 @@ export interface SubmissionDetail extends SubmissionSummary {
   subscription: string;
   receiptNo: string;
   paymentMethod: string;
+  /** Masked society account the applicant says they paid into (bank/MFS only). */
+  paymentAccountSnapshot?: string | null;
   memberPhotoUrl?: string;
   memberSignature?: string;
   receiptPhotoUrl?: string;

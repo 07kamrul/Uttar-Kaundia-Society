@@ -130,7 +130,12 @@
         </button>
       </div>
     } @else {
-      <app-payment-method-picker [method]="method()" [serverAccounts]="accounts()" (methodChange)="method.set($event)" />
+      <app-payment-method-picker
+        [method]="method()"
+        [serverAccounts]="accounts()"
+        [selectedAccountId]="selectedAccountId()"
+        (methodChange)="onMethodChange($event)"
+      />
 
       <div class="pay-flow-field">
         <label for="payFlowRef" data-testid="reference-label">{{ referenceLabel | translate }} *</label>

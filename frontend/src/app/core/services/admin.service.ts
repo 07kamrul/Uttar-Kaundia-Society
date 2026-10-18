@@ -184,6 +184,7 @@ export interface SubmissionDetailApiModel {
   subscription: string;
   receipt_no: string;
   payment_method: string;
+  payment_account_snapshot: string | null;
   member_signature: string | null;
   member_photo_path: string | null;
   receipt_photo_path: string | null;
@@ -432,6 +433,7 @@ export function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDet
     subscription: api.subscription,
     receiptNo: api.receipt_no,
     paymentMethod: api.payment_method,
+    paymentAccountSnapshot: api.payment_account_snapshot,
     memberPhotoUrl: toFileUrl(api.member_photo_path),
     memberSignature: api.member_signature ?? undefined,
     receiptPhotoUrl: toFileUrl(api.receipt_photo_path),

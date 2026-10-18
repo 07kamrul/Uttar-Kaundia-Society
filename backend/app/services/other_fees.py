@@ -396,6 +396,7 @@ def other_fee_payment_out(payment: FeePayment | PicnicPayment) -> dict:
         "additional_heads": None,
         "receipt_no": payment.receipt_no,
         "payment_method": payment.payment_method,
+        "payment_account_snapshot": payment.payment_account_snapshot,
         "note": payment.note,
         "created_at": payment.created_at,
         "status": payment.status,

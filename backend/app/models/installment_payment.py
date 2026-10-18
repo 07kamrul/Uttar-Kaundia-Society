@@ -46,6 +46,11 @@ class InstallmentPayment(Base):
         ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
     )
     method: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Which society account (admin-managed payment_accounts) the member says
+    # they paid into; the snapshot keeps history correct if the account is
+    # later edited or deactivated.
+    payment_account_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payment_account_snapshot: Mapped[str | None] = mapped_column(String(255), nullable=True)
     transaction_ref: Mapped[str] = mapped_column(String(64), nullable=False)
     sender_account: Mapped[str | None] = mapped_column(String(64), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)

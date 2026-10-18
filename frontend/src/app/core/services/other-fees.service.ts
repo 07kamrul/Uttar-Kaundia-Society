@@ -53,6 +53,9 @@ export interface OtherFeePaymentPayload {
   feeType: string;
   paymentDate: string;
   paymentMethod?: string;
+  /** The society account the money was sent to (fee payments recorded as
+   * FeePayment rows snapshot it; Picnic payments are proof-only). */
+  paymentAccountId?: number | null;
   receiptNo?: string;
   note?: string;
   /** Variable (custom-amount) types only - fixed and picnic totals are
@@ -173,6 +176,7 @@ export class OtherFeesService {
         fee_type: payload.feeType,
         payment_date: payload.paymentDate,
         payment_method: payload.paymentMethod || null,
+        payment_account_id: payload.paymentAccountId ?? null,
         receipt_no: payload.receiptNo || null,
         note: payload.note || null,
         amount: payload.amount ?? null,

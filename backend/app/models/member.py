@@ -82,6 +82,11 @@ class Member(Base):
     subscription: Mapped[str] = mapped_column(String(32), nullable=False)
     receipt_no: Mapped[str] = mapped_column(String(64), nullable=False)
     payment_method: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Which society account the admission fee was paid into (admin-managed
+    # payment_accounts); the snapshot keeps history correct if the account is
+    # later edited or deactivated.
+    payment_account_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payment_account_snapshot: Mapped[str | None] = mapped_column(String(255), nullable=True)
     receipt_photo_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # Signature

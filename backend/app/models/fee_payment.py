@@ -29,6 +29,11 @@ class FeePayment(Base):
     payment_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     receipt_no: Mapped[str | None] = mapped_column(String(64), nullable=True)
     payment_method: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Which society account (admin-managed payment_accounts) the member says
+    # they paid into; the snapshot keeps history correct if the account is
+    # later edited or deactivated.
+    payment_account_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payment_account_snapshot: Mapped[str | None] = mapped_column(String(255), nullable=True)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

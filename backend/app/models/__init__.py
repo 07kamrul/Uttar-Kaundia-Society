@@ -20,6 +20,7 @@ from app.models.property_change_request import PropertyChangeRequest
 from app.models.society_cost import SocietyCost, CostSplit, CostSplitShare
 from app.models.financial_transaction import FinancialTransaction
 from app.models.installment_payment import InstallmentPayment
+from app.models.payment_account import PaymentAccount
 from app.models.cost_share_payment import CostSharePayment
 from app.models.app_setting import AppSetting
 from app.models.roadmap import RoadmapItem, RoadmapTimeframe
@@ -111,6 +112,7 @@ __all__ = [
     "RoadmapTimeframe",
     "RoadmapItem",
     "InstallmentPayment",
+    "PaymentAccount",
     "BoundaryDispute",
     "ReviewStatus",
     "ChangeType",

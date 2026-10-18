@@ -53,6 +53,8 @@ export interface VerificationRow {
   remaining: number | null;
   method: string;
   transactionRef: string;
+  /** Masked society account the member says they paid into (bank/MFS only). */
+  accountSnapshot: string | null;
   paidOn: string;
   senderAccount: string | null;
   note: string | null;
@@ -296,6 +298,7 @@ export class PaymentVerificationsComponent implements OnInit {
       remaining: null,
       method: p.method,
       transactionRef: p.transactionRef,
+      accountSnapshot: p.paymentAccountSnapshot,
       paidOn: p.paidOn,
       senderAccount: p.senderAccount,
       note: p.note,
@@ -316,6 +319,7 @@ export class PaymentVerificationsComponent implements OnInit {
       remaining: p.remaining,
       method: p.method,
       transactionRef: p.transactionRef,
+      accountSnapshot: null,
       paidOn: p.paidOn,
       senderAccount: p.senderAccount,
       note: p.note,
@@ -337,6 +341,7 @@ export class PaymentVerificationsComponent implements OnInit {
       remaining: null,
       method: p.method ?? '',
       transactionRef: p.receiptNo ?? '',
+      accountSnapshot: p.paymentAccountSnapshot,
       paidOn: p.paymentDate,
       senderAccount: null,
       note: null,

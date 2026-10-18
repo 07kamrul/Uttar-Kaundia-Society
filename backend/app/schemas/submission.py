@@ -44,6 +44,9 @@ class SubmissionPayload(BaseModel):
     subscription: str
     receipt_no: str
     payment_method: str
+    # Which society account (admin-managed payment_accounts) the fee was paid
+    # into; the server resolves and snapshots it, the raw id is never trusted.
+    payment_account_id: int | None = None
 
     member_signature: str | None = None
     submission_date: str

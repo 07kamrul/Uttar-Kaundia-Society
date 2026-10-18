@@ -78,34 +78,46 @@ export const OWNERSHIP_LABEL_KEYS: Record<string, string> = {
   একক: 'single',
   যৌথ: 'joint',
 };
-export const PAYMENT_METHODS: string[] = ['ক্যাশ', 'ব্যাংক', 'MFS (বিকাশ/নগদ/রকেট)', 'অন্যান্য'];
-
-export const ORG_BANK_INFO = {
-  bankName: 'ব্র্যাক ব্যাংক পিএলসি',
-  branch: 'শ্যামপুর এসএমই/কৃষি শাখা',
-  accountName: 'Md Kamrul Hasan',
-  accountNumber: '1071193760001',
-  routingNumber: '060276537',
-};
-
-export const ORG_MFS_INFO = {
-  number: '01758290421',
-  type: 'পার্সোনাল',
-};
-
 /** Canonical payment method keys accepted by the server (reg_simplified_ui). */
 export const PAYMENT_METHOD_KEYS = ['cash', 'bkash', 'nagad', 'rocket', 'bank', 'other'] as const;
 export type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
 /** Methods whose reference is a mobile-banking TrxID rather than a paper receipt number. */
 export const MFS_PAYMENT_METHODS: readonly string[] = ['bkash', 'nagad', 'rocket'];
 
+/** One society account (bank account or MFS number) members pay into.
+ * Maps backend GET /payment-accounts (PaymentAccountPublicOut) to camelCase. */
 export interface PaymentAccount {
+  id: number;
+  type: 'bank' | 'mfs';
+  /** Derived key: bank | bkash | nagad | rocket | other. */
   method: string;
-  /** The full details text to show (e.g. "বিকাশ পার্সোনাল ০১৭…"). */
+  displayOrder: number;
   label: string;
-  /** First digit run of the details, when there is one; this is what "কপি" copies. */
-  number: string | null;
+  bankName: string | null;
+  branchName: string | null;
   accountName: string | null;
+  accountNumber: string | null;
+  routingNumber: string | null;
+  provider: string | null;
+  mfsNumber: string | null;
+  accountKind: string | null;
+  accountHolder: string | null;
+  instructions: string | null;
+  qrImageUrl: string | null;
+}
+
+/** The number a member copies to send money — the account's single identifier. */
+export function accountCopyNumber(account: PaymentAccount): string {
+  return account.type === 'bank' ? (account.accountNumber ?? '') : (account.mfsNumber ?? '');
+}
+
+/** Short human summary for list rows / receipts (number masked here is fine). */
+export function accountDisplayLabel(account: PaymentAccount): string {
+  if (account.type === 'bank') {
+    return [account.bankName, account.branchName, account.accountName].filter(Boolean).join(', ');
+  }
+  const kindKey = account.accountKind ? `paymentAccounts.kinds.${account.accountKind}` : '';
+  return [account.provider?.toUpperCase(), kindKey].filter(Boolean).join(' ');
 }
 
 /** GET /public/registration-config, mapped to camelCase. */
@@ -172,6 +184,8 @@ export interface FormDataModel {
   subscription: string;
   receiptNo: string;
   paymentMethod: string;
+  /** The society account the applicant paid into (required for bank/MFS). */
+  paymentAccountId?: number | null;
   receiptFileName?: string;
   receiptFileDataUrl?: string;
   memberSignature: string;

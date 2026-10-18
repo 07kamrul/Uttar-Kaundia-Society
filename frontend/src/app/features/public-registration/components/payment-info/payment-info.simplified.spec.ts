@@ -1,25 +1,55 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TranslateService, provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import bn from '../../../../../../public/i18n/bn.json';
-import {
-  ORG_BANK_INFO,
-  ORG_MFS_INFO,
-  type RegistrationConfig,
-} from '../../../../core/models/registration.model';
+import type { PaymentAccount, RegistrationConfig } from '../../../../core/models/registration.model';
 import { RegistrationService } from '../../../../core/services/registration.service';
 import { NO_UI_FLAGS, type RegistrationUiFlags } from '../../registration-ui-flags';
 import { PaymentInfoComponent } from './payment-info.component';
 
+const bkashAccount: PaymentAccount = {
+  id: 1,
+  type: 'mfs',
+  method: 'bkash',
+  displayOrder: 1,
+  label: 'বিকাশ পার্সোনাল ০১৭১১০০০০০০ উত্তর কাউন্দিয়া সমিতি',
+  bankName: null,
+  branchName: null,
+  accountName: null,
+  accountNumber: null,
+  routingNumber: null,
+  provider: 'bkash',
+  mfsNumber: '01711000000',
+  accountKind: 'personal',
+  accountHolder: null,
+  instructions: null,
+  qrImageUrl: null,
+};
+
+const bankAccount: PaymentAccount = {
+  id: 2,
+  type: 'bank',
+  method: 'bank',
+  displayOrder: 1,
+  label: 'ব্যাংক হিসাব',
+  bankName: null,
+  branchName: null,
+  accountName: null,
+  accountNumber: '9988776655',
+  routingNumber: '060276537',
+  provider: null,
+  mfsNumber: null,
+  accountKind: null,
+  accountHolder: null,
+  instructions: null,
+  qrImageUrl: null,
+};
+
 const config: RegistrationConfig = {
   consentVersion: '2026-10',
-  paymentAccounts: [
-    { method: 'bkash', label: 'বিকাশ পার্সোনাল ০১৭১১০০০০০০ উত্তর কাউন্দিয়া সমিতি', number: '01711000000', accountName: null },
-    { method: 'bank', label: 'ব্যাংক হিসাব ৯৯৮৮৭৭৬৬৫৫', number: '9988776655', accountName: null },
-    { method: 'other', label: 'অফিসে এসে জানান', number: null, accountName: null },
-  ],
+  paymentAccounts: [bkashAccount, bankAccount],
 };
 
 describe('PaymentInfoComponent (simplified)', () => {
@@ -35,6 +65,7 @@ describe('PaymentInfoComponent (simplified)', () => {
       subscription: [60],
       receiptNo: [''],
       paymentMethod: [''],
+      paymentAccountId: [null as number | null],
       currentAddressAbroad: [false],
       receiptFileName: [''],
       receiptFileDataUrl: [''],
@@ -73,31 +104,40 @@ describe('PaymentInfoComponent (simplified)', () => {
     expect(q(f, 'input[type=number]')).toBeNull();
   });
 
-  it('offers six large method cards with plain names', () => {
+  it('offers cash, the methods that actually have active accounts, and other — nothing else', () => {
+    const f = create();
+    const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
+    expect([...cards].map((c) => c.dataset.testid)).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
+  });
+
+  it('labels the account-backed cards from the society account names', () => {
     const f = create();
     const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
     expect([...cards].map((c) => c.textContent?.replace(/[^ঀ-৿]/g, ''))).toEqual([
       'নগদটাকা',
       'বিকাশ',
-      'নগদ',
-      'রকেট',
       'ব্যাংক',
       'অন্যান্য',
     ]);
-    cards.forEach((c) => expect(c.classList.contains('tap-48')).toBe(true));
   });
 
-  it.each(['cash', 'bkash', 'nagad', 'rocket', 'bank', 'other'])('card %s stores the canonical key', (key) => {
+  it.each(['cash', 'bkash', 'bank', 'other'])('card %s stores the canonical key', (key) => {
     const f = create();
     choose(f, key);
     expect(form.get('paymentMethod')!.value).toBe(key);
     expect(q(f, `[data-testid="method-${key}"]`)!.getAttribute('aria-checked')).toBe('true');
   });
 
+  it('picking an account-backed method auto-picks its first active account', () => {
+    const f = create();
+    choose(f, 'bkash');
+    expect(form.get('paymentAccountId')!.value).toBe(1);
+    choose(f, 'bank');
+    expect(form.get('paymentAccountId')!.value).toBe(2);
+  });
+
   it.each([
     ['bkash', 'ট্রানজেকশন আইডি (TrxID)'],
-    ['nagad', 'ট্রানজেকশন আইডি (TrxID)'],
-    ['rocket', 'ট্রানজেকশন আইডি (TrxID)'],
     ['cash', 'রসিদ নম্বর'],
     ['bank', 'রসিদ নম্বর'],
     ['other', 'রসিদ নম্বর'],
@@ -116,7 +156,7 @@ describe('PaymentInfoComponent (simplified)', () => {
     expect(form.get('receiptNo')!.value).toBe('ABC123');
   });
 
-  it('shows the society account from the config with a "কপি" button that copies the number', async () => {
+  it('shows the active accounts with a "কপি" button that copies the number', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     try {
@@ -137,12 +177,11 @@ describe('PaymentInfoComponent (simplified)', () => {
     }
   });
 
-  it('falls back to the built-in accounts when the config is unavailable', () => {
-    const f = create({ simplified: true }, null);
-    choose(f, 'bkash');
-    expect(text(f)).toContain(ORG_MFS_INFO.number);
-    choose(f, 'bank');
-    expect(text(f)).toContain(ORG_BANK_INFO.accountNumber);
+  it('offers no bank/MFS cards and no account box when the server has no active accounts', () => {
+    const f = create({ simplified: true }, { consentVersion: '2026-10', paymentAccounts: [] });
+    const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
+    expect([...cards].map((c) => c.dataset.testid)).toEqual(['method-cash', 'method-other']);
+    expect(q(f, '[data-testid="account-box"]')).toBeNull();
   });
 
   it('shows no account box for cash', () => {
@@ -151,11 +190,11 @@ describe('PaymentInfoComponent (simplified)', () => {
     expect(q(f, '[data-testid="account-box"]')).toBeNull();
   });
 
-  it('shows the details but no copy button when the account has no number', () => {
+  it('shows the bank number and routing in the account box', () => {
     const f = create();
-    choose(f, 'other');
-    expect(text(f)).toContain('অফিসে এসে জানান');
-    expect(q(f, '[data-testid="copy-account"]')).toBeNull();
+    choose(f, 'bank');
+    expect(q(f, '[data-testid="account-box"]')!.textContent).toContain('9988776655');
+    expect(q(f, '[data-testid="account-box"]')!.textContent).toContain('রাউটিং 060276537');
   });
 
   it('asks for "পেমেন্টের স্ক্রিনশট দিন" and hides the abroad note by default', () => {
@@ -174,10 +213,10 @@ describe('PaymentInfoComponent (simplified)', () => {
     );
   });
 
-  it('flag off: keeps the legacy checkboxes, number inputs and bank constants', () => {
+  it('flag off: keeps the original number inputs and still routes the method through the shared picker', () => {
     const f = create({}, null);
     expect(q(f, '#admissionFee')).not.toBeNull();
-    expect(q(f, '[data-testid^="method-"]')).toBeNull();
-    expect(f.nativeElement.querySelectorAll('input[type=checkbox]').length).toBe(4);
+    expect(q(f, 'input[type=checkbox]')).toBeNull();
+    expect(q(f, 'app-payment-method-picker .method-cards')).not.toBeNull();
   });
 });

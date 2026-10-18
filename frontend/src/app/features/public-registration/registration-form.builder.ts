@@ -130,6 +130,7 @@ export function buildRegistrationForm(
     subscription: ['', Validators.required],
     receiptNo: [''],
     paymentMethod: ['', Validators.required],
+    paymentAccountId: new FormControl<number | null>(null),
     receiptFileName: [''],
     receiptFileDataUrl: [''],
 

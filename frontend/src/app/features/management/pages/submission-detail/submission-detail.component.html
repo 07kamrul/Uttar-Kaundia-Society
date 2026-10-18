@@ -199,6 +199,14 @@
           </p>
           <p class="payment-tile-value">{{ submission.paymentMethod }}</p>
         </div>
+        @if (submission.paymentAccountSnapshot) {
+          <div class="card payment-tile">
+            <p class="payment-tile-label">
+              {{ 'admin.submissionDetail.fields.paymentAccount' | translate }}
+            </p>
+            <p class="payment-tile-value">{{ submission.paymentAccountSnapshot }}</p>
+          </div>
+        }
       </div>
 
       <h3 class="section-title">{{ 'admin.submissionDetail.attachments' | translate }}</h3>

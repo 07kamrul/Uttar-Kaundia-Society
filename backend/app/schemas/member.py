@@ -155,6 +155,8 @@ class MemberDetail(MemberSummary):
     subscription: str
     receipt_no: str
     payment_method: str
+    # Masked name of the admin-managed account the applicant says they paid into.
+    payment_account_snapshot: str | None = None
     member_signature: str | None = None
     submission_date: str
     member_photo_path: str | None = None

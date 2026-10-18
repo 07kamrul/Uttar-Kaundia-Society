@@ -1,3 +1,4 @@
+import type { PaymentAccount } from '../../../../core/models/registration.model';
 import type { PaymentHistoryItem, PaymentSummary } from '../../../../core/services/member-payments.service';
 import type { OtherFeeType } from '../../../../core/services/other-fees.service';
 
@@ -40,8 +41,42 @@ export function makeSummary(overrides: Partial<PaymentSummary> = {}): PaymentSum
     ],
     payableFeeTypes: [PICNIC, DEVELOPMENT_FEE],
     accounts: [
-      { method: 'bkash', details: 'বিকাশ পার্সোনাল ০১৭১১০০০০০০' },
-      { method: 'bank', details: 'সোনালী ব্যাংক ৯৯৮৮' },
+      {
+        id: 21,
+        type: 'mfs',
+        method: 'bkash',
+        displayOrder: 1,
+        label: 'বিকাশ পার্সোনাল ০১৭১১০০০০০০',
+        bankName: null,
+        branchName: null,
+        accountName: null,
+        accountNumber: null,
+        routingNumber: null,
+        provider: 'bkash',
+        mfsNumber: '01711000000',
+        accountKind: 'personal',
+        accountHolder: null,
+        instructions: null,
+        qrImageUrl: null,
+      } satisfies PaymentAccount,
+      {
+        id: 22,
+        type: 'bank',
+        method: 'bank',
+        displayOrder: 1,
+        label: 'সোনালী ব্যাংক ৯৯৮৮',
+        bankName: 'সোনালী ব্যাংক',
+        branchName: null,
+        accountName: null,
+        accountNumber: '9988776655',
+        routingNumber: null,
+        provider: null,
+        mfsNumber: null,
+        accountKind: null,
+        accountHolder: null,
+        instructions: null,
+        qrImageUrl: null,
+      } satisfies PaymentAccount,
     ],
     ...overrides,
   };

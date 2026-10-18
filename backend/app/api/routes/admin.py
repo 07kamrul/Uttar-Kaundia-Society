@@ -1041,6 +1041,12 @@ async def list_audit_log(
     return list(result.scalars().all())
 
 
+# Categories retired from the config lists - payment accounts moved to the
+# admin-managed payment_accounts table. Rows are kept in the DB but are no
+# longer listed or editable here.
+RETIRED_CONFIG_CATEGORIES = ("payment_account",)
+
+
 @router.get("/config-lists", response_model=list[ConfigListItemOut])
 async def list_config_list_items(
     category: str | None = Query(default=None),
@@ -1050,6 +1056,7 @@ async def list_config_list_items(
     query = select(ConfigListItem).order_by(ConfigListItem.category, ConfigListItem.sort_order)
     if category:
         query = query.where(ConfigListItem.category == category)
+    query = query.where(ConfigListItem.category.notin_(RETIRED_CONFIG_CATEGORIES))
     result = await db.execute(query)
     return list(result.scalars().all())
 
@@ -1062,6 +1069,11 @@ async def create_config_list_item(
     db: AsyncSession = Depends(get_db),
     admin: AdminUser = Depends(require_permission("manage_system_config")),
 ) -> ConfigListItem:
+    if payload.category in RETIRED_CONFIG_CATEGORIES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Category '{payload.category}' is managed elsewhere now",
+        )
     existing = await db.execute(
         select(ConfigListItem).where(
             ConfigListItem.category == payload.category, ConfigListItem.value == payload.value

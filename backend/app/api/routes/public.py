@@ -1,4 +1,3 @@
-import re
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, Response
@@ -19,7 +18,8 @@ from app.schemas.event import EventOut
 from app.schemas.notice import NoticeOut
 from app.schemas.public import PublicStatsOut, SubscriptionQuoteOut, SubscriptionQuoteRequest
 from app.services.fee_calculation import calculate_monthly_subscription
-from app.services.installment_payment import list_payment_accounts
+from app.services import payment_accounts as payment_account_service
+from app.services.payment_accounts import list_active_accounts
 
 router = APIRouter(prefix="/public", tags=["public"])
 
@@ -75,27 +75,23 @@ async def _load_public_stats(db: AsyncSession) -> dict:
     ).model_dump(mode="json")
 
 
-_ACCOUNT_NUMBER_RE = re.compile(r"\+?\d[\d\s-]{5,}\d")
-
-
-def _registration_account(method: str, details: str) -> dict:
-    """Shape a society payment account (the same admin-managed 'payment_account'
-    list the member pay-dues dialog reads). `label` keeps the full admin text;
-    `number` is the first phone/account-like run of digits in it, if any."""
-    found = _ACCOUNT_NUMBER_RE.search(details)
-    return {
-        "method": method,
-        "label": details,
-        "number": found.group(0).strip() if found else None,
-        "account_name": None,
-    }
+def _registration_account(account) -> dict:
+    """Shape a payment_accounts row for the registration config: the full
+    payer-safe public shape plus the legacy `number`/`account_name` keys the
+    current applicants' frontend reads."""
+    shaped = payment_account_service.to_public_out(account).model_dump(mode="json")
+    shaped["number"] = account.account_number if account.type == "bank" else account.mfs_number
+    shaped["account_name"] = (
+        account.account_name if account.type == "bank" else (account.account_holder or None)
+    )
+    return shaped
 
 
 async def _load_registration_config(db: AsyncSession) -> dict:
-    accounts = await list_payment_accounts(db)
+    accounts = await list_active_accounts(db)
     return {
         "consent_version": CONSENT_VERSION,
-        "payment_accounts": [_registration_account(a.method, a.details) for a in accounts],
+        "payment_accounts": [_registration_account(a) for a in accounts],
     }
 
 

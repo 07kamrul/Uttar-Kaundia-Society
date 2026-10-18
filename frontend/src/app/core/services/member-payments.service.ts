@@ -4,6 +4,7 @@ import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { toFileUrl } from './admin.service';
 import type { PaymentAccount } from './installment-payment.service';
+import { toAccount as toPaymentAccount } from './payment-accounts.service';
 import { toFeeType, type OtherFeeType, type OtherFeeTypeApi } from './other-fees.service';
 
 export type PaymentKind = 'installment' | 'other_fee' | 'cost_share';
@@ -82,7 +83,7 @@ interface SummaryApi {
     pending: boolean;
   }[];
   payable_fee_types: OtherFeeTypeApi[];
-  accounts: PaymentAccount[];
+  accounts: import('./payment-accounts.service').PaymentAccountApi[];
 }
 
 interface HistoryItemApi {
@@ -141,7 +142,7 @@ export class MemberPaymentsService {
           pending: d.pending,
         })),
         payableFeeTypes: api.payable_fee_types.map(toFeeType),
-        accounts: api.accounts,
+        accounts: api.accounts.map(toPaymentAccount),
       })),
     );
   }

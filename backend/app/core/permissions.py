@@ -49,6 +49,12 @@ PERMISSION_CATALOG: tuple[PermissionDef, ...] = (
     PermissionDef("manage_roles", "role", "manage", "Manage roles and role permission assignments"),
     PermissionDef("manage_system_config", "system", "manage", "Manage system configuration"),
     PermissionDef("manage_fee_settings", "fee_settings", "manage", "Manage fee settings versions"),
+    PermissionDef(
+        "manage_payment_accounts",
+        "payment_account",
+        "manage",
+        "Manage the society bank/MFS accounts members pay into",
+    ),
     PermissionDef("manage_organization", "organization", "manage", "Manage organization settings"),
     PermissionDef("view_audit_log", "audit", "view", "View audit/access logs"),
     # Members
@@ -159,6 +165,7 @@ ROLE_DEFAULT_PERMISSIONS: dict[str, tuple[str, ...]] = {
         "manage_notices",
         "report.view",
         "manage_fee_settings",
+        "manage_payment_accounts",
         "manage_system_config",
         "manage_costs",
         "manage_finance",
@@ -202,6 +209,7 @@ ROLE_DEFAULT_PERMISSIONS: dict[str, tuple[str, ...]] = {
         "report.view_operational",
         "manage_system_config",
         "manage_fee_settings",
+        "manage_payment_accounts",
         "manage_finance",
         "manage_roadmap",
         "manage_resolution_book",

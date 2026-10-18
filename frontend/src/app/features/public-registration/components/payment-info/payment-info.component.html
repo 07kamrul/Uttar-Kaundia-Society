@@ -35,7 +35,9 @@
     <app-payment-method-picker
       [method]="selectedMethod"
       [serverAccounts]="config?.paymentAccounts ?? []"
+      [selectedAccountId]="selectedAccountId"
       (methodChange)="selectMethod($event)"
+      (accountChange)="onAccountChange($event)"
     />
     @if (showError('paymentMethod')) {
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
@@ -164,34 +166,15 @@
   </div>
   <div class="field">
     <label>{{ 'registration.payment.methodLabel' | translate }} <span class="required">*</span></label>
-    <div class="checkbox-row">
-      @for (m of paymentMethods; track m) {
-        <label class="checkbox-item">
-          <input
-            type="checkbox"
-            [checked]="form.get('paymentMethod')?.value === m"
-            (change)="selectMethod(m)"
-          />
-          {{ m }}
-        </label>
-      }
-    </div>
+    <app-payment-method-picker
+      [method]="selectedMethod"
+      [serverAccounts]="config?.paymentAccounts ?? []"
+      [selectedAccountId]="selectedAccountId"
+      (methodChange)="selectMethod($event)"
+      (accountChange)="onAccountChange($event)"
+    />
     @if (showError('paymentMethod')) {
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
-    }
-    @if (isBankSelected) {
-      <div class="field-hint" style="border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
-        <p><strong>{{ 'registration.payment.bankNameLabel' | translate }}:</strong> {{ bankInfo.bankName }}</p>
-        <p><strong>{{ 'registration.payment.branchLabel' | translate }}:</strong> {{ bankInfo.branch }}</p>
-        <p><strong>{{ 'registration.payment.accountNameLabel' | translate }}:</strong> {{ bankInfo.accountName }}</p>
-        <p><strong>{{ 'registration.payment.accountNumberLabel' | translate }}:</strong> {{ bankInfo.accountNumber }}</p>
-        <p><strong>{{ 'registration.payment.routingNumberLabel' | translate }}:</strong> {{ bankInfo.routingNumber }}</p>
-      </div>
-    }
-    @if (isMfsSelected) {
-      <div class="field-hint" style="border:1px solid var(--gray-300);border-radius:0.5rem;padding:0.75rem;margin-top:0.5rem">
-        <p><strong>{{ 'registration.payment.mfsNumberLabel' | translate }}:</strong> {{ mfsInfo.number }} ({{ mfsInfo.type }})</p>
-      </div>
     }
   </div>
 </section>

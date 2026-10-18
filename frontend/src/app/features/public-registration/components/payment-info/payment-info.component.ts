@@ -15,10 +15,8 @@ import { debounceTime } from 'rxjs';
 import {
   ALLOWED_DOC_MIME_TYPES,
   MAX_DOC_FILE_BYTES,
-  ORG_BANK_INFO,
-  ORG_MFS_INFO,
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_KEYS,
+  accountsForMethod,
+  type PaymentAccount,
   type RegistrationConfig,
   SubscriptionQuote,
 } from '../../../../core/models/registration.model';
@@ -47,20 +45,16 @@ export class PaymentInfoComponent implements OnInit {
   @Input() feeError = false;
   /** Feature flags; all off keeps the original payment step. */
   @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
-  /** Society accounts from the server; null falls back to the built-in details. */
+  /** Society accounts from the server; null while loading or after a failed load. */
   @Input() config: RegistrationConfig | null = null;
   readonly retryFeeLoad = output<void>();
   // Lets the parent disable "পরবর্তী" while the quote is in flight or failed,
   // the same way it already does for the admission-fee load.
   readonly subscriptionBusyChange = output<boolean>();
-  readonly paymentMethods = PAYMENT_METHODS;
-  readonly methodKeys = PAYMENT_METHOD_KEYS;
   readonly subscriptionQuote = signal<SubscriptionQuote | null>(null);
   readonly subscriptionLoading = signal(false);
   readonly subscriptionError = signal(false);
   readonly maxReceiptFileMb = MAX_DOC_FILE_BYTES / (1024 * 1024);
-  readonly bankInfo = ORG_BANK_INFO;
-  readonly mfsInfo = ORG_MFS_INFO;
   receiptFileError = '';
 
   private readonly translate = inject(TranslateService);
@@ -159,6 +153,25 @@ export class PaymentInfoComponent implements OnInit {
 
   selectMethod(method: string): void {
     this.form.get('paymentMethod')?.setValue(method);
+    this.autoSelectAccount(method);
+  }
+
+  /** Picking a method picks its first active account (single-account case is then automatic). */
+  private autoSelectAccount(method: string): void {
+    const accounts = accountsForMethod(method, this.config?.paymentAccounts ?? []);
+    this.setAccount(accounts[0] ?? null);
+  }
+
+  private setAccount(account: PaymentAccount | null): void {
+    this.form.get('paymentAccountId')?.setValue(account?.id ?? null);
+  }
+
+  onAccountChange(accountId: number): void {
+    this.form.get('paymentAccountId')?.setValue(accountId);
+  }
+
+  get selectedAccountId(): number | null {
+    return this.form.get('paymentAccountId')?.value ?? null;
   }
 
   /** The abroad note only matters to members who ticked "বিদেশে থাকি". */
@@ -173,14 +186,6 @@ export class PaymentInfoComponent implements OnInit {
   /** TrxID for mobile banking, receipt number for cash, bank and other. */
   get referenceLabelKey(): string {
     return referenceLabelKey(this.selectedMethod);
-  }
-
-  get isBankSelected(): boolean {
-    return this.form.get('paymentMethod')?.value === PAYMENT_METHODS[1];
-  }
-
-  get isMfsSelected(): boolean {
-    return this.form.get('paymentMethod')?.value === PAYMENT_METHODS[2];
   }
 
   showError(controlName: string): boolean {

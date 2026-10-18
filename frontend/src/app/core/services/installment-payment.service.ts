@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { toFileUrl } from './admin.service';
+import { toAccount, type PaymentAccountApi } from './payment-accounts.service';
 
 export type PaymentStatus = 'pending' | 'approved' | 'rejected';
 
@@ -13,14 +14,14 @@ export interface PayableInstallment {
   amount: number;
 }
 
-export interface PaymentAccount {
-  method: string;
-  details: string;
-}
+/** Rich active-account shape from GET /payment-accounts / PayableSummary.accounts. */
+export type PaymentAccount = import('../models/registration.model').PaymentAccount;
 
 export interface InstallmentPayment {
   id: number;
   method: string;
+  /** Which society account the member says they paid into (masked snapshot). */
+  paymentAccountSnapshot: string | null;
   transactionRef: string;
   senderAccount: string | null;
   amount: number;
@@ -51,6 +52,8 @@ export interface PayableSummary {
 export interface PaymentSubmission {
   installmentIds: number[];
   method: string;
+  /** The society account the money was sent to; required for bank/MFS methods. */
+  paymentAccountId?: number | null;
   transactionRef: string;
   paidOn: string;
   senderAccount?: string;
@@ -68,6 +71,7 @@ interface InstallmentApi {
 interface PaymentApi {
   id: number;
   method: string;
+  payment_account_snapshot: string | null;
   transaction_ref: string;
   sender_account: string | null;
   amount: number | string;
@@ -91,7 +95,7 @@ interface PayableSummaryApi {
   due: InstallmentApi[];
   pending_installment_ids: number[];
   total_due: number | string;
-  accounts: PaymentAccount[];
+  accounts: PaymentAccountApi[];
   payments: PaymentApi[];
 }
 
@@ -105,6 +109,7 @@ const toInstallment = (row: InstallmentApi): PayableInstallment => ({
 const toPayment = (api: PaymentApi): InstallmentPayment => ({
   id: api.id,
   method: api.method,
+  paymentAccountSnapshot: api.payment_account_snapshot,
   transactionRef: api.transaction_ref,
   senderAccount: api.sender_account,
   amount: Number(api.amount),
@@ -138,7 +143,7 @@ export class InstallmentPaymentService {
         due: api.due.map(toInstallment),
         pendingInstallmentIds: api.pending_installment_ids,
         totalDue: Number(api.total_due),
-        accounts: api.accounts,
+        accounts: api.accounts.map(toAccount),
         payments: api.payments.map(toPayment),
       })),
     );
@@ -148,6 +153,7 @@ export class InstallmentPaymentService {
     const form = new FormData();
     form.append('installment_ids', payload.installmentIds.join(','));
     form.append('method', payload.method);
+    if (payload.paymentAccountId != null) form.append('payment_account_id', String(payload.paymentAccountId));
     form.append('transaction_ref', payload.transactionRef.trim());
     form.append('paid_on', payload.paidOn);
     if (payload.senderAccount?.trim()) form.append('sender_account', payload.senderAccount.trim());

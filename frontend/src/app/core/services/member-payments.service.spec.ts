@@ -43,7 +43,26 @@ describe('MemberPaymentsService', () => {
           additional_head_fee: 200,
         },
       ],
-      accounts: [{ method: 'bkash', details: '01711000000' }],
+      accounts: [
+        {
+          id: 4,
+          type: 'mfs',
+          method: 'bkash',
+          display_order: 1,
+          label: 'বিকাশ 01711000000',
+          bank_name: null,
+          branch_name: null,
+          account_name: null,
+          account_number: null,
+          routing_number: null,
+          provider: 'bkash',
+          mfs_number: '01711000000',
+          account_kind: 'personal',
+          account_holder: null,
+          instructions: null,
+          qr_image_url: null,
+        },
+      ],
     });
     expect(result).toMatchObject({
       totalDue: 1500,
@@ -52,7 +71,7 @@ describe('MemberPaymentsService', () => {
       pendingAmount: 500,
       dues: [{ kind: 'installment', refId: 41, amount: 500, dueDate: '2026-01-31', pending: false }],
       payableFeeTypes: [{ key: 'picnic', headFee: 300, additionalHeadFee: 200 }],
-      accounts: [{ method: 'bkash', details: '01711000000' }],
+      accounts: [{ id: 4, method: 'bkash', mfsNumber: '01711000000', label: 'বিকাশ 01711000000' }],
     });
   });
 

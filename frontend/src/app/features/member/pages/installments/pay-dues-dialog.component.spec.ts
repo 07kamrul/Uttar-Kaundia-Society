@@ -7,8 +7,47 @@ import {
   InstallmentPaymentService,
   type InstallmentPayment,
   type PayableSummary,
+  type PaymentAccount,
 } from '../../../../core/services/installment-payment.service';
 import { PayDuesDialogComponent } from './pay-dues-dialog.component';
+
+const bkashAccount: PaymentAccount = {
+  id: 11,
+  type: 'mfs',
+  method: 'bkash',
+  displayOrder: 1,
+  label: 'বিকাশ পার্সোনাল',
+  bankName: null,
+  branchName: null,
+  accountName: null,
+  accountNumber: null,
+  routingNumber: null,
+  provider: 'bkash',
+  mfsNumber: '01700000000',
+  accountKind: 'personal',
+  accountHolder: null,
+  instructions: null,
+  qrImageUrl: null,
+};
+
+const bankAccount: PaymentAccount = {
+  id: 12,
+  type: 'bank',
+  method: 'bank',
+  displayOrder: 1,
+  label: 'সোনালী ব্যাংক',
+  bankName: null,
+  branchName: null,
+  accountName: null,
+  accountNumber: '1000001',
+  routingNumber: null,
+  provider: null,
+  mfsNumber: null,
+  accountKind: null,
+  accountHolder: null,
+  instructions: null,
+  qrImageUrl: null,
+};
 
 const summary: PayableSummary = {
   due: [
@@ -18,10 +57,7 @@ const summary: PayableSummary = {
   ],
   pendingInstallmentIds: [3],
   totalDue: 400,
-  accounts: [
-    { method: 'bKash', details: '01700000000' },
-    { method: 'Bank', details: 'Sonali A/C 1' },
-  ],
+  accounts: [bkashAccount, bankAccount],
   payments: [],
 };
 
@@ -42,7 +78,8 @@ describe('PayDuesDialogComponent', () => {
 
     expect(component.payable().map((i) => i.id)).toEqual([1, 2]);
     expect(component.selectedTotal()).toBe(400);
-    expect(component.method()).toBe('bKash');
+    expect(component.method()).toBe('bkash');
+    expect(component.selectedAccountId()).toBe(11);
   });
 
   it('recomputes the total when months are toggled', () => {
@@ -76,10 +113,32 @@ describe('PayDuesDialogComponent', () => {
     component.submit();
 
     expect(submit).toHaveBeenCalledWith(
-      expect.objectContaining({ installmentIds: [1, 2], method: 'bKash', transactionRef: 'TRX12345' }),
+      expect.objectContaining({ installmentIds: [1, 2], method: 'bkash', paymentAccountId: 11, transactionRef: 'TRX12345' }),
     );
     expect(emitted).toHaveBeenCalledWith(created);
     expect(component.submitting()).toBe(false);
+  });
+
+  it('blocks submit for account-backed methods until an account is chosen; cash needs none', () => {
+    const created = { id: 9, status: 'pending' } as InstallmentPayment;
+    const { component, submit } = setup(vi.fn(() => of(created)));
+    component.transactionRef = 'TRX12345';
+
+    component.selectedAccountId.set(null);
+    component.method.set('bkash');
+    component.submit();
+    expect(submit).not.toHaveBeenCalled();
+
+    component.method.set('cash');
+    component.submit();
+    expect(submit).toHaveBeenCalledWith(expect.objectContaining({ method: 'cash', paymentAccountId: null }));
+  });
+
+  it('choosing an account switches the method to that account', () => {
+    const { component } = setup();
+    component.chooseAccount(bankAccount);
+    expect(component.method()).toBe('bank');
+    expect(component.selectedAccountId()).toBe(12);
   });
 
   it('shows the server error message when submit fails', () => {

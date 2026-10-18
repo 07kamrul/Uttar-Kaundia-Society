@@ -22,6 +22,7 @@ const fee = (id: number, kind: 'fee' | 'picnic', amount: number): AdminOtherFeeP
   feeLabel: kind === 'picnic' ? 'পিকনিক ফি' : 'অনুদান',
   amount,
   method: 'bkash',
+  paymentAccountSnapshot: kind === 'fee' ? 'বিকাশ পার্সোনাল ••••0421' : null,
   receiptNo: `OF-REF-${id}`,
   paymentDate: '2026-10-12',
   proofUrl: id === 1 ? '/uploads/o.png' : null,

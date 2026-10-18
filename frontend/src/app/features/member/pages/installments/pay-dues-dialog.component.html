@@ -69,16 +69,16 @@
         <div class="pay-body">
           <p class="field-hint">{{ 'member.payDues.methodHint' | translate }}</p>
           <div class="pay-methods" role="radiogroup">
-            @for (a of summary.accounts; track a.method) {
+            @for (a of methodAccounts(); track a.id) {
               <button
                 type="button"
                 role="radio"
                 class="pay-method"
-                [class.active]="method() === a.method"
-                [attr.aria-checked]="method() === a.method"
-                (click)="method.set(a.method)"
+                [class.active]="selectedAccountId() === a.id"
+                [attr.aria-checked]="selectedAccountId() === a.id"
+                (click)="chooseAccount(a)"
               >
-                {{ a.method }}
+                {{ a.label }}
               </button>
             }
           </div>
@@ -87,10 +87,10 @@
             <div class="pay-instructions">
               <div class="pay-instruction-row">
                 <span class="pay-instruction-label">{{ 'member.payDues.sendTo' | translate }}</span>
-                <span class="pay-instruction-value">{{ account.details }}</span>
-                <button type="button" class="btn btn-ghost btn-sm" (click)="copy(account.details)">
-                  <app-icon [name]="copied() === account.details ? 'check' : 'copy'" [size]="14" />
-                  {{ (copied() === account.details ? 'member.payDues.copied' : 'member.payDues.copy') | translate }}
+                <span class="pay-instruction-value">{{ accountCopyNumber(account) }}</span>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="copyNumber(account)">
+                  <app-icon [name]="copied() === accountCopyNumber(account) ? 'check' : 'copy'" [size]="14" />
+                  {{ (copied() === accountCopyNumber(account) ? 'member.payDues.copied' : 'member.payDues.copy') | translate }}
                 </button>
               </div>
               <div class="pay-instruction-row">

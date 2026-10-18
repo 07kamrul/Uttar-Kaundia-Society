@@ -117,9 +117,8 @@ export class PayFlowDialogComponent {
   readonly fees = computed(() =>
     this.summary().payableFeeTypes.filter((f) => f.alreadyPaid !== true && !this.done().has(feeKey(f))),
   );
-  readonly accounts = computed<RegistrationAccount[]>(() =>
-    this.summary().accounts.map((a) => ({ method: a.method, label: a.details, number: a.details, accountName: null })),
-  );
+  readonly accounts = computed<RegistrationAccount[]>(() => this.summary().accounts);
+  readonly selectedAccountId = signal<number | null>(null);
   readonly isEmpty = computed(
     () => this.dues().length === 0 && this.pendingDues().length === 0 && this.fees().length === 0,
   );
@@ -213,6 +212,14 @@ export class PayFlowDialogComponent {
     this.step.set(step);
   }
 
+  /** Picking a method auto-picks its first active account, when it has one. */
+  onMethodChange(key: string): void {
+    this.method.set(key);
+    this.selectedAccountId.set(
+      this.accounts().find((a) => a.method === key)?.id ?? null,
+    );
+  }
+
   onReferenceInput(event: Event): void {
     this.reference.set((event.target as HTMLInputElement).value);
   }
@@ -304,7 +311,12 @@ export class PayFlowDialogComponent {
         keys: installments.map(dueKey),
         label: installments.map((d) => d.title).join(', '),
         run: () =>
-          this.installmentService.submit({ ...common, installmentIds: installments.map((d) => d.refId), proof }),
+          this.installmentService.submit({
+            ...common,
+            installmentIds: installments.map((d) => d.refId),
+            paymentAccountId: this.selectedAccountId(),
+            proof,
+          }),
       });
     }
     for (const share of this.selectedDues().filter((d) => d.kind === 'cost_share')) {
@@ -324,6 +336,7 @@ export class PayFlowDialogComponent {
               feeType: fee.key,
               paymentDate: common.paidOn,
               paymentMethod: common.method,
+              paymentAccountId: this.selectedAccountId(),
               receiptNo: common.transactionRef,
               amount: fee.calculation === 'variable' ? this.amountOf(fee) : undefined,
               additionalHeads: fee.calculation === 'picnic' ? this.headsOf(fee) : undefined,

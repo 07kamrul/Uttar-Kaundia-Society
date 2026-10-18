@@ -184,6 +184,9 @@ def admin_item(payment) -> dict:
         "fee_label": label_of(payment),
         "amount": payment_amount(payment),
         "method": payment.payment_method,
+        # FeePayment rows snapshot which admin-managed account was paid into
+        # (PicnicPayment has no such column, hence the getattr).
+        "payment_account_snapshot": getattr(payment, "payment_account_snapshot", None),
         "reference": payment.receipt_no,
         "payment_method": payment.payment_method,
         "receipt_no": payment.receipt_no,

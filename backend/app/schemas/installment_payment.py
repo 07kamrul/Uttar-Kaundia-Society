@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.installment import InstallmentOut
+from app.schemas.payment_account import PaymentAccountPublicOut
 
 
 class PaymentAccountOut(BaseModel):
@@ -19,6 +20,7 @@ class InstallmentPaymentOut(BaseModel):
 
     id: int
     method: str
+    payment_account_snapshot: str | None = None
     transaction_ref: str
     sender_account: str | None = None
     amount: Decimal
@@ -42,7 +44,7 @@ class PayableSummaryOut(BaseModel):
     due: list[InstallmentOut]
     pending_installment_ids: list[int]
     total_due: Decimal
-    accounts: list[PaymentAccountOut]
+    accounts: list["PaymentAccountPublicOut"]
     payments: list[InstallmentPaymentOut]
 
 

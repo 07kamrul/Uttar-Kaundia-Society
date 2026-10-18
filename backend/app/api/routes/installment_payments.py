@@ -115,6 +115,7 @@ async def get_payable_summary(
 async def submit_installment_payment(
     installment_ids: str = Form(..., max_length=500),
     method: str = Form(..., min_length=1, max_length=64),
+    payment_account_id: int | None = Form(default=None),
     transaction_ref: str = Form(..., min_length=4, max_length=64, pattern=r"^[A-Za-z0-9\-_/ ]+$"),
     paid_on: date = Form(...),
     sender_account: str | None = Form(default=None, max_length=64),
@@ -133,6 +134,7 @@ async def submit_installment_payment(
         paid_on=paid_on,
         sender_account=sender_account,
         note=note,
+        payment_account_id=payment_account_id,
     )
     # Upload only after every validation passed, so rejected submissions
     # never leave orphaned files behind.

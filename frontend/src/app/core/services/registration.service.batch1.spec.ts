@@ -177,11 +177,59 @@ describe('RegistrationService batch 1 payload', () => {
     const req = http.expectOne((r) => r.url.endsWith('/public/registration-config'));
     req.flush({
       consent_version: '2026-10',
-      payment_accounts: [{ method: 'bkash', label: 'বিকাশ 017', number: '017', account_name: null }],
+      payment_accounts: [
+        {
+          id: 3,
+          type: 'mfs',
+          method: 'bkash',
+          display_order: 1,
+          label: 'বিকাশ 017',
+          bank_name: null,
+          branch_name: null,
+          account_name: null,
+          account_number: null,
+          routing_number: null,
+          provider: 'bkash',
+          mfs_number: '017',
+          account_kind: 'personal',
+          account_holder: null,
+          instructions: null,
+          qr_image_url: null,
+        },
+      ],
     });
     expect(result).toEqual({
       consentVersion: '2026-10',
-      paymentAccounts: [{ method: 'bkash', label: 'বিকাশ 017', number: '017', accountName: null }],
+      paymentAccounts: [
+        {
+          id: 3,
+          type: 'mfs',
+          method: 'bkash',
+          displayOrder: 1,
+          label: 'বিকাশ 017',
+          bankName: null,
+          branchName: null,
+          accountName: null,
+          accountNumber: null,
+          routingNumber: null,
+          provider: 'bkash',
+          mfsNumber: '017',
+          accountKind: 'personal',
+          accountHolder: null,
+          instructions: null,
+          qrImageUrl: null,
+        },
+      ],
     });
+  });
+
+  it('sends the chosen payment account id alongside the method', () => {
+    const p = send(formData({ paymentAccountId: 12 }));
+    expect(p.payment_account_id).toBe(12);
+  });
+
+  it('sends payment_account_id null when no account was chosen (cash/other)', () => {
+    const p = send(formData());
+    expect(p.payment_account_id).toBeNull();
   });
 });

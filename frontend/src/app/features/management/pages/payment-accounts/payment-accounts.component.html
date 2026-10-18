@@ -1,0 +1,220 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>{{ 'paymentAccounts.title' | translate }}</h1>
+      <p class="page-sub">{{ 'paymentAccounts.subtitle' | translate }}</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">
+      <app-icon name="plus" [size]="16" /> {{ 'paymentAccounts.new' | translate }}
+    </button>
+  </header>
+
+  <div class="filters">
+    <div class="tabs" role="tablist">
+      @for (tab of typeTabs; track tab.value) {
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.is-active]="typeFilter === tab.value"
+          (click)="setTypeFilter(tab.value)"
+        >
+          {{ tab.labelKey | translate }}
+        </button>
+      }
+    </div>
+    <div class="status-filter">
+      @for (f of statusFilters; track f.value) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="statusFilter === f.value"
+          (click)="setStatusFilter(f.value)"
+        >
+          {{ f.labelKey | translate }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading) {
+    <app-section-loader />
+  } @else if (loadFailed) {
+    <div class="empty" data-testid="load-failed">
+      <p>{{ 'paymentAccounts.errors.loadFailed' | translate }}</p>
+      <button type="button" class="btn btn-secondary" (click)="load()">
+        {{ 'paymentAccounts.retry' | translate }}
+      </button>
+    </div>
+  } @else if (accounts.length === 0) {
+    <div class="empty">
+      <p>{{ 'paymentAccounts.empty' | translate }}</p>
+    </div>
+  } @else {
+    <ul class="account-list">
+      @for (account of accounts; track account.id) {
+        <li class="account-row" [class.is-inactive]="account.status === 'inactive'">
+          <div class="row-main">
+            <span class="row-label">{{ account.label }}</span>
+            <span class="row-identity">{{ identityLine(account) }}</span>
+          </div>
+          <span class="status-pill" [class.is-active]="account.status === 'active'">
+            {{ (account.status === 'active' ? 'paymentAccounts.status.active' : 'paymentAccounts.status.inactive') | translate }}
+          </span>
+          <div class="row-actions">
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon"
+              [disabled]="!canMove(account, -1)"
+              [attr.aria-label]="'common.moveUp' | translate"
+              (click)="move(account, -1)"
+            >
+              <app-icon name="chevron-up" [size]="16" />
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost btn-icon"
+              [disabled]="!canMove(account, 1)"
+              [attr.aria-label]="'common.moveDown' | translate"
+              (click)="move(account, 1)"
+            >
+              <app-icon name="chevron-down" [size]="16" />
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="openEdit(account)">
+              {{ 'common.edit' | translate }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-danger]="account.status === 'active'"
+              [class.btn-secondary]="account.status !== 'active'"
+              (click)="askToggle(account)"
+            >
+              {{ (account.status === 'active' ? 'paymentAccounts.actions.deactivate' : 'paymentAccounts.actions.activate') | translate }}
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Create / edit form -->
+  @if (formOpen) {
+    <div class="modal-backdrop" (click)="closeForm()">
+      <div class="modal-card form-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <h2>{{ (editing ? 'paymentAccounts.form.editTitle' : 'paymentAccounts.form.createTitle') | translate }}</h2>
+
+        <div class="field">
+          <span class="field-label">{{ 'paymentAccounts.form.type' | translate }} *</span>
+          <div class="type-cards" role="radiogroup">
+            <button
+              type="button"
+              class="type-card"
+              [class.is-selected]="formType === 'bank'"
+              (click)="setFormType('bank')"
+            >
+              🏦 {{ 'paymentAccounts.typeTabs.bank' | translate }}
+            </button>
+            <button
+              type="button"
+              class="type-card"
+              [class.is-selected]="formType === 'mfs'"
+              (click)="setFormType('mfs')"
+            >
+              📱 {{ 'paymentAccounts.typeTabs.mfs' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pa-label">{{ 'paymentAccounts.form.label' | translate }} *</label>
+          <input id="pa-label" type="text" [(ngModel)]="formLabel" maxlength="120" />
+        </div>
+
+        @if (formType === 'bank') {
+          <div class="field">
+            <label for="pa-bank">{{ 'paymentAccounts.form.bankName' | translate }} *</label>
+            <input id="pa-bank" type="text" [(ngModel)]="formBankName" maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="pa-branch">{{ 'paymentAccounts.form.branchName' | translate }}</label>
+            <input id="pa-branch" type="text" [(ngModel)]="formBranchName" maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="pa-acname">{{ 'paymentAccounts.form.accountName' | translate }} *</label>
+            <input id="pa-acname" type="text" [(ngModel)]="formAccountName" maxlength="120" />
+          </div>
+          <div class="field">
+            <label for="pa-acno">{{ 'paymentAccounts.form.accountNumber' | translate }} *</label>
+            <input id="pa-acno" type="text" inputmode="numeric" [(ngModel)]="formAccountNumber" maxlength="32" />
+          </div>
+          <div class="field">
+            <label for="pa-routing">{{ 'paymentAccounts.form.routingNumber' | translate }}</label>
+            <input id="pa-routing" type="text" inputmode="numeric" [(ngModel)]="formRoutingNumber" maxlength="9" />
+          </div>
+        } @else {
+          <div class="field">
+            <label for="pa-provider">{{ 'paymentAccounts.form.provider' | translate }} *</label>
+            <select id="pa-provider" [(ngModel)]="formProvider">
+              @for (p of providers; track p.value) {
+                <option [value]="p.value">{{ p.labelKey | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label for="pa-mfs">{{ 'paymentAccounts.form.mfsNumber' | translate }} *</label>
+            <input id="pa-mfs" type="text" inputmode="numeric" [(ngModel)]="formMfsNumber" maxlength="16" />
+            <p class="field-hint">{{ 'paymentAccounts.form.mfsNumberHint' | translate }}</p>
+          </div>
+          <div class="field">
+            <label for="pa-kind">{{ 'paymentAccounts.form.accountKind' | translate }}</label>
+            <select id="pa-kind" [(ngModel)]="formAccountKind">
+              @for (k of kinds; track k.value) {
+                <option [value]="k.value">{{ k.labelKey | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label for="pa-holder">{{ 'paymentAccounts.form.accountHolder' | translate }}</label>
+            <input id="pa-holder" type="text" [(ngModel)]="formAccountHolder" maxlength="120" />
+          </div>
+        }
+
+        <div class="field">
+          <label for="pa-instructions">{{ 'paymentAccounts.form.instructions' | translate }}</label>
+          <textarea id="pa-instructions" rows="2" [(ngModel)]="formInstructions" maxlength="500"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="pa-qr">{{ 'paymentAccounts.form.qrImage' | translate }}</label>
+          <input id="pa-qr" type="file" accept="image/jpeg,image/png,image/webp" (change)="onQrSelected($event)" />
+          @if (qrPreview) {
+            <img [src]="qrPreview" alt="" class="qr-preview" />
+          }
+        </div>
+
+        @if (formError) {
+          <p class="form-error" data-testid="form-error">{{ formError }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()" [disabled]="saving">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button type="button" class="btn btn-primary" (click)="save()" [disabled]="saving">
+            {{ (saving ? 'common.saving' : 'common.save') | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <app-confirm-modal
+    [open]="confirmOpen"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [loading]="toggling"
+    (confirm)="confirmToggle()"
+    (cancel)="cancelToggle()"
+  />
+</section>

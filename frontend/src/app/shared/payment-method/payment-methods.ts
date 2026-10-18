@@ -1,7 +1,5 @@
 import {
   MFS_PAYMENT_METHODS,
-  ORG_BANK_INFO,
-  ORG_MFS_INFO,
   type PaymentAccount,
 } from '../../core/models/registration.model';
 
@@ -21,30 +19,20 @@ export function referenceLabelKey(method: string): string {
     : 'registration.simplified.payment.refReceipt';
 }
 
-/** Society account details for a method: from the server, else the built-in ones. */
+/**
+ * Active society accounts for a method key. No built-in fallback: when the
+ * server has no active account the caller hides the option entirely.
+ */
 export function accountsForMethod(method: string, serverAccounts: readonly PaymentAccount[]): PaymentAccount[] {
   const wanted = method.toLowerCase();
-  const fromServer = serverAccounts.filter((a) => a.method.toLowerCase() === wanted);
-  if (fromServer.length > 0) return fromServer;
-  if (MFS_PAYMENT_METHODS.includes(wanted)) {
-    return [
-      {
-        method,
-        label: `${ORG_MFS_INFO.number} (${ORG_MFS_INFO.type})`,
-        number: ORG_MFS_INFO.number,
-        accountName: null,
-      },
-    ];
+  return serverAccounts.filter((a) => a.method.toLowerCase() === wanted);
+}
+
+/** Method keys that actually have an active account, in server display order. */
+export function availableAccountMethods(serverAccounts: readonly PaymentAccount[]): string[] {
+  const seen: string[] = [];
+  for (const account of serverAccounts) {
+    if (!seen.includes(account.method)) seen.push(account.method);
   }
-  if (wanted === 'bank') {
-    return [
-      {
-        method,
-        label: `${ORG_BANK_INFO.bankName}, ${ORG_BANK_INFO.branch} — ${ORG_BANK_INFO.accountName}, ${ORG_BANK_INFO.accountNumber}`,
-        number: ORG_BANK_INFO.accountNumber,
-        accountName: ORG_BANK_INFO.accountName,
-      },
-    ];
-  }
-  return [];
+  return seen;
 }

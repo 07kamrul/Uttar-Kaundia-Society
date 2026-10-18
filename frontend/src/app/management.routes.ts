@@ -116,6 +116,14 @@ export const MANAGEMENT_ROUTES: Routes = [
       ),
   },
   {
+    path: 'payment-accounts',
+    canActivate: [permissionGuard(['manage_payment_accounts'])],
+    loadComponent: () =>
+      import('./features/management/pages/payment-accounts/payment-accounts.component').then(
+        (m) => m.PaymentAccountsComponent,
+      ),
+  },
+  {
     path: 'society-costs',
     canActivate: [permissionGuard(['manage_costs'])],
     loadComponent: () =>

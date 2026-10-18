@@ -13,7 +13,6 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.config_list_item import ConfigListItem
 from app.models.cost_share_payment import CostSharePayment
 from app.models.installment import Installment, InstallmentStatus
 from app.models.installment_payment import (
@@ -25,6 +24,7 @@ from app.models.installment_payment import (
 )
 from app.models.member import Member
 from app.schemas.installment import InstallmentOut
+from app.services import payment_accounts as payment_account_service
 from app.schemas.installment_payment import (
     InstallmentPaymentOut,
     PayableSummaryOut,
@@ -40,7 +40,6 @@ class PaymentConflict(HTTPException):
         self.code = code
 
 
-PAYMENT_ACCOUNT_CATEGORY = "payment_account"
 MAX_INSTALLMENTS_PER_PAYMENT = 24
 
 
@@ -48,13 +47,11 @@ def months_label(payment: InstallmentPayment) -> str:
     return ", ".join(f"{i.month:02d}/{i.year}" for i in payment.installments)
 
 
-async def list_payment_accounts(db: AsyncSession) -> list[PaymentAccountOut]:
-    result = await db.execute(
-        select(ConfigListItem)
-        .where(ConfigListItem.category == PAYMENT_ACCOUNT_CATEGORY, ConfigListItem.is_active == 1)
-        .order_by(ConfigListItem.sort_order, ConfigListItem.id)
-    )
-    return [PaymentAccountOut(method=item.value, details=item.label) for item in result.scalars()]
+async def list_payment_accounts(db: AsyncSession) -> list:
+    """Active society accounts in the payer-safe public shape (was: the
+    free-text 'payment_account' config list)."""
+    accounts = await payment_account_service.list_active_accounts(db)
+    return [payment_account_service.to_public_out(a) for a in accounts]
 
 
 async def _pending_installment_ids(db: AsyncSession, member_id: int) -> set[int]:
@@ -183,11 +180,22 @@ async def submit_payment(
     sender_account: str | None = None,
     note: str | None = None,
     proof_url: str | None = None,
+    payment_account_id: int | None = None,
 ) -> InstallmentPayment:
     """Validate and stage a pending payment. Caller commits."""
     if paid_on > date.today():
         raise _bad_request("Payment date cannot be in the future.")
+    # The claimed account is resolved first so account errors (inactive,
+    # mismatched type) take precedence over the method-name validation.
+    expected_type = "bank" if method.strip().casefold() == "bank" else "mfs"
+    account, account_snapshot = await payment_account_service.resolve_for_submission(
+        db, payment_account_id, expected_type
+    )
     canonical_method = await _validate_method(db, method)
+    # A bank/mobile-banking payment must name the account it was paid into -
+    # never accept one with no destination while accounts exist.
+    if account is None and canonical_method in ("bank", "bkash", "nagad", "rocket"):
+        raise _bad_request("PAYMENT_ACCOUNT_REQUIRED")
     reference = transaction_ref.strip().upper()
     installments = await _load_payable_installments(db, member.id, installment_ids)
     await _ensure_unique_reference(db, member.id, canonical_method, reference)
@@ -195,6 +203,8 @@ async def submit_payment(
     payment = InstallmentPayment(
         member_id=member.id,
         method=canonical_method,
+        payment_account_id=account.id if account else None,
+        payment_account_snapshot=account_snapshot,
         transaction_ref=reference,
         sender_account=(sender_account or "").strip() or None,
         amount=sum((Decimal(str(i.amount)) for i in installments), start=Decimal("0")),

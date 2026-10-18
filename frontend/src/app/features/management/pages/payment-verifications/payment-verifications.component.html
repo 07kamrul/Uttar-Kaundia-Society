@@ -65,6 +65,9 @@
 
           <dl class="pv-details">
             <div><dt>{{ 'admin.paymentVerifications.method' | translate }}</dt><dd>{{ p.method }}</dd></div>
+            @if (p.accountSnapshot) {
+              <div><dt>{{ 'admin.paymentVerifications.account' | translate }}</dt><dd>{{ p.accountSnapshot }}</dd></div>
+            }
             <div><dt>{{ 'admin.paymentVerifications.reference' | translate }}</dt><dd class="pv-mono">{{ p.transactionRef }}</dd></div>
             <div><dt>{{ 'admin.paymentVerifications.paidOn' | translate }}</dt><dd>{{ p.paidOn }}</dd></div>
             @if (p.remaining !== null) {

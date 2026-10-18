@@ -107,7 +107,7 @@ export function adminGroups(flags: AdminGroupFlags): NavSection[] {
       '/plot-boundaries',
       '/asset-register',
     ]),
-    group('nav.group.settings', ['/fee-settings', '/roadmap-management']),
+    group('nav.group.settings', ['/fee-settings', '/payment-accounts', '/roadmap-management']),
     group(
       'nav.group.advanced',
       ['/roles', '/config-lists', '/audit-log', '/amendments-admin', '/advanced/cache', '/advanced/login-readiness'],

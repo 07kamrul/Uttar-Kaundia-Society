@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { FeatureFlagService, type FeatureFlagKey } from './feature-flag.service';
 import { toAsciiDigits } from './digits.helper';
+import { toAccount } from './payment-accounts.service';
 import type {
   FormDataModel,
   PropertyItem,
@@ -26,7 +27,7 @@ interface SubscriptionQuoteApiResponse {
 
 interface RegistrationConfigApiResponse {
   consent_version: string;
-  payment_accounts?: { method: string; label: string; number: string | null; account_name: string | null }[];
+  payment_accounts?: import('./payment-accounts.service').PaymentAccountApi[];
 }
 
 const DEFAULT_NATIONALITY = 'বাংলাদেশী';
@@ -83,12 +84,7 @@ export class RegistrationService {
       .pipe(
         map((res) => ({
           consentVersion: res.consent_version,
-          paymentAccounts: (res.payment_accounts ?? []).map((a) => ({
-            method: a.method,
-            label: a.label,
-            number: a.number ?? null,
-            accountName: a.account_name ?? null,
-          })),
+          paymentAccounts: (res.payment_accounts ?? []).map(toAccount),
         })),
       );
   }
@@ -183,6 +179,7 @@ export class RegistrationService {
       subscription: String(formData.subscription ?? ''),
       receipt_no: formData.receiptNo,
       payment_method: formData.paymentMethod,
+      payment_account_id: formData.paymentAccountId ?? null,
       member_signature: formData.memberSignature,
       submission_date: formData.submissionDate,
       properties: formData.properties.map((property) => this.propertyPayload(property)),

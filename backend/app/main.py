@@ -30,6 +30,7 @@ from app.api.routes import (
     fund_controls,
     other_fees,
     other_fee_verification,
+    payment_accounts,
     finance,
     governance,
     helpline,
@@ -177,6 +178,7 @@ app.include_router(finance.router, prefix=api_router_prefix)
 app.include_router(roadmap.router, prefix=api_router_prefix)
 app.include_router(resolution_book.router, prefix=api_router_prefix)
 app.include_router(installment_payments.router, prefix=api_router_prefix)
+app.include_router(payment_accounts.router, prefix=api_router_prefix)
 app.include_router(fee_payments.router, prefix=api_router_prefix)
 app.include_router(fee_types.router, prefix=api_router_prefix)
 app.include_router(other_fees.router, prefix=api_router_prefix)

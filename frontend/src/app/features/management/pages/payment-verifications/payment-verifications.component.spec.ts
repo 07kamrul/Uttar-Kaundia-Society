@@ -20,6 +20,7 @@ const installmentRow = {
   memberDisplayId: 'M-1',
   method: 'bkash',
   transactionRef: 'INST-REF',
+  paymentAccountSnapshot: 'বিকাশ পার্সোনাল ••••0000',
   senderAccount: null,
   amount: 400,
   paidOn: '2026-10-01',
@@ -93,6 +94,7 @@ describe('PaymentVerificationsComponent kind tab', () => {
     expect(installments.listForAdmin).toHaveBeenCalledWith('pending');
     expect(shares.listForAdmin).not.toHaveBeenCalled();
     expect(text(f)).toContain('INST-REF');
+    expect(text(f)).toContain('বিকাশ পার্সোনাল ••••0000');
     expect(q(f, '[data-testid="kind-installment"]')?.getAttribute('aria-selected')).toBe('true');
   });
 

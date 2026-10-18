@@ -328,6 +328,12 @@ export const NAV_SECTIONS: NavSection[] = [
         requiredPermission: ['manage_fee_settings'],
       },
       {
+        labelKey: 'nav.paymentAccounts',
+        route: '/payment-accounts',
+        icon: 'wallet',
+        requiredPermission: ['manage_payment_accounts'],
+      },
+      {
         labelKey: 'nav.societyCosts',
         route: '/society-costs',
         icon: 'coin',
