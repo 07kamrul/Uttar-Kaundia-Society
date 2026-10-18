@@ -26,6 +26,7 @@ PAYMENT_TABLES = ("installment_payments", "fee_payments", "members")
 
 payment_accounts = sa.table(
     "payment_accounts",
+    sa.column("id", sa.Integer),
     sa.column("type", sa.String),
     sa.column("status", sa.String),
     sa.column("display_order", sa.Integer),
