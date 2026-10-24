@@ -1,7 +1,7 @@
 import json
 from datetime import date
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import ValidationError
 from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
@@ -18,6 +18,7 @@ from app.models.property import ApplicableDoc, CoOwner, Property
 from app.models.nominee import Nominee
 from app.schemas.member import SubmissionCreateResponse
 from app.schemas.submission import SubmissionPayload
+from app.services.admin_notifications import notify_admins_new_application
 from app.services.fee_calculation import calculate_monthly_subscription
 from app.services.payment_accounts import resolve_for_submission
 from app.services.normalization import (
@@ -274,6 +275,7 @@ def _validate_proofs(data: SubmissionPayload, doc_files: list[UploadFile]) -> No
 
 @router.post("/submissions", response_model=SubmissionCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_submission(
+    background_tasks: BackgroundTasks,
     payload: str = Form(...),
     member_photo: UploadFile | None = File(None),
     member_photo_camel: UploadFile | None = File(None, alias="memberPhoto"),
@@ -480,6 +482,16 @@ async def create_submission(
         )
 
     await db.commit()
+    # Sent after the response so a slow SMTP server never delays or fails
+    # the applicant's submission.
+    background_tasks.add_task(
+        notify_admins_new_application,
+        kind="membership registration",
+        applicant_name=member.full_name,
+        mobile=member.mobile or "",
+        reference=str(member.id),
+        review_path=f"/submissions/{member.id}",
+    )
     # No refresh: `id` is populated by the flush, `status` comes from a
     # Python-side default, and expire_on_commit=False leaves both intact.
     return SubmissionCreateResponse(id=member.id, status=member.status)

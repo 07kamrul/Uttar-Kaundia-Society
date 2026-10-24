@@ -48,6 +48,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-Kaundia Member Registry <no-reply@example.com>}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_NOTIFY_EMAILS: ${ADMIN_NOTIFY_EMAILS:-anshintech07@gmail.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
       ADMIN_NAME: ${ADMIN_NAME:-Administrator}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:9091}

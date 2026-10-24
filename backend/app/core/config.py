@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     admin_password: str = INSECURE_ADMIN_PASSWORD
     admin_name: str = "Administrator"
     admin_role: str = "super_admin"
+    # Comma-separated inboxes alerted when a new application is submitted.
+    # Empty falls back to admin_email.
+    admin_notify_emails: str = "anshintech07@gmail.com"
 
     # CORS
     cors_origins: str = "http://localhost:9091"

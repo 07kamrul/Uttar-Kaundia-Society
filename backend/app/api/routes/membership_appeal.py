@@ -13,7 +13,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, field_validator
 from sqlalchemy import func, select
@@ -71,6 +71,7 @@ from app.models.membership_appeal import (
 from app.schemas.common import validate_required_phone
 from app.services.audit import record_audit
 from app.services.dag_guard import ensure_dag_filled
+from app.services.admin_notifications import notify_admins_new_application
 from app.services.email import send_email, send_with_retries
 from app.services.governance import (
     APPEAL_WINDOW_DAYS,
@@ -579,6 +580,7 @@ def _html_paragraphs(*paragraphs: str) -> str:
 @router.post("/member/membership-applications", response_model=ApplicationOut)
 async def submit_application(
     payload: ApplicationCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     member: Member = Depends(get_current_member),
 ) -> ApplicationOut:
@@ -615,6 +617,15 @@ async def submit_application(
     )
     await db.commit()
     await db.refresh(application)
+    # After the response, so SMTP trouble never fails the submission.
+    background_tasks.add_task(
+        notify_admins_new_application,
+        kind="membership",
+        applicant_name=application.full_name,
+        mobile=application.mobile,
+        reference=application.application_no,
+        review_path="/applications",
+    )
     return await _application_detail(db, application)
 
 

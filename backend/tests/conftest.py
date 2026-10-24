@@ -38,6 +38,18 @@ def _clear_read_caches():
 
 
 @pytest.fixture(autouse=True)
+def _stub_admin_notification_email(monkeypatch):
+    """Submissions alert admins by email in a background task; keep every
+    test off real SMTP. Tests asserting on the alert re-patch this."""
+    from app.services import admin_notifications
+
+    async def _no_send(**_kwargs) -> bool:
+        return True
+
+    monkeypatch.setattr(admin_notifications, "send_email", _no_send)
+
+
+@pytest.fixture(autouse=True)
 def _reset_auth_rate_limits():
     """Auth limiters are process-wide; tests reuse the same identifiers."""
     from app.api.routes.auth import login_failure_limiter, reset_request_limiter
