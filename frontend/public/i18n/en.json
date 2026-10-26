@@ -3719,6 +3719,15 @@
       "filed": "Filed",
       "review": "Under review",
       "decided": "Decided"
+    },
+    "board": {
+      "view": "View",
+      "viewBoard": "Board",
+      "viewTable": "Table",
+      "title": "Executive Committee",
+      "standingCouncil": "Standing Council",
+      "memberId": "Member ID",
+      "tagline": "Together for a stronger community"
     }
   },
   "elections": {

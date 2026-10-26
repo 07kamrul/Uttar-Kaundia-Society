@@ -8,6 +8,7 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { AdminService } from '../../../../core/services/admin.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
+import { CommitteeBoardComponent } from './committee-board/committee-board.component';
 import {
   CommitteeRegistryService,
   type PostHistory,
@@ -33,7 +34,7 @@ interface TermFormState {
   selector: 'app-committee-registry',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, SectionLoaderComponent],
+  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, SectionLoaderComponent, CommitteeBoardComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -52,8 +53,20 @@ interface TermFormState {
         </div>
       }
 
+      <div class="cr-view-toggle" role="group" [attr.aria-label]="'committeeRegistry.board.view' | translate">
+        <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="view.set('board')">
+          {{ 'committeeRegistry.board.viewBoard' | translate }}
+        </button>
+        <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'table'" [attr.aria-pressed]="view() === 'table'" (click)="view.set('table')">
+          {{ 'committeeRegistry.board.viewTable' | translate }}
+        </button>
+      </div>
+
       <!-- পদভিত্তিক রেজিস্ট্রি -->
-      <section class="card">
+      @if (view() === 'board' && !loading()) {
+        <app-committee-board [posts]="posts()" [lang]="lang()" />
+      }
+      <section class="card" [hidden]="view() === 'board' && !loading()">
         @if (loading()) {
           <app-section-loader [count]="6" />
         } @else {
@@ -498,6 +511,9 @@ interface TermFormState {
         :root:not([data-theme='light']) .cr-stat-info { color: #9dc3ec; }
       }
 
+      /* Board / table switch above the registry. */
+      .cr-view-toggle { display: flex; gap: 0.35rem; justify-content: flex-end; margin-bottom: 0.75rem; }
+
       /* Status filter tabs. */
       .cr-filter-tabs {
         display: flex; gap: 0.35rem; flex-wrap: nowrap;
@@ -609,6 +625,7 @@ export class CommitteeRegistryComponent implements OnInit {
   readonly saving = signal(false);
   readonly error = signal('');
   readonly posts = signal<RegistryPost[]>([]);
+  readonly view = signal<'board' | 'table'>('board');
   readonly vacancies = signal<PostVacancy[]>([]);
   readonly members = signal<MemberPickerOption[]>([]);
 

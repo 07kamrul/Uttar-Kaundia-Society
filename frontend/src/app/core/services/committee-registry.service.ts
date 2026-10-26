@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toFileUrl } from './admin.service';
 
 /** Module 2 - কমিটি/পরিষদ রেজিস্ট্রি (backend: app/api/routes/committee_registry.py). */
 
@@ -17,6 +18,12 @@ export interface MemberBrief {
   id: number;
   fullName: string;
   memberId: string | null;
+  photoUrl?: string;
+}
+
+/** One sitting seat of a post; multi-seat posts carry several. */
+export interface SeatHolder extends MemberBrief {
+  status: TermStatus;
 }
 
 export interface TermInfo {
@@ -65,6 +72,7 @@ export interface RegistryPost {
   en: string;
   council: string;
   holder: MemberBrief | null;
+  holders: SeatHolder[];
   term: TermInfo | null;
   status: TermStatus;
   routineWorkOnly: boolean;
@@ -111,6 +119,7 @@ interface MemberBriefApi {
   id: number;
   full_name: string;
   member_id: string | null;
+  photo_path?: string | null;
 }
 
 interface TermApi {
@@ -153,6 +162,7 @@ interface PostApi {
   en: string;
   council: string;
   holder: MemberBriefApi | null;
+  holders?: Array<MemberBriefApi & { status: TermStatus }>;
   term: TermApi | null;
   status: TermStatus;
   routine_work_only: boolean;
@@ -161,7 +171,13 @@ interface PostApi {
 }
 
 function toMemberBrief(api: MemberBriefApi | null): MemberBrief | null {
-  return api ? { id: api.id, fullName: api.full_name, memberId: api.member_id } : null;
+  if (!api) return null;
+  return {
+    id: api.id,
+    fullName: api.full_name,
+    memberId: api.member_id,
+    photoUrl: toFileUrl(api.photo_path ?? null),
+  };
 }
 
 function toTerm(api: TermApi): TermInfo {
@@ -221,6 +237,10 @@ export class CommitteeRegistryService {
             en: post.en,
             council: post.council,
             holder: toMemberBrief(post.holder),
+            holders: (post.holders ?? []).map((seat) => ({
+              ...(toMemberBrief(seat) as MemberBrief),
+              status: seat.status,
+            })),
             term: post.term ? toTerm(post.term) : null,
             status: post.status,
             routineWorkOnly: post.routine_work_only,

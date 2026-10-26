@@ -101,17 +101,24 @@ class VacancyDecisionIn(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+_BRIEF_COLUMNS = (Member.id, Member.full_name, Member.member_id, Member.member_photo_path)
+
+
+def _brief_from_row(row) -> dict:
+    return {"id": row[0], "full_name": row[1], "member_id": row[2], "photo_path": row[3]}
+
+
 async def _member_brief(db: AsyncSession, member_id: int | None) -> dict | None:
     if member_id is None:
         return None
     row = (
         await db.execute(
-            select(Member.id, Member.full_name, Member.member_id).where(Member.id == member_id)
+            select(*_BRIEF_COLUMNS).where(Member.id == member_id)
         )
     ).first()
     if row is None:
         return None
-    return {"id": row[0], "full_name": row[1], "member_id": row[2]}
+    return _brief_from_row(row)
 
 
 async def _member_briefs(db: AsyncSession, member_ids) -> dict[int, dict]:
@@ -121,10 +128,10 @@ async def _member_briefs(db: AsyncSession, member_ids) -> dict[int, dict]:
         return {}
     rows = (
         await db.execute(
-            select(Member.id, Member.full_name, Member.member_id).where(Member.id.in_(ids))
+            select(*_BRIEF_COLUMNS).where(Member.id.in_(ids))
         )
     ).all()
-    return {r[0]: {"id": r[0], "full_name": r[1], "member_id": r[2]} for r in rows}
+    return {r[0]: _brief_from_row(r) for r in rows}
 
 
 async def supersede_current_term(
@@ -250,11 +257,16 @@ async def registry_overview(
         .all()
     )
     latest_by_post: dict[str, CommitteeTerm] = {}
+    # Multi-seat posts (e.g. executive_member) keep sibling terms that were
+    # never superseded; every unreplaced term with a member is a sitting holder.
+    current_by_post: dict[str, list[CommitteeTerm]] = {}
     history: dict[str, list[dict]] = {key: [] for key in POST_KEYS}
     for term in terms:
         history.setdefault(term.post_key, []).append(term_to_dict(term, today))
         if term.post_key not in latest_by_post:
             latest_by_post[term.post_key] = term
+        if term.replaced_by_term_id is None and term.member_id is not None:
+            current_by_post.setdefault(term.post_key, []).append(term)
 
     vacancies = (
         (
@@ -272,7 +284,9 @@ async def registry_overview(
 
     briefs = await _member_briefs(
         db,
-        [t.member_id for t in latest_by_post.values()] + [v.member_id for v in vacancies],
+        [t.member_id for t in latest_by_post.values()]
+        + [t.member_id for seats in current_by_post.values() for t in seats]
+        + [v.member_id for v in vacancies],
     )
     posts = []
     for post in COUNCIL_POSTS:
@@ -287,6 +301,11 @@ async def registry_overview(
             {
                 **post,
                 "holder": holder,
+                "holders": [
+                    {**briefs[t.member_id], "status": t.computed_status(today)}
+                    for t in reversed(current_by_post.get(post["key"], []))
+                    if t.member_id in briefs
+                ],
                 "term": term_to_dict(term, today) if term else None,
                 "status": post_status,
                 # Expired/caretaker terms may only handle routine work.
