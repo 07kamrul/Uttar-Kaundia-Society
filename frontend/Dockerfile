@@ -23,9 +23,9 @@ RUN npm install -g serve@14
 
 COPY --from=build /app/dist/frontend/browser ./browser
 
-EXPOSE 9091
+EXPOSE 2001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:9091/ || exit 1
+  CMD wget -qO- http://localhost:2001/ || exit 1
 
-CMD ["serve", "-s", "browser", "-l", "9091"]
+CMD ["serve", "-s", "browser", "-l", "2001"]

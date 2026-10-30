@@ -51,15 +51,15 @@ services:
       ADMIN_NOTIFY_EMAILS: ${ADMIN_NOTIFY_EMAILS:-anshintech07@gmail.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-this-password}
       ADMIN_NAME: ${ADMIN_NAME:-Administrator}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:9091}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:2001}
     ports:
-      - "9090:9090"
+      - "2000:2000"
     volumes:
       - backend_uploads:/app/uploads
     # Migrations + seed run in scripts/entrypoint.sh before this command.
     command: >
       sh -c "(python -m scripts.repair_document_paths --apply || true) &&
-             uvicorn app.main:app --host 0.0.0.0 --port 9090 --workers 1"
+             uvicorn app.main:app --host 0.0.0.0 --port 2000 --workers 1"
     # Single worker is intentional for the VPS RAM budget; each additional
     # worker is a full Python process. Raise together with mem_limit.
     mem_limit: 768m
@@ -72,7 +72,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "9091:9091"
+      - "2001:2001"
     mem_limit: 128m
     memswap_limit: 128m
 

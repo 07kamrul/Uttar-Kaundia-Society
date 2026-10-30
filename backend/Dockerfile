@@ -30,8 +30,8 @@ RUN sed -i 's/\r$//' scripts/*.sh && chmod +x scripts/entrypoint.sh && mkdir -p 
 # Uploads must outlive the container; mount persistent storage here.
 VOLUME ["/app/uploads"]
 
-EXPOSE 9090
+EXPOSE 2000
 
 # Entrypoint pins STORAGE_BASE_DIR, prepares uploads, migrates + seeds.
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9090"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "2000"]

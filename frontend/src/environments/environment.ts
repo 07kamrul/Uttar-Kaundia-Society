@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8000/api',
+  apiBaseUrl: 'http://localhost:2000/api',
   // Keyless tile sources; swap for a keyed provider when one is provisioned.
   mapTileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   satelliteTileUrl:

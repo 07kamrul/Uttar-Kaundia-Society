@@ -51,10 +51,10 @@ class Settings(BaseSettings):
     admin_notify_emails: str = "anshintech07@gmail.com"
 
     # CORS
-    cors_origins: str = "http://localhost:9091"
+    cors_origins: str = "http://localhost:2001"
 
     # Public website link included in member emails (login page etc.)
-    frontend_base_url: str = "http://localhost:9091"
+    frontend_base_url: str = "http://localhost:2001"
 
     # Organization identity used on generated documents (PDF letterhead).
     organization_name: str = Field(

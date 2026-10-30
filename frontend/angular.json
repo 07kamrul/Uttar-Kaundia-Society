@@ -84,7 +84,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 9091
+            "port": 2001
           },
           "configurations": {
             "production": {
