@@ -12,11 +12,13 @@ import { MemberDetailDrawerComponent } from './member-detail-drawer/member-detai
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-members-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent],
+  imports: [EmptyStateComponent, IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent],
   templateUrl: './members-list.component.html',
 })
 export class MembersListComponent implements OnInit {

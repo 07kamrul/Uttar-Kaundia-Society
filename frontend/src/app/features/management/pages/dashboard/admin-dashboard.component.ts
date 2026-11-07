@@ -16,11 +16,13 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+  imports: [EmptyStateComponent, RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })

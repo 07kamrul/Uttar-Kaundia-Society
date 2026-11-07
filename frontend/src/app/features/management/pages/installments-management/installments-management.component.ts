@@ -23,11 +23,13 @@ const MONTH_KEYS = [
   'admin.installments.months.december',
 ];
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-installments-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, TranslatePipe, SectionLoaderComponent],
+  imports: [EmptyStateComponent, IconComponent, TranslatePipe, SectionLoaderComponent],
   templateUrl: './installments-management.component.html',
 })
 export class InstallmentsManagementComponent implements OnInit {
