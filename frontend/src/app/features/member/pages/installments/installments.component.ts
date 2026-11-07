@@ -21,11 +21,13 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 
 type YearFilter = 'all' | number;
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-member-installments',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SectionLoaderComponent, TranslatePipe, IconComponent, PayDuesDialogComponent],
+  imports: [EmptyStateComponent, SectionLoaderComponent, TranslatePipe, IconComponent, PayDuesDialogComponent],
   templateUrl: './installments.component.html',
   styleUrl: './installments.component.scss',
 })

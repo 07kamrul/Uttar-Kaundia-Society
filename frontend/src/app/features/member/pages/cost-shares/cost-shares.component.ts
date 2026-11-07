@@ -14,11 +14,13 @@ import {
 } from '../../../../core/services/society-cost.service';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-member-cost-shares',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SectionLoaderComponent, TranslatePipe, DatePipe, IconComponent],
+  imports: [EmptyStateComponent, SectionLoaderComponent, TranslatePipe, DatePipe, IconComponent],
   templateUrl: './cost-shares.component.html',
   styleUrl: './cost-shares.component.scss',
 })

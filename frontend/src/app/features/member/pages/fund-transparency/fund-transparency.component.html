@@ -506,6 +506,8 @@
                   <button
                     type="button"
                     class="btn-icon"
+                    [attr.aria-label]="'common.toggleDetails' | translate"
+                    [attr.aria-expanded]="expandedId === txn.id"
                     (click)="toggleExpanded(txn.id); $event.stopPropagation()"
                   >
                     <app-icon name="chevron-down" [size]="16" />
@@ -553,9 +555,7 @@
             } @empty {
               <tr>
                 <td colspan="7" class="empty-state">
-                  <span class="empty-state-icon"><app-icon name="doc" [size]="24" /></span>
-                  <p class="empty-title">{{ 'member.fundTransparency.ledger.empty' | translate }}</p>
-                  <p class="empty-hint">{{ 'member.fundTransparency.ledger.emptyHint' | translate }}</p>
+                  <app-empty-state icon="doc" titleKey="member.fundTransparency.ledger.empty" hintKey="member.fundTransparency.ledger.emptyHint" />
                 </td>
               </tr>
             }
@@ -569,7 +569,7 @@
             {{ 'member.fundTransparency.ledger.page' | translate: { page: page, total: totalPages } }}
           </span>
           <div class="pagination-controls">
-            <button type="button" class="btn btn-secondary btn-sm" [disabled]="page <= 1" (click)="changePage(-1)">
+            <button type="button" class="btn btn-secondary btn-sm" [disabled]="page <= 1" (click)="changePage(-1)" [attr.aria-label]="'common.previousPage' | translate">
               <app-icon name="chevron-left" [size]="14" />
             </button>
             <select [ngModel]="pageSize" (ngModelChange)="onPageSizeSelect($event)">
@@ -581,6 +581,7 @@
               type="button"
               class="btn btn-secondary btn-sm"
               [disabled]="page >= totalPages"
+              [attr.aria-label]="'common.nextPage' | translate"
               (click)="changePage(1)"
             >
               <app-icon name="chevron-right" [size]="14" />

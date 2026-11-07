@@ -184,8 +184,7 @@
           } @empty {
             <tr>
               <td colspan="4" class="empty-state">
-                <span class="empty-state-icon"><app-icon name="doc" [size]="22" /></span><br />
-                {{ 'admin.configLists.noItems' | translate }}
+                <app-empty-state icon="doc" titleKey="admin.configLists.noItems" />
               </td>
             </tr>
           }
