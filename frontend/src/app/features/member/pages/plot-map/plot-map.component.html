@@ -630,44 +630,15 @@
 
   <!-- Report modal -->
   @if (reportOpen()) {
-    <div class="modal-backdrop" (click)="reportOpen.set(false)">
-      <div class="modal-card" role="dialog" [attr.aria-label]="'member.plotMap.report.open' | translate" (click)="$event.stopPropagation()">
-        <h3 class="modal-title">{{ 'member.plotMap.report.open' | translate }}</h3>
-        @if (reportSent()) {
-          <p class="report-done">
-            <app-icon name="check-circle" [size]="16" />
-            {{ 'member.plotMap.report.thanks' | translate }}
-          </p>
-        } @else {
-          <label class="report-label" for="report-note">{{ 'member.plotMap.report.note' | translate }}</label>
-          <textarea
-            id="report-note"
-            class="report-textarea"
-            rows="4"
-            [value]="reportNote()"
-            (input)="reportNote.set($any($event.target).value)"
-          ></textarea>
-          @if (reportErrorKey(); as key) {
-            <div class="error-box" role="alert">
-              <p class="error-text">{{ key | translate }}</p>
-            </div>
-          }
-          <div class="draw-actions">
-            <button type="button" class="toolbar-btn ghost" (click)="reportOpen.set(false)">
-              <span class="btn-label">{{ 'common.cancel' | translate }}</span>
-            </button>
-            <button
-              type="button"
-              class="toolbar-btn primary"
-              [disabled]="!reportNote().trim() || reportSending()"
-              (click)="sendReport()"
-            >
-              <span class="btn-label">{{ 'member.plotMap.report.send' | translate }}</span>
-            </button>
-          </div>
-        }
-      </div>
-    </div>
+    <app-report-dialog
+      [note]="reportNote()"
+      [sending]="reportSending()"
+      [sent]="reportSent()"
+      [errorKey]="reportErrorKey()"
+      (noteChange)="reportNote.set($event)"
+      (send)="sendReport()"
+      (cancelled)="reportOpen.set(false)"
+    />
   }
 
   <!-- Official-style BDS dag information dialog -->

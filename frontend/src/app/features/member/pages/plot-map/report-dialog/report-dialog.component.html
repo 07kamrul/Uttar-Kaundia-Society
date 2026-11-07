@@ -1,0 +1,50 @@
+<div class="modal-backdrop" (click)="cancelled.emit()">
+  <div
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="report-dialog-title"
+    (click)="$event.stopPropagation()"
+  >
+    <h3 id="report-dialog-title" class="modal-title">{{ 'member.plotMap.report.open' | translate }}</h3>
+    @if (sent()) {
+      <p class="report-done" role="status">
+        <app-icon name="check-circle" [size]="16" />
+        {{ 'member.plotMap.report.thanks' | translate }}
+      </p>
+      <div class="report-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelled.emit()">
+          {{ 'common.close' | translate }}
+        </button>
+      </div>
+    } @else {
+      <label class="report-label" for="report-note">{{ 'member.plotMap.report.note' | translate }}</label>
+      <textarea
+        id="report-note"
+        class="report-textarea"
+        rows="4"
+        [value]="note()"
+        (input)="onNoteInput($event)"
+      ></textarea>
+      @if (errorKey(); as key) {
+        <div class="error-box" role="alert">
+          <p class="error-text">{{ key | translate }}</p>
+        </div>
+      }
+      <div class="report-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancelled.emit()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-testid="report-send"
+          [disabled]="!canSend()"
+          (click)="send.emit()"
+        >
+          {{ 'member.plotMap.report.send' | translate }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

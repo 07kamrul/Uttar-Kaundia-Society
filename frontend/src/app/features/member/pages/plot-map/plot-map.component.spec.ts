@@ -394,12 +394,12 @@ describe('PlotMapComponent', () => {
     fixture.detectChanges();
     component.openReport();
     fixture.detectChanges();
-    expect((el.querySelector('.modal-card .toolbar-btn.primary') as HTMLButtonElement).disabled).toBe(
+    expect((el.querySelector('[data-testid="report-send"]') as HTMLButtonElement).disabled).toBe(
       true,
     );
     component.reportNote.set('Fence is wrong');
     fixture.detectChanges();
-    const send = el.querySelector<HTMLButtonElement>('.modal-card .toolbar-btn.primary')!;
+    const send = el.querySelector<HTMLButtonElement>('[data-testid="report-send"]')!;
     expect(send.disabled).toBe(false);
     send.click();
     expect(plotMapService.report).toHaveBeenCalledWith(7, 'Fence is wrong');

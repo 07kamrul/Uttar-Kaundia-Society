@@ -60,6 +60,7 @@ import {
   type EditHistory,
 } from './edit-history';
 import { legendEntryFor } from './map-legend';
+import { ReportDialogComponent } from './report-dialog/report-dialog.component';
 import { MapLegendCardComponent, type StatusLegendItem } from './map-legend-card/map-legend-card.component';
 import { LayersSheetComponent } from './layers-sheet/layers-sheet.component';
 import { MapTourComponent, isMapTourDone } from './map-tour/map-tour.component';
@@ -109,7 +110,7 @@ type RsMatchModule = typeof import('./rs-match');
   selector: 'app-plot-map',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MapLegendCardComponent, 
+  imports: [ReportDialogComponent, MapLegendCardComponent, 
     FormsModule,
     NgTemplateOutlet,
     TranslatePipe,

@@ -816,51 +816,10 @@
   margin-top: 0.5rem;
 }
 
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  background: rgba(18, 39, 24, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
 
-.modal-card {
-  width: 100%;
-  max-width: 420px;
-  background: var(--modal-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 1rem 1.1rem;
-  max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
-}
 
-.modal-title {
-  margin: 0 0 0.6rem;
-  font-size: 1rem;
-  color: var(--gray-800);
-}
 
-.report-label {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--gray-700);
-  margin-bottom: 0.3rem;
-}
 
-.report-textarea {
-  width: 100%;
-  resize: vertical;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--gray-800);
-  font: inherit;
-  padding: 0.5rem;
-}
 
 // Leaflet controls on the society palette + dark-mode legibility.
 .map-canvas {
@@ -960,7 +919,9 @@
     padding: 0.45rem;
   }
 
-  .toolbar-btn .btn-label {
+  // Icon buttons collapse to the icon; text-only buttons (dialog/panel
+  // actions like Cancel / Send) must keep their label or they render empty.
+  .toolbar-btn:has(app-icon) .btn-label {
     position: absolute;
     width: 1px;
     height: 1px;
