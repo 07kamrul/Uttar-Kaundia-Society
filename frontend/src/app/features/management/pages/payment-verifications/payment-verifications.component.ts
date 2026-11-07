@@ -64,11 +64,13 @@ export interface VerificationRow {
 }
 
 /** Committee queue: verify member-reported installment and cost-share payments. */
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-payment-verifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, BnNumberPipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent, ReasonPickerComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, BnNumberPipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent, ReasonPickerComponent],
   templateUrl: './payment-verifications.component.html',
   styleUrl: './payment-verifications.component.scss',
 })

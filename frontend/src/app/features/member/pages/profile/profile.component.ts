@@ -56,11 +56,13 @@ const CORE_FIELDS: (keyof MemberProfileUpdatePayload)[] = [
   'currentDivision',
 ];
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-member-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [DialogDirective, 
     SectionLoaderComponent,
     TranslatePipe,
     FormsModule,

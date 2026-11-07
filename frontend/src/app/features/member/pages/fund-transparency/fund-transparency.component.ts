@@ -45,11 +45,13 @@ interface Insight {
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-fund-transparency',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EmptyStateComponent, 
+  imports: [DialogDirective, EmptyStateComponent, 
     FormsModule,
     TranslatePipe,
     IconComponent,

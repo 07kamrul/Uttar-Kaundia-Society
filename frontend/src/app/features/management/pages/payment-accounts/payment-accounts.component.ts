@@ -44,11 +44,13 @@ const ERROR_KEYS: Record<string, string> = {
 };
 
 /** Type tabs + status filter + reorder/activate rows, and a guided type-dependent form. */
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-payment-accounts',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, ConfirmModalComponent],
   templateUrl: './payment-accounts.component.html',
   styleUrl: './payment-accounts.component.scss',
 })

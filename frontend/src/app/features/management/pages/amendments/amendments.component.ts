@@ -13,11 +13,13 @@ import {
 import { ResolutionBookService, type MeetingListItem } from '../../../../core/services/resolution-book.service';
 import { localizeDigits } from '../../../../core/services/resolution-book.service';
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-amendments-admin',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent],
   template: `
     <div class="page-container">
       <header class="page-header">
@@ -248,7 +250,7 @@ import { localizeDigits } from '../../../../core/services/resolution-book.servic
       <!-- Admin create proposal modal -->
       @if (createOpen) {
         <div class="modal-backdrop" (click)="createOpen = false">
-          <div class="modal-card" (click)="$event.stopPropagation()">
+          <div appDialog (dismiss)="createOpen = false" class="modal-card" (click)="$event.stopPropagation()">
             <h3>{{ 'amendments.adminCreate' | translate }}</h3>
             <div class="field">
               <label for="amc-title">{{ 'amendments.title' | translate }}</label>

@@ -367,7 +367,7 @@
 <!-- Create / edit modal -->
 @if (showFormModal) {
   <div class="dlg-backdrop" (click)="closeFormModal()">
-    <div class="dlg fin-dlg" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closeFormModal()" class="dlg fin-dlg" (click)="$event.stopPropagation()">
       <div class="dlg-head">
         <div class="dlg-heading">
           <h3 class="dlg-title">
@@ -637,7 +637,7 @@
 <!-- Approve / reject / reverse / delete modals -->
 @if (modal && actionTarget) {
   <div class="dlg-backdrop" (click)="closeAction()">
-    <div class="dlg fin-action-dlg" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closeAction()" class="dlg fin-action-dlg" (click)="$event.stopPropagation()">
       <div class="dlg-head">
         <div class="dlg-heading">
           <h3 class="dlg-title">

@@ -329,13 +329,10 @@
 
       @if (previewImageUrl || previewLoading || previewError) {
         <div class="modal-backdrop" (click)="closePreview()">
-          <div
+          <div appDialog (dismiss)="closePreview()"
             class="modal-card modal-card-wide"
             (click)="$event.stopPropagation()"
-            role="dialog"
-            aria-modal="true"
-            [attr.aria-label]="previewImageAlt"
-          >
+            [attr.aria-label]="previewImageAlt">
             <h3 class="modal-title">{{ previewImageAlt }}</h3>
             <div class="modal-body">
               @if (previewLoading) {

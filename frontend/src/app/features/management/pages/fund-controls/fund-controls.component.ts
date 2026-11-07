@@ -24,11 +24,13 @@ import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.
 
 type Section = 'income-policy' | 'threshold' | 'signatories' | 'audit' | 'welfare';
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-fund-controls',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePickerComponent, MemberPickerComponent, SectionLoaderComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, IconComponent, DatePickerComponent, MemberPickerComponent, SectionLoaderComponent],
   templateUrl: './fund-controls.component.html',
   styles: [
     `
