@@ -1,0 +1,110 @@
+// Design tokens: light + dark theme custom properties.
+// Extracted verbatim from styles.scss; order of @use in styles.scss defines the cascade.
+
+/* Leaflet and Geoman CSS live in styles/map.scss, loaded only on the map routes (shared/map/load-map-styles.ts). */
+
+// Font is loaded via <link> tags in index.html (matches the prototype's
+// preconnect + stylesheet approach and avoids a render-blocking @import).
+
+:root {
+  /* One typeface (Hind Siliguri, loaded in index.html); headings use weight 600/700. */
+  --font-body: 'Hind Siliguri', system-ui, sans-serif;
+  --font-heading: 'Hind Siliguri', system-ui, sans-serif;
+
+  /* Prototype-derived dark-green + gold palette, kept under the existing
+     token names so every component that already references them repaints
+     automatically instead of needing a class-by-class rewrite. */
+  --emerald-50: #e5ede1;
+  --emerald-200: #c9a34c;
+  --emerald-600: #2e5138;
+  --emerald-700: #1f3d2a;
+  --emerald-800: #1f3d2a;
+  --emerald-900: #122718;
+  --gray-50: #faf8f1;
+  --gray-200: #e2dbc5;
+  --gray-300: #d8cfb2;
+  --gray-400: #9ba492;
+  --gray-500: #78826f;
+  --gray-600: #78826f;
+  --gray-700: #47564a;
+  --gray-800: #1a2a20;
+  --amber-50: #f1e4c3;
+  --amber-200: #c9a34c;
+  --gold: #a9791e;
+  --gold-strong: #8a611a;
+  --red-50: #f4e1da;
+  --red-200: #e3b7a8;
+  --red-600: #9c3a2c;
+  --red-700: #8a2f22;
+  --red-800: #6e251b;
+  --surface: #ffffff;
+  --surface-2: #f3efe3;
+  --modal-surface: #ffffff;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --shadow-sm: 0 1px 2px rgba(26, 42, 32, 0.07);
+  --shadow-md: 0 4px 12px rgba(26, 42, 32, 0.1);
+  --shadow-lg: 0 12px 32px rgba(26, 42, 32, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --emerald-50: #20301f;
+    --emerald-200: #8a6e30;
+    --emerald-600: #8fc397;
+    --emerald-700: #7fb889;
+    --emerald-800: #9fcfa6;
+    --emerald-900: #eef0e5;
+    --gray-50: #10140d;
+    --gray-200: #2c3324;
+    --gray-300: #2c3324;
+    --gray-400: #92a085;
+    --gray-500: #92a085;
+    --gray-600: #c2cab6;
+    --gray-700: #c2cab6;
+    --gray-800: #eef0e5;
+    --amber-50: #332a16;
+    --amber-200: #8a6e30;
+    --gold: #ddbb68;
+    --gold-strong: #ebcb82;
+    --red-50: #33231d;
+    --red-200: #6e4136;
+    --red-600: #e2917e;
+    --red-700: #e2917e;
+    --red-800: #f3c6ba;
+    --surface: #181d14;
+    --surface-2: #20261a;
+    --modal-surface: #181d14;
+  }
+}
+
+:root[data-theme='dark'] {
+  --emerald-50: #20301f;
+  --emerald-200: #8a6e30;
+  --emerald-600: #8fc397;
+  --emerald-700: #7fb889;
+  --emerald-800: #9fcfa6;
+  --emerald-900: #eef0e5;
+  --gray-50: #10140d;
+  --gray-200: #2c3324;
+  --gray-300: #2c3324;
+  --gray-400: #92a085;
+  --gray-500: #92a085;
+  --gray-600: #c2cab6;
+  --gray-700: #c2cab6;
+  --gray-800: #eef0e5;
+  --amber-50: #332a16;
+  --amber-200: #8a6e30;
+  --gold: #ddbb68;
+  --gold-strong: #ebcb82;
+  --red-50: #33231d;
+  --red-200: #6e4136;
+  --red-600: #e2917e;
+  --red-700: #e2917e;
+  --red-800: #f3c6ba;
+  --surface: #181d14;
+  --surface-2: #20261a;
+  --modal-surface: #181d14;
+}

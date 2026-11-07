@@ -70,9 +70,7 @@
           } @empty {
             <tr>
               <td colspan="5" class="empty-state">
-                <app-icon class="empty-icon" name="check-circle" [size]="34" />
-                <p class="empty-title">{{ 'member.costShares.emptyState' | translate }}</p>
-                <p class="empty-hint">{{ 'member.costShares.emptyHint' | translate }}</p>
+                <app-empty-state icon="check-circle" titleKey="member.costShares.emptyState" hintKey="member.costShares.emptyHint" />
               </td>
             </tr>
           }

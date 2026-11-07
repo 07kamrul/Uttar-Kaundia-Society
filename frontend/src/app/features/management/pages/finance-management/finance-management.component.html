@@ -338,9 +338,7 @@
           } @empty {
             <tr>
               <td colspan="8" class="empty-state">
-                <span class="empty-state-icon"><app-icon name="coin" [size]="24" /></span>
-                <p class="empty-title">{{ 'admin.financeManagement.ledger.empty' | translate }}</p>
-                <p class="empty-hint">{{ 'admin.financeManagement.ledger.emptyHint' | translate }}</p>
+                <app-empty-state icon="coin" titleKey="admin.financeManagement.ledger.empty" hintKey="admin.financeManagement.ledger.emptyHint" />
               </td>
             </tr>
           }
@@ -354,10 +352,10 @@
           {{ 'admin.financeManagement.ledger.page' | translate: { page: page, total: totalPages } }}
         </span>
         <div class="pagination-controls">
-          <button type="button" class="btn btn-secondary btn-sm" [disabled]="page <= 1" (click)="changePage(-1)">
+          <button type="button" class="btn btn-secondary btn-sm" [disabled]="page <= 1" (click)="changePage(-1)" [attr.aria-label]="'common.previousPage' | translate">
             <app-icon name="chevron-left" [size]="14" />
           </button>
-          <button type="button" class="btn btn-secondary btn-sm" [disabled]="page >= totalPages" (click)="changePage(1)">
+          <button type="button" class="btn btn-secondary btn-sm" [disabled]="page >= totalPages" (click)="changePage(1)" [attr.aria-label]="'common.nextPage' | translate">
             <app-icon name="chevron-right" [size]="14" />
           </button>
         </div>

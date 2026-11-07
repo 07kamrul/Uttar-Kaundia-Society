@@ -1,0 +1,1004 @@
+// Base element styles, layout shells and core primitives.
+// Extracted verbatim from styles.scss; order of @use in styles.scss defines the cascade.
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-family: var(--font-body);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+h1,
+h2,
+h3,
+.page-title,
+.reg-org-name {
+  font-weight: 700;
+  font-family: var(--font-heading);
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-200);
+  background: transparent;
+  color: var(--gray-700);
+  cursor: pointer;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--emerald-50);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 20, 13, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal-card {
+  background: var(--modal-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  max-width: 26rem;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  color: var(--gray-800);
+}
+
+.modal-title {
+  font-size: 1.15rem;
+  margin: 0 0 0.6rem;
+}
+
+.modal-message {
+  font-size: 0.88rem;
+  color: var(--gray-600);
+  margin: 0 0 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 1.2rem;
+}
+
+.btn-danger {
+  background: var(--red-600);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.08);
+}
+
+a {
+  color: inherit;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 0.75rem;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.page-with-banner {
+  // The prototype's login/register pages sit on a plain, quiet background —
+  // no photo watermark — so auth-style surfaces stay legible and consistent
+  // with the rest of the site instead of competing with a busy image behind
+  // a translucent card.
+  min-height: 100%;
+  flex: 1;
+  background: var(--gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+/* Base button rules must also cover the bare modifier classes: several
+   components (emergency-help, my-data-panel, complaints-admin,
+   membership-review, membership-governance, land-protection-form) use
+   "btn-primary"/"btn-secondary" without the .btn base class. */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.25;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--emerald-800);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--emerald-900);
+}
+
+.btn-primary:disabled {
+  /* Keep the brand green instead of a washed-out gray so a disabled submit
+     still reads as "this form's primary action, not yet available". */
+  background: var(--emerald-800);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-700);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-800);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-2);
+  border-color: var(--gray-400);
+}
+
+.btn-sm {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+/* Public site header/footer — shared chrome for the marketing (home),
+   registration and login pages, matching the prototype's sticky header
+   with brand mark + gold rule + nav actions and simple footer. */
+.site-header {
+  position: sticky;
+  top: 0;
+  /* Must sit above the plot-map page's floating controls (map topbar 900,
+     zoom/layer buttons 1000, details sheet 1100) so the 3-dot user menu —
+     which holds logout — is never covered by the map. */
+  z-index: 1200;
+  background: var(--surface);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.site-header-inner {
+  max-width: none;
+  margin: 0 auto;
+  padding: 0.9rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.site-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.6rem;
+  background: var(--emerald-800);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 10px -3px rgba(31, 61, 42, 0.55);
+}
+
+.brand-mark-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.site-header-brand-name {
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.site-header-brand-org {
+  font-size: 0.72rem;
+  color: var(--gray-600);
+  line-height: 1;
+}
+
+.site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-header-menu-toggle {
+  display: none;
+}
+
+.site-header-backdrop {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .site-header-inner {
+    padding: 0.75rem 1rem;
+    flex-wrap: nowrap;
+  }
+
+  .site-header-brand-org {
+    display: none;
+  }
+
+  .site-header-menu-toggle {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .site-header-actions {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(78vw, 18rem);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 4.5rem 1.2rem 1.5rem;
+    background: var(--surface);
+    box-shadow: -8px 0 24px -8px rgba(0, 0, 0, 0.25);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+
+  .site-header-actions.is-open {
+    transform: translateX(0);
+  }
+
+  .site-header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .site-header-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.gold-rule {
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-strong), var(--gold));
+}
+
+.site-footer {
+  border-top: 1px solid var(--gray-200);
+  padding: 1.2rem 1.4rem;
+  text-align: center;
+  color: var(--gray-600);
+  font-size: 0.78rem;
+}
+
+/* Home hero — 2-column grid (copy + a live "right now" stats card) that
+   collapses to one column on narrow screens, matching the prototype. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: var(--amber-50);
+  color: var(--gold-strong);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.hero-section {
+  padding: 3.2rem 1.4rem 2.4rem;
+  max-width: none;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2.6rem;
+  align-items: center;
+}
+
+@media (max-width: 1023.98px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hero-heading {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  line-height: 1.28;
+  margin: 0.9rem 0 1.1rem;
+  color: var(--emerald-900);
+}
+
+.hero-copy {
+  color: var(--gray-600);
+  font-size: 1.02rem;
+  line-height: 1.85;
+  max-width: 38rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 1.8rem;
+  flex-wrap: wrap;
+}
+
+.hero-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  text-decoration: none;
+}
+
+.hero-stat-card {
+  border-radius: var(--radius-lg);
+  padding: 1.7rem;
+}
+
+.hero-stat-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  margin-bottom: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hero-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  background: var(--gray-50);
+  border-radius: var(--radius-sm);
+}
+
+.hero-stat-row + .hero-stat-row {
+  margin-top: 0.8rem;
+}
+
+.hero-stat-label {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+.hero-stat-value {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.feature-section {
+  padding: 1rem 1.4rem 3.6rem;
+  max-width: none;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Long-form public pages (notices/events) - narrower than the marketing
+   sections, same gutters. */
+.public-page {
+  width: 100%;
+  padding: 2.4rem 1.4rem 3.6rem;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.3rem;
+}
+
+@media (max-width: 1023.98px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature-card {
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.feature-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 0.6rem;
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+  font-size: 1.02rem;
+}
+
+.feature-desc {
+  color: var(--gray-600);
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--gray-500);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--gray-700);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--gray-400);
+    outline-offset: 1px;
+  }
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--emerald-800);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.error-box {
+  background: var(--red-50);
+  border: 1px solid var(--red-200);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-box h3 {
+  color: var(--red-800);
+  margin: 0 0 0.5rem;
+}
+
+.error-box ul {
+  color: var(--red-700);
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.member-info-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .member-info-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.member-info-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-photo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.member-photo-frame {
+  display: flex;
+  width: 6rem;
+  height: 6rem;
+  border: 2px dashed #047857;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.625rem;
+  color: #065f46;
+  padding: 0.25rem;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.member-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-photo-clear {
+  font-size: 0.875rem;
+  color: var(--red-600);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.gender-toggle {
+  display: inline-flex;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.gender-toggle input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.gender-toggle label {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.gender-toggle input[type='radio']:checked + label {
+  background: var(--emerald-600);
+  color: #fff;
+}
+
+.gender-toggle label:first-of-type {
+  border-right: 1px solid var(--gray-300);
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.stepper-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  background: var(--surface);
+  color: var(--gray-600);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.stepper-item.active .stepper-circle {
+  border-color: var(--emerald-800);
+  background: var(--emerald-800);
+  color: #fff;
+}
+
+.stepper-item.done .stepper-circle {
+  border-color: var(--emerald-600);
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.stepper-label {
+  font-size: 0.7rem;
+  color: var(--gray-600);
+  white-space: nowrap;
+}
+
+.stepper-item.active .stepper-label {
+  color: var(--emerald-800);
+  font-weight: 700;
+}
+
+.stepper-line {
+  flex: 1;
+  height: 2px;
+  background: var(--gray-300);
+  margin: 0 0.25rem;
+  margin-bottom: 1.1rem;
+  min-width: 0.75rem;
+}
+
+.stepper-line.done {
+  background: var(--emerald-600);
+}
+
+.draft-saved-indicator {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  text-align: right;
+  margin: -0.5rem 0 0.75rem;
+}
+
+.draft-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--emerald-50, #ecfdf5);
+  border: 1px solid var(--emerald-200, #a7f3d0);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  color: var(--emerald-800);
+  margin-bottom: 1rem;
+}
+
+.draft-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reg-card {
+  width: min(95vw, 40rem);
+  margin: 1.5rem auto;
+  position: relative;
+  /* clip keeps rounded corners without creating a scroll container, so the
+     sticky step-nav bar can stick to the viewport. */
+  overflow: hidden;
+  overflow: clip;
+}
+
+.reg-card-body {
+  padding: 1rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .reg-card {
+    width: min(90vw, 56rem);
+  }
+
+  .reg-card-body {
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .reg-card {
+    width: min(85vw, 72rem);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .reg-card-body {
+    padding: 2rem 3rem;
+    --reg-pad-x: 3rem;
+    --reg-pad-y: 2rem;
+  }
+}
+
+.reg-header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.reg-header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .reg-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .reg-logo {
+    order: 2;
+  }
+
+  .reg-header-text {
+    order: 1;
+  }
+}
+
+.reg-logo {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 2px solid var(--emerald-800);
+  background: var(--surface);
+  padding: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .reg-logo {
+    width: 6rem;
+    height: 6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .reg-card {
+    width: 100%;
+    margin: 0.5rem;
+  }
+
+  .reg-card-body {
+    padding: 0.75rem;
+  }
+
+  .reg-logo {
+    width: 4rem;
+    height: 4rem;
+    padding: 0.15rem;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .card {
+    border-radius: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .stepper-line {
+    min-width: 0.5rem;
+  }
+}
+
+.flex-row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.step-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 2rem;
+}
+
+@media (min-width: 1024px) {
+  .step-content-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.bismillah-line {
+  font-size: 0.85rem;
+  color: var(--emerald-900);
+  margin: 0;
+}
+
+.reg-org-name {
+  font-size: 1.25rem;
+  color: var(--emerald-900);
+  margin: 0;
+}
+
+.reg-org-subtitle {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.reg-form-badge {
+  margin-top: 0.5rem;
+  background: var(--emerald-800);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  display: inline-block;
+}
+
+.declaration-box {
+  background: var(--amber-50);
+  border: 1px solid var(--amber-200);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  line-height: 1.6;
+}
+
+.declaration-box p {
+  margin-top: 0;
+}
+
+.signature-section {
+  margin-bottom: 2rem;
+}
+
+.signature-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.signature-box {
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 8rem;
+  cursor: crosshair;
+  display: block;
+}
+
+.signature-clear-btn {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--red-600);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.submission-date-field {
+  max-width: 16rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.step-nav-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.submit-btn {
+  font-size: 1.1rem;
+  padding: 0.75rem 2rem;
+}
+

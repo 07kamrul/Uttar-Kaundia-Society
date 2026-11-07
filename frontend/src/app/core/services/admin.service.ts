@@ -3,16 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type {
-  ApplicableDoc,
   AuditLogEntry,
   ConfigListItem,
   FeeSetting,
   Installment,
   Member,
   MemberProfile,
-  Nominee,
   SubmissionDetail,
-  SubmissionProperty,
   SubmissionStatus,
   SubmissionSummary,
 } from '../models/admin.model';
@@ -24,493 +21,47 @@ import {
   type Notice,
   type NoticeApiModel,
 } from '../models/content.model';
-import { toPropertyRequest, type MemberPropertyRequest, type PropertyRequestStatus } from './member.service';
-import { getMediaToken } from './media-token.service';
+import {
+  toPropertyRequest,
+  type MemberPropertyRequest,
+  type PropertyRequestStatus,
+} from './member.service';
 import type { MembershipApplication } from './governance.service';
 
-export type AttachmentKind = 'member_photo' | 'receipt_photo';
+import {
+  type AttachmentKind,
+  type RejectResult,
+  type NoticeInput,
+  type EventInput,
+  type MemberApiModel,
+  type FeeSettingApiModel,
+  type ConfigListItemApiModel,
+  type AuditLogApiModel,
+  toAuditLogEntry,
+  type SubmissionSummaryApiModel,
+  type SubmissionDetailApiModel,
+  toMember,
+  toFeeSetting,
+  type AdminFeeType,
+  type AdminFeeTypeVersion,
+  type FeeTypeCalculation,
+  type AdminFeeTypeApiModel,
+  toFeeType,
+  type AdminFeeTypeVersionApiModel,
+  type FeeTypeCalculationApiModel,
+  toConfigListItem,
+  toSubmissionSummary,
+  type ResetPasswordResult,
+  toSubmissionDetail,
+  type MemberProfileApiModel,
+  toMemberProfile,
+  type PicnicPaymentsPageApiModel,
+  type PicnicPaymentsPage,
+  type FeePaymentsPageApiModel,
+  type FeePaymentsPage,
+} from './admin-api';
 
-/** Outcome of a rejection: the submission is rejected either way, but the
- * applicant is only notified when `emailSent` is true. */
-export interface RejectResult {
-  emailSent: boolean;
-}
-
-/** Fields a notice is created/edited with. Dates are ISO instants (UTC). */
-export interface NoticeInput {
-  title: string;
-  body: string;
-  categoryId?: string | null;
-  isPublished?: boolean;
-  isMembersOnly?: boolean;
-  publishAt?: string | null;
-}
-
-/** Fields an event is created/edited with. Dates are ISO instants (UTC). */
-export interface EventInput {
-  title: string;
-  description?: string | null;
-  location?: string | null;
-  categoryId?: string | null;
-  startAt: string;
-  endAt?: string | null;
-  isPublished?: boolean;
-  isMembersOnly?: boolean;
-}
-
-interface MemberApiModel {
-  id: number;
-  member_id: string | null;
-  status: SubmissionStatus;
-  full_name: string;
-  mobile: string;
-  email?: string;
-  due_installments: number;
-}
-
-interface FeeSettingApiModel {
-  id: number;
-  key: string;
-  value: number;
-  unit?: string | null;
-  start_date: string;
-  end_date?: string | null;
-  status: number;
-}
-
-interface ConfigListItemApiModel {
-  id: number;
-  category: string;
-  value: string;
-  label: string;
-  sort_order: number;
-  is_active: number;
-}
-
-interface AuditLogApiModel {
-  id: number;
-  actor_admin_id: number | null;
-  action: string;
-  entity_type: string;
-  entity_id: string;
-  detail: string | null;
-  created_at: string;
-}
-
-function toAuditLogEntry(api: AuditLogApiModel): AuditLogEntry {
-  return {
-    id: String(api.id),
-    actorAdminId: api.actor_admin_id !== null ? String(api.actor_admin_id) : null,
-    action: api.action,
-    entityType: api.entity_type,
-    entityId: api.entity_id,
-    detail: api.detail,
-    createdAt: api.created_at,
-  };
-}
-
-interface SubmissionSummaryApiModel {
-  id: number;
-  member_id: string | null;
-  status: SubmissionStatus;
-  full_name: string;
-  mobile: string;
-  created_at: string;
-  needs_dag?: boolean;
-}
-
-interface ApplicableDocApiModel {
-  id: number;
-  doc_type: string;
-  file_path: string | null;
-}
-
-interface SubmissionPropertyApiModel {
-  id: number;
-  property_type: string[];
-  property_type_other: string | null;
-  khatian_no: string | null;
-  dag_no_cs: string | null;
-  dag_no_rs: string | null;
-  holding_number: string | null;
-  land_quantity: string | null;
-  my_share_quantity: string | null;
-  ownership: string | null;
-  joint_owner_count: number | null;
-  dag_unknown?: boolean;
-  applicable_docs: ApplicableDocApiModel[];
-}
-
-interface NomineeApiModel {
-  id: number;
-  name: string;
-  relation: string;
-  mobile: string;
-  address: string | null;
-}
-
-export interface SubmissionDetailApiModel {
-  id: number;
-  member_id: string | null;
-  status: SubmissionStatus;
-  full_name: string;
-  mobile: string;
-  created_at: string;
-  father_or_husband: string;
-  mother: string;
-  dob: string;
-  nationality: string;
-  occupation: string;
-  nid: string;
-  gender: string;
-  email: string;
-  permanent_house: string | null;
-  permanent_road: string | null;
-  permanent_post_office: string | null;
-  permanent_upazila: string | null;
-  permanent_district: string | null;
-  permanent_division: string | null;
-  current_house: string | null;
-  current_road: string | null;
-  current_post_office: string | null;
-  current_upazila: string | null;
-  current_district: string | null;
-  current_division: string | null;
-  urgent_contact_name: string | null;
-  urgent_contact_relation: string | null;
-  urgent_contact_mobile: string | null;
-  urgent_contact_address: string | null;
-  admission_fee: string;
-  subscription: string;
-  receipt_no: string;
-  payment_method: string;
-  payment_account_snapshot: string | null;
-  member_signature: string | null;
-  member_photo_path: string | null;
-  receipt_photo_path: string | null;
-  rejection_reason: string | null;
-  notification_status?: 'sent' | 'failed' | null;
-  needs_dag?: boolean;
-  properties: SubmissionPropertyApiModel[];
-  nominees: NomineeApiModel[];
-}
-
-function toMember(api: MemberApiModel): Member {
-  return {
-    id: String(api.id),
-    memberId: api.member_id,
-    status: api.status,
-    fullName: api.full_name,
-    mobile: api.mobile,
-    email: api.email,
-    dueInstallments: api.due_installments,
-  };
-}
-
-function toFeeSetting(api: FeeSettingApiModel): FeeSetting {
-  return {
-    id: String(api.id),
-    key: api.key,
-    value: api.value,
-    unit: api.unit ?? undefined,
-    startDate: api.start_date,
-    endDate: api.end_date ?? undefined,
-    status: api.status,
-  };
-}
-
-export type FeeTypeCalculationType = 'fixed' | 'tiered' | 'head_additional' | 'variable';
-
-export interface AdminFeeTypeCurrentVersion {
-  values: Record<string, number>;
-  unit?: string | null;
-  startDate: string;
-}
-
-export interface AdminFeeType {
-  key: string;
-  labelBn: string;
-  labelEn: string;
-  calculationType: FeeTypeCalculationType;
-  unit: string;
-  isRecurring: boolean;
-  isPayOnce: boolean;
-  feeCategory: 'installment' | 'other';
-  isActive: boolean;
-  sortOrder: number;
-  createdAt: string;
-  currentVersion: AdminFeeTypeCurrentVersion | null;
-  paymentCount: number;
-}
-
-export interface AdminFeeTypeVersion {
-  startDate: string;
-  endDate: string | null;
-  status: number;
-  values: Record<string, number>;
-}
-
-export interface FeeTypeCalculation {
-  calculationType: string;
-  total: number | null;
-  breakdown: Record<string, number | null>;
-}
-
-interface AdminFeeTypeApiModel {
-  key: string;
-  label_bn: string;
-  label_en: string;
-  calculation_type: FeeTypeCalculationType;
-  unit: string;
-  is_recurring: boolean;
-  is_pay_once: boolean;
-  fee_category: 'installment' | 'other';
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  current_version: {
-    values: Record<string, number>;
-    unit: string | null;
-    start_date: string;
-  } | null;
-  payment_count: number;
-}
-
-function toFeeType(api: AdminFeeTypeApiModel): AdminFeeType {
-  return {
-    key: api.key,
-    labelBn: api.label_bn,
-    labelEn: api.label_en,
-    calculationType: api.calculation_type,
-    unit: api.unit,
-    isRecurring: api.is_recurring,
-    isPayOnce: api.is_pay_once,
-    feeCategory: api.fee_category,
-    isActive: api.is_active,
-    sortOrder: api.sort_order,
-    createdAt: api.created_at,
-    currentVersion: api.current_version
-      ? {
-          values: api.current_version.values,
-          unit: api.current_version.unit,
-          startDate: api.current_version.start_date,
-        }
-      : null,
-    paymentCount: api.payment_count,
-  };
-}
-
-interface AdminFeeTypeVersionApiModel {
-  start_date: string;
-  end_date: string | null;
-  status: number;
-  values: Record<string, number>;
-}
-
-interface FeeTypeCalculationApiModel {
-  calculation_type: string;
-  total: number | string | null;
-  breakdown: Record<string, number | null>;
-}
-
-function toConfigListItem(api: ConfigListItemApiModel): ConfigListItem {
-  return {
-    id: String(api.id),
-    category: api.category,
-    value: api.value,
-    label: api.label,
-    sortOrder: api.sort_order,
-    isActive: api.is_active === 1,
-  };
-}
-
-function toSubmissionSummary(api: SubmissionSummaryApiModel): SubmissionSummary {
-  return {
-    id: String(api.id),
-    fullName: api.full_name,
-    mobile: api.mobile,
-    status: api.status,
-    createdAt: api.created_at,
-    needsDag: !!api.needs_dag,
-  };
-}
-
-/** `temporary_password` is only present when the email could not be sent. */
-export interface ResetPasswordResult {
-  member_id: string;
-  email_sent: boolean;
-  temporary_password?: string | null;
-}
-
-/** Origin the backend serves `/uploads/*` static files from (apiBaseUrl without the `/api` suffix). */
-const uploadsOrigin = environment.apiBaseUrl.replace(/\/api\/?$/, '');
-
-/**
- * Absolute URL for a stored relative upload path.
- *
- * Every path segment is percent-encoded individually: stored paths can contain
- * Bengali labels and spaces (`documents/member_1/খাজনা-কর রশিদ/x.pdf`), and
- * leaving encoding to the browser silently breaks on `#`, `?` and `%`.
- */
-export function toFileUrl(relativePath: string | null): string | undefined {
-  if (!relativePath) return undefined;
-  const encoded = relativePath
-    .split('/')
-    .map((segment) => encodeURIComponent(segment))
-    .join('/');
-  // /uploads is private: the backend requires the short-lived media token.
-  const token = getMediaToken();
-  const query = token ? `?t=${encodeURIComponent(token)}` : '';
-  return `${uploadsOrigin}/uploads/${encoded}${query}`;
-}
-
-function toApplicableDoc(api: ApplicableDocApiModel): ApplicableDoc {
-  return { id: String(api.id), docType: api.doc_type, fileUrl: toFileUrl(api.file_path) ?? null };
-}
-
-function toSubmissionProperty(api: SubmissionPropertyApiModel): SubmissionProperty {
-  return {
-    id: String(api.id),
-    propertyType: api.property_type,
-    propertyTypeOther: api.property_type_other,
-    khatianNo: api.khatian_no,
-    dagNoCs: api.dag_no_cs,
-    dagNoRs: api.dag_no_rs,
-    holdingNumber: api.holding_number,
-    landQuantity: api.land_quantity,
-    myShareQuantity: api.my_share_quantity,
-    ownership: api.ownership,
-    jointOwnerCount: api.joint_owner_count,
-    dagUnknown: !!api.dag_unknown,
-    applicableDocs: api.applicable_docs.map(toApplicableDoc),
-  };
-}
-
-function toNominee(api: NomineeApiModel): Nominee {
-  return {
-    id: String(api.id),
-    name: api.name,
-    relation: api.relation,
-    mobile: api.mobile,
-    address: api.address,
-  };
-}
-
-export function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDetail {
-  return {
-    id: String(api.id),
-    fullName: api.full_name,
-    mobile: api.mobile,
-    status: api.status,
-    createdAt: api.created_at,
-    fatherOrHusband: api.father_or_husband,
-    mother: api.mother,
-    dob: api.dob,
-    nationality: api.nationality,
-    occupation: api.occupation,
-    nid: api.nid,
-    gender: api.gender,
-    email: api.email,
-    permanentHouse: api.permanent_house ?? undefined,
-    permanentRoad: api.permanent_road ?? undefined,
-    permanentPostOffice: api.permanent_post_office ?? undefined,
-    permanentUpazila: api.permanent_upazila ?? undefined,
-    permanentDistrict: api.permanent_district ?? undefined,
-    permanentDivision: api.permanent_division ?? undefined,
-    currentHouse: api.current_house ?? undefined,
-    currentRoad: api.current_road ?? undefined,
-    currentPostOffice: api.current_post_office ?? undefined,
-    currentUpazila: api.current_upazila ?? undefined,
-    currentDistrict: api.current_district ?? undefined,
-    currentDivision: api.current_division ?? undefined,
-    urgentContactName: api.urgent_contact_name ?? undefined,
-    urgentContactRelation: api.urgent_contact_relation ?? undefined,
-    urgentContactMobile: api.urgent_contact_mobile ?? undefined,
-    urgentContactAddress: api.urgent_contact_address ?? undefined,
-    properties: api.properties.map(toSubmissionProperty),
-    nominees: api.nominees.map(toNominee),
-    admissionFee: api.admission_fee,
-    subscription: api.subscription,
-    receiptNo: api.receipt_no,
-    paymentMethod: api.payment_method,
-    paymentAccountSnapshot: api.payment_account_snapshot,
-    memberPhotoUrl: toFileUrl(api.member_photo_path),
-    memberSignature: api.member_signature ?? undefined,
-    receiptPhotoUrl: toFileUrl(api.receipt_photo_path),
-    rejectionReason: api.rejection_reason ?? undefined,
-    notificationStatus: api.notification_status ?? undefined,
-    needsDag: !!api.needs_dag,
-  };
-}
-
-interface MemberProfileApiModel extends SubmissionDetailApiModel {
-  updated_at: string;
-  reviewed_at: string | null;
-  reviewed_by_name: string | null;
-  fee_summary: { due_count: number; paid_count: number; due_total: number; paid_total: number };
-  installments: {
-    id: number;
-    year: number;
-    month: number;
-    amount: number;
-    status: 'paid' | 'due';
-    paid_at: string | null;
-  }[];
-  picnic_payments: {
-    id: number;
-    total: number;
-    additional_count: number;
-    payment_date: string;
-    receipt_no: string | null;
-    payment_method: string | null;
-  }[];
-  audit_trail: {
-    id: number;
-    action: string;
-    detail: string | null;
-    actor_name: string | null;
-    created_at: string;
-  }[];
-}
-
-function toMemberProfile(api: MemberProfileApiModel): MemberProfile {
-  return {
-    ...toSubmissionDetail(api),
-    memberId: api.member_id,
-    updatedAt: api.updated_at,
-    reviewedAt: api.reviewed_at ?? undefined,
-    reviewedByName: api.reviewed_by_name ?? undefined,
-    feeSummary: {
-      dueCount: api.fee_summary.due_count,
-      paidCount: api.fee_summary.paid_count,
-      dueTotal: api.fee_summary.due_total,
-      paidTotal: api.fee_summary.paid_total,
-    },
-    installments: api.installments.map((row) => ({
-      id: String(row.id),
-      year: row.year,
-      month: row.month,
-      amount: row.amount,
-      status: row.status,
-      paidAt: row.paid_at ?? undefined,
-    })),
-    picnicPayments: api.picnic_payments.map((row) => ({
-      id: row.id,
-      total: row.total,
-      additionalCount: row.additional_count,
-      paymentDate: row.payment_date,
-      receiptNo: row.receipt_no,
-      paymentMethod: row.payment_method,
-    })),
-    auditTrail: api.audit_trail.map((row) => ({
-      id: row.id,
-      action: row.action,
-      detail: row.detail,
-      actorName: row.actor_name,
-      createdAt: row.created_at,
-    })),
-  };
-}
+export * from './admin-api';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -520,12 +71,17 @@ export class AdminService {
 
   /** `?a=1&b=2` from the given pairs, skipping empty values; empty string when none. */
   private query(pairs: Array<[string, string | undefined]>): string {
-    const parts = pairs.filter(([, v]) => !!v).map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`);
+    const parts = pairs
+      .filter(([, v]) => !!v)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`);
     return parts.length ? `?${parts.join('&')}` : '';
   }
 
   listSubmissions(status?: SubmissionStatus, search?: string): Observable<SubmissionSummary[]> {
-    const url = `${this.base}/submissions${this.query([['status', status], ['search', search?.trim()]])}`;
+    const url = `${this.base}/submissions${this.query([
+      ['status', status],
+      ['search', search?.trim()],
+    ])}`;
     return this.http
       .get<SubmissionSummaryApiModel[]>(url)
       .pipe(map((rows) => rows.map(toSubmissionSummary)));
@@ -550,10 +106,7 @@ export class AdminService {
     const body = new FormData();
     body.append('file', file);
     return this.http
-      .put<SubmissionDetailApiModel>(
-        `${this.base}/submissions/${id}/documents/${docId}`,
-        body,
-      )
+      .put<SubmissionDetailApiModel>(`${this.base}/submissions/${id}/documents/${docId}`, body)
       .pipe(map(toSubmissionDetail));
   }
 
@@ -613,7 +166,10 @@ export class AdminService {
 
   /** Membership applications (membership_application.manage), optionally searched by name or mobile. */
   listApplications(status?: string, search?: string): Observable<MembershipApplication[]> {
-    const url = `${this.base}/membership-applications${this.query([['status_filter', status], ['search', search?.trim()]])}`;
+    const url = `${this.base}/membership-applications${this.query([
+      ['status_filter', status],
+      ['search', search?.trim()],
+    ])}`;
     return this.http.get<MembershipApplication[]>(url);
   }
 
@@ -661,26 +217,27 @@ export class AdminService {
     if (filters.memberId != null) params['member_id'] = String(filters.memberId);
     if (filters.dateFrom) params['date_from'] = filters.dateFrom;
     if (filters.dateTo) params['date_to'] = filters.dateTo;
-    return this.http.get<PicnicPaymentsPageApiModel>(`${this.base}/picnic-payments`, { params }).pipe(
-      map((page) => ({
-        totalCollected: page.total_collected,
-        count: page.count,
-        items: page.items.map((row) => ({
-          id: row.id,
-          memberId: row.member_id,
-          memberName: row.member_name,
-          headPrice: row.head_price,
-          additionalPrice: row.additional_price,
-          additionalCount: row.additional_count,
-          total: row.total,
-          paymentDate: row.payment_date,
-          receiptNo: row.receipt_no,
-          paymentMethod: row.payment_method,
+    return this.http
+      .get<PicnicPaymentsPageApiModel>(`${this.base}/picnic-payments`, { params })
+      .pipe(
+        map((page) => ({
+          totalCollected: page.total_collected,
+          count: page.count,
+          items: page.items.map((row) => ({
+            id: row.id,
+            memberId: row.member_id,
+            memberName: row.member_name,
+            headPrice: row.head_price,
+            additionalPrice: row.additional_price,
+            additionalCount: row.additional_count,
+            total: row.total,
+            paymentDate: row.payment_date,
+            receiptNo: row.receipt_no,
+            paymentMethod: row.payment_method,
+          })),
         })),
-      })),
-    );
+      );
   }
-
 
   /** All members' non-installment payments in one ledger - the generalized
    * (paginated) picnic payments list, picnic rows included, installments
@@ -999,83 +556,4 @@ export class AdminService {
       is_members_only: payload.isMembersOnly ?? false,
     };
   }
-}
-
-interface PicnicPaymentsPageApiModel {
-  items: {
-    id: number;
-    member_id: number;
-    member_name: string | null;
-    head_price: number;
-    additional_price: number;
-    additional_count: number;
-    total: number;
-    payment_date: string;
-    receipt_no: string | null;
-    payment_method: string | null;
-  }[];
-  total_collected: number;
-  count: number;
-}
-
-export interface AdminPicnicPayment {
-  id: number;
-  memberId: number;
-  memberName: string | null;
-  headPrice: number;
-  additionalPrice: number;
-  additionalCount: number;
-  total: number;
-  paymentDate: string;
-  receiptNo: string | null;
-  paymentMethod: string | null;
-}
-
-export interface PicnicPaymentsPage {
-  items: AdminPicnicPayment[];
-  totalCollected: number;
-  count: number;
-}
-
-interface FeePaymentsPageApiModel {
-  items: {
-    id: number;
-    member_id: number;
-    member_name: string | null;
-    fee_type: string;
-    amount: string | number;
-    payment_date: string;
-    receipt_no: string | null;
-    payment_method: string | null;
-    note: string | null;
-    additional_heads: number | null;
-    source: string;
-  }[];
-  total: number;
-  page: number;
-  page_size: number;
-  summary: { total_paid: number; by_type: Record<string, number> };
-}
-
-export interface AdminFeePayment {
-  id: number;
-  memberId: number;
-  memberName: string | null;
-  feeType: string;
-  amount: number;
-  paymentDate: string;
-  receiptNo: string | null;
-  paymentMethod: string | null;
-  note: string | null;
-  additionalHeads: number | null;
-  source: string;
-}
-
-export interface FeePaymentsPage {
-  items: AdminFeePayment[];
-  totalCollected: number;
-  count: number;
-  page: number;
-  pageSize: number;
-  byType: Record<string, number>;
 }

@@ -273,7 +273,7 @@
             </span>
           }
         </h2>
-        <button type="button" class="sheet-close" (click)="closeSheet()">
+        <button type="button" class="sheet-close" (click)="closeSheet()" [attr.aria-label]="'common.close' | translate">
           <app-icon name="close" [size]="16" />
         </button>
       </header>
@@ -389,7 +389,7 @@
           {{ (editingBoundary() ? 'member.plotMap.draw.editTitle' : 'member.plotMap.draw.title') | translate }}
         </h2>
         }
-        <button type="button" class="sheet-close" (click)="closeDrawPanel()">
+        <button type="button" class="sheet-close" (click)="closeDrawPanel()" [attr.aria-label]="'common.close' | translate">
           <app-icon name="close" [size]="16" />
         </button>
       </header>

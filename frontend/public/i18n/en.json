@@ -197,6 +197,9 @@
     "stillWorking": "Still working — this is taking longer than usual…",
     "select": "Select",
     "close": "Close",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "toggleDetails": "Show or hide details",
     "months": {
       "january": "January",
       "february": "February",

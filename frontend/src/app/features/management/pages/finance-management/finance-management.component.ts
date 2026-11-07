@@ -52,11 +52,13 @@ const PAYMENT_SOURCE_LABELS: Record<PaymentSourceType, string> = {
   cost_share: 'admin.financeManagement.source.cost_share',
 };
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-finance-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
+  imports: [EmptyStateComponent, FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './finance-management.component.html',
   styleUrl: './finance-management.component.scss',
 })

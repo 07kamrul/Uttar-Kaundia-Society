@@ -1,0 +1,420 @@
+<div class="page-container">
+  <header class="page-header">
+    <h1 class="page-title"><app-icon name="id-card" [size]="22" /> {{ 'committeeRegistry.title' | translate }}</h1>
+    <p class="page-subtitle">{{ 'committeeRegistry.subtitle' | translate }}</p>
+  </header>
+
+  @if (error()) {
+    <div class="error-box" role="alert"><p style="margin: 0">{{ error() }}</p></div>
+  }
+
+  @if (anyExpired()) {
+    <div class="ds-warn-banner" role="alert">
+      <app-icon name="alert" [size]="16" />
+      {{ 'committeeRegistry.expiredWarning' | translate }}
+    </div>
+  }
+
+  <div class="cr-view-toggle" role="group" [attr.aria-label]="'committeeRegistry.board.view' | translate">
+    <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="view.set('board')">
+      {{ 'committeeRegistry.board.viewBoard' | translate }}
+    </button>
+    <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'table'" [attr.aria-pressed]="view() === 'table'" (click)="view.set('table')">
+      {{ 'committeeRegistry.board.viewTable' | translate }}
+    </button>
+  </div>
+
+  <!-- পদভিত্তিক রেজিস্ট্রি -->
+  @if (view() === 'board' && !loading()) {
+    <app-committee-board [posts]="posts()" [lang]="lang()" />
+  }
+  <section class="card" [hidden]="view() === 'board' && !loading()">
+    @if (loading()) {
+      <app-section-loader [count]="6" />
+    } @else {
+      <div class="data-table data-table-cards">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'committeeRegistry.post' | translate }}</th>
+              <th>{{ 'committeeRegistry.holder' | translate }}</th>
+              <th>{{ 'committeeRegistry.termStart' | translate }}</th>
+              <th>{{ 'committeeRegistry.termEnd' | translate }}</th>
+              <th>{{ 'committeeRegistry.status' | translate }}</th>
+              <th>{{ 'common.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (post of posts(); track post.key) {
+              <tr>
+                <td [attr.data-label]="'committeeRegistry.post' | translate">
+                  <strong>{{ postLabel(post) }}</strong>
+                  @if (post.openVacancy) {
+                    <span class="ds-tag ds-tag-amber">{{ 'committeeRegistry.openVacancy' | translate }}</span>
+                  }
+                </td>
+                <td [attr.data-label]="'committeeRegistry.holder' | translate">
+                  {{ post.holder?.fullName || ('committeeRegistry.vacant' | translate) }}
+                </td>
+                <td [attr.data-label]="'committeeRegistry.termStart' | translate">{{ post.term ? fmtDate(post.term.termStart) : '—' }}</td>
+                <td [attr.data-label]="'committeeRegistry.termEnd' | translate">{{ post.term?.termEnd ? fmtDate(post.term!.termEnd!) : '—' }}</td>
+                <td [attr.data-label]="'committeeRegistry.status' | translate">
+                  <span class="ds-tag" [class.ds-tag-green]="post.status === 'active'" [class.ds-tag-amber]="post.status === 'expired' || post.status === 'caretaker'" [class.ds-tag-blue]="post.status === 'vacant'">
+                    {{ 'committeeRegistry.statuses.' + post.status | translate }}
+                  </span>
+                </td>
+                <td [attr.data-label]="'common.actions' | translate" class="cr-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="toggleHistory(post.key)">
+                    {{ 'committeeRegistry.history' | translate }}
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="startEditTerm(post)">
+                    {{ 'committeeRegistry.editTerm' | translate }}
+                  </button>
+                  @if (post.holder && post.status !== 'vacant' && !hasOpenVacancyFor(post.key)) {
+                    <button type="button" class="btn btn-secondary btn-sm" (click)="askResign(post)">
+                      {{ 'committeeRegistry.recordResignation' | translate }}
+                    </button>
+                  }
+                </td>
+              </tr>
+              @if (historyFor(post.key); as history) {
+                <tr class="cr-history-row">
+                  <td [attr.colspan]="6">
+                    <div class="cr-history">
+                      <h3>{{ 'committeeRegistry.historyTitle' | translate: { post: postLabel(post) } }}</h3>
+                      @if (history.items.length === 0) {
+                        <div class="ds-empty">{{ 'committeeRegistry.empty.history' | translate }}</div>
+                      }
+                      <ul>
+                        @for (item of history.items; track item.id) {
+                          <li>
+                            <strong>{{ item.holder?.fullName || '—' }}</strong>
+                            · {{ fmtDate(item.termStart) }} → {{ item.termEnd ? fmtDate(item.termEnd) : ('committeeRegistry.ongoing' | translate) }}
+                            <span class="ds-tag" [class.ds-tag-green]="item.status === 'active'" [class.ds-tag-amber]="item.status !== 'active'">
+                              {{ 'committeeRegistry.statuses.' + item.status | translate }}
+                            </span>
+                            @if (item.notes) { <span class="cr-note">{{ item.notes }}</span> }
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- মেয়াদ তৈরি/সম্পাদনা -->
+  @if (termForm(); as form) {
+    <section class="card">
+      <h2 class="cr-section-title">
+        {{ (form.editingTermId !== null ? 'committeeRegistry.editTermTitle' : 'committeeRegistry.createTermTitle') | translate }}
+      </h2>
+      <form (ngSubmit)="saveTerm()" #termNgForm="ngForm">
+        <div class="field">
+          <label for="cr-post">{{ 'committeeRegistry.post' | translate }}</label>
+          <select id="cr-post" class="field-control" name="postKey" [(ngModel)]="form.postKey" required>
+            @for (post of posts(); track post.key) {
+              <option [value]="post.key">{{ postLabel(post) }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label-row"><label>{{ 'committeeRegistry.member' | translate }}</label></span>
+          <app-member-picker
+            [options]="memberOptions()"
+            [selected]="form.memberId"
+            [multiple]="false"
+            [placeholder]="'committeeRegistry.memberPlaceholder' | translate"
+            (selectionChange)="form.memberId = $event"
+          />
+        </div>
+        <div class="cr-field-grid">
+          <div class="field">
+            <label>{{ 'committeeRegistry.termStart' | translate }}</label>
+            <app-date-picker [value]="form.termStart" (valueChange)="form.termStart = $event" />
+          </div>
+          <div class="field">
+            <label>{{ 'committeeRegistry.termEnd' | translate }}</label>
+            <app-date-picker [value]="form.termEnd" (valueChange)="form.termEnd = $event" />
+            <p class="field-hint">{{ 'committeeRegistry.termEndHint' | translate }}</p>
+          </div>
+        </div>
+        <label class="checkbox-row">
+          <input type="checkbox" name="isCaretaker" [(ngModel)]="form.isCaretaker" />
+          {{ 'committeeRegistry.caretaker' | translate }}
+        </label>
+        <div class="field">
+          <label for="cr-notes">{{ 'committeeRegistry.notes' | translate }}</label>
+          <textarea id="cr-notes" class="field-control" rows="2" maxlength="2000" name="notes" [(ngModel)]="form.notes"></textarea>
+        </div>
+        <div class="cr-form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="termNgForm.invalid || !form.memberId.length || !form.termStart || saving()">
+            {{ (form.editingTermId !== null ? 'common.save' : 'committeeRegistry.createTerm') | translate }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeTermForm()">{{ 'common.cancel' | translate }}</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- শূন্যপদ / পদত্যাগ / অপসারণ -->
+  <section class="card">
+    <div class="cr-section-head">
+      <div>
+        <h2 class="cr-section-title">{{ 'committeeRegistry.vacanciesTitle' | translate }}</h2>
+        <p class="cr-section-sub">{{ 'committeeRegistry.vacanciesSubtitle' | translate }}</p>
+      </div>
+      @if (!loading() && vacancies().length > 0) {
+        <div class="cr-case-stats">
+          <span class="cr-stat cr-stat-warn">
+            {{ digits(counts().pending) }} · {{ 'committeeRegistry.vacancyStatuses.pending_acknowledgement' | translate }}
+          </span>
+          <span class="cr-stat cr-stat-info">
+            {{ digits(counts().progress) }} · {{ 'committeeRegistry.filterProgress' | translate }}
+          </span>
+          <span class="cr-stat cr-stat-good">
+            {{ digits(counts().decided) }} · {{ 'committeeRegistry.vacancyStatuses.decided' | translate }}
+          </span>
+        </div>
+      }
+    </div>
+
+    @if (!loading() && vacancies().length > 0) {
+      <div class="cr-filter-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="cr-filter-tab"
+          [class.cr-filter-tab-active]="caseFilter() === 'all'"
+          [attr.aria-selected]="caseFilter() === 'all'"
+          (click)="caseFilter.set('all')"
+        >
+          {{ 'committeeRegistry.filterAll' | translate }}
+          <span class="cr-filter-count">{{ digits(vacancies().length) }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="cr-filter-tab"
+          [class.cr-filter-tab-active]="caseFilter() === 'pending'"
+          [attr.aria-selected]="caseFilter() === 'pending'"
+          (click)="caseFilter.set('pending')"
+        >
+          {{ 'committeeRegistry.vacancyStatuses.pending_acknowledgement' | translate }}
+          <span class="cr-filter-count">{{ digits(counts().pending) }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="cr-filter-tab"
+          [class.cr-filter-tab-active]="caseFilter() === 'progress'"
+          [attr.aria-selected]="caseFilter() === 'progress'"
+          (click)="caseFilter.set('progress')"
+        >
+          {{ 'committeeRegistry.filterProgress' | translate }}
+          <span class="cr-filter-count">{{ digits(counts().progress) }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="cr-filter-tab"
+          [class.cr-filter-tab-active]="caseFilter() === 'decided'"
+          [attr.aria-selected]="caseFilter() === 'decided'"
+          (click)="caseFilter.set('decided')"
+        >
+          {{ 'committeeRegistry.vacancyStatuses.decided' | translate }}
+          <span class="cr-filter-count">{{ digits(counts().decided) }}</span>
+        </button>
+      </div>
+    }
+
+    @if (loading()) {
+      <app-section-loader [count]="3" />
+    } @else if (filteredVacancies().length === 0 && caseFilter() === 'all') {
+      <div class="gov-empty">
+        <span class="gov-empty-icon"><app-icon name="check" [size]="22" /></span>
+        <p class="cr-empty-title">{{ 'committeeRegistry.empty.vacancies' | translate }}</p>
+        <p class="cr-empty-hint">{{ 'committeeRegistry.empty.vacanciesHint' | translate }}</p>
+      </div>
+    } @else if (filteredVacancies().length === 0) {
+      <div class="gov-empty">
+        <span class="gov-empty-icon"><app-icon name="check" [size]="22" /></span>
+        <p>{{ 'committeeRegistry.empty.filterNoMatch' | translate }}</p>
+      </div>
+    } @else {
+      <div class="cr-vacancy-list">
+        @for (vacancy of filteredVacancies(); track vacancy.id) {
+          <article
+            class="gov-item"
+            [class.gov-item-amber]="vacancy.status === 'pending_acknowledgement'"
+            [class.gov-item-red]="vacancy.status === 'investigation'"
+            [class.gov-item-blue]="vacancy.status === 'acknowledged'"
+            [class.gov-item-green]="vacancy.status === 'decided'"
+          >
+            <div class="gov-item-head">
+              <strong class="cr-vacancy-post">{{ postNameByKey(vacancy.postKey) }}</strong>
+              <span class="ds-tag" [class.ds-tag-amber]="vacancy.vacancyType === 'removal'" [class.ds-tag-blue]="vacancy.vacancyType === 'resignation'">
+                {{ 'committeeRegistry.vacancyTypes.' + vacancy.vacancyType | translate }}
+              </span>
+              <span class="ds-tag" [attr.data-tone]="vacancyStatusTone(vacancy) || null" [class.ds-tag-blue]="vacancy.status === 'acknowledged'">
+                {{ 'committeeRegistry.vacancyStatuses.' + vacancy.status | translate }}
+              </span>
+              @if (vacancy.decision === 'removed' || vacancy.decision === 'retained') {
+                <span class="ds-tag" [attr.data-tone]="vacancy.decision === 'retained' ? 'good' : 'bad'">
+                  {{ (vacancy.decision === 'retained' ? 'committeeRegistry.decideRetained' : 'committeeRegistry.decideRemoved') | translate }}
+                </span>
+              }
+            </div>
+
+            <ol class="cr-steps" aria-hidden="true">
+              @for (step of caseSteps(vacancy); track step.labelKey) {
+                <li class="cr-step" [class.cr-step-done]="step.done" [class.cr-step-current]="step.current">
+                  <span class="cr-step-dot"></span>
+                  <span class="cr-step-label">{{ step.labelKey | translate }}</span>
+                </li>
+              }
+            </ol>
+
+            <div class="gov-item-chiprow">
+              <span class="cr-chip cr-chip-member">
+                <span class="cr-chip-avatar">{{ initials(memberName(vacancy)) }}</span>
+                {{ memberName(vacancy) }}
+              </span>
+              <span class="cr-chip" [class.cr-chip-overdue]="vacancy.responseSla?.state === 'overdue'">
+                <app-icon name="alert" [size]="14" />
+                {{ 'committeeRegistry.responseDeadline' | translate }}:
+                @if (vacancy.responseDeadline) {
+                  {{ fmtDate(vacancy.responseDeadline) }}
+                } @else {
+                  —
+                }
+              </span>
+              @if (slaDays(vacancy) !== null) {
+                <span class="cr-chip" [class.cr-chip-overdue]="slaDays(vacancy)! < 0">
+                  {{ (slaDays(vacancy)! < 0 ? 'committeeRegistry.daysOverdue' : 'committeeRegistry.daysLeft') | translate: { n: digits(slaAbsDays(vacancy)) } }}
+                </span>
+              }
+              @if (vacancy.responseSla; as sla) {
+                <span class="ds-badge" [attr.data-tone]="slaTone(sla) || null" [class.ds-badge-blue]="sla.state === 'on_track'">
+                  {{ 'committeeRegistry.sla.' + sla.state | translate }}
+                </span>
+              }
+            </div>
+
+            @if (vacancy.memberResponse) {
+              <div class="cr-response-box">
+                <p class="cr-box-label">{{ 'committeeRegistry.memberResponse' | translate }}</p>
+                <p class="cr-response">{{ vacancy.memberResponse }}</p>
+              </div>
+            }
+
+            @if (vacancy.investigationNote) {
+              <div class="gov-item-note cr-note-box">
+                <p class="cr-box-label">{{ 'committeeRegistry.investigationNote' | translate }}</p>
+                <p>{{ vacancy.investigationNote }}</p>
+              </div>
+            }
+            @if (vacancy.decisionNote) {
+              <div class="gov-item-note cr-note-box">
+                <p class="cr-box-label">{{ 'committeeRegistry.decisionNote' | translate }}</p>
+                <p>{{ vacancy.decisionNote }}</p>
+              </div>
+            }
+
+            @if (decisionFor(vacancy.id) === vacancy.id) {
+              <div class="cr-inline-form">
+                <div class="field">
+                  <label for="cr-decision-note-{{ vacancy.id }}">{{ 'committeeRegistry.decisionNote' | translate }}</label>
+                  <textarea
+                    [id]="'cr-decision-note-' + vacancy.id"
+                    class="field-control"
+                    rows="2"
+                    maxlength="5000"
+                    [name]="'decisionNote-' + vacancy.id"
+                    [(ngModel)]="decisionNote"
+                  ></textarea>
+                </div>
+                <div class="cr-form-actions">
+                  <button type="button" class="btn btn-danger btn-sm" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'removed')">
+                    {{ 'committeeRegistry.decideRemoved' | translate }}
+                  </button>
+                  <button type="button" class="btn btn-primary btn-sm" [disabled]="!decisionNote.trim()" (click)="askDecide(vacancy, 'retained')">
+                    {{ 'committeeRegistry.decideRetained' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
+
+            @if (removalFor(vacancy.id) === vacancy.id) {
+              <div class="cr-inline-form">
+                <div class="field">
+                  <label for="cr-investigation-{{ vacancy.id }}">{{ 'committeeRegistry.investigationNote' | translate }}</label>
+                  <textarea
+                    [id]="'cr-investigation-' + vacancy.id"
+                    class="field-control"
+                    rows="3"
+                    maxlength="5000"
+                    [name]="'investigationNote-' + vacancy.id"
+                    [(ngModel)]="investigationNote"
+                  ></textarea>
+                </div>
+                <p class="field-hint">{{ 'committeeRegistry.removalWindowHint' | translate }}</p>
+                <div class="cr-form-actions">
+                  <button type="button" class="btn btn-danger btn-sm" [disabled]="!investigationNote.trim()" (click)="issueRemoval(vacancy)">
+                    {{ 'committeeRegistry.issueRemovalNotice' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
+
+            @if (vacancy.status === 'pending_acknowledgement' || vacancy.status === 'investigation' || vacancy.status === 'acknowledged') {
+              <div class="cr-vacancy-actions">
+                @if (vacancy.status === 'pending_acknowledgement') {
+                  <button type="button" class="btn btn-primary btn-sm" (click)="acknowledge(vacancy)">
+                    {{ 'committeeRegistry.acknowledge' | translate }}
+                  </button>
+                  <button type="button" class="btn btn-danger btn-sm" (click)="startRemoval(vacancy)">
+                    {{ 'committeeRegistry.removalNotice' | translate }}
+                  </button>
+                }
+                @if (vacancy.status === 'investigation' || vacancy.status === 'acknowledged') {
+                  <button type="button" class="btn btn-secondary btn-sm" (click)="toggleDecision(vacancy.id)">
+                    {{ 'committeeRegistry.decideTitle' | translate }}
+                  </button>
+                }
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- পদত্যাগ নিশ্চিতকরণ -->
+  <app-confirm-modal
+    [open]="resignPost() !== null"
+    [title]="'committeeRegistry.recordResignation' | translate"
+    [message]="'committeeRegistry.resignConfirm' | translate: { post: resignPost() ? postLabel(resignPost()!) : '' }"
+    [confirmLabel]="'committeeRegistry.recordResignation' | translate"
+    [loading]="saving()"
+    (confirm)="confirmResign()"
+    (cancel)="resignPost.set(null)"
+  />
+
+  <!-- চূড়ান্ত সিদ্ধান্ত -->
+  <app-confirm-modal
+    [open]="decideTarget() !== null"
+    [title]="'committeeRegistry.decideTitle' | translate"
+    [message]="decideMessage()"
+    [confirmLabel]="decideTarget()?.decision === 'removed' ? ('committeeRegistry.decideRemoved' | translate) : ('committeeRegistry.decideRetained' | translate)"
+    [danger]="decideTarget()?.decision === 'removed'"
+    [loading]="saving()"
+    (confirm)="confirmDecide()"
+    (cancel)="decideTarget.set(null)"
+  />
+</div>

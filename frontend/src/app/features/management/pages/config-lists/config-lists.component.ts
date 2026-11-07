@@ -18,11 +18,13 @@ const CATEGORIES = [
   'finance_expense_category',
 ];
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-config-lists',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, HelplineCardComponent],
+  imports: [EmptyStateComponent, FormsModule, TranslatePipe, IconComponent, SectionLoaderComponent, HelplineCardComponent],
   templateUrl: './config-lists.component.html',
   styleUrl: './config-lists.component.scss',
 })

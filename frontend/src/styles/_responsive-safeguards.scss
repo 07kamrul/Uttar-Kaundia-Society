@@ -1,0 +1,120 @@
+// Global responsive safeguards.
+// Extracted verbatim from styles.scss; order of @use in styles.scss defines the cascade.
+
+// ---------------------------------------------------------------------------
+// Responsive safeguards (global). Additive only: they stop the classes of bug
+// that show up on small screens regardless of the page (horizontal page
+// scroll, clipped dialogs, tiny tap targets, unreadable long Bengali strings).
+// ---------------------------------------------------------------------------
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Leaflet's canvas renderer is deliberately larger than the map (it pads the
+   viewport); capping it squashes the BDS / RS dag lines out of place. */
+.leaflet-container canvas {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* Long unbroken strings (emails, URLs, reference numbers) wrap instead of
+   pushing the layout wider than the viewport. */
+.page-title,
+.card-title,
+.dlg-title,
+.cell-secondary,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
+/* Dialogs: dynamic viewport units so mobile browser chrome never hides the
+   footer buttons; contain scroll so the page behind does not move. */
+.dlg {
+  max-height: min(90vh, 100%);
+  max-height: min(90dvh, 100%);
+}
+
+.dlg-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dlg-foot {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 639.98px) {
+  .dlg-backdrop {
+    height: 100dvh;
+  }
+}
+
+/* Tablets: dialogs keep a comfortable margin instead of touching the edges. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .dlg {
+    width: min(var(--dlg-width, 40rem), calc(100% - 2rem));
+  }
+}
+
+/* Touch devices: 44px minimum hit area on common controls, no tap flash. */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .ds-icon-btn,
+  .dlg-close,
+  .chip,
+  select,
+  input:not([type='checkbox']):not([type='radio']) {
+    min-height: 44px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Inputs at 16px on phones: iOS Safari zooms the page on focus below that. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/* Grid/flex children may shrink below their content size, preventing the
+   classic "one wide child blows out the card" overflow. */
+.card,
+.ds-card,
+.page-header > * {
+  min-width: 0;
+}
+
+/* Honour the iPhone notch / home indicator for full-width fixed UI. */
+.dlg-backdrop {
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+}
+
+@media (max-width: 639.98px) {
+  .dlg-backdrop {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+

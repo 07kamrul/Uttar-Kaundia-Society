@@ -123,11 +123,7 @@
           } @empty {
             <tr>
               <td colspan="4" class="empty-state">
-                <app-icon class="empty-icon" name="wallet" [size]="34" />
-                <p class="empty-title">
-                  {{ (installments.length ? 'member.installments.emptyFiltered' : 'member.installments.emptyState') | translate }}
-                </p>
-                <p class="empty-hint">{{ 'member.installments.paymentNotice' | translate }}</p>
+                <app-empty-state icon="wallet" [titleKey]="installments.length ? 'member.installments.emptyFiltered' : 'member.installments.emptyState'" hintKey="member.installments.paymentNotice" />
               </td>
             </tr>
           }

@@ -43,11 +43,13 @@ interface Insight {
   tone: 'up' | 'down' | 'info';
 }
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-fund-transparency',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [EmptyStateComponent, 
     FormsModule,
     TranslatePipe,
     IconComponent,
