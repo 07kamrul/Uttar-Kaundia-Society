@@ -12,7 +12,6 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -66,112 +65,31 @@ import { MapTourComponent, isMapTourDone } from './map-tour/map-tour.component';
 import { environment } from '../../../../../environments/environment';
 import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 
-const MOVE_DEBOUNCE_MS = 300;
-// Uttar Kaundia mouza (Savar) — the society's actual location. The earlier
-// [23.77, 90.39] pointed at Mirpur and left the mouza data in a corner.
-const SOCIETY_CENTER: L.LatLngTuple = [23.809, 90.323];
-const DISCLAIMER_KEY = 'krmf_boundary_disclaimer_dismissed';
-/** map_wizard: the member chose to load map tiles in this session. */
-export const TILES_OK_KEY = 'krmf_map_tiles_ok';
-const MOUZA_CENTER: L.LatLngTuple = [23.7985, 90.3325];
-const BDS_LABEL_MIN_ZOOM = 16;
-
-export type PlotMapMode = 'boundaries' | 'bds';
-
-/** Pane for the RS dag reference layer: below member polygons (overlayPane = 400). */
-const RS_PANE = 'rsPane';
-const RS_PANE_Z_INDEX = '390';
-/** Pane for the BDS dag layer: below RS dags and member polygons, so plot boundaries stay visible. */
-const BDS_PANE = 'bdsPane';
-const BDS_PANE_Z_INDEX = '380';
-/** Pane for member plot boundaries: always above both BDS and RS dag layers. */
-const MEMBER_PANE = 'memberPane';
-const MEMBER_PANE_Z_INDEX = '420';
-const RS_LABEL_MIN_ZOOM = 16;
-/** Smaller parcels stay unlabeled until zoomed in, so labels thin out at low zoom. */
-const RS_LABEL_MIN_PX = 22;
-const RS_LABEL_ALL_ZOOM = 18;
-const RS_STYLE: L.PathOptions = {
-  color: '#b5530a',
-  weight: 1.2,
-  dashArray: '5,4',
-  fillColor: '#e8a15a',
-  fillOpacity: 0.06,
-};
-const SNAP_CUE_COLOR = '#ff6d00';
-/** Searched-dag highlight; the pulse needs a CSS class, so it is drawn on an SVG copy. */
-const SEARCH_HIT_STYLE: L.PathOptions = {
-  color: '#e65100',
-  weight: 4,
-  fillColor: '#e65100',
-  fillOpacity: 0.5,
-  className: 'dag-search-hit',
-};
-
-/** Leaflet default marker/icons are unused; polygons only. */
-const STATUS_COLORS: Record<string, string> = {
-  pending: '#c9861e',
-  approved: '#2e7d32',
-  rejected: '#8a8a8a',
-  superseded: '#b0a37f',
-  withdrawn: '#8a8a8a',
-  disputed: '#c0392b',
-};
-const MINE_COLOR = '#1e66d0';
-
-const OWNER_ERROR_KEYS = {
-  rateLimited: 'member.plotMap.owner.rateLimited',
-  notApproved: 'member.plotMap.owner.notApproved',
-  loadError: 'member.plotMap.owner.loadError',
-} as const;
-
-/** Maps owner-fetch failures to i18n keys - server text is never shown. */
-export function ownerErrorKey(error: unknown): string {
-  if (!(error instanceof HttpErrorResponse)) return OWNER_ERROR_KEYS.loadError;
-  const code = (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
-  if (error.status === 429 || code === 'BOUNDARY_OWNER_RATE_LIMITED')
-    return OWNER_ERROR_KEYS.rateLimited;
-  if (error.status === 403 && code === 'BOUNDARY_NOT_APPROVED') return OWNER_ERROR_KEYS.notApproved;
-  return OWNER_ERROR_KEYS.loadError;
-}
-
-const SAVE_ERROR_CODES = [
-  'INVALID_GEOMETRY',
-  'SELF_INTERSECTING',
-  'OUTSIDE_SOCIETY_AREA',
-  'ZERO_AREA',
-  'TOO_MANY_VERTICES',
-  'NOT_YOUR_PROPERTY',
-  'BOUNDARY_EXISTS',
-] as const;
-
-/** Maps a failed create/update to a specific i18n key (never a generic banner). */
-export function saveErrorKey(error: unknown): string {
-  const code =
-    error instanceof HttpErrorResponse
-      ? ((error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null)
-      : null;
-  if (code && (SAVE_ERROR_CODES as readonly string[]).includes(code)) {
-    return `member.plotMap.draw.errors.${code}`;
-  }
-  return 'member.plotMap.draw.errors.generic';
-}
-
-/** Dag numbers compare as ASCII digits without the "RS-" prefix, so "4611",
- *  "RS-4611" and Bangla digits all resolve to the same plot. */
-export function normalizeDagNo(value: string): string {
-  return toAsciiDigits(value).trim().toUpperCase().replace(/^RS-?/, '');
-}
-
-export function boundaryErrorKey(error: unknown): string {
-  if (error instanceof HttpErrorResponse) {
-    const code = (error.error as { detail?: { code?: string } } | null)?.detail?.code ?? null;
-    if (error.status === 429 || code === 'BOUNDARY_OWNER_RATE_LIMITED') {
-      return OWNER_ERROR_KEYS.rateLimited;
-    }
-  }
-  return saveErrorKey(error);
-}
+import {
+  MOVE_DEBOUNCE_MS,
+  SOCIETY_CENTER,
+  DISCLAIMER_KEY,
+  TILES_OK_KEY,
+  BDS_LABEL_MIN_ZOOM,
+  type PlotMapMode,
+  RS_PANE,
+  RS_PANE_Z_INDEX,
+  BDS_PANE,
+  BDS_PANE_Z_INDEX,
+  MEMBER_PANE,
+  MEMBER_PANE_Z_INDEX,
+  RS_LABEL_MIN_ZOOM,
+  RS_LABEL_MIN_PX,
+  RS_LABEL_ALL_ZOOM,
+  RS_STYLE,
+  SNAP_CUE_COLOR,
+  SEARCH_HIT_STYLE,
+  STATUS_COLORS,
+  MINE_COLOR,
+} from './plot-map.constants';
+export { TILES_OK_KEY, type PlotMapMode } from './plot-map.constants';
+import { ownerErrorKey, saveErrorKey, normalizeDagNo } from './plot-map.errors';
+export { ownerErrorKey, saveErrorKey, normalizeDagNo, boundaryErrorKey } from './plot-map.errors';
 
 interface SelectedFeature {
   feature: PlotFeature;

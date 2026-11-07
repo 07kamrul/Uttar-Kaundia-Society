@@ -1,0 +1,595 @@
+// Shared admin-portal primitives.
+// Extracted verbatim from styles.scss; order of @use in styles.scss defines the cascade.
+
+/* ==========================================================================
+   Shared admin-portal primitives (fee settings, audit log, config lists).
+   One card/table/form language for the whole management portal, built only
+   from the theme tokens above so light/dark repaint automatically.
+   ========================================================================== */
+
+/* Padded card content — tables live in .data-table-wrap instead. */
+.card-pad {
+  padding: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .card-pad {
+    padding: 1.5rem;
+  }
+}
+
+/* Responsive form: fields wrap instead of overflowing. */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  align-items: start;
+}
+
+/* Submit row: right-aligned on desktop, full-width buttons on mobile. */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .form-actions .btn {
+    flex: 1;
+    min-height: 2.5rem;
+  }
+}
+
+/* Touch-friendly minimum for all buttons and toggles. */
+.btn {
+  min-height: 2.5rem;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Horizontal-scroll table container for narrow screens; the page itself
+   never scrolls sideways, only this wrapper does. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll .data-table {
+  min-width: 40rem;
+}
+
+/* Sticky table header inside the scroll container. */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Horizontally scrollable category tab bar with clear active state. */
+.ds-tab-bar {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+
+.ds-tab {
+  flex-shrink: 0;
+  min-height: 2.5rem;
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0.375rem 0.375rem 0 0;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ds-tab:hover {
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.ds-tab.is-active {
+  background: var(--emerald-50);
+  border-bottom-color: var(--emerald-800);
+  color: var(--emerald-800);
+}
+
+/* Active/inactive status pills. */
+.status-badge.status-active {
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+.status-badge.status-inactive {
+  background: var(--gray-200);
+  color: var(--gray-600);
+}
+
+/* Audit-log action badges, colored by verb. */
+.action-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--surface-2);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-700);
+}
+
+.action-badge.action-approve {
+  background: var(--emerald-50);
+  border-color: color-mix(in srgb, var(--emerald-600) 28%, transparent);
+  color: var(--emerald-700);
+}
+
+.action-badge.action-create {
+  background: #e7f0fb;
+  border-color: #b7d0f0;
+  color: #1e4e8c;
+}
+
+.action-badge.action-update {
+  background: var(--amber-50);
+  border-color: var(--amber-200);
+  color: var(--gold-strong);
+}
+
+.action-badge.action-reject,
+.action-badge.action-delete {
+  background: var(--red-50);
+  border-color: var(--red-200);
+  color: var(--red-700);
+}
+
+:root[data-theme='dark'] .action-badge.action-create {
+  background: #1b2a3d;
+  border-color: #33507a;
+  color: #a8c8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .action-badge.action-create {
+    background: #1b2a3d;
+    border-color: #33507a;
+    color: #a8c8f0;
+  }
+}
+
+/* Empty state with a leading icon, centered like .empty-state. */
+.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 50%;
+  background: var(--emerald-50);
+  color: var(--emerald-800);
+}
+
+/* Secondary text under a primary cell value. */
+.cell-secondary {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  font-weight: 400;
+}
+
+/* Currently-active history row tint (mirrors .is-applicant). */
+.data-table tbody tr.is-current {
+  background: color-mix(in srgb, var(--amber-50) 65%, transparent);
+}
+
+.data-table tbody tr.is-current:hover {
+  background: var(--amber-50);
+}
+
+/* Audit-log detail drawer key-value list. */
+.detail-kv {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.detail-kv > div {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed var(--gray-200);
+}
+
+.detail-kv > div:last-child {
+  border-bottom: none;
+}
+
+.detail-kv dt {
+  flex-shrink: 0;
+  min-width: 8rem;
+  color: var(--gray-600);
+  font-weight: 600;
+}
+
+.detail-kv dd {
+  margin: 0;
+  color: var(--gray-800);
+  word-break: break-word;
+}
+
+/* Pagination footer shared by admin tables. */
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--gray-200);
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.table-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-pagination-controls select {
+  width: auto;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Inline edit affordance in table cells. */
+.inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.inline-edit input {
+  max-width: 14rem;
+  min-height: var(--field-height-sm);
+}
+
+.inline-edit-value {
+  cursor: pointer;
+  border-bottom: 1px dashed var(--gray-400);
+}
+
+.inline-edit-value:hover {
+  color: var(--emerald-800);
+  border-bottom-color: var(--emerald-600);
+}
+
+/* Row action cluster (sort arrows, edit pencil). */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.row-actions .btn {
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Larger toggle switch for touch targets in tables. */
+.toggle-switch.touch {
+  width: 2.9rem;
+  height: 1.65rem;
+}
+
+.toggle-switch.touch .toggle-switch-track::before {
+  height: 1.3rem;
+  width: 1.3rem;
+}
+
+.toggle-switch.touch input:checked + .toggle-switch-track::before {
+  transform: translateX(1.25rem);
+}
+
+/* Visually hidden but screen-reader accessible labels for icon buttons. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Picnic payment - additional head count stepper */
+.count-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.count-stepper-btn {
+  width: 2.5rem;
+  border: none;
+  background: var(--gray-100, #f3f4f6);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--gray-800, #1f2937);
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.count-stepper-input {
+  width: 4rem;
+  text-align: center;
+  border: none;
+  border-radius: 0;
+  border-left: 1px solid var(--field-border);
+  border-right: 1px solid var(--field-border);
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.success-box {
+  background: var(--green-50, #ecfdf5);
+  border: 1px solid var(--green-200, #a7f3d0);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--green-800, #065f46);
+}
+
+.password-field {
+  position: relative;
+
+  input {
+    padding-right: 2.5rem;
+  }
+}
+
+/* --- member detail drawer (admin members list) --- */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(16, 20, 13, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.drawer-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 40rem;
+  height: 100%;
+  background: var(--modal-surface);
+  color: var(--gray-800);
+  box-shadow: var(--shadow-lg);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 2rem;
+}
+
+.drawer-section {
+  margin-bottom: 1.5rem;
+}
+
+.drawer-section h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  color: var(--gray-700);
+}
+
+.drawer-section h4 {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.drawer-identity {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.drawer-avatar {
+  width: 5rem;
+  height: 5rem;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.drawer-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+  flex: 1;
+}
+
+.drawer-grid dt {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+.drawer-grid dd {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.drawer-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.drawer-card {
+  padding: 0.75rem;
+  margin-bottom: 0.6rem;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.drawer-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.drawer-docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.drawer-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 6rem;
+  font-size: 0.75rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.drawer-doc img {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.drawer-doc-file {
+  justify-content: center;
+  height: 6rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  background: var(--surface-2);
+}
+
+.drawer-audit {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.drawer-audit li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--gray-200);
+}
+
+.drawer-skeleton {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.skeleton-line {
+  height: 0.9rem;
+  border-radius: 0.4rem;
+  background: var(--surface-2);
+  animation: drawer-pulse 1.2s ease-in-out infinite;
+}
+
+.skeleton-lg {
+  height: 1.4rem;
+  width: 50%;
+}
+
+@keyframes drawer-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (max-width: 640px) {
+  .drawer-panel {
+    max-width: none;
+  }
+
+  .drawer-identity {
+    flex-direction: column;
+  }
+
+  .drawer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+  }
+}
+
+/* The plot boundary map is a full-bleed page: the shell's centered max-width
+   and padding would leave dead gutters around the map, so relax both when the
+   map page is mounted (:has() is supported in all current browsers). */
+.app-body:has(app-plot-map) {
+  max-width: 100%;
+}
+
+.app-body:has(app-plot-map) .app-content {
+  padding: 0;
+}
+

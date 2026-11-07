@@ -1,0 +1,472 @@
+<div class="fc-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title"><app-icon name="shield" [size]="22" /> {{ 'fundControls.title' | translate }}</h1>
+      <p class="page-subtitle">{{ 'fundControls.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="card card-pad error-box" role="alert">{{ error() }}</div>
+  }
+
+  <!-- Audit reminder card: June window / missing FY report -->
+  @if (canAudit && reminder(); as reminder) {
+    @if (reminder.reminderWindowActive) {
+      <div class="card card-pad fc-reminder" role="status">
+        <app-icon name="alert" [size]="20" />
+        <div>
+          <strong>{{ 'fundControls.auditReminder.title' | translate: { fy: reminder.fiscalYear } }}</strong>
+          <p>{{ 'fundControls.auditReminder.body' | translate }}</p>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Section tabs -->
+  <div class="tab-row" role="tablist">
+    @for (tab of visibleTabs(); track tab) {
+      <button type="button" role="tab" class="tab" [class.active]="section() === tab" [attr.aria-selected]="section() === tab"
+              (click)="section.set(tab)">
+        {{ 'fundControls.tabs.' + tab | translate }}
+      </button>
+    }
+  </div>
+
+  <!-- Income-source policy -->
+  @if (section() === 'income-policy') {
+    <section class="card card-pad">
+      <h2 class="fc-section-title">{{ 'fundControls.incomePolicy.title' | translate }}</h2>
+      <p class="field-hint">{{ 'fundControls.incomePolicy.hint' | translate }}</p>
+      @if (settingsLoading()) {
+        <app-section-loader variant="rows" [count]="4" />
+      } @else if (settingsFailed()) {
+        <div class="error-box fc-load-error" role="alert">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary" (click)="loadSettings()">{{ 'common.retry' | translate }}</button>
+        </div>
+      } @else {
+      <ul class="fc-source-list">
+        @for (source of settings()?.incomeSources ?? []; track source.key) {
+          <li>
+            <span class="ds-tag ds-tag-blue">{{ lang === 'bn' ? source.bn : source.en }}</span>
+            @if (source.requires_justification) {
+              <span class="ds-tag ds-tag-amber">{{ 'fundControls.incomePolicy.needsJustification' | translate }}</span>
+            }
+            <code class="fc-source-key">{{ source.key }}</code>
+          </li>
+        }
+      </ul>
+      <div class="fc-policy-note">
+        <p>{{ 'fundControls.incomePolicy.foreignTitle' | translate }}</p>
+        <p class="field-hint">{{ 'fundControls.incomePolicy.foreignBody' | translate }}</p>
+      </div>
+      }
+    </section>
+  }
+
+  <!-- Two-person threshold -->
+  @if (section() === 'threshold' && canFund) {
+    <section class="card card-pad">
+      <h2 class="fc-section-title">{{ 'fundControls.threshold.title' | translate }}</h2>
+      <p class="field-hint">{{ 'fundControls.threshold.hint' | translate }}</p>
+      @if (settingsLoading()) {
+        <app-section-loader variant="form" [count]="1" />
+      } @else if (settingsFailed()) {
+        <div class="error-box fc-load-error" role="alert">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary" (click)="loadSettings()">{{ 'common.retry' | translate }}</button>
+        </div>
+      } @else if (settings(); as s) {
+        <p class="fc-threshold-value">
+          {{ taka(s.expenseTwoPersonThreshold) }}
+          @if (s.thresholdIsDefault) {
+            <span class="ds-tag">{{ 'fundControls.threshold.defaultTag' | translate }}</span>
+          }
+        </p>
+        <form (ngSubmit)="saveThreshold()" class="fc-inline-form">
+          <div class="field">
+            <label for="fc-threshold">{{ 'fundControls.threshold.newValue' | translate }}</label>
+            <input id="fc-threshold" class="field-control" type="number" min="1"
+                   [(ngModel)]="thresholdInput" name="thresholdInput" required />
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="thresholdSaving || !thresholdInput">
+            {{ 'fundControls.threshold.save' | translate }}
+          </button>
+          @if (thresholdSaved) {
+            <span class="fc-saved">{{ 'fundControls.threshold.saved' | translate }}</span>
+          }
+          @if (thresholdError) {
+            <p class="field-error">{{ thresholdError }}</p>
+          }
+        </form>
+      }
+    </section>
+  }
+
+  <!-- Bank signatories -->
+  @if (section() === 'signatories' && canSignatory) {
+    <section class="card card-pad">
+      <div class="fc-section-head">
+        <h2 class="fc-section-title">{{ 'fundControls.signatories.title' | translate }}</h2>
+        <div class="fc-section-actions">
+          <button type="button" class="btn btn-secondary" (click)="downloadBankLetter()" [disabled]="letterBusy">
+            {{ 'fundControls.signatories.bankLetter' | translate }}
+          </button>
+          <button type="button" class="btn btn-primary" (click)="openSignatoryForm()">
+            {{ 'fundControls.signatories.add' | translate }}
+          </button>
+        </div>
+      </div>
+      @if (sgLoading()) {
+        <app-section-loader variant="rows" [count]="4" />
+      } @else if (sgFailed()) {
+        <div class="error-box fc-load-error" role="alert">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary" (click)="loadSignatories()">{{ 'common.retry' | translate }}</button>
+        </div>
+      } @else if (signatories().length === 0) {
+        <div class="ds-empty">{{ 'fundControls.signatories.empty' | translate }}</div>
+      } @else {
+        <div class="data-table-wrap">
+          <table class="data-table data-table-cards">
+            <thead>
+              <tr>
+                <th>{{ 'fundControls.signatories.member' | translate }}</th>
+                <th>{{ 'fundControls.signatories.bank' | translate }}</th>
+                <th>{{ 'fundControls.signatories.account' | translate }}</th>
+                <th>{{ 'fundControls.signatories.validity' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of signatories(); track row.id) {
+                <tr>
+                  <td [attr.data-label]="'fundControls.signatories.member' | translate">
+                    {{ row.memberName || '—' }}
+                    @if (row.committeePostBn) {
+                      <span class="ds-tag ds-tag-green">{{ row.committeePostBn }}</span>
+                    }
+                  </td>
+                  <td [attr.data-label]="'fundControls.signatories.bank' | translate">
+                    {{ row.bankName }} — {{ row.branch }}
+                  </td>
+                  <td [attr.data-label]="'fundControls.signatories.account' | translate">
+                    {{ row.accountName }}<br /><code>****{{ row.accountNumberMasked }}</code>
+                  </td>
+                  <td [attr.data-label]="'fundControls.signatories.validity' | translate">
+                    {{ row.validFrom }} → {{ row.validTo || '—' }}
+                    @if (!row.isActive) {
+                      <span class="ds-tag ds-tag-amber">{{ 'fundControls.signatories.inactive' | translate }}</span>
+                    }
+                  </td>
+                  <td [attr.data-label]="'common.actions' | translate">
+                    <button type="button" class="btn btn-secondary btn-sm" (click)="openSignatoryForm(row)">
+                      {{ 'common.edit' | translate }}
+                    </button>
+                    @if (row.isActive) {
+                      <button type="button" class="btn btn-danger btn-sm" (click)="askDeactivate(row)">
+                        {{ 'common.delete' | translate }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Audit reports -->
+  @if (section() === 'audit' && canAudit) {
+    <section class="card card-pad">
+      <h2 class="fc-section-title">{{ 'auditReports.uploadTitle' | translate }}</h2>
+      <form (ngSubmit)="uploadReport()" class="fc-grid-form">
+        <div class="field">
+          <label for="fc-fy">{{ 'auditReports.fiscalYear' | translate }}</label>
+          <input id="fc-fy" class="field-control" name="fiscalYear" [(ngModel)]="fyInput"
+                 placeholder="2025-26" pattern="\d{4}-\d{2}" required />
+        </div>
+        <div class="field">
+          <label for="fc-report-date">{{ 'auditReports.reportDate' | translate }}</label>
+          <app-date-picker id="fc-report-date" name="reportDate" [(ngModel)]="reportDateInput" required></app-date-picker>
+        </div>
+        <div class="field">
+          <label for="fc-file">{{ 'auditReports.file' | translate }}</label>
+          <input id="fc-file" class="field-control" type="file" accept=".pdf,.jpg,.jpeg,.png"
+                 (change)="onReportFile($event)" />
+        </div>
+        <div class="field fc-full">
+          <label for="fc-summary">{{ 'auditReports.summary' | translate }}</label>
+          <textarea id="fc-summary" class="field-control" rows="3" name="summaryInput"
+                    [(ngModel)]="summaryInput"></textarea>
+        </div>
+        <div class="fc-full">
+          <button type="submit" class="btn btn-primary" [disabled]="reportBusy || !fyInput || !reportDateInput || !reportFile">
+            {{ 'auditReports.upload' | translate }}
+          </button>
+          @if (reportError) {
+            <p class="field-error">{{ reportError }}</p>
+          }
+        </div>
+      </form>
+    </section>
+
+    <section class="card card-pad">
+      <h2 class="fc-section-title">{{ 'auditReports.listTitle' | translate }}</h2>
+      @if (reportsLoading()) {
+        <app-section-loader variant="cards" [count]="2" />
+      } @else if (reportsFailed()) {
+        <div class="error-box fc-load-error" role="alert">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary" (click)="loadReports()">{{ 'common.retry' | translate }}</button>
+        </div>
+      } @else if (reports().length === 0) {
+        <div class="ds-empty">{{ 'auditReports.empty' | translate }}</div>
+      }
+      @for (report of reports(); track report.id) {
+        <article class="fc-report">
+          <div class="fc-report-head">
+            <strong>{{ 'auditReports.fyLabel' | translate: { fy: report.fiscalYear } }}</strong>
+            <span class="ds-tag">{{ report.reportDate }}</span>
+            @if (report.publishedNoticeId) {
+              <span class="ds-tag ds-tag-green">{{ 'auditReports.published' | translate }}</span>
+            } @else {
+              <span class="ds-tag ds-tag-amber">{{ 'auditReports.unpublished' | translate }}</span>
+            }
+          </div>
+          @if (editingSummaryId === report.id) {
+            <textarea class="field-control" rows="4" [(ngModel)]="editingSummaryText"></textarea>
+            <div class="fc-row-actions">
+              <button type="button" class="btn btn-primary btn-sm" (click)="saveSummary(report)" [disabled]="reportBusy">
+                {{ 'common.save' | translate }}
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="editingSummaryId = null">
+                {{ 'common.cancel' | translate }}
+              </button>
+            </div>
+          } @else {
+            <p class="fc-report-summary">{{ report.summaryText || ('auditReports.noSummary' | translate) }}</p>
+          }
+          <div class="fc-row-actions">
+            @if (editingSummaryId !== report.id) {
+              <button type="button" class="btn btn-secondary btn-sm" (click)="startEditSummary(report)">
+                {{ 'auditReports.editSummary' | translate }}
+              </button>
+            }
+            @if (report.hasFile) {
+              <button type="button" class="btn btn-secondary btn-sm" (click)="downloadReport(report)">
+                {{ 'auditReports.download' | translate }}
+              </button>
+            }
+            @if (!report.publishedNoticeId) {
+              <button type="button" class="btn btn-primary btn-sm" (click)="publishReport(report)" [disabled]="reportBusy">
+                {{ 'auditReports.publish' | translate }}
+              </button>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  <!-- Welfare fund queue -->
+  @if (section() === 'welfare' && canWelfareReview) {
+    <section class="card card-pad">
+      <div class="fc-section-head">
+        <h2 class="fc-section-title">{{ 'welfareFund.adminTitle' | translate }}</h2>
+        <select class="field-control" [(ngModel)]="welfareStatusFilter" (ngModelChange)="loadWelfare()" [disabled]="welfareLoading()">
+          <option value="">{{ 'welfareFund.status.all' | translate }}</option>
+          @for (status of welfareStatuses; track status) {
+            <option [value]="status">{{ 'welfareFund.status.' + status | translate }}</option>
+          }
+        </select>
+      </div>
+      <p class="field-hint">{{ 'welfareFund.noAutoApproval' | translate }}</p>
+      @if (welfareLoading()) {
+        <app-section-loader variant="rows" [count]="4" />
+      } @else if (welfareFailed()) {
+        <div class="error-box fc-load-error" role="alert">
+          <p>{{ 'common.loadFailed' | translate }}</p>
+          <button type="button" class="btn btn-secondary" (click)="loadWelfare()">{{ 'common.retry' | translate }}</button>
+        </div>
+      } @else if (welfareRequests().length === 0) {
+        <div class="ds-empty">{{ 'welfareFund.empty' | translate }}</div>
+      } @else {
+        <div class="data-table-wrap">
+          <table class="data-table data-table-cards">
+            <thead>
+              <tr>
+                <th>{{ 'welfareFund.requestNo' | translate }}</th>
+                <th>{{ 'welfareFund.member' | translate }}</th>
+                <th>{{ 'welfareFund.type' | translate }}</th>
+                <th>{{ 'welfareFund.amount' | translate }}</th>
+                <th>{{ 'welfareFund.status.label' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of welfareRequests(); track row.id) {
+                <tr>
+                  <td [attr.data-label]="'welfareFund.requestNo' | translate">{{ row.requestNo }}</td>
+                  <td [attr.data-label]="'welfareFund.member' | translate">{{ row.memberName || '—' }}</td>
+                  <td [attr.data-label]="'welfareFund.type' | translate">{{ 'welfareFund.types.' + row.requestType | translate }}</td>
+                  <td [attr.data-label]="'welfareFund.amount' | translate">{{ taka(row.amountRequested) }}</td>
+                  <td [attr.data-label]="'welfareFund.status.label' | translate">
+                    <span class="ds-tag" [class.ds-tag-blue]="row.status === 'submitted' || row.status === 'under_review'"
+                          [class.ds-tag-green]="row.status === 'approved' || row.status === 'disbursed'"
+                          [class.ds-tag-amber]="row.status === 'rejected'">
+                      {{ 'welfareFund.status.' + row.status | translate }}
+                    </span>
+                  </td>
+                  <td [attr.data-label]="'common.actions' | translate">
+                    @if (row.status === 'submitted') {
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="startReview(row)">
+                        {{ 'welfareFund.startReview' | translate }}
+                      </button>
+                    }
+                    @if (row.status === 'submitted' || row.status === 'under_review') {
+                      <button type="button" class="btn btn-primary btn-sm" (click)="openDecide(row)">
+                        {{ 'welfareFund.decide' | translate }}
+                      </button>
+                    }
+                    @if (row.status === 'approved') {
+                      <button type="button" class="btn btn-primary btn-sm" (click)="disburse(row)">
+                        {{ 'welfareFund.disburse' | translate }}
+                      </button>
+                    }
+                    <button type="button" class="btn btn-secondary btn-sm" (click)="showReason(row)">
+                      {{ 'welfareFund.reason' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Signatory add/edit modal -->
+  @if (signatoryModalOpen) {
+    <div class="modal-backdrop" (click)="closeSignatoryForm()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ editingSignatory ? ('fundControls.signatories.editTitle' | translate) : ('fundControls.signatories.addTitle' | translate) }}</h3>
+        <form (ngSubmit)="saveSignatory()">
+          @if (!editingSignatory) {
+            <div class="field">
+              <label>{{ 'fundControls.signatories.member' | translate }}</label>
+              <app-member-picker [options]="memberOptions()" [multiple]="false"
+                                 (selectionChange)="onSignatoryMemberChange($event)"></app-member-picker>
+            </div>
+          }
+          <div class="field">
+            <label for="fc-bank">{{ 'fundControls.signatories.bank' | translate }}</label>
+            <input id="fc-bank" class="field-control" name="bankName" [(ngModel)]="sgBank" required />
+          </div>
+          <div class="field">
+            <label for="fc-branch">{{ 'fundControls.signatories.branch' | translate }}</label>
+            <input id="fc-branch" class="field-control" name="branch" [(ngModel)]="sgBranch" required />
+          </div>
+          <div class="field">
+            <label for="fc-account-name">{{ 'fundControls.signatories.accountName' | translate }}</label>
+            <input id="fc-account-name" class="field-control" name="accountName" [(ngModel)]="sgAccountName" required />
+          </div>
+          <div class="field">
+            <label for="fc-last4">{{ 'fundControls.signatories.last4' | translate }}</label>
+            <input id="fc-last4" class="field-control" name="last4" [(ngModel)]="sgLast4"
+                   maxlength="4" pattern="\d{4}" required />
+            <p class="field-hint">{{ 'fundControls.signatories.last4Hint' | translate }}</p>
+          </div>
+          <div class="field">
+            <label for="fc-scope">{{ 'fundControls.signatories.scope' | translate }}</label>
+            <input id="fc-scope" class="field-control" name="scope" [(ngModel)]="sgScope" />
+          </div>
+          <div class="field">
+            <label for="fc-term">{{ 'fundControls.signatories.termId' | translate }}</label>
+            <input id="fc-term" class="field-control" type="number" name="termId" [(ngModel)]="sgTermId" />
+          </div>
+          <div class="field">
+            <label for="fc-valid-from">{{ 'fundControls.signatories.validFrom' | translate }}</label>
+            <app-date-picker id="fc-valid-from" name="validFrom" [(ngModel)]="sgValidFrom" required></app-date-picker>
+          </div>
+          <div class="field">
+            <label for="fc-valid-to">{{ 'fundControls.signatories.validTo' | translate }}</label>
+            <app-date-picker id="fc-valid-to" name="validTo" [(ngModel)]="sgValidTo"></app-date-picker>
+          </div>
+          @if (sgError) {
+            <p class="field-error">{{ sgError }}</p>
+          }
+          <div class="fc-row-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="sgBusy">
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeSignatoryForm()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Welfare decide modal -->
+  @if (decideTarget; as target) {
+    <div class="modal-backdrop" (click)="closeDecide()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ 'welfareFund.decideTitle' | translate: { no: target.requestNo } }}</h3>
+        <p class="field-hint">
+          {{ 'welfareFund.decideRequested' | translate: { amount: taka(target.amountRequested) } }}
+        </p>
+        <div class="field">
+          <label for="fc-decision">{{ 'welfareFund.decision' | translate }}</label>
+          <select id="fc-decision" class="field-control" [(ngModel)]="decisionKind">
+            <option value="approved">{{ 'welfareFund.status.approved' | translate }}</option>
+            <option value="rejected">{{ 'welfareFund.status.rejected' | translate }}</option>
+          </select>
+        </div>
+        @if (decisionKind === 'approved') {
+          <div class="field">
+            <label for="fc-approved-amount">{{ 'welfareFund.approvedAmount' | translate }}</label>
+            <input id="fc-approved-amount" class="field-control" type="number" min="1"
+                   [(ngModel)]="approvedAmount" name="approvedAmount" [max]="target.amountRequested" />
+          </div>
+        }
+        <div class="field">
+          <label for="fc-reason">{{ 'welfareFund.committeeReason' | translate }}</label>
+          <textarea id="fc-reason" class="field-control" rows="3" [(ngModel)]="decisionReason"></textarea>
+        </div>
+        @if (decisionError) {
+          <p class="field-error">{{ decisionError }}</p>
+        }
+        <div class="fc-row-actions">
+          <button type="button" class="btn btn-primary" (click)="confirmDecide()" [disabled]="decideBusy">
+            {{ 'common.save' | translate }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeDecide()">
+            {{ 'common.cancel' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Read-only committee reason dialog -->
+  @if (reasonView; as row) {
+    <div class="modal-backdrop" (click)="reasonView = null">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ row.requestNo }}</h3>
+        <p><strong>{{ 'welfareFund.reason' | translate }}:</strong></p>
+        <p>{{ row.committeeReason || ('welfareFund.noReasonYet' | translate) }}</p>
+        <p><strong>{{ 'welfareFund.requestedReason' | translate }}:</strong></p>
+        <p>{{ row.reason }}</p>
+        <button type="button" class="btn btn-secondary" (click)="reasonView = null">
+          {{ 'common.close' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+</div>
