@@ -59,7 +59,8 @@ import {
   undo as undoHistory,
   type EditHistory,
 } from './edit-history';
-import { WIZARD_LEGEND, legendEntryFor } from './map-legend';
+import { legendEntryFor } from './map-legend';
+import { MapLegendCardComponent, type StatusLegendItem } from './map-legend-card/map-legend-card.component';
 import { LayersSheetComponent } from './layers-sheet/layers-sheet.component';
 import { MapTourComponent, isMapTourDone } from './map-tour/map-tour.component';
 import { environment } from '../../../../../environments/environment';
@@ -108,7 +109,7 @@ type RsMatchModule = typeof import('./rs-match');
   selector: 'app-plot-map',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
+  imports: [MapLegendCardComponent, 
     FormsModule,
     NgTemplateOutlet,
     TranslatePipe,
@@ -194,7 +195,6 @@ export class PlotMapComponent implements AfterViewInit {
   readonly helpMenuOpen = signal(false);
   readonly noticeExpanded = signal(false);
   readonly tourOpen = signal(this.flags.isEnabled('map_wizard') && !isMapTourDone());
-  readonly wizardLegend = WIZARD_LEGEND;
   readonly wizardStep = signal<WizardStep>('find');
   readonly wizardStepNumber = computed(
     () => ({ find: 1, adjust: 2, submit: 3 })[this.wizardStep()],
@@ -215,17 +215,6 @@ export class PlotMapComponent implements AfterViewInit {
   readonly selectedProperty = computed(
     () => this.properties().find((p) => p.id === this.selectedPropertyId()) ?? null,
   );
-
-  // Floating legend card: open by default on desktop, collapsed on phones.
-  readonly legendOpen = signal(
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(min-width: 768px)').matches
-      : true,
-  );
-
-  toggleLegend(): void {
-    this.legendOpen.update((open) => !open);
-  }
 
   // Map view modes: member boundaries (default), official BDS mouza map,
   // RAJUK DAP masterplan.
@@ -303,7 +292,7 @@ export class PlotMapComponent implements AfterViewInit {
 
   private properties = signal<MemberProperty[]>([]);
 
-  readonly legendItems: Array<{ status: string; color: string }> = [
+  readonly legendItems: readonly StatusLegendItem[] = [
     { status: 'approved', color: STATUS_COLORS['approved'] },
     { status: 'mine', color: MINE_COLOR },
     { status: 'pending', color: STATUS_COLORS['pending'] },

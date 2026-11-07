@@ -301,57 +301,6 @@
   max-width: min(75%, 15rem);
 }
 
-.legend-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-  min-height: 2.4rem;
-  padding: 0.35rem 0.7rem;
-  border: none;
-  background: transparent;
-  color: var(--gray-800);
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: start;
-}
-
-.legend-caret {
-  margin-inline-start: auto;
-  transition: transform 0.2s ease;
-
-  &.open {
-    transform: rotate(180deg);
-  }
-}
-
-.legend-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.15rem 0.7rem 0.6rem;
-}
-
-.legend-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.75rem;
-  color: var(--gray-700);
-  white-space: nowrap;
-}
-
-.legend-swatch {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 15%);
-}
-
 .map-notices {
   position: absolute;
   z-index: 880;
@@ -1063,8 +1012,7 @@
   .map-mode-tab,
   .dag-search-clear,
   .sheet-close,
-  .disclaimer-dismiss,
-  .legend-toggle {
+  .disclaimer-dismiss {
     min-height: 2.75rem;
   }
 
@@ -1118,12 +1066,6 @@
 .map-mode-tab.rs-toggle.active {
   background: #b5530a;
   color: #fff;
-}
-
-.legend-swatch-rs {
-  background: transparent;
-  border: 2px dashed #b5530a;
-  box-sizing: border-box;
 }
 
 .snap-row {

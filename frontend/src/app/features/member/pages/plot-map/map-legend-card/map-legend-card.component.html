@@ -1,0 +1,39 @@
+<div role="list" [attr.aria-label]="'member.plotMap.legend' | translate">
+  <button
+    type="button"
+    class="legend-toggle"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="'member.plotMap.legend' | translate"
+  >
+    <app-icon name="layers" [size]="15" />
+    <span class="btn-label">{{ 'member.plotMap.legend' | translate }}</span>
+    <app-icon class="legend-caret" [class.open]="open()" name="chevron-down" [size]="14" />
+  </button>
+  @if (open()) {
+    <div class="legend-body">
+      @if (wizard()) {
+        @for (item of wizardLegend; track item.kind) {
+          <span class="legend-chip" role="listitem">
+            <span class="legend-swatch" aria-hidden="true" [style.background]="item.colour"></span>
+            <span aria-hidden="true">{{ item.glyph }}</span>
+            {{ item.labelKey | translate }}
+          </span>
+        }
+      } @else {
+        @for (item of statusItems(); track item.status) {
+          <span class="legend-chip" role="listitem">
+            <span class="legend-swatch" aria-hidden="true" [style.background]="item.color"></span>
+            {{ 'member.plotMap.status.' + item.status | translate }}
+          </span>
+        }
+        @if (rsOverlay()) {
+          <span class="legend-chip" role="listitem">
+            <span class="legend-swatch legend-swatch-rs" aria-hidden="true"></span>
+            {{ 'member.plotMap.views.rs' | translate }}
+          </span>
+        }
+      }
+    </div>
+  }
+</div>
