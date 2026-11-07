@@ -257,7 +257,7 @@
 <!-- Create / edit modal -->
 @if (showFormModal) {
   <div class="dlg-backdrop" (click)="closeFormModal()">
-    <div class="dlg sc-dlg" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closeFormModal()" class="dlg sc-dlg" (click)="$event.stopPropagation()">
       <div class="dlg-head">
         <div class="dlg-heading">
           <h3 class="dlg-title">
@@ -379,7 +379,7 @@
 <!-- Split modal -->
 @if (showSplitModal && splitCost) {
   <div class="dlg-backdrop" (click)="closeSplitModal()">
-    <div class="dlg sc-dlg" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closeSplitModal()" class="dlg sc-dlg" (click)="$event.stopPropagation()">
       <div class="dlg-head">
         <div class="dlg-heading">
           <h3 class="dlg-title">
@@ -508,7 +508,7 @@
 <!-- Payment modal -->
 @if (showPaymentModal && paymentShare) {
   <div class="dlg-backdrop" (click)="closePaymentModal()">
-    <div class="dlg sc-dlg" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closePaymentModal()" class="dlg sc-dlg" (click)="$event.stopPropagation()">
       <div class="dlg-head">
         <div class="dlg-heading">
           <h3 class="dlg-title">

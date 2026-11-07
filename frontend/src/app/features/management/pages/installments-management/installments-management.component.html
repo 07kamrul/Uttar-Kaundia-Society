@@ -25,13 +25,13 @@
             <div class="installments-member-id">{{ m.memberId }}</div>
           </div>
         } @empty {
-          <p class="empty-state">{{ 'admin.installments.noMembers' | translate }}</p>
+          <app-empty-state icon="users" titleKey="admin.installments.noMembers" />
         }
       </div>
 
       <div class="card installments-detail-panel">
         @if (!selectedMember) {
-          <p class="empty-state">{{ 'admin.installments.selectMember' | translate }}</p>
+          <app-empty-state icon="user" titleKey="admin.installments.selectMember" />
         } @else {
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
             <div>
@@ -70,7 +70,7 @@
                   }
                 </div>
               } @empty {
-                <p class="empty-state">{{ 'admin.installments.noInstallments' | translate }}</p>
+                <app-empty-state icon="wallet" titleKey="admin.installments.noInstallments" />
               }
             </div>
           }

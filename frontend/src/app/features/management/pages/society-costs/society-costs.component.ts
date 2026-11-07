@@ -34,11 +34,13 @@ interface ManualAmount {
   amount: number | null;
 }
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-society-costs',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, DatePipe, ConfirmModalComponent, IconComponent, DatePickerComponent, SectionLoaderComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, DatePipe, ConfirmModalComponent, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './society-costs.component.html',
   styleUrl: './society-costs.component.scss',
 })

@@ -54,11 +54,13 @@ const PAYMENT_SOURCE_LABELS: Record<PaymentSourceType, string> = {
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-finance-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EmptyStateComponent, FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
+  imports: [DialogDirective, EmptyStateComponent, FormsModule, TranslatePipe, DatePipe, IconComponent, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './finance-management.component.html',
   styleUrl: './finance-management.component.scss',
 })

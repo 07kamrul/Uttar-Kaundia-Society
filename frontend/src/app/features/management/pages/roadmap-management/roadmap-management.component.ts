@@ -52,11 +52,13 @@ export function validateRoadmapForm(form: ItemForm): string {
   return '';
 }
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-roadmap-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, DatePickerComponent, ConfirmModalComponent, SectionLoaderComponent],
+  imports: [DialogDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, DatePickerComponent, ConfirmModalComponent, SectionLoaderComponent],
   templateUrl: './roadmap-management.component.html',
   styleUrl: './roadmap-management.component.scss',
 })

@@ -102,13 +102,10 @@
   <!-- Create / edit form -->
   @if (formOpen) {
     <div class="modal-backdrop" (click)="closeForm()">
-      <div
+      <div appDialog (dismiss)="closeForm()"
         class="modal-card form-card"
         (click)="$event.stopPropagation()"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pa-form-title"
-      >
+        aria-labelledby="pa-form-title">
         <header class="form-head">
           <h2 id="pa-form-title">
             {{ (editing ? 'paymentAccounts.form.editTitle' : 'paymentAccounts.form.createTitle') | translate }}

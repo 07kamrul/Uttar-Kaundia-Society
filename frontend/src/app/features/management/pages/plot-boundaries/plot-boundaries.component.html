@@ -411,7 +411,7 @@
   <!-- Approve modal (note optional) -->
   @if (approveOpen()) {
     <div class="modal-backdrop" (click)="approveOpen.set(false)">
-      <div class="modal-card" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="approveOpen.set(false)" class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.actions.approve' | translate }}</h3>
           <button
@@ -453,7 +453,7 @@
   <!-- Reject modal (note required) -->
   @if (rejectOpen()) {
     <div class="modal-backdrop" (click)="rejectOpen.set(false)">
-      <div class="modal-card" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="rejectOpen.set(false)" class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.actions.reject' | translate }}</h3>
           <button
@@ -499,7 +499,7 @@
   <!-- Version history modal -->
   @if (versionsOpen()) {
     <div class="modal-backdrop" (click)="versionsOpen.set(false)">
-      <div class="modal-card modal-wide" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="versionsOpen.set(false)" class="modal-card modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.versions.title' | translate }}</h3>
           <button
@@ -569,7 +569,7 @@
   <!-- Delete modal (reason mandatory, soft delete) -->
   @if (deleteOpen()) {
     <div class="modal-backdrop" (click)="deleteOpen.set(false)">
-      <div class="modal-card" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="deleteOpen.set(false)" class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.actions.delete' | translate }}</h3>
           <button
@@ -612,7 +612,7 @@
   <!-- Add polygon modal (draw on the map, goes live immediately) -->
   @if (addOpen()) {
     <div class="modal-backdrop" (click)="closeShapeModal()">
-      <div class="modal-card modal-wide" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="closeShapeModal()" class="modal-card modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.actions.add' | translate }}</h3>
           <button
@@ -709,7 +709,7 @@
   <!-- Edit polygon modal (draw on the map; the JSON mirrors the drawing) -->
   @if (editOpen()) {
     <div class="modal-backdrop" (click)="closeShapeModal()">
-      <div class="modal-card modal-wide" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="closeShapeModal()" class="modal-card modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">{{ 'admin.plotBoundaries.actions.edit' | translate }}</h3>
           <button
@@ -793,7 +793,7 @@
   <!-- Dispute resolve/dismiss modal -->
   @if (disputeResolveTarget(); as dispute) {
     <div class="modal-backdrop" (click)="disputeResolveTarget.set(null)">
-      <div class="modal-card" role="dialog" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="disputeResolveTarget.set(null)" class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-head">
           <h3 class="modal-title">
             {{

@@ -1,0 +1,57 @@
+// Base look comes from the global .modal-* and .btn primitives; these rules
+// only lift the dialog above the map's floating panels and style the form.
+.modal-backdrop {
+  z-index: 1100;
+}
+
+.modal-card {
+  padding: 1rem 1.1rem;
+  max-width: 420px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-size: 1rem;
+}
+
+.report-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--gray-700);
+  margin-bottom: 0.3rem;
+}
+
+.report-textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--gray-800);
+  font: inherit;
+  padding: 0.5rem;
+}
+
+.report-done {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--emerald-600);
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 639px) {
+  .report-actions .btn {
+    flex: 1 1 8rem;
+  }
+}

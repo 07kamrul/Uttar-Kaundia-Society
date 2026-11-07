@@ -18,11 +18,13 @@ import { SectionLoaderComponent } from '../../../../shared/section-loader/sectio
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { formatPhone } from '../../../../shared/phone/phone-format';
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-property-requests',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, ReasonPickerComponent],
+  imports: [EmptyStateComponent, FormsModule, ConfirmModalComponent, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, ReasonPickerComponent],
   templateUrl: './property-requests.component.html',
   styleUrl: './property-requests.component.scss',
 })

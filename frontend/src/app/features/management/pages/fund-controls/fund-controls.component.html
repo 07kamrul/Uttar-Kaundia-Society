@@ -353,7 +353,7 @@
   <!-- Signatory add/edit modal -->
   @if (signatoryModalOpen) {
     <div class="modal-backdrop" (click)="closeSignatoryForm()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="closeSignatoryForm()" class="modal-card" (click)="$event.stopPropagation()">
         <h3>{{ editingSignatory ? ('fundControls.signatories.editTitle' | translate) : ('fundControls.signatories.addTitle' | translate) }}</h3>
         <form (ngSubmit)="saveSignatory()">
           @if (!editingSignatory) {
@@ -416,7 +416,7 @@
   <!-- Welfare decide modal -->
   @if (decideTarget; as target) {
     <div class="modal-backdrop" (click)="closeDecide()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="closeDecide()" class="modal-card" (click)="$event.stopPropagation()">
         <h3>{{ 'welfareFund.decideTitle' | translate: { no: target.requestNo } }}</h3>
         <p class="field-hint">
           {{ 'welfareFund.decideRequested' | translate: { amount: taka(target.amountRequested) } }}
@@ -457,7 +457,7 @@
   <!-- Read-only committee reason dialog -->
   @if (reasonView; as row) {
     <div class="modal-backdrop" (click)="reasonView = null">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="reasonView = null" class="modal-card" (click)="$event.stopPropagation()">
         <h3>{{ row.requestNo }}</h3>
         <p><strong>{{ 'welfareFund.reason' | translate }}:</strong></p>
         <p>{{ row.committeeReason || ('welfareFund.noReasonYet' | translate) }}</p>

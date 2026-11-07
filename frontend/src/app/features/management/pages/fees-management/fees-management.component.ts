@@ -33,11 +33,13 @@ interface FeeTypeOption {
 
 type AdminFeeTypeOption = Pick<AdminFeeType, 'key' | 'labelBn' | 'labelEn'>;
 
+import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-fees-management',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, FormsModule, TranslatePipe, DatePickerComponent, SectionLoaderComponent],
+  imports: [EmptyStateComponent, DecimalPipe, FormsModule, TranslatePipe, DatePickerComponent, SectionLoaderComponent],
   templateUrl: './fees-management.component.html',
   styleUrl: './fees-management.component.scss',
 })

@@ -694,7 +694,7 @@
   <!-- Attachment preview modal -->
   @if (previewOpen) {
     <div class="modal-backdrop" (click)="closePreview()">
-      <div class="modal-card modal-card-wide preview-modal" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="closePreview()" class="modal-card modal-card-wide preview-modal" (click)="$event.stopPropagation()">
         <h3 class="modal-title">{{ 'member.fundTransparency.preview.title' | translate }}</h3>
         @if (previewLoading) {
           <div class="loading-state"><span class="spinner"></span> {{ 'common.loading' | translate }}</div>

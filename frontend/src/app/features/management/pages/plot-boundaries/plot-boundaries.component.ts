@@ -65,11 +65,13 @@ export interface OverlapInfo {
   overlap_area_sqm: number;
 }
 
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+
 @Component({
   selector: 'app-plot-boundaries',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
+  imports: [DialogDirective, FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
   templateUrl: './plot-boundaries.component.html',
   styleUrl: './plot-boundaries.component.scss',
 })

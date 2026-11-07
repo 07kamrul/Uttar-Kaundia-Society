@@ -207,7 +207,7 @@
 <!-- Add / edit modal -->
 @if (formOpen()) {
   <div class="modal-backdrop" (click)="closeForm()">
-    <div class="modal-card modal-card-wide" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="closeForm()" class="modal-card modal-card-wide" (click)="$event.stopPropagation()">
       <h3 class="modal-title">
         {{ (editing() ? 'admin.roadmap.form.editTitle' : 'admin.roadmap.form.createTitle') | translate }}
       </h3>
@@ -306,7 +306,7 @@
 <!-- Archive modal -->
 @if (archiveOpen()) {
   <div class="modal-backdrop" (click)="archiveOpen.set(false)">
-    <div class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div appDialog (dismiss)="archiveOpen.set(false)" class="modal-card" (click)="$event.stopPropagation()">
       <h3 class="modal-title">{{ 'admin.roadmap.archive.title' | translate }}</h3>
       <p class="modal-message">{{ 'admin.roadmap.archive.message' | translate }}</p>
       <label class="rm-radio">

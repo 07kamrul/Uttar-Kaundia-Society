@@ -1,0 +1,79 @@
+// Inner legend styles; the floating card position/frost lives on the host's
+// `.legend` class in plot-map.component.scss.
+:host {
+  display: block;
+}
+
+// Keep the parent's [hidden] binding working despite display: block above.
+:host([hidden]) {
+  display: none;
+}
+
+.legend-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.7rem;
+  border: none;
+  background: transparent;
+  color: var(--gray-800);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+}
+
+.legend-caret {
+  margin-inline-start: auto;
+  transition: transform 0.2s ease;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+}
+
+.legend-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.15rem 0.7rem 0.6rem;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--gray-700);
+  white-space: nowrap;
+}
+
+.legend-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 15%);
+}
+
+.legend-swatch-rs {
+  background: transparent;
+  border: 2px dashed #b5530a;
+  box-sizing: border-box;
+}
+
+@media (pointer: coarse) {
+  .legend-toggle {
+    min-height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legend-caret {
+    transition: none;
+  }
+}

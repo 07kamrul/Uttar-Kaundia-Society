@@ -131,7 +131,7 @@
 
   @if (rejecting(); as r) {
     <div class="modal-backdrop" (click)="rejecting.set(null)">
-      <div class="modal-card" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div appDialog (dismiss)="rejecting.set(null)" class="modal-card" (click)="$event.stopPropagation()">
         <h3 class="modal-title">{{ 'admin.paymentVerifications.rejectTitle' | translate }}</h3>
         <p class="modal-message">{{ r.memberName }} · ৳ {{ formatAmount(r.amount) }} · {{ r.transactionRef }}</p>
         <div class="field">

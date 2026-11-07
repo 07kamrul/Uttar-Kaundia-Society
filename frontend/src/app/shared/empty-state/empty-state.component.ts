@@ -36,6 +36,10 @@ import { IconComponent, type IconName } from '../icon/icon.component';
       padding: 2rem 1rem;
       text-align: center;
     }
+    /* Inside a padded host like <td class="empty-state">, don't double the padding. */
+    :host-context(.empty-state) .empty-state-body {
+      padding: 0;
+    }
     .empty-state-badge {
       display: inline-flex;
       align-items: center;
