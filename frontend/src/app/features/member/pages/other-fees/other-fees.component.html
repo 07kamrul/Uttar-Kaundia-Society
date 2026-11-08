@@ -181,8 +181,8 @@
           <option [value]="key">{{ feeTypeLabel(key) }}</option>
         }
       </select>
-      <app-date-picker [value]="filterFrom" (valueChange)="filterFrom = $event" [max]="filterTo" [clearable]="true"></app-date-picker>
-      <app-date-picker [value]="filterTo" (valueChange)="filterTo = $event" [min]="filterFrom" [clearable]="true"></app-date-picker>
+      <app-date-picker [value]="filterFrom()" (valueChange)="filterFrom.set($event)" [max]="filterTo()" [clearable]="true"></app-date-picker>
+      <app-date-picker [value]="filterTo()" (valueChange)="filterTo.set($event)" [min]="filterFrom()" [clearable]="true"></app-date-picker>
       <button type="button" class="btn btn-secondary" (click)="applyFilters()">{{ 'member.otherFees.filterApply' | translate }}</button>
       <button type="button" class="btn btn-secondary" (click)="resetFilters()">{{ 'member.otherFees.filterReset' | translate }}</button>
     </div>
@@ -241,7 +241,7 @@
           } @empty {
             <tr>
               <td [attr.colspan]="verifyOn() ? 7 : 6" class="empty-state">
-                {{ (filterFeeType || filterFrom || filterTo ? 'member.otherFees.emptyStateFiltered' : 'member.otherFees.emptyState') | translate }}
+                {{ (filterFeeType || filterFrom() || filterTo() ? 'member.otherFees.emptyStateFiltered' : 'member.otherFees.emptyState') | translate }}
               </td>
             </tr>
           }

@@ -71,8 +71,9 @@ export class OtherFeesComponent implements OnInit {
   history = signal<OtherFeeHistoryPage | null>(null);
   historyPage = 1;
   filterFeeType = '';
-  filterFrom = '';
-  filterTo = '';
+  /** Signals so the date pickers re-render on selection under OnPush. */
+  readonly filterFrom = signal('');
+  readonly filterTo = signal('');
 
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly translate = inject(TranslateService);
@@ -289,8 +290,8 @@ export class OtherFeesComponent implements OnInit {
     this.otherFeesService
       .getPayments({
         feeType: this.filterFeeType || undefined,
-        dateFrom: this.filterFrom || undefined,
-        dateTo: this.filterTo || undefined,
+        dateFrom: this.filterFrom() || undefined,
+        dateTo: this.filterTo() || undefined,
         page: this.historyPage,
         pageSize: PAGE_SIZE,
       })
@@ -315,8 +316,8 @@ export class OtherFeesComponent implements OnInit {
 
   resetFilters(): void {
     this.filterFeeType = '';
-    this.filterFrom = '';
-    this.filterTo = '';
+    this.filterFrom.set('');
+    this.filterTo.set('');
     this.applyFilters();
   }
 

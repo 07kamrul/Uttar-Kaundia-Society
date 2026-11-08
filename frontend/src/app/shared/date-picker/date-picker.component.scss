@@ -2,6 +2,7 @@
   position: relative;
   display: inline-flex;
   width: 100%;
+  height: 100%;
 }
 
 /* Colors, border, radius, height and hover/focus/disabled states come from
@@ -13,6 +14,10 @@
   gap: 0.5rem;
   text-align: left;
   cursor: pointer;
+}
+
+.date-picker-value {
+  white-space: nowrap;
 }
 
 .date-picker-value--placeholder {
