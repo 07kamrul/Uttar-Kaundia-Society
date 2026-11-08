@@ -17,12 +17,21 @@
         <a routerLink="/events" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
           'nav.events' | translate
         }}</a>
-        <a routerLink="/register" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
-          'nav.register' | translate
-        }}</a>
-        <a routerLink="/login" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
-          'nav.login' | translate
-        }}</a>
+        @if (isAuthenticated) {
+          <a routerLink="/dashboard" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
+            'nav.dashboard' | translate
+          }}</a>
+          <button type="button" class="btn btn-ghost btn-sm" (click)="logout()">
+            {{ 'nav.logout' | translate }}
+          </button>
+        } @else {
+          <a routerLink="/register" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
+            'nav.register' | translate
+          }}</a>
+          <a routerLink="/login" class="btn btn-ghost btn-sm" (click)="closeMobileMenu()">{{
+            'nav.login' | translate
+          }}</a>
+        }
         <button
           type="button"
           class="btn btn-ghost btn-sm"
