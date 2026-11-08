@@ -185,8 +185,9 @@ export class RegistrationPageComponent implements OnInit {
   ngOnInit(): void {
     if (this.simplified) {
       this.draftService.useFileStore(createIndexedDbFileStore());
-      this.loadConfig();
     }
+    // Both UI variants render the payment method picker, which needs the config.
+    this.loadConfig();
     const draft = this.draftService.peekDraft();
     if (draft) {
       this.draftService.restore(this.form, this.fb, draft);
