@@ -72,6 +72,13 @@ button:focus-visible,
     padding-right: 1rem;
   }
 
+  /* Inside the authenticated shell .app-content owns the gutters —
+     keep its override padding-free here too. */
+  .app-content .public-page {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .public-page {
     padding-top: 1.5rem;
     padding-bottom: 2.5rem;
