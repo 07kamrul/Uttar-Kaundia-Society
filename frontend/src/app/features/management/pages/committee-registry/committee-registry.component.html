@@ -114,7 +114,8 @@
 
   <!-- মেয়াদ তৈরি/সম্পাদনা (admin) -->
   @if (canManage() && termForm(); as form) {
-    <section class="card cr-card" #termFormEl>
+    <div class="modal-backdrop" (click)="onTermBackdropClick($event)">
+    <section class="card cr-card cr-term-modal" appDialog (dismiss)="closeTermForm()">
       <header class="cr-card-head">
         <span class="cr-card-icon"><app-icon name="id-card" [size]="18" /></span>
         <div>
@@ -177,6 +178,7 @@
         </div>
       </form>
     </section>
+    </div>
   }
 
   <!-- শূন্যপদ / পদত্যাগ / অপসারণ (admin) -->

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { MemberPickerComponent, type MemberPickerOption } from '../../../../shared/member-picker/member-picker.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
 import { AdminService } from '../../../../core/services/admin.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { LanguageService } from '../../../../core/services/language.service';
@@ -35,7 +36,7 @@ interface TermFormState {
   selector: 'app-committee-registry',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, SectionLoaderComponent, CommitteeBoardComponent],
+  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, DialogDirective, SectionLoaderComponent, CommitteeBoardComponent],
   templateUrl: './committee-registry.component.html',
   styles: [
     `
@@ -49,6 +50,14 @@ interface TermFormState {
       /* Padded card shell for the term form and vacancies sections (the
          global .card is an unpadded border, both sections need body inset). */
       .cr-card { padding: clamp(0.85rem, 2.5vw, 1.35rem); }
+
+      /* Term-form popup: wide modal card that scrolls internally when the
+         two-column form no longer fits the viewport height. */
+      .cr-term-modal {
+        max-width: 60rem;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
       .cr-card-head {
         display: flex; align-items: flex-start; gap: 0.65rem;
         padding-bottom: 0.9rem; margin-bottom: 1rem;
@@ -259,13 +268,9 @@ export class CommitteeRegistryComponent implements OnInit {
   readonly members = signal<MemberPickerOption[]>([]);
 
   readonly termForm = signal<TermFormState | null>(null);
-  private readonly termFormEl = viewChild<ElementRef<HTMLElement>>('termFormEl');
-  /** Bring the term form into view whenever it opens. */
-  readonly scrollTermFormIntoView = effect(() => {
-    if (this.termForm()) {
-      const el = this.termFormEl()?.nativeElement;
-      if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    }
+  /** Lock page scrolling while the term-form popup is open. */
+  readonly lockPageScrollForTermForm = effect(() => {
+    document.body.style.overflow = this.termForm() ? 'hidden' : '';
   });
   readonly histories = signal<Record<string, PostHistory | undefined>>({});
   readonly removalVacancyId = signal<number | null>(null);
@@ -482,6 +487,12 @@ export class CommitteeRegistryComponent implements OnInit {
 
   closeTermForm(): void {
     this.termForm.set(null);
+  }
+
+  /** Close the term popup on a true backdrop click; taps inside the card
+   * bubble here too, so require the backdrop itself as the target. */
+  onTermBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeTermForm();
   }
 
   saveTerm(): void {
