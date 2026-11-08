@@ -6,6 +6,7 @@ import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.
 import { MemberPickerComponent, type MemberPickerOption } from '../../../../shared/member-picker/member-picker.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { AdminService } from '../../../../core/services/admin.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { CommitteeBoardComponent } from './committee-board/committee-board.component';
@@ -196,10 +197,14 @@ interface TermFormState {
 export class CommitteeRegistryComponent implements OnInit {
   private readonly registry = inject(CommitteeRegistryService);
   private readonly adminService = inject(AdminService);
+  private readonly auth = inject(AuthService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
 
   readonly lang = this.language.lang;
+  /** True only for accounts holding committee_registry.manage; the board is
+   * readable by every authenticated account, admin actions are not. */
+  readonly canManage = computed(() => this.auth.hasPermission('committee_registry.manage'));
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal('');
@@ -248,19 +253,21 @@ export class CommitteeRegistryComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
-    this.adminService.listMembers().subscribe({
-      next: (members) =>
-        this.members.set(
-          members
-            .filter((member) => member.status === 'approved')
-            .map((member) => ({
-              id: Number(member.id),
-              fullName: member.fullName,
-              memberId: member.memberId,
-            })),
-        ),
-      error: () => this.members.set([]),
-    });
+    if (this.canManage()) {
+      this.adminService.listMembers().subscribe({
+        next: (members) =>
+          this.members.set(
+            members
+              .filter((member) => member.status === 'approved')
+              .map((member) => ({
+                id: Number(member.id),
+                fullName: member.fullName,
+                memberId: member.memberId,
+              })),
+          ),
+        error: () => this.members.set([]),
+      });
+    }
   }
 
   load(): void {
@@ -275,7 +282,9 @@ export class CommitteeRegistryComponent implements OnInit {
         this.loading.set(false);
       },
     });
-    this.loadVacancies();
+    if (this.canManage()) {
+      this.loadVacancies();
+    }
   }
 
   loadVacancies(): void {
@@ -401,6 +410,20 @@ export class CommitteeRegistryComponent implements OnInit {
       termEnd: post.term?.termEnd ?? '',
       isCaretaker: post.term?.isCaretaker ?? false,
       notes: post.term?.notes ?? '',
+    });
+  }
+
+  /** Board "fill vacant seat" entry point: a fresh term form, post preselected
+   * and term start defaulting to today. */
+  assignToPost(postKey: string): void {
+    this.termForm.set({
+      editingTermId: null,
+      postKey,
+      memberId: [],
+      termStart: new Date().toISOString().slice(0, 10),
+      termEnd: '',
+      isCaretaker: false,
+      notes: '',
     });
   }
 

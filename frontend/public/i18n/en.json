@@ -3733,7 +3733,17 @@
       "title": "Executive Committee",
       "standingCouncil": "Standing Council",
       "memberId": "Member ID",
-      "tagline": "Together for a stronger community"
+      "tagline": "Together for a stronger community",
+      "statPosts": "Posts",
+      "statFilled": "Filled",
+      "statVacant": "Vacant",
+      "statAttention": "Needs attention",
+      "filter": "Filter",
+      "filterFilled": "Filled",
+      "filterVacant": "Vacant",
+      "searchPlaceholder": "Search name or post…",
+      "noMatch": "No posts match this filter.",
+      "assignMember": "Add member"
     }
   },
   "elections": {

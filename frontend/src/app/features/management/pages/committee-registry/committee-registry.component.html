@@ -15,19 +15,22 @@
     </div>
   }
 
-  <div class="cr-view-toggle" role="group" [attr.aria-label]="'committeeRegistry.board.view' | translate">
-    <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="view.set('board')">
-      {{ 'committeeRegistry.board.viewBoard' | translate }}
-    </button>
-    <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'table'" [attr.aria-pressed]="view() === 'table'" (click)="view.set('table')">
-      {{ 'committeeRegistry.board.viewTable' | translate }}
-    </button>
-  </div>
+  @if (canManage()) {
+    <div class="cr-view-toggle" role="group" [attr.aria-label]="'committeeRegistry.board.view' | translate">
+      <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'board'" [attr.aria-pressed]="view() === 'board'" (click)="view.set('board')">
+        {{ 'committeeRegistry.board.viewBoard' | translate }}
+      </button>
+      <button type="button" class="cr-filter-tab" [class.cr-filter-tab-active]="view() === 'table'" [attr.aria-pressed]="view() === 'table'" (click)="view.set('table')">
+        {{ 'committeeRegistry.board.viewTable' | translate }}
+      </button>
+    </div>
+  }
 
   <!-- পদভিত্তিক রেজিস্ট্রি -->
-  @if (view() === 'board' && !loading()) {
-    <app-committee-board [posts]="posts()" [lang]="lang()" />
+  @if ((view() === 'board' || !canManage()) && !loading()) {
+    <app-committee-board [posts]="posts()" [lang]="lang()" [canManage]="canManage()" (assign)="assignToPost($event)" />
   }
+  @if (canManage()) {
   <section class="card" [hidden]="view() === 'board' && !loading()">
     @if (loading()) {
       <app-section-loader [count]="6" />
@@ -107,9 +110,10 @@
       </div>
     }
   </section>
+  }
 
-  <!-- মেয়াদ তৈরি/সম্পাদনা -->
-  @if (termForm(); as form) {
+  <!-- মেয়াদ তৈরি/সম্পাদনা (admin) -->
+  @if (canManage() && termForm(); as form) {
     <section class="card">
       <h2 class="cr-section-title">
         {{ (form.editingTermId !== null ? 'committeeRegistry.editTermTitle' : 'committeeRegistry.createTermTitle') | translate }}
@@ -162,7 +166,8 @@
     </section>
   }
 
-  <!-- শূন্যপদ / পদত্যাগ / অপসারণ -->
+  <!-- শূন্যপদ / পদত্যাগ / অপসারণ (admin) -->
+  @if (canManage()) {
   <section class="card">
     <div class="cr-section-head">
       <div>
@@ -394,6 +399,7 @@
       </div>
     }
   </section>
+  }
 
   <!-- পদত্যাগ নিশ্চিতকরণ -->
   <app-confirm-modal

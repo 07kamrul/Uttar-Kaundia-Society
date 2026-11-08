@@ -99,6 +99,8 @@ export const ORGANISATION_TILES: NavItem[] = [
   },
   { labelKey: 'nav.accounts', route: '/fund-transparency', icon: 'chart', openAccess: true },
   { labelKey: 'nav.ourPlan', route: '/roadmap', icon: 'map', openAccess: true },
+  // Committee registry board: every authenticated account can read it.
+  { labelKey: 'nav.committeeRegistry', route: '/committee-registry', icon: 'id-card', openAccess: true },
   {
     labelKey: 'nav.elections',
     route: '/elections',

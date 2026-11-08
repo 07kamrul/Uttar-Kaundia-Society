@@ -126,6 +126,14 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: 'map',
         openAccess: true,
       },
+      // Committee registry board (Module 2): every authenticated account can
+      // read the council composition; admin actions live inside the page.
+      {
+        labelKey: 'nav.committeeRegistry',
+        route: '/committee-registry',
+        icon: 'id-card',
+        openAccess: true,
+      },
       // Published notices/events - the same public pages logged-out visitors read.
       {
         labelKey: 'nav.membership',
@@ -218,13 +226,9 @@ export const NAV_SECTIONS: NavSection[] = [
           'membership_appeal.manage',
         ],
       },
-      // Modules 2 & 3 (governance expansion): committee registry + elections.
-      {
-        labelKey: 'nav.committeeRegistry',
-        route: '/committee-registry',
-        icon: 'id-card',
-        requiredPermission: ['committee_registry.manage'],
-      },
+      // Modules 2 & 3 (governance expansion): committee registry admin +
+      // elections. The member-visible registry board entry lives in the
+      // community section above.
       {
         labelKey: 'nav.electionsAdmin',
         route: '/elections-admin',

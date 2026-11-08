@@ -3733,7 +3733,17 @@
       "title": "কার্যনির্বাহী পরিষদ",
       "standingCouncil": "স্থায়ী পরিষদ",
       "memberId": "সদস্য নং",
-      "tagline": "একসাথে, একটি শক্তিশালী সমাজের জন্য"
+      "tagline": "একসাথে, একটি শক্তিশালী সমাজের জন্য",
+      "statPosts": "মোট পদ",
+      "statFilled": "দায়িত্বে",
+      "statVacant": "শূন্যপদ",
+      "statAttention": "সতর্কতা প্রয়োজন",
+      "filter": "ফিল্টার",
+      "filterFilled": "দায়িত্বে",
+      "filterVacant": "শূন্যপদ",
+      "searchPlaceholder": "নাম বা পদ খুঁজুন…",
+      "noMatch": "এই ফিল্টারে কোনো পদ নেই।",
+      "assignMember": "সদস্য যোগ করুন"
     }
   },
   "elections": {

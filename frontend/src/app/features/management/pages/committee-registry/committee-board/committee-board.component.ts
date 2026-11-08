@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
-import type { RegistryPost, SeatHolder } from '../../../../../core/services/committee-registry.service';
+import { IconComponent } from '../../../../../shared/icon/icon.component';
+import type { RegistryPost, SeatHolder, TermStatus } from '../../../../../core/services/committee-registry.service';
 import { localizeDigits } from '../../../../../core/services/resolution-book.service';
 import {
   DEFAULT_TONE,
@@ -18,6 +20,9 @@ export interface BoardCard {
   postLabel: string;
   tone: PillTone;
   holder: SeatHolder | null;
+  status: TermStatus;
+  routineWorkOnly: boolean;
+  warning: string | null;
 }
 
 export interface BoardRow {
@@ -25,12 +30,14 @@ export interface BoardRow {
   cards: BoardCard[];
 }
 
+export type BoardFilter = 'all' | 'filled' | 'vacant';
+
 /** কমিটি বোর্ড — the registry rendered as a tiered org-chart poster. */
 @Component({
   selector: 'app-committee-board',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, NgTemplateOutlet],
+  imports: [TranslatePipe, NgTemplateOutlet, FormsModule, IconComponent],
   template: `
     <section class="cb-board" [attr.aria-label]="'committeeRegistry.board.title' | translate">
       <header class="cb-head">
@@ -39,37 +46,108 @@ export interface BoardRow {
         @if (termYears(); as years) {
           <p class="cb-years">({{ years }})</p>
         }
+        <div class="cb-stats" role="list">
+          <span class="cb-stat" role="listitem">
+            {{ digits(stats().total) }} · {{ 'committeeRegistry.board.statPosts' | translate }}
+          </span>
+          <span class="cb-stat cb-stat-good" role="listitem">
+            {{ digits(stats().filled) }} · {{ 'committeeRegistry.board.statFilled' | translate }}
+          </span>
+          <span class="cb-stat cb-stat-warn" role="listitem">
+            {{ digits(stats().vacant) }} · {{ 'committeeRegistry.board.statVacant' | translate }}
+          </span>
+          @if (stats().attention > 0) {
+            <span class="cb-stat cb-stat-attention" role="listitem">
+              {{ digits(stats().attention) }} · {{ 'committeeRegistry.board.statAttention' | translate }}
+            </span>
+          }
+        </div>
       </header>
 
-      @for (row of executiveRows(); track row.id) {
-        <div class="cb-row" [attr.data-tier]="row.id">
-          @for (card of row.cards; track card.trackId) {
-            <ng-container [ngTemplateOutlet]="cardTpl" [ngTemplateOutletContext]="{ $implicit: card }" />
-          }
+      <div class="cb-toolbar">
+        <div class="cb-filters" role="group" [attr.aria-label]="'committeeRegistry.board.filter' | translate">
+          <button
+            type="button"
+            class="cb-chip"
+            [class.cb-chip-active]="filter() === 'all'"
+            [attr.aria-pressed]="filter() === 'all'"
+            (click)="filter.set('all')"
+          >
+            {{ 'committeeRegistry.filterAll' | translate }}
+          </button>
+          <button
+            type="button"
+            class="cb-chip"
+            [class.cb-chip-active]="filter() === 'filled'"
+            [attr.aria-pressed]="filter() === 'filled'"
+            (click)="filter.set('filled')"
+          >
+            {{ 'committeeRegistry.board.filterFilled' | translate }}
+          </button>
+          <button
+            type="button"
+            class="cb-chip"
+            [class.cb-chip-active]="filter() === 'vacant'"
+            [attr.aria-pressed]="filter() === 'vacant'"
+            (click)="filter.set('vacant')"
+          >
+            {{ 'committeeRegistry.board.filterVacant' | translate }}
+          </button>
         </div>
-      }
+        <label class="cb-search">
+          <app-icon name="search" [size]="16" />
+          <input
+            type="search"
+            [placeholder]="'committeeRegistry.board.searchPlaceholder' | translate"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            [attr.aria-label]="'committeeRegistry.board.searchPlaceholder' | translate"
+          />
+        </label>
+      </div>
 
-      @if (standingRow().cards.length) {
-        <h3 class="cb-subhead">{{ 'committeeRegistry.board.standingCouncil' | translate }}</h3>
-        <div class="cb-row" data-tier="standing">
-          @for (card of standingRow().cards; track card.trackId) {
-            <ng-container [ngTemplateOutlet]="cardTpl" [ngTemplateOutletContext]="{ $implicit: card }" />
-          }
+      @if (matches().length === 0) {
+        <div class="cb-empty">
+          <app-icon name="search" [size]="22" />
+          <p>{{ 'committeeRegistry.board.noMatch' | translate }}</p>
         </div>
+      } @else {
+        @for (row of visibleExecutiveRows(); track row.id) {
+          <div class="cb-row" [attr.data-tier]="row.id">
+            @for (card of row.cards; track card.trackId) {
+              <ng-container [ngTemplateOutlet]="cardTpl" [ngTemplateOutletContext]="{ $implicit: card }" />
+            }
+          </div>
+        }
+
+        @if (visibleStanding().cards.length) {
+          <h3 class="cb-subhead">{{ 'committeeRegistry.board.standingCouncil' | translate }}</h3>
+          <div class="cb-row" data-tier="standing">
+            @for (card of visibleStanding().cards; track card.trackId) {
+              <ng-container [ngTemplateOutlet]="cardTpl" [ngTemplateOutletContext]="{ $implicit: card }" />
+            }
+          </div>
+        }
       }
 
       <footer class="cb-foot">{{ 'committeeRegistry.board.tagline' | translate }}</footer>
     </section>
 
     <ng-template #cardTpl let-card>
-      <article class="cb-card" [class.cb-vacant]="!card.holder">
+      <article
+        class="cb-card"
+        [class.cb-vacant]="!card.holder"
+        [attr.aria-label]="card.holder ? card.holder.fullName : card.postLabel"
+      >
         <div class="cb-photo">
           @if (card.holder && card.holder.photoUrl && !brokenPhotos().has(card.holder.id)) {
             <img [src]="card.holder.photoUrl" [alt]="card.holder.fullName" loading="lazy" (error)="markBroken(card.holder.id)" />
           } @else if (card.holder) {
             <span class="cb-initials" aria-hidden="true">{{ initials(card.holder.fullName) }}</span>
           } @else {
-            <span class="cb-initials cb-initials-empty" aria-hidden="true">?</span>
+            <span class="cb-seat-icon" aria-hidden="true">
+              <app-icon name="user" [size]="26" />
+            </span>
           }
         </div>
         <span class="cb-pill" [attr.data-tone]="card.tone">{{ card.postLabel }}</span>
@@ -79,12 +157,21 @@ export interface BoardRow {
             @if (card.holder.memberId) {
               {{ 'committeeRegistry.board.memberId' | translate }}: {{ digits(card.holder.memberId) }}
             }
-            @if (card.holder.status === 'caretaker' || card.holder.status === 'expired') {
-              <span class="cb-flag">{{ 'committeeRegistry.statuses.' + card.holder.status | translate }}</span>
+            @if (card.status === 'caretaker' || card.status === 'expired') {
+              <span class="cb-flag">{{ 'committeeRegistry.statuses.' + card.status | translate }}</span>
             }
           </p>
+          @if (card.warning) {
+            <p class="cb-warning">{{ 'committeeRegistry.expiredWarning' | translate }}</p>
+          }
         } @else {
           <p class="cb-name cb-name-vacant">{{ 'committeeRegistry.statuses.vacant' | translate }}</p>
+          @if (canManage()) {
+            <button type="button" class="cb-assign" (click)="assign.emit(card.postKey)">
+              <app-icon name="plus" [size]="14" />
+              {{ 'committeeRegistry.board.assignMember' | translate }}
+            </button>
+          }
         }
       </article>
     </ng-template>
@@ -120,7 +207,7 @@ export interface BoardRow {
     }
     .cb-head {
       text-align: center;
-      padding: 22px 16px 26px;
+      padding: 20px 16px 22px;
       background: linear-gradient(135deg, var(--cb-navy) 0%, var(--cb-blue) 100%);
       border-bottom: 4px solid var(--cb-gold);
       color: #fff;
@@ -136,18 +223,92 @@ export interface BoardRow {
       clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
     }
     .cb-years {
-      display: block; width: fit-content; margin: 0 auto; padding: 3px 18px; border-radius: 999px;
+      display: block; width: fit-content; margin: 0 auto 10px; padding: 3px 18px; border-radius: 999px;
       background: var(--cb-navy); border: 2px solid var(--cb-gold); font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
-    .cb-row {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 18px 22px; padding: 18px 16px 4px;
+    /* Stat strip: total / filled / vacant / needs-attention. */
+    .cb-stats { display: flex; justify-content: center; gap: 0.45rem; flex-wrap: wrap; }
+    .cb-stat {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.28rem 0.7rem; border-radius: 999px;
+      background: rgb(255 255 255 / 0.14); border: 1px solid rgb(255 255 255 / 0.25);
+      font-size: 0.76rem; font-weight: 700; white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
+    .cb-stat-good { background: rgb(22 163 90 / 0.28); border-color: rgb(22 163 90 / 0.55); }
+    .cb-stat-warn { background: rgb(242 194 48 / 0.22); border-color: rgb(242 194 48 / 0.5); }
+    .cb-stat-attention { background: rgb(239 68 68 / 0.25); border-color: rgb(239 68 68 / 0.55); }
+
+    /* Filter chips + search row. */
+    .cb-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.6rem; flex-wrap: wrap;
+      padding: 0.7rem 1rem; border-bottom: 1px solid color-mix(in srgb, var(--cb-muted) 22%, transparent);
+    }
+    .cb-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .cb-chip {
+      display: inline-flex; align-items: center;
+      padding: 0.42rem 0.9rem; border: 1px solid color-mix(in srgb, var(--cb-muted) 35%, transparent);
+      border-radius: 999px; background: var(--cb-card-bg); color: var(--cb-text);
+      font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+      min-height: 36px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .cb-chip:hover { border-color: var(--cb-blue); }
+    .cb-chip-active { background: var(--cb-navy); border-color: var(--cb-navy); color: #fff; }
+    .cb-search {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.7rem; border-radius: 999px; min-height: 36px;
+      border: 1px solid color-mix(in srgb, var(--cb-muted) 35%, transparent);
+      background: var(--cb-card-bg); color: var(--cb-muted);
+    }
+    .cb-search input {
+      border: none; background: transparent; color: var(--cb-text);
+      font: inherit; font-size: 0.82rem; min-width: 0; width: 160px; outline: none;
+    }
+    .cb-search:focus-within { border-color: var(--cb-blue); }
+    @media (max-width: 480px) {
+      .cb-toolbar { flex-direction: column; align-items: stretch; }
+      .cb-search input { width: 100%; }
+    }
+
+    .cb-empty {
+      display: grid; place-items: center; gap: 0.4rem;
+      padding: 2.5rem 1rem; color: var(--cb-muted); font-weight: 600;
+    }
+    .cb-empty p { margin: 0; }
+
+    /* Tiers: leadership rows centred flex; later tiers a responsive grid. */
+    .cb-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 18px 16px; padding: 18px 16px 4px;
+      justify-items: center;
+    }
+    .cb-row[data-tier='president'],
+    .cb-row[data-tier='vice'],
+    .cb-row[data-tier='general'],
+    .cb-row[data-tier='joint'],
+    .cb-row[data-tier='standing'] {
+      grid-template-columns: none;
+      display: flex; flex-wrap: wrap; justify-content: center;
+    }
+    .cb-row[data-tier='president'] .cb-card,
+    .cb-row[data-tier='vice'] .cb-card,
+    .cb-row[data-tier='general'] .cb-card,
+    .cb-row[data-tier='joint'] .cb-card,
+    .cb-row[data-tier='standing'] .cb-card { width: 190px; }
     .cb-subhead { margin: 22px 16px 0; text-align: center; font-size: 1rem; color: var(--cb-text); }
-    .cb-card { width: 168px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .cb-card {
+      width: 100%; max-width: 210px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 10px 8px 12px; border-radius: 12px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cb-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     .cb-photo {
-      width: 118px; height: 118px; border-radius: 10px; overflow: hidden;
+      width: 104px; height: 104px; border-radius: 10px; overflow: hidden;
       background: var(--cb-card-bg);
       border: 3px solid var(--cb-card-bg);
       box-shadow: 0 0 0 2px #2b8fd6, var(--shadow-sm);
@@ -155,7 +316,7 @@ export interface BoardRow {
     }
     .cb-photo img { width: 100%; height: 100%; object-fit: cover; }
     .cb-initials { font-size: 2rem; font-weight: 700; color: var(--cb-blue); }
-    .cb-initials-empty { color: var(--cb-muted); }
+    .cb-seat-icon { display: grid; place-items: center; color: var(--cb-muted); opacity: 0.6; }
     .cb-vacant .cb-photo { box-shadow: none; border: 2px dashed var(--cb-muted); }
     .cb-pill {
       position: relative; margin-top: -12px; max-width: 100%;
@@ -179,6 +340,18 @@ export interface BoardRow {
       display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 6px;
       background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 600;
     }
+    .cb-warning { margin: 4px 0 0; font-size: 0.72rem; color: #92400e; font-weight: 600; }
+    /* Admin-only action on vacant seats. */
+    .cb-assign {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      margin-top: 0.5rem; padding: 0.42rem 0.85rem;
+      border: none; border-radius: 999px; min-height: 36px;
+      background: var(--cb-navy); color: #fff;
+      font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cb-assign:hover { background: var(--cb-blue); }
+    .cb-assign:focus-visible { outline: 2px solid var(--cb-blue); outline-offset: 2px; }
     .cb-foot {
       margin-top: 22px; padding: 14px 16px; text-align: center;
       font-style: italic; font-weight: 600; color: #fff;
@@ -186,8 +359,13 @@ export interface BoardRow {
       border-top: 4px solid var(--cb-gold);
     }
     @media (max-width: 560px) {
-      .cb-row { gap: 16px 10px; }
-      .cb-card { width: calc(50% - 10px); }
+      .cb-row { grid-template-columns: repeat(2, 1fr); gap: 14px 10px; padding: 14px 10px 4px; }
+      .cb-row[data-tier='president'],
+      .cb-row[data-tier='vice'],
+      .cb-row[data-tier='general'],
+      .cb-row[data-tier='joint'],
+      .cb-row[data-tier='standing'] { display: flex; }
+      .cb-card { max-width: none; }
       .cb-photo { width: 96px; height: 96px; }
     }
   `,
@@ -195,6 +373,13 @@ export interface BoardRow {
 export class CommitteeBoardComponent {
   readonly posts = input.required<RegistryPost[]>();
   readonly lang = input<string>('bn');
+  /** Admin-only: vacant seats get an "add member" button that emits `assign`. */
+  readonly canManage = input<boolean>(false);
+  /** Emitted with the post key when an admin asks to fill a vacant seat. */
+  readonly assign = output<string>();
+
+  readonly filter = signal<BoardFilter>('all');
+  readonly search = signal('');
 
   private readonly broken = signal<ReadonlySet<number>>(new Set());
   readonly brokenPhotos = this.broken.asReadonly();
@@ -225,6 +410,49 @@ export class CommitteeBoardComponent {
       .flatMap((post) => this.cardsFor(post)),
   }));
 
+  readonly stats = computed(() => {
+    const cards = [...this.executiveRows(), this.standingRow()].flatMap((row) => row.cards);
+    return {
+      total: cards.length,
+      filled: cards.filter((card) => card.holder !== null).length,
+      vacant: cards.filter((card) => card.holder === null).length,
+      attention: cards.filter(
+        (card) => card.holder !== null && (card.status === 'expired' || card.status === 'caretaker'),
+      ).length,
+    };
+  });
+
+  readonly matches = computed<BoardCard[]>(() => {
+    const filter = this.filter();
+    const query = this.search().trim().toLowerCase();
+    const all = [...this.executiveRows(), this.standingRow()].flatMap((row) => row.cards);
+    return all.filter((card) => {
+      if (filter === 'filled' && !card.holder) return false;
+      if (filter === 'vacant' && card.holder) return false;
+      if (!query) return true;
+      const haystack = [
+        card.postLabel,
+        card.postKey,
+        card.holder?.fullName ?? '',
+        card.holder?.memberId ?? '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+  });
+
+  readonly visibleExecutiveRows = computed<BoardRow[]>(() =>
+    this.executiveRows()
+      .map((row) => ({ ...row, cards: row.cards.filter((card) => this.matches().includes(card)) }))
+      .filter((row) => row.cards.length > 0),
+  );
+
+  readonly visibleStanding = computed<BoardRow>(() => ({
+    ...this.standingRow(),
+    cards: this.standingRow().cards.filter((card) => this.matches().includes(card)),
+  }));
+
   /** "2026 - 2028" from the president's term, else the first post with a term. */
   readonly termYears = computed<string | null>(() => {
     const posts = this.posts();
@@ -245,8 +473,8 @@ export class CommitteeBoardComponent {
       .join('');
   }
 
-  digits(value: string): string {
-    return localizeDigits(value, this.lang());
+  digits(value: string | number): string {
+    return localizeDigits(String(value), this.lang());
   }
 
   markBroken(memberId: number): void {
@@ -263,6 +491,9 @@ export class CommitteeBoardComponent {
       postLabel,
       tone,
       holder,
+      status: holder?.status ?? post.status,
+      routineWorkOnly: post.routineWorkOnly,
+      warning: holder ? post.warning : null,
     }));
   }
 }

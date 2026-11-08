@@ -221,15 +221,6 @@ export const MANAGEMENT_ROUTES: Routes = [
       ),
   },
   {
-    // Modules 2 & 3 (governance expansion)
-    path: 'committee-registry',
-    canActivate: [permissionGuard(['committee_registry.manage'])],
-    loadComponent: () =>
-      import(
-        './features/management/pages/committee-registry/committee-registry.component'
-      ).then((m) => m.CommitteeRegistryComponent),
-  },
-  {
     path: 'elections-admin',
     canActivate: [permissionGuard(['election.manage'])],
     loadComponent: () =>

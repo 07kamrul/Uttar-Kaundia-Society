@@ -101,7 +101,6 @@ export function adminGroups(flags: AdminGroupFlags): NavSection[] {
     group('nav.group.organisation', [
       ...(c ? ['/notices-events'] : ['/notices-management', '/events-management']),
       '/complaints-admin',
-      '/committee-registry',
       '/elections-admin',
       '/welfare-activities',
       '/plot-boundaries',

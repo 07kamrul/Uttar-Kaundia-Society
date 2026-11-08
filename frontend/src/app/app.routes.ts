@@ -367,6 +367,16 @@ export const routes: Routes = [
         data: { requiredPermissions: MANAGEMENT_AREA_PERMISSIONS },
         loadChildren: () => import('./management.routes').then((m) => m.MANAGEMENT_ROUTES),
       },
+      // Committee registry - every authenticated account can read the board
+      // (Module 2); admin-only actions are hidden inside the page unless the
+      // account holds committee_registry.manage (the API enforces this too).
+      {
+        path: 'committee-registry',
+        loadComponent: () =>
+          import(
+            './features/management/pages/committee-registry/committee-registry.component'
+          ).then((m) => m.CommitteeRegistryComponent),
+      },
       // Super Admin area - manage_users/manage_roles/view_audit_log exist
       // only in the Super Admin's full permission catalog today.
       {
