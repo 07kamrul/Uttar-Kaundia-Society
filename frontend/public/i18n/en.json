@@ -291,7 +291,7 @@
     "membershipReview": "Membership Review",
     "membershipGovernance": "Membership Governance",
     "complaintsAdmin": "Complaints Admin",
-    "committeeRegistry": "Committee Registry",
+    "committeeRegistry": "Elected Committee",
     "electionsAdmin": "Elections Admin",
     "elections": "Elections",
     "petitions": "Petitions",
@@ -3646,7 +3646,7 @@
     }
   },
   "committeeRegistry": {
-    "title": "Committee Registry",
+    "title": "Elected Committee",
     "subtitle": "Current holders, terms and vacancies across the 11 council posts.",
     "expiredWarning": "An expired council may only handle routine work",
     "post": "Post",

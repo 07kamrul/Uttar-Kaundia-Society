@@ -291,7 +291,7 @@
     "membershipReview": "সদস্য আবেদন পর্যালোচনা",
     "membershipGovernance": "সদস্য শাসন (ছাড়/সাসপেনশন/আপিল)",
     "complaintsAdmin": "অভিযোগ ব্যবস্থাপনা",
-    "committeeRegistry": "কমিটি রেজিস্ট্রি",
+    "committeeRegistry": "নির্বাচিত কমিটি",
     "electionsAdmin": "নির্বাচন ব্যবস্থাপনা",
     "elections": "নির্বাচন",
     "petitions": "পিটিশন",
@@ -3646,7 +3646,7 @@
     }
   },
   "committeeRegistry": {
-    "title": "কমিটি রেজিস্ট্রি",
+    "title": "নির্বাচিত কমিটি",
     "subtitle": "১১ পদের পরিষদের দায়িত্বে থাকা সদস্য, মেয়াদ ও শূন্যপদের হিসাব।",
     "expiredWarning": "মেয়াদোত্তীর্ণ পরিষদ শুধু নিয়মিত কাজ করতে পারে",
     "post": "পদ",
