@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
+<<<<<<< Updated upstream
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
 import { BnDatePipe, BnNumberPipe, TakaPipe } from '../../../../shared/pipes/bn-pipes';
@@ -15,12 +16,20 @@ interface AddressValue {
   district?: string;
   division?: string;
 }
+=======
+import { TranslatePipe } from '@ngx-translate/core';
+import { PhoneTextPipe } from '../../../../shared/phone/phone-text.pipe';
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-review-summary',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [ReactiveFormsModule, TranslatePipe, PhoneTextPipe, BnDatePipe, BnNumberPipe, TakaPipe],
+=======
+  imports: [ReactiveFormsModule, TranslatePipe, PhoneTextPipe],
+>>>>>>> Stashed changes
   templateUrl: './review-summary.component.html',
 })
 export class ReviewSummaryComponent {

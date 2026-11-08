@@ -15,14 +15,21 @@ import type { SubmissionSummary } from '../../../../core/models/admin.model';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
+<<<<<<< Updated upstream
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+=======
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [EmptyStateComponent, RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+=======
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+>>>>>>> Stashed changes
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })

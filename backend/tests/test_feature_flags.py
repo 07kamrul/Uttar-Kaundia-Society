@@ -18,6 +18,7 @@ EXPECTED_KEYS = {
     "reg_dag_unknown",
     "reg_add_property_button",
     "reg_min_one_proof",
+<<<<<<< Updated upstream
     "reg_abroad_address",
     "reg_simplified_ui",
     "password_policy_v2",
@@ -34,6 +35,11 @@ EXPECTED_KEYS = {
     "data_saver",
     "net_status_banner",
     "pay_verify_other_fees",
+=======
+    "password_policy_v2",
+    "nav_merged_entries",
+    "nav_advanced_section",
+>>>>>>> Stashed changes
 }
 
 

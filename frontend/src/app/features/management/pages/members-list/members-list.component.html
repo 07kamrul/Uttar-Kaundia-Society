@@ -41,6 +41,7 @@
         <tbody>
           @for (m of members; track m.id) {
             <tr>
+<<<<<<< Updated upstream
               <td class="cell-mono cell-nowrap" [attr.data-label]="'admin.membersList.tableHeaders.memberId' | translate">{{ m.memberId ?? '—' }}</td>
               <td class="cell-person" [attr.data-label]="'admin.membersList.tableHeaders.name' | translate">
                 <span class="person"><span class="person-avatar" aria-hidden="true">{{ m.fullName.charAt(0) }}</span>
@@ -48,6 +49,12 @@
               </td>
               <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate"><app-phone-link [value]="m.mobile" [compact]="true" /></td>
               <td class="cell-nowrap" [attr.data-label]="'admin.membersList.tableHeaders.status' | translate">
+=======
+              <td [attr.data-label]="'admin.membersList.tableHeaders.memberId' | translate">{{ m.memberId ?? '—' }}</td>
+              <td [attr.data-label]="'admin.membersList.tableHeaders.name' | translate">{{ m.fullName }}</td>
+              <td [attr.data-label]="'admin.membersList.tableHeaders.mobile' | translate"><app-phone-link [value]="m.mobile" /></td>
+              <td [attr.data-label]="'admin.membersList.tableHeaders.status' | translate">
+>>>>>>> Stashed changes
                 <span
                   class="status-badge"
                   [class.status-pending]="m.status === 'pending'"

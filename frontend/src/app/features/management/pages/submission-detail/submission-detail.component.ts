@@ -34,14 +34,21 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
+<<<<<<< Updated upstream
 
 import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+=======
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [DialogDirective, FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
+=======
+  imports: [FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
+>>>>>>> Stashed changes
   templateUrl: './submission-detail.component.html',
 })
 export class SubmissionDetailComponent implements OnInit, OnDestroy {

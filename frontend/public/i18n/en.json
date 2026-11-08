@@ -466,6 +466,24 @@
       "PASSWORD_TOO_WEAK": "This password is not strong enough — choose another one"
     }
   },
+  "errors": {
+    "network": "No internet connection. Check your connection and try again.",
+    "unauthorized": "Your session has expired. Please log in again.",
+    "forbidden": "You don't have permission to do this. Contact the committee if you need access.",
+    "notFound": "We couldn't find what you were looking for. Reload the page and try again.",
+    "conflict": "This already exists or someone else has changed it. Reload the page and try again.",
+    "fileTooLarge": "The file is too large. Choose a smaller file or photo.",
+    "validation": "Some details are not correct. Check the highlighted fields and fix them.",
+    "tooManyRequests": "Too many attempts. Please wait a little and try again.",
+    "server": "Something went wrong on our side. Please try again in a little while.",
+    "unknown": "Something went wrong. Please try again. If it keeps happening, contact the committee.",
+    "field": {
+      "required": "This field is required",
+      "mobile": "Mobile number must be 11 digits, for example 017XXXXXXXX",
+      "nid": "National ID number must be 10, 13 or 17 digits",
+      "invalid": "This field is not valid, please check it"
+    }
+  },
   "forbidden": {
     "title": "Access Denied",
     "message": "You don't have permission to view this page.",

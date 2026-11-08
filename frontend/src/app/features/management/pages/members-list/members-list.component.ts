@@ -11,14 +11,21 @@ import { IconComponent } from '../../../../shared/icon/icon.component';
 import { MemberDetailDrawerComponent } from './member-detail-drawer/member-detail-drawer.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
+<<<<<<< Updated upstream
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+=======
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-members-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [EmptyStateComponent, IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent],
+=======
+  imports: [IconComponent, ConfirmModalComponent, MemberDetailDrawerComponent, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+>>>>>>> Stashed changes
   templateUrl: './members-list.component.html',
 })
 export class MembersListComponent implements OnInit {

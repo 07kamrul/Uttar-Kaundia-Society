@@ -9,14 +9,21 @@ import type { SubmissionStatus, SubmissionSummary } from '../../../../core/model
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
+<<<<<<< Updated upstream
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+=======
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-submissions-list',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [EmptyStateComponent, RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent, QueueSearchComponent],
+=======
+  imports: [RouterLink, IconComponent, DatePipe, TranslatePipe, SectionLoaderComponent, PhoneLinkComponent],
+>>>>>>> Stashed changes
   templateUrl: './submissions-list.component.html',
 })
 export class SubmissionsListComponent implements OnInit {

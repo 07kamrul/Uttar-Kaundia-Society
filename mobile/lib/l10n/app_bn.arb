@@ -1973,6 +1973,7 @@
         "type": "Object"
       }
     }
+<<<<<<< Updated upstream
   },
   "regStepWord": "ধাপ",
   "regOptionalSuffix": "(ঐচ্ছিক)",
@@ -2777,4 +2778,7 @@
   "apiErrorFeeAlreadyPaid": "এই ফি আগেই জমা দেওয়া হয়েছে।",
   "apiErrorAlreadyReviewed": "এই পেমেন্ট আগেই যাচাই করা হয়েছে।",
   "apiErrorNotPending": "এই পেমেন্ট আর যাচাইয়ের অপেক্ষায় নেই।"
+=======
+  }
+>>>>>>> Stashed changes
 }

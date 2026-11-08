@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+<<<<<<< Updated upstream
 import '../../../../core/validation/bd_input.dart' show toAsciiDigits;
 import '../../../../shared/widgets/phone_field.dart';
 
@@ -56,6 +57,9 @@ class RegSwitchRow extends StatelessWidget {
     );
   }
 }
+=======
+import '../../../../shared/widgets/phone_field.dart';
+>>>>>>> Stashed changes
 
 /// Small form primitives for the registration wizard. All user-visible strings
 /// come from ARB via [AppLocalizations]; widgets dispatch changes upward and

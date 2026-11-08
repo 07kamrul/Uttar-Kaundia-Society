@@ -35,7 +35,10 @@ from app.schemas.fee_settings import FeeSettingCreate, FeeSettingOut
 from app.schemas.installment import InstallmentCreate, InstallmentOut, InstallmentUpdate
 from app.models.audit_log import AuditLog
 from app.services.audit import record_audit
+<<<<<<< Updated upstream
 from app.services.dag_guard import ensure_dag_filled, member_ids_needing_dag
+=======
+>>>>>>> Stashed changes
 from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
 from app.services.registration_installment import add_registration_installment
 from app.schemas.member import (

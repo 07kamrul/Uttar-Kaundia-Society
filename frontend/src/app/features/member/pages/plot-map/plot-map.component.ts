@@ -110,6 +110,7 @@ type RsMatchModule = typeof import('./rs-match');
   selector: 'app-plot-map',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [ReportDialogComponent, MapLegendCardComponent, 
     FormsModule,
     NgTemplateOutlet,
@@ -121,6 +122,9 @@ type RsMatchModule = typeof import('./rs-match');
     LayersSheetComponent,
     MapTourComponent,
   ],
+=======
+  imports: [FormsModule, TranslatePipe, IconComponent, ConfirmModalComponent, DagInfoDialogComponent, PhoneTextPipe],
+>>>>>>> Stashed changes
   templateUrl: './plot-map.component.html',
   styleUrl: './plot-map.component.scss',
 })

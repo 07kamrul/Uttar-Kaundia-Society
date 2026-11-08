@@ -9,9 +9,12 @@ String apiErrorMessage(AppLocalizations l10n, Object error) {
   if (error is! ApiException) return l10n.apiErrorUnknown;
   if (error.isNetwork) return l10n.apiErrorOffline;
 
+<<<<<<< Updated upstream
   final byCode = apiErrorCodeMessage(l10n, error.errorCode);
   if (byCode != null) return byCode;
 
+=======
+>>>>>>> Stashed changes
   final code = error.statusCode;
   if (code == null) return l10n.apiErrorUnknown;
   return switch (code) {
@@ -26,6 +29,7 @@ String apiErrorMessage(AppLocalizations l10n, Object error) {
     _ => l10n.apiErrorUnknown,
   };
 }
+<<<<<<< Updated upstream
 
 /// Plain-language message for the structured `detail.code` values the server
 /// sends on 422 (PHOTO_REQUIRED, PROPERTY_PROOF_REQUIRED) and 409
@@ -55,3 +59,5 @@ String? apiErrorCodeMessage(AppLocalizations l10n, String? code) => switch (code
       'PASSWORD_SAME_AS_CURRENT' => l10n.apiErrorPasswordSameAsCurrent,
       _ => null,
     };
+=======
+>>>>>>> Stashed changes

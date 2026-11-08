@@ -168,11 +168,14 @@ class SubmissionListCard extends StatelessWidget {
         ),
       ],
       children: [
+<<<<<<< Updated upstream
         if (s.needsDag)
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: NeedsDagBadge(),
           ),
+=======
+>>>>>>> Stashed changes
         InfoRow.phone(
             label: loc.adminSubmissionsListTableHeadersMobile,
             phone: s.mobile,

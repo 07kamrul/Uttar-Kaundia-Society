@@ -17,8 +17,11 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { formatPhone } from '../../../../shared/phone/phone-format';
+<<<<<<< Updated upstream
 
 import { EmptyStateComponent } from '../../../../shared/empty-state/empty-state.component';
+=======
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-property-requests',

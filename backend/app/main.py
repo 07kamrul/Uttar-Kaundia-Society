@@ -165,9 +165,13 @@ api_router_prefix = "/api"
 app.include_router(submissions.router, prefix=api_router_prefix)
 app.include_router(auth.router, prefix=api_router_prefix)
 app.include_router(admin.router, prefix=api_router_prefix)
+<<<<<<< Updated upstream
 app.include_router(admin_today.router, prefix=api_router_prefix)
 app.include_router(phone_fixes.router, prefix=api_router_prefix)
 app.include_router(login_readiness.router, prefix=api_router_prefix)
+=======
+app.include_router(phone_fixes.router, prefix=api_router_prefix)
+>>>>>>> Stashed changes
 app.include_router(notices.router, prefix=api_router_prefix)
 app.include_router(member.router, prefix=api_router_prefix)
 app.include_router(neighbours.router, prefix=api_router_prefix)
@@ -199,8 +203,11 @@ app.include_router(amendments.router, prefix=api_router_prefix)
 app.include_router(registers.router, prefix=api_router_prefix)
 app.include_router(cache_admin.router, prefix=api_router_prefix)
 app.include_router(feature_flags.router, prefix=api_router_prefix)
+<<<<<<< Updated upstream
 app.include_router(member_payments.router, prefix=api_router_prefix)
 app.include_router(helpline.router, prefix=api_router_prefix)
+=======
+>>>>>>> Stashed changes
 
 app.mount("/uploads", UploadStaticFiles(), name="uploads")
 

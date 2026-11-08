@@ -71,7 +71,11 @@ import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
   selector: 'app-plot-boundaries',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+<<<<<<< Updated upstream
   imports: [DialogDirective, FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
+=======
+  imports: [FormsModule, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent],
+>>>>>>> Stashed changes
   templateUrl: './plot-boundaries.component.html',
   styleUrl: './plot-boundaries.component.scss',
 })

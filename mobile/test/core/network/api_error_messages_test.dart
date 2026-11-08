@@ -14,7 +14,10 @@ ApiException _http(int code, {ApiExceptionType type = ApiExceptionType.server, S
     );
 
 void main() {
+<<<<<<< Updated upstream
   batch2Codes();
+=======
+>>>>>>> Stashed changes
   final bn = AppLocalizationsBn();
   final en = AppLocalizationsEn();
 
@@ -83,6 +86,7 @@ void main() {
       expect(msgs.toSet().length, msgs.length);
     }
   });
+<<<<<<< Updated upstream
 
   group('structured detail codes', () {
     ApiException coded(int status, String code) => ApiException(
@@ -132,4 +136,6 @@ void batch2Codes() {
       expect(apiErrorMessage(bn, coded(422, 'INVALID_BD_MOBILE')), bn.apiErrorInvalidBdMobile);
     });
   });
+=======
+>>>>>>> Stashed changes
 }

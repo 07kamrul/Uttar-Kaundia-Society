@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import type { ValidationErrors } from '@angular/forms';
 
+<<<<<<< Updated upstream
 /** Machine codes the backend puts in `detail.code`; each has its own plain message. */
 const KNOWN_DETAIL_CODES: ReadonlySet<string> = new Set([
   'PHOTO_REQUIRED',
@@ -42,6 +43,8 @@ function knownCodeKey(err: HttpErrorResponse): string | null {
   return code !== null && KNOWN_DETAIL_CODES.has(code) ? `errors.code.${code}` : null;
 }
 
+=======
+>>>>>>> Stashed changes
 /**
  * Maps any thrown value to an i18n key under `errors.*`. Each message says what
  * went wrong and what to do next. The server's raw `detail` text is never
@@ -49,8 +52,11 @@ function knownCodeKey(err: HttpErrorResponse): string | null {
  */
 export function toUserMessageKey(err: unknown): string {
   if (!(err instanceof HttpErrorResponse)) return 'errors.unknown';
+<<<<<<< Updated upstream
   const codeKey = knownCodeKey(err);
   if (codeKey) return codeKey;
+=======
+>>>>>>> Stashed changes
   switch (err.status) {
     case 0:
       return 'errors.network';

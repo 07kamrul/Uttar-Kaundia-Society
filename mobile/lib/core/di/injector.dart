@@ -2,7 +2,10 @@ import 'package:get_it/get_it.dart';
 
 import '../auth/auth_repository.dart';
 import '../feature_flags/feature_flags_repository.dart';
+<<<<<<< Updated upstream
 import '../helpline/helpline_repository.dart';
+=======
+>>>>>>> Stashed changes
 import '../feature_flags/feature_flags_service.dart';
 import '../../features/dashboard/data/public_stats_repository.dart';
 import '../auth/session.dart';
@@ -60,7 +63,10 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton<FeatureFlagsRepository>(
     () => FeatureFlagsRepositoryImpl(apiClient: sl<ApiClient>()),
   );
+<<<<<<< Updated upstream
   sl.registerLazySingleton(() => HelplineRepository(apiClient: sl<ApiClient>()));
+=======
+>>>>>>> Stashed changes
   sl.registerLazySingleton<FeatureFlagsService>(
     () => FeatureFlagsService(sl<FeatureFlagsRepository>()),
   );

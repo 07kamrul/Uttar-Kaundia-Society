@@ -36,6 +36,7 @@ _FLAGS = (
         False,
         "At least one ownership proof instead of one file per ticked doc (R7)",
     ),
+<<<<<<< Updated upstream
     FlagDef(
         "reg_abroad_address",
         False,
@@ -101,6 +102,11 @@ _FLAGS = (
         False,
         "Other-fee and picnic payments wait for committee verification (Batch 2b)",
     ),
+=======
+    FlagDef("password_policy_v2", False, "Min 8 chars + common-password blocklist, no forced digit (R8)"),
+    FlagDef("nav_merged_entries", False, "Merged member/admin menu entries (R9)"),
+    FlagDef("nav_advanced_section", False, "Technical screens under Settings › Advanced (R10)"),
+>>>>>>> Stashed changes
 )
 
 FEATURE_FLAGS: dict[str, FlagDef] = {flag.key: flag for flag in _FLAGS}

@@ -11,7 +11,10 @@ import '../../../../core/network/api_error_messages.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/phone_display.dart';
+<<<<<<< Updated upstream
 import '../../../../shared/widgets/plain_confirm.dart';
+=======
+>>>>>>> Stashed changes
 import '../../../../shared/widgets/widgets.dart';
 
 export 'management_record_widgets.dart';

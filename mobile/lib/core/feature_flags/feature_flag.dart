@@ -7,6 +7,7 @@ enum FeatureFlag {
   regDagUnknown('reg_dag_unknown'),
   regAddPropertyButton('reg_add_property_button'),
   regMinOneProof('reg_min_one_proof'),
+<<<<<<< Updated upstream
   regAbroadAddress('reg_abroad_address'),
   regSimplifiedUi('reg_simplified_ui'),
   passwordPolicyV2('password_policy_v2'),
@@ -28,6 +29,11 @@ enum FeatureFlag {
   netStatusBanner('net_status_banner'),
   // Batch 2b: other-fee and picnic payments wait for committee verification.
   payVerifyOtherFees('pay_verify_other_fees');
+=======
+  passwordPolicyV2('password_policy_v2'),
+  navMergedEntries('nav_merged_entries'),
+  navAdvancedSection('nav_advanced_section');
+>>>>>>> Stashed changes
 
   const FeatureFlag(this.key);
 
