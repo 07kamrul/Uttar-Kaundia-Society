@@ -114,30 +114,40 @@
 
   <!-- মেয়াদ তৈরি/সম্পাদনা (admin) -->
   @if (canManage() && termForm(); as form) {
-    <section class="card">
-      <h2 class="cr-section-title">
-        {{ (form.editingTermId !== null ? 'committeeRegistry.editTermTitle' : 'committeeRegistry.createTermTitle') | translate }}
-      </h2>
+    <section class="card cr-card" #termFormEl>
+      <header class="cr-card-head">
+        <span class="cr-card-icon"><app-icon name="id-card" [size]="18" /></span>
+        <div>
+          <h2 class="cr-section-title">
+            {{ (form.editingTermId !== null ? 'committeeRegistry.editTermTitle' : 'committeeRegistry.createTermTitle') | translate }}
+          </h2>
+          <p class="cr-section-sub">{{ 'committeeRegistry.formSubtitle' | translate }}</p>
+        </div>
+      </header>
       <form (ngSubmit)="saveTerm()" #termNgForm="ngForm">
-        <div class="field">
-          <label for="cr-post">{{ 'committeeRegistry.post' | translate }}</label>
-          <select id="cr-post" class="field-control" name="postKey" [(ngModel)]="form.postKey" required>
-            @for (post of posts(); track post.key) {
-              <option [value]="post.key">{{ postLabel(post) }}</option>
-            }
-          </select>
+        <p class="cr-group-label">{{ 'committeeRegistry.groupAssignment' | translate }}</p>
+        <div class="cr-form-grid">
+          <div class="field">
+            <label for="cr-post">{{ 'committeeRegistry.post' | translate }}</label>
+            <select id="cr-post" class="field-control" name="postKey" [(ngModel)]="form.postKey" required>
+              @for (post of posts(); track post.key) {
+                <option [value]="post.key">{{ postLabel(post) }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <span class="field-label-row"><label>{{ 'committeeRegistry.member' | translate }}</label></span>
+            <app-member-picker
+              [options]="memberOptions()"
+              [selected]="form.memberId"
+              [multiple]="false"
+              [placeholder]="'committeeRegistry.memberPlaceholder' | translate"
+              (selectionChange)="form.memberId = $event"
+            />
+          </div>
         </div>
-        <div class="field">
-          <span class="field-label-row"><label>{{ 'committeeRegistry.member' | translate }}</label></span>
-          <app-member-picker
-            [options]="memberOptions()"
-            [selected]="form.memberId"
-            [multiple]="false"
-            [placeholder]="'committeeRegistry.memberPlaceholder' | translate"
-            (selectionChange)="form.memberId = $event"
-          />
-        </div>
-        <div class="cr-field-grid">
+        <p class="cr-group-label">{{ 'committeeRegistry.groupPeriod' | translate }}</p>
+        <div class="cr-form-grid">
           <div class="field">
             <label>{{ 'committeeRegistry.termStart' | translate }}</label>
             <app-date-picker [value]="form.termStart" (valueChange)="form.termStart = $event" />
@@ -148,19 +158,22 @@
             <p class="field-hint">{{ 'committeeRegistry.termEndHint' | translate }}</p>
           </div>
         </div>
-        <label class="checkbox-row">
+        <label class="cr-caretaker" [class.cr-caretaker-on]="form.isCaretaker">
           <input type="checkbox" name="isCaretaker" [(ngModel)]="form.isCaretaker" />
-          {{ 'committeeRegistry.caretaker' | translate }}
+          <span class="cr-caretaker-text">
+            <strong>{{ 'committeeRegistry.caretaker' | translate }}</strong>
+            <span class="cr-caretaker-hint">{{ 'committeeRegistry.caretakerHint' | translate }}</span>
+          </span>
         </label>
         <div class="field">
           <label for="cr-notes">{{ 'committeeRegistry.notes' | translate }}</label>
           <textarea id="cr-notes" class="field-control" rows="2" maxlength="2000" name="notes" [(ngModel)]="form.notes"></textarea>
         </div>
         <div class="cr-form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeTermForm()">{{ 'common.cancel' | translate }}</button>
           <button type="submit" class="btn btn-primary" [disabled]="termNgForm.invalid || !form.memberId.length || !form.termStart || saving()">
             {{ (form.editingTermId !== null ? 'common.save' : 'committeeRegistry.createTerm') | translate }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="closeTermForm()">{{ 'common.cancel' | translate }}</button>
         </div>
       </form>
     </section>
@@ -168,7 +181,7 @@
 
   <!-- শূন্যপদ / পদত্যাগ / অপসারণ (admin) -->
   @if (canManage()) {
-  <section class="card">
+  <section class="card cr-card">
     <div class="cr-section-head">
       <div>
         <h2 class="cr-section-title">{{ 'committeeRegistry.vacanciesTitle' | translate }}</h2>
@@ -188,7 +201,7 @@
         </div>
       }
     </div>
-
+    <div class="cr-card-body">
     @if (!loading() && vacancies().length > 0) {
       <div class="cr-filter-tabs" role="tablist">
         <button
@@ -398,6 +411,7 @@
         }
       </div>
     }
+    </div>
   </section>
   }
 

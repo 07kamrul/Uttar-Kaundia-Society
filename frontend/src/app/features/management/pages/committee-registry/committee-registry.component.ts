@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
@@ -45,6 +45,63 @@ interface TermFormState {
       .cr-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
       .cr-field-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
       .cr-form-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+      /* Padded card shell for the term form and vacancies sections (the
+         global .card is an unpadded border, both sections need body inset). */
+      .cr-card { padding: clamp(0.85rem, 2.5vw, 1.35rem); }
+      .cr-card-head {
+        display: flex; align-items: flex-start; gap: 0.65rem;
+        padding-bottom: 0.9rem; margin-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+      }
+      .cr-card-head .cr-section-title { margin: 0; }
+      .cr-card-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 2.1rem; height: 2.1rem; border-radius: 0.6rem; flex-shrink: 0;
+        background: color-mix(in srgb, var(--emerald-600) 10%, transparent);
+        color: var(--emerald-700);
+      }
+      :root[data-theme='dark'] .cr-card-icon { color: var(--emerald-500); }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) .cr-card-icon { color: var(--emerald-500); }
+      }
+      .cr-card-body { display: grid; gap: 1rem; }
+
+      /* Two-column form grid: side by side on wide screens, stacked on phones. */
+      .cr-form-grid {
+        display: grid; gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      }
+      .cr-group-label {
+        margin: 0.9rem 0 0.5rem; font-size: 0.72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500);
+      }
+      .cr-group-label:first-child { margin-top: 0; }
+
+      /* Caretaker option as a tappable card. */
+      .cr-caretaker {
+        display: flex; align-items: flex-start; gap: 0.6rem;
+        padding: 0.7rem 0.85rem; margin: 0.9rem 0;
+        border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+        background: var(--gray-50, var(--surface-2, transparent));
+        cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      }
+      .cr-caretaker input { margin-top: 0.2rem; accent-color: var(--emerald-600); }
+      .cr-caretaker-text { display: grid; gap: 0.15rem; font-weight: 600; color: var(--gray-700); }
+      .cr-caretaker-hint { font-weight: 400; font-size: 0.82rem; color: var(--gray-500); }
+      .cr-caretaker-on { border-color: var(--emerald-600); background: color-mix(in srgb, var(--emerald-600) 6%, transparent); }
+
+      /* Action bar: primary on the right on desktop, full width stack on phones. */
+      .cr-form-actions {
+        justify-content: flex-end;
+        margin-top: 1rem; padding-top: 0.9rem;
+        border-top: 1px solid var(--gray-200);
+      }
+      .cr-form-actions .btn-primary { min-width: 9rem; }
+      @media (max-width: 640px) {
+        .cr-form-actions { flex-direction: column-reverse; }
+        .cr-form-actions .btn { width: 100%; }
+      }
       .cr-history { padding: 0.35rem 0.25rem; }
       .cr-history h3 { font-size: 0.9rem; font-weight: 700; margin: 0.35rem 0; }
       .cr-history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
@@ -148,6 +205,9 @@ interface TermFormState {
 
       .cr-empty-title { font-weight: 700; color: var(--gray-700); }
       .cr-empty-hint { margin-top: -0.25rem !important; font-size: 0.82rem; }
+      /* Keep the card's empty state from ballooning on large screens. */
+      .cr-card .gov-empty { padding: 1.4rem 1rem; }
+      .cr-card .gov-empty-icon { width: 2.4rem; height: 2.4rem; }
       .cr-box-label {
         margin: 0 0 0.15rem; font-size: 0.72rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-500);
@@ -164,9 +224,8 @@ interface TermFormState {
       .cr-inline-form .cr-form-actions { margin-top: 0; }
       .cr-vacancy-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; }
       @media (max-width: 640px) {
+        .cr-vacancy-actions { flex-direction: column; }
         .cr-vacancy-actions .btn { flex: 1 1 100%; }
-        .cr-form-actions { flex-direction: column; }
-        .cr-form-actions .btn { width: 100%; }
         .cr-case-stats { width: 100%; }
         .cr-stat { flex: 1 1 auto; justify-content: center; }
       }
@@ -200,6 +259,14 @@ export class CommitteeRegistryComponent implements OnInit {
   readonly members = signal<MemberPickerOption[]>([]);
 
   readonly termForm = signal<TermFormState | null>(null);
+  private readonly termFormEl = viewChild<ElementRef<HTMLElement>>('termFormEl');
+  /** Bring the term form into view whenever it opens. */
+  readonly scrollTermFormIntoView = effect(() => {
+    if (this.termForm()) {
+      const el = this.termFormEl()?.nativeElement;
+      if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  });
   readonly histories = signal<Record<string, PostHistory | undefined>>({});
   readonly removalVacancyId = signal<number | null>(null);
   readonly decisionVacancyId = signal<number | null>(null);
