@@ -21,6 +21,7 @@ from app.schemas.submission import SubmissionPayload
 from app.services.admin_notifications import notify_admins_new_application
 from app.services.fee_calculation import calculate_monthly_subscription
 from app.services.payment_accounts import resolve_for_submission
+from app.services.property_duplicates import in_submission_duplicates
 from app.services.normalization import (
     mobile_lookup_variants,
     normalize_email,
@@ -324,6 +325,18 @@ async def create_submission(
     if is_abroad:
         _validate_abroad_address(data)
     dag_unknown_flags = [_resolve_dag_unknown(p, rules) for p in data.properties]
+    duplicate_keys = in_submission_duplicates(
+        [
+            (p.dag_no_rs, p.dag_no_cs, p.land_quantity)
+            for p, unknown in zip(data.properties, dag_unknown_flags, strict=True)
+            if not unknown
+        ]
+    )
+    if duplicate_keys:
+        raise _unprocessable(
+            "DUPLICATE_PROPERTY",
+            "The same plot (dag numbers and land quantity) is entered more than once.",
+        )
     if rules.min_one_proof:
         _validate_proofs(data, doc_files)
 

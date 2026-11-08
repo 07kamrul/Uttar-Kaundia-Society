@@ -115,6 +115,18 @@ def _owner_sort_key(row: PlotRow) -> tuple[str, int]:
     return (row.owner_name.casefold(), row.property_id)
 
 
+def _dedupe_rows(rows: Iterable[PlotRow]) -> list[PlotRow]:
+    """Collapse duplicate property records: same member with the same RS dag,
+    CS dag and land quantity is one plot entered twice (double submit, admin
+    re-entry), so only the first-recorded row is kept. Genuinely different
+    plots of one member and same-dag plots of different members survive."""
+    kept: dict[tuple[int, str | None, str | None, str | None], PlotRow] = {}
+    for row in sorted(rows, key=lambda r: r.property_id):
+        key = (row.member_id, row.rs_dag, row.cs_dag, row.land_quantity)
+        kept.setdefault(key, row)
+    return list(kept.values())
+
+
 def _to_entry(row: PlotRow, position: PositionLabel) -> OwnerEntry:
     return OwnerEntry(
         owner_name=row.owner_name,
@@ -176,6 +188,7 @@ def build_neighbour_directory(
     `rows` must already be limited to approved members; the caller's own rows
     are split out here. `dag_type=None` resolves to the caller's default.
     """
+    rows = _dedupe_rows(rows)
     own_rows = sorted((row for row in rows if row.member_id == caller_member_id), key=lambda r: r.property_id)
     resolved_type = dag_type or default_dag_type(own_rows)
     owners_by_dag = _index_by_dag(

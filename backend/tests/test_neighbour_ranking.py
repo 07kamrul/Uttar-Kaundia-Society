@@ -258,6 +258,63 @@ def test_opted_out_owner_is_listed_name_only() -> None:
     assert (visible.mobile, visible.contact_hidden) == ("01722222222", False)
 
 
+# --- duplicate plot dedup ---------------------------------------------------------------
+
+
+def test_identical_plots_of_the_same_member_are_shown_once() -> None:
+    rows = [
+        _row(1, CALLER_ID, rs="365", cs="836", land="5"),
+        _row(2, 2, rs="365", cs="836", land="5", name="Mahbubur"),
+        _row(3, 2, rs="365", cs="836", land="5", name="Mahbubur"),  # duplicate record
+    ]
+
+    (group,) = build_neighbour_directory(CALLER_ID, rows, DagType.RS, plot_limit=5).properties
+
+    assert [e.owner_name for e in group.same_dag_owners] == ["Mahbubur"]
+    assert group.owner_count == 1
+
+
+def test_two_different_plots_of_the_same_member_are_both_shown() -> None:
+    rows = [
+        _row(1, CALLER_ID, rs="365"),
+        _row(2, 2, rs="365", land="5", name="Mahbubur"),
+        _row(3, 2, rs="4050", land="2", name="Mahbubur"),  # different plot, kept
+    ]
+
+    (group,) = build_neighbour_directory(CALLER_ID, rows, DagType.RS, plot_limit=5).properties
+
+    all_owners = group.same_dag_owners + group.neighbours
+    assert [(e.rs_dag, e.land_quantity) for e in all_owners] == [
+        ("365", "5"),
+        ("4050", "2"),
+    ]
+
+
+def test_identical_plots_of_different_members_are_both_shown() -> None:
+    rows = [
+        _row(1, CALLER_ID, rs="365"),
+        _row(2, 2, rs="365", name="Mahbubur"),
+        _row(3, 3, rs="365", name="Reza"),  # same dag, another owner, kept
+    ]
+
+    (group,) = build_neighbour_directory(CALLER_ID, rows, DagType.RS, plot_limit=5).properties
+
+    assert [e.owner_name for e in group.same_dag_owners] == ["Mahbubur", "Reza"]
+
+
+def test_callers_own_duplicate_plots_collapse_into_one_group() -> None:
+    rows = [
+        _row(1, CALLER_ID, rs="365", cs="836", land="5"),
+        _row(2, CALLER_ID, rs="365", cs="836", land="5"),  # duplicate of own plot
+        _row(3, 2, rs="366", name="Neighbour"),
+    ]
+
+    directory = build_neighbour_directory(CALLER_ID, rows, DagType.RS, plot_limit=5)
+
+    assert [g.own.property_id for g in directory.properties] == [1]
+    assert directory.owner_count == 1
+
+
 # --- default dag type --------------------------------------------------------------------
 
 

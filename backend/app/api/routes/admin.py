@@ -35,11 +35,9 @@ from app.schemas.fee_settings import FeeSettingCreate, FeeSettingOut
 from app.schemas.installment import InstallmentCreate, InstallmentOut, InstallmentUpdate
 from app.models.audit_log import AuditLog
 from app.services.audit import record_audit
-<<<<<<< Updated upstream
 from app.services.dag_guard import ensure_dag_filled, member_ids_needing_dag
-=======
->>>>>>> Stashed changes
 from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
+from app.services.property_duplicates import member_duplicate_plot
 from app.services.registration_installment import add_registration_installment
 from app.schemas.member import (
     ApproveResponse,
@@ -463,6 +461,17 @@ async def _apply_property_payload(db: AsyncSession, request: PropertyChangeReque
     payload = PropertyRequestPayload.model_validate(request.payload)
 
     if request.action == PropertyChangeAction.ADD:
+        if await member_duplicate_plot(
+            db,
+            request.member_id,
+            dag_no_rs=payload.dag_no_rs,
+            dag_no_cs=payload.dag_no_cs,
+            land_quantity=payload.land_quantity,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="DUPLICATE_PROPERTY",
+            )
         db.add(
             Property(
                 member_id=request.member_id,
