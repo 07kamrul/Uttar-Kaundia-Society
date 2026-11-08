@@ -44,16 +44,9 @@ function submit(fixture: any): void {
   fixture.componentInstance.onSubmit();
 }
 
-describe('LoginComponent (login_by_phone)', () => {
-  it('keeps the old label and no helper while the flag is off', () => {
+describe('LoginComponent (mobile / email / member-ID login)', () => {
+  it('always uses the mobile/email/member-ID label and shows the helper', () => {
     const { el } = create([]);
-    const labels = [...el.querySelectorAll('label')].map((l) => l.textContent?.trim());
-    expect(labels[0]).toBe(bn['auth']['login']['identifierLabel']);
-    expect(el.querySelector('[data-testid="login-helper"]')).toBeNull();
-  });
-
-  it('uses the mobile/email/member-ID label and shows the helper with the flag on', () => {
-    const { el } = create(['login_by_phone']);
     const labels = [...el.querySelectorAll('label')].map((l) => l.textContent?.trim());
     expect(labels[0]).toBe(bn['auth']['login']['identifierLabelV2']);
     const helper = el.querySelector('[data-testid="login-helper"]');
@@ -61,7 +54,7 @@ describe('LoginComponent (login_by_phone)', () => {
   });
 
   it('maps a 401 to the plain invalid-credentials message', () => {
-    const { fixture, auth } = create(['login_by_phone']);
+    const { fixture, auth } = create([]);
     submit(fixture);
     auth.fail(401, { detail: { message: 'Invalid credentials' } });
     fixture.detectChanges();
@@ -69,7 +62,7 @@ describe('LoginComponent (login_by_phone)', () => {
   });
 
   it('maps 409 LOGIN_AMBIGUOUS_IDENTIFIER to the use-email-or-member-ID message, never the server text', () => {
-    const { fixture, auth } = create(['login_by_phone']);
+    const { fixture, auth } = create([]);
     submit(fixture);
     auth.fail(409, { detail: { code: 'LOGIN_AMBIGUOUS_IDENTIFIER', message: 'internal wording' } });
     fixture.detectChanges();
@@ -78,7 +71,7 @@ describe('LoginComponent (login_by_phone)', () => {
   });
 
   it('maps 429 to the try-again-in-15-minutes message', () => {
-    const { fixture, auth } = create(['login_by_phone']);
+    const { fixture, auth } = create([]);
     submit(fixture);
     auth.fail(429, { detail: { message: 'Too many attempts' } });
     fixture.detectChanges();

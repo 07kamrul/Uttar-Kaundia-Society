@@ -1,7 +1,7 @@
 """Who is logging in? Resolve a typed identifier to member credentials (Batch 6).
 
-`POST /api/login` accepts an admin email, a member ID, and - with the
-`login_by_phone` flag - a mobile number or a member's registered email. This
+`POST /api/login` accepts an admin email, a member ID, a mobile number or a
+member's registered email. This
 module classifies the identifier, builds the canonical rate-limit key and finds
 the credential candidates; the route verifies passwords.
 
@@ -67,12 +67,10 @@ def classify(raw: str) -> IdentifierKind:
     return "username"
 
 
-def resolve(raw: str, *, by_phone: bool) -> LoginIdentity:
-    """With `by_phone` off this is today's behaviour: lowercased text, always a
-    username lookup, rate-limited per raw identifier."""
-    if not by_phone:
-        text = raw.strip().lower()
-        return LoginIdentity("username", text, text)
+def resolve(raw: str) -> LoginIdentity:
+    """Classify the identifier, canonicalise it (E.164 for phones, lowercased
+    text otherwise) and use the same text as the rate-limit key, so one number
+    typed in several formats shares a single failure bucket."""
     kind = classify(raw)
     if kind == "phone":
         e164 = normalize_mobile(_clean(raw))
@@ -82,9 +80,8 @@ def resolve(raw: str, *, by_phone: bool) -> LoginIdentity:
 
 
 def login_key(raw: str) -> str:
-    """Canonical rate-limit key: E.164 for phones, lowercased text otherwise, so
-    one number typed in several formats shares a single failure bucket."""
-    return resolve(raw, by_phone=True).key
+    """Canonical rate-limit key: E.164 for phones, lowercased text otherwise."""
+    return resolve(raw).key
 
 
 def _with_credential(*conditions):

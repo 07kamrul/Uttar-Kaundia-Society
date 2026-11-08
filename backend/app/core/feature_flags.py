@@ -79,7 +79,7 @@ _FLAGS = (
     FlagDef(
         "login_by_phone",
         False,
-        "Log in with mobile number or member email as well as member ID (Batch 6)",
+        "Deprecated: mobile/email login is now always on; the flag no longer changes behaviour (Batch 6)",
     ),
     FlagDef(
         "ui_a11y_v2",

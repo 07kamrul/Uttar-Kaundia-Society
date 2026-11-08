@@ -5,7 +5,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PasswordFieldComponent } from '../../../../shared/password-field/password-field.component';
 import { AuthService } from '../../../../core/services/auth.service';
-import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { errorCodeOf } from '../../../../core/errors/user-error';
 
 @Component({
@@ -29,7 +28,6 @@ export class LoginComponent {
     private router: Router,
     private route: ActivatedRoute,
     private translate: TranslateService,
-    private flags: FeatureFlagService,
   ) {
     this.form = this.fb.group({
       identifier: ['', Validators.required],
@@ -38,15 +36,15 @@ export class LoginComponent {
   }
 
   /**
-   * login_by_phone: mobile and member email are accepted identifiers, so the
-   * label, helper and error wording all switch with the flag.
+   * Mobile, member email and member ID are all accepted identifiers now, so the
+   * V2 label, helper and error wording apply unconditionally.
    */
   get byPhone(): boolean {
-    return this.flags.isEnabled('login_by_phone');
+    return true;
   }
 
   get identifierLabel(): string {
-    return this.byPhone ? 'auth.login.identifierLabelV2' : 'auth.login.identifierLabel';
+    return 'auth.login.identifierLabelV2';
   }
 
   showError(controlName: string): boolean {
@@ -68,7 +66,6 @@ export class LoginComponent {
    * raw detail text is never shown.
    */
   private loginError(err: unknown): string {
-    if (!this.byPhone) return this.translate.instant('auth.login.loginFailedError');
     const status = err instanceof HttpErrorResponse ? err.status : 0;
     if (status === 429) return this.translate.instant('auth.login.errorRateLimited');
     if (status === 409 && errorCodeOf(err) === 'LOGIN_AMBIGUOUS_IDENTIFIER') {
