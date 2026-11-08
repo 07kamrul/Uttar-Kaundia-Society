@@ -81,15 +81,9 @@ interface TermFormState {
         padding: 0.28rem 0.65rem; border-radius: 999px;
         font-size: 0.78rem; font-weight: 700; white-space: nowrap;
       }
-      .cr-stat-warn { background: color-mix(in srgb, #b45309 12%, transparent); color: #92400e; }
-      .cr-stat-info { background: color-mix(in srgb, #4a7fb5 12%, transparent); color: #2c5282; }
+      .cr-stat-warn { background: color-mix(in srgb, var(--amber-200) 18%, transparent); color: var(--gold-strong); }
+      .cr-stat-info { background: color-mix(in srgb, var(--gray-500) 14%, transparent); color: var(--gray-700); }
       .cr-stat-good { background: color-mix(in srgb, var(--emerald-600) 12%, transparent); color: var(--emerald-800); }
-      :root[data-theme='dark'] .cr-stat-warn { color: #fbbf24; }
-      :root[data-theme='dark'] .cr-stat-info { color: #9dc3ec; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .cr-stat-warn { color: #fbbf24; }
-        :root:not([data-theme='light']) .cr-stat-info { color: #9dc3ec; }
-      }
 
       /* Board / table switch above the registry. */
       .cr-view-toggle { display: flex; gap: 0.35rem; justify-content: flex-end; margin-bottom: 0.75rem; }
@@ -158,13 +152,9 @@ interface TermFormState {
         margin: 0 0 0.15rem; font-size: 0.72rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-500);
       }
-      .cr-response-box { width: 100%; border-inline-start: 3px solid #4a7fb5; padding-inline-start: 0.65rem; }
+      .cr-response-box { width: 100%; border-inline-start: 3px solid var(--gold); padding-inline-start: 0.65rem; }
       .cr-note-box { width: 100%; padding-inline-start: 0.65rem; }
       .cr-note-box p { color: var(--gray-700); }
-      :root[data-theme='dark'] .cr-response-box { border-inline-start-color: #7fa8d9; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .cr-response-box { border-inline-start-color: #7fa8d9; }
-      }
       .cr-inline-form {
         width: 100%; display: grid; gap: 0.6rem; padding: 0.8rem;
         border: 1px dashed var(--gray-300); border-radius: var(--radius-sm);
@@ -183,13 +173,9 @@ interface TermFormState {
       .ds-warn-banner {
         display: flex; align-items: center; gap: 0.5rem;
         padding: 0.6rem 0.9rem; border-radius: 0.5rem; font-weight: 600;
-        background: color-mix(in srgb, #b45309 12%, var(--surface-2, #fff));
-        border: 1px solid color-mix(in srgb, #b45309 35%, transparent);
-        color: #92400e;
-      }
-      :root[data-theme='dark'] .ds-warn-banner { color: #fbbf24; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .ds-warn-banner { color: #fbbf24; }
+        background: color-mix(in srgb, var(--amber-200) 18%, var(--surface-2, #fff));
+        border: 1px solid color-mix(in srgb, var(--amber-200) 55%, transparent);
+        color: var(--gold-strong);
       }
     `,
   ],
