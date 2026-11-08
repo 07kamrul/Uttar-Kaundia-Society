@@ -38,13 +38,22 @@
 
 .history-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 
   select,
   input {
     max-width: 11rem;
+    min-width: 0;
+  }
+
+  .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 
@@ -114,12 +123,6 @@
     flex-direction: column;
     align-items: stretch;
   }
-
-  .history-filters select,
-  .history-filters input {
-    max-width: none;
-    flex: 1 1 45%;
-  }
 }
 
 .of-page { width: 100%; }
@@ -142,7 +145,6 @@
 
 @media (max-width: 639.98px) {
   .of-form-card { padding: 1rem; }
-  .history-filters .btn { flex: 1 1 45%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

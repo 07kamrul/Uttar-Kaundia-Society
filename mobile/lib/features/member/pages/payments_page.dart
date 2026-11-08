@@ -263,24 +263,36 @@ class _FilterChips extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(spacing: 8, children: [
-            for (final (key, kind, label) in kinds)
-              ChoiceChip(
-                key: Key('kindChip_$key'),
-                label: Text(label),
-                selected: state.kind == kind,
-                onSelected: (_) => onKind(kind),
-              ),
-          ]),
-          Wrap(spacing: 8, children: [
-            for (final (key, status, label) in statuses)
-              ChoiceChip(
-                key: Key('statusChip_$key'),
-                label: Text(label),
-                selected: state.itemStatus == status,
-                onSelected: (_) => onStatus(status),
-              ),
-          ]),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (final (key, kind, label) in kinds)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    key: Key('kindChip_$key'),
+                    label: Text(label),
+                    selected: state.kind == kind,
+                    onSelected: (_) => onKind(kind),
+                  ),
+                ),
+            ]),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (final (key, status, label) in statuses)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    key: Key('statusChip_$key'),
+                    label: Text(label),
+                    selected: state.itemStatus == status,
+                    onSelected: (_) => onStatus(status),
+                  ),
+                ),
+            ]),
+          ),
         ],
       ),
     );
