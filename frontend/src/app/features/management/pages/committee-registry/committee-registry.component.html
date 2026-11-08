@@ -134,7 +134,7 @@
           <app-icon name="x" [size]="18" />
         </button>
       </header>
-      <form (ngSubmit)="saveTerm()" #termNgForm="ngForm">
+      <form class="cr-modal-form" (ngSubmit)="saveTerm()" #termNgForm="ngForm">
         <div class="cr-modal-body">
         <p class="cr-group-label">{{ 'committeeRegistry.groupAssignment' | translate }}</p>
         <div class="cr-form-grid">

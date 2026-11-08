@@ -55,9 +55,11 @@ interface TermFormState {
          footer — that degrades to a full-height sheet on phones. */
       .cr-term-modal {
         display: flex; flex-direction: column;
-        width: min(34rem, 100%);
-        max-height: min(90dvh, 44rem);
+        width: min(40rem, 100%);
+        max-height: min(92dvh, 46rem);
         padding: 0;
+        overflow: hidden;
+        background: var(--surface);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-lg);
         animation: cr-modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -84,11 +86,24 @@ interface TermFormState {
       }
       .cr-modal-close:hover:not(:disabled) { background: var(--gray-100); color: var(--gray-800); }
       .cr-modal-close:disabled { opacity: 0.4; cursor: default; }
+      /* The form sits between the flex shell and body/footer, so it must be a
+         bounded flex column too — otherwise the body never scrolls and the
+         content spills past the card. */
+      .cr-modal-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
       .cr-modal-body {
+        flex: 1 1 auto; min-height: 0;
         overflow-y: auto;
-        padding: 0.5rem 1.15rem 1.15rem;
+        padding: 0.5rem 1.25rem 1.25rem;
         overscroll-behavior: contain;
+        display: grid; gap: 0.85rem; align-content: start;
       }
+      .cr-modal-body .cr-group-label { margin: 0.6rem 0 -0.35rem; }
+      .cr-modal-body .cr-form-grid {
+        display: grid; gap: 0.85rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .cr-modal-body .field { margin: 0; min-width: 0; }
+      .cr-modal-body textarea { resize: vertical; min-height: 4.5rem; }
       .cr-modal-foot {
         flex-shrink: 0;
         border-top: 1px solid var(--gray-200);
@@ -118,8 +133,10 @@ interface TermFormState {
         }
         .cr-modal-head { padding: 0.9rem 1rem 0.8rem; }
         .cr-modal-body { padding: 0.4rem 1rem 1rem; }
+        .cr-modal-body .cr-form-grid { grid-template-columns: 1fr; }
         .cr-modal-foot { padding: 0.7rem 1rem; padding-bottom: max(0.7rem, env(safe-area-inset-bottom)); }
         .cr-modal-foot .btn-primary { min-width: 0; }
+        .cr-modal-foot .cr-form-actions > .btn { flex: 1 1 0; }
       }
       @keyframes cr-sheet-in {
         from { opacity: 0; transform: translateY(1.5rem); }
