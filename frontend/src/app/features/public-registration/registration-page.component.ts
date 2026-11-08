@@ -131,8 +131,10 @@ export class RegistrationPageComponent implements OnInit {
   duplicateSubmission: DuplicateSubmissionError | null = null;
   memberPhotoPreview = signal('');
   photoBusy = signal(false);
-  /** Society payment accounts and consent version (reg_simplified_ui); null until loaded or if unavailable. */
+  /** Society payment accounts and consent version; null until loaded or if unavailable. */
   config = signal<RegistrationConfig | null>(null);
+  configLoading = signal(true);
+  configError = signal(false);
   feeLoading = signal(true);
   feeError = signal(false);
   subscriptionBusy = signal(false);
@@ -234,17 +236,28 @@ export class RegistrationPageComponent implements OnInit {
   }
 
   private loadConfig(): void {
+    this.configLoading.set(true);
+    this.configError.set(false);
     this.registrationService
       .getRegistrationConfig()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (config) => {
+          this.configLoading.set(false);
           this.config.set(config);
           this.cdr.markForCheck();
         },
-        // Payment accounts fall back to the built-in ones; consent_version falls back to the server's current.
-        error: () => undefined,
+        // A failed load surfaces through the picker's error box with a retry.
+        error: () => {
+          this.configLoading.set(false);
+          this.configError.set(true);
+          this.cdr.markForCheck();
+        },
       });
+  }
+
+  retryConfig(): void {
+    this.loadConfig();
   }
 
   dismissDraftToast(): void {

@@ -147,6 +147,12 @@ describe('PaymentMethodPickerComponent', () => {
     expect(keys).toEqual(['method-cash']);
     expect(f.nativeElement.querySelector('[data-testid="account-box"]')).toBeNull();
     expect(f.nativeElement.querySelector('[data-testid="provider-row"]')).toBeNull();
+    expect(f.nativeElement.querySelector('[data-testid="no-accounts-note"]')).not.toBeNull();
+  });
+
+  it('hides the empty-list note when accounts exist', () => {
+    const f = create();
+    expect(f.nativeElement.querySelector('[data-testid="no-accounts-note"]')).toBeNull();
   });
 
   it('emits cash and bank keys directly', () => {

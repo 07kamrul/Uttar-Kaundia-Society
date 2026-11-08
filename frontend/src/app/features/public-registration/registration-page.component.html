@@ -156,7 +156,10 @@
           [feeError]="feeError()"
           [ui]="ui"
           [config]="config()"
+          [configLoading]="configLoading()"
+          [configError]="configError()"
           (retryFeeLoad)="loadAdmissionFee()"
+          (retryConfigLoad)="retryConfig()"
           (subscriptionBusyChange)="subscriptionBusy.set($event)"
         />
       }

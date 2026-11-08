@@ -58,6 +58,11 @@ const COPIED_RESET_MS = 2000;
           </button>
         }
       </div>
+      @if (serverAccounts().length === 0) {
+        <p class="no-accounts-note" data-testid="no-accounts-note">
+          {{ 'registration.simplified.payment.noAccountsNote' | translate }}
+        </p>
+      }
       @if (showProviderRow()) {
         <div class="provider-row" role="radiogroup" data-testid="provider-row" [attr.aria-label]="'registration.simplified.payment.providerTitle' | translate">
           @for (key of mfsProviders(); track key) {
@@ -126,6 +131,7 @@ const COPIED_RESET_MS = 2000;
     @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
     .provider-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 0.6rem; }
     .provider-card { font-size: 0.95rem; min-height: 44px; }
+    .no-accounts-note { margin: 0.6rem 0 0; font-size: 0.875rem; color: var(--gray-600, #4b5563); }
     @media (max-width: 340px) { .provider-row { grid-template-columns: 1fr; } }
     .picker-error p { margin: 0 0 0.5rem; }
     .account-box { padding: 0.75rem 1rem; margin: 0.75rem 0; border: 1px solid var(--gray-300, #d1d5db); border-radius: 0.75rem; }

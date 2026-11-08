@@ -47,7 +47,12 @@ export class PaymentInfoComponent implements OnInit {
   @Input() ui: RegistrationUiFlags = NO_UI_FLAGS;
   /** Society accounts from the server; null while loading or after a failed load. */
   @Input() config: RegistrationConfig | null = null;
+  /** Config request still in flight (picker shows skeletons). */
+  @Input() configLoading = false;
+  /** Config request failed (picker shows its error box with retry). */
+  @Input() configError = false;
   readonly retryFeeLoad = output<void>();
+  readonly retryConfigLoad = output<void>();
   // Lets the parent disable "পরবর্তী" while the quote is in flight or failed,
   // the same way it already does for the admission-fee load.
   readonly subscriptionBusyChange = output<boolean>();

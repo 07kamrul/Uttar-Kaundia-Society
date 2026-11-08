@@ -3156,6 +3156,7 @@
         "readOnlyNote": "Set by the society. It cannot be changed.",
         "methodTitle": "How did you pay?",
         "providerTitle": "Which mobile service?",
+        "noAccountsNote": "Bank and mobile payment details are not set up yet. Please pay in cash or contact the office.",
         "methods": {
           "cash": "Cash",
           "mfs": "MFS",

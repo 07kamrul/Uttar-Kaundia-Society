@@ -188,6 +188,7 @@ describe('PaymentInfoComponent (simplified)', () => {
     const cards = f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]') as NodeListOf<HTMLElement>;
     expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash']);
     expect(q(f, '[data-testid="account-box"]')).toBeNull();
+    expect(q(f, '[data-testid="no-accounts-note"]')).not.toBeNull();
   });
 
   it('shows no account box for cash', () => {
@@ -224,5 +225,24 @@ describe('PaymentInfoComponent (simplified)', () => {
     expect(q(f, '#admissionFee')).not.toBeNull();
     expect(q(f, 'input[type=checkbox]')).toBeNull();
     expect(q(f, 'app-payment-method-picker .method-cards')).not.toBeNull();
+  });
+
+  it('shows the picker error box with retry when the config request failed', () => {
+    const f = create();
+    f.componentRef.setInput('configError', true);
+    f.detectChanges();
+    expect(q(f, '[data-testid="picker-error"]')).not.toBeNull();
+    let retried = 0;
+    f.componentInstance.retryConfigLoad.subscribe(() => (retried += 1));
+    (q(f, '[data-testid="picker-error"] button') as HTMLButtonElement).click();
+    expect(retried).toBe(1);
+  });
+
+  it('shows picker skeletons while the config request is in flight', () => {
+    const f = create();
+    f.componentRef.setInput('configLoading', true);
+    f.detectChanges();
+    expect(q(f, '[data-testid="picker-loading"]')).not.toBeNull();
+    expect(q(f, 'button[data-testid^="method-"]')).toBeNull();
   });
 });
