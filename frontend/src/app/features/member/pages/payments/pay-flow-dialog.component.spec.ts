@@ -52,7 +52,8 @@ function type(f: ComponentFixture<unknown>, sel: string, value: string): void {
 }
 
 function fillMethodAndRef(f: ComponentFixture<unknown>, method: string, ref: string): void {
-  click(f, `[data-testid="method-${method}"]`);
+  // MFS provider keys live behind the single top-level mfs card.
+  click(f, `[data-testid="method-${method === 'bkash' ? 'mfs' : method}"]`);
   type(f, '[data-testid="reference"]', ref);
 }
 
@@ -132,7 +133,7 @@ describe('PayFlowDialogComponent step 2: how did you pay', () => {
     const { fixture } = setup();
     click(fixture, '[data-testid="next"]');
     expect(text(fixture)).toContain('কীভাবে দিলেন?');
-    click(fixture, '[data-testid="method-bkash"]');
+    click(fixture, '[data-testid="method-mfs"]');
     expect(q(fixture, '[data-testid="reference-label"]')?.textContent).toContain('ট্রানজেকশন আইডি (TrxID)');
     click(fixture, '[data-testid="method-cash"]');
     expect(q(fixture, '[data-testid="reference-label"]')?.textContent).toContain('রসিদ নম্বর');
@@ -141,7 +142,7 @@ describe('PayFlowDialogComponent step 2: how did you pay', () => {
   it('shows the society account number with a copy button and the abroad note', () => {
     const { fixture } = setup();
     click(fixture, '[data-testid="next"]');
-    click(fixture, '[data-testid="method-bkash"]');
+    click(fixture, '[data-testid="method-mfs"]');
     expect(q(fixture, '[data-testid="account-box"]')?.textContent).toContain('০১৭১১০০০০০০');
     expect(q(fixture, '[data-testid="copy-account"]')).not.toBeNull();
     expect(q(fixture, '[data-testid="abroad-note"]')?.textContent).toContain('বিদেশে থাকলে');
@@ -152,7 +153,7 @@ describe('PayFlowDialogComponent step 2: how did you pay', () => {
     click(fixture, '[data-testid="next"]');
     const submit = () => q(fixture, '[data-testid="submit"]') as HTMLButtonElement;
     expect(submit().disabled).toBe(true);
-    click(fixture, '[data-testid="method-bkash"]');
+    click(fixture, '[data-testid="method-mfs"]');
     expect(submit().disabled).toBe(true);
     type(fixture, '[data-testid="reference"]', 'ab');
     expect(submit().disabled).toBe(true);

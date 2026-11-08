@@ -14,7 +14,7 @@ import {
   type PaymentAccount,
 } from '../../core/models/registration.model';
 import { copyText } from '../phone/copy-text';
-import { METHOD_ICONS, accountsForMethod, availableAccountMethods } from './payment-methods';
+import { METHOD_ICONS, accountsForMethod, availableMfsMethods, isMfsMethod, topLevelMethods } from './payment-methods';
 
 const COPIED_RESET_MS = 2000;
 
@@ -49,15 +49,33 @@ const COPIED_RESET_MS = 2000;
             role="radio"
             class="method-card tap-48"
             [attr.data-testid]="'method-' + key"
-            [attr.aria-checked]="method() === key"
-            [class.is-selected]="method() === key"
-            (click)="methodChange.emit(key)"
+            [attr.aria-checked]="isSelectedTopLevel(key)"
+            [class.is-selected]="isSelectedTopLevel(key)"
+            (click)="chooseTopLevel(key)"
           >
             <span aria-hidden="true">{{ icon(key) }}</span>
             {{ methodLabel(key) | translate }}
           </button>
         }
       </div>
+      @if (showProviderRow()) {
+        <div class="provider-row" role="radiogroup" data-testid="provider-row" [attr.aria-label]="'registration.simplified.payment.providerTitle' | translate">
+          @for (key of mfsProviders(); track key) {
+            <button
+              type="button"
+              role="radio"
+              class="method-card provider-card tap-48"
+              [attr.data-testid]="'provider-' + key"
+              [attr.aria-checked]="method() === key"
+              [class.is-selected]="method() === key"
+              (click)="methodChange.emit(key)"
+            >
+              <span aria-hidden="true">{{ icon(key) }}</span>
+              {{ methodLabel(key) | translate }}
+            </button>
+          }
+        </div>
+      }
       @if (methodAccounts().length > 0) {
         <div class="account-box" data-testid="account-box">
           <h3>{{ 'registration.simplified.payment.accountTitle' | translate }}</h3>
@@ -106,6 +124,9 @@ const COPIED_RESET_MS = 2000;
     .method-card.is-selected { border-color: var(--emerald-600, #059669); background: var(--emerald-50, #ecfdf5); }
     .skeleton { background: linear-gradient(90deg, var(--gray-100, #f3f4f6) 25%, var(--gray-200, #e5e7eb) 50%, var(--gray-100, #f3f4f6) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
     @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .provider-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 0.6rem; }
+    .provider-card { font-size: 0.95rem; min-height: 44px; }
+    @media (max-width: 340px) { .provider-row { grid-template-columns: 1fr; } }
     .picker-error p { margin: 0 0 0.5rem; }
     .account-box { padding: 0.75rem 1rem; margin: 0.75rem 0; border: 1px solid var(--gray-300, #d1d5db); border-radius: 0.75rem; }
     @media (max-width: 340px) { .method-cards { grid-template-columns: 1fr; } }
@@ -136,18 +157,46 @@ export class PaymentMethodPickerComponent {
   private static nextGroupId = 0;
   protected readonly accountIdGroup = `picker-accounts-${++PaymentMethodPickerComponent.nextGroupId}`;
 
-  /** cash/other are always offered; account-backed keys only when an active account exists. */
-  readonly availableMethods = computed(() => [
-    'cash',
-    ...availableAccountMethods(this.serverAccounts()),
-    'other',
-  ]);
+  /** cash always; bank and mfs only when an active account of that type exists. */
+  readonly availableMethods = computed(() => topLevelMethods(this.serverAccounts()));
+
+  /** MFS provider keys shown in the sub-row, in server display order. */
+  readonly mfsProviders = computed(() => availableMfsMethods(this.serverAccounts()));
+
+  /** The provider sub-row appears while the MFS group is active or freshly opened. */
+  readonly showProviderRow = computed(() => this.mfsProviders().length > 0 && (this.isMfsGroup() || this.mfsOpen()));
+
+  /** MFS is "selected" at top level when the stored method is a provider key. */
+  readonly isMfsGroup = computed(() => isMfsMethod(this.method()));
+
+  /** UI-only: whether the member opened the MFS group before picking a provider. */
+  private readonly mfsOpen = signal(false);
+
   readonly methodAccounts = computed(() =>
     accountsForMethod(this.method(), this.serverAccounts()),
   );
 
   icon(key: string): string {
     return METHOD_ICONS[key] ?? '';
+  }
+
+  isSelectedTopLevel(key: string): boolean {
+    return key === 'mfs' ? this.isMfsGroup() : this.method() === key;
+  }
+
+  /** Cash and bank store their own key; MFS opens the provider row (auto-select with one provider). */
+  chooseTopLevel(key: string): void {
+    if (key === 'mfs') {
+      const providers = this.mfsProviders();
+      if (providers.length === 1) {
+        this.methodChange.emit(providers[0]);
+      } else {
+        this.mfsOpen.set(true);
+      }
+      return;
+    }
+    this.mfsOpen.set(false);
+    this.methodChange.emit(key);
   }
 
   methodLabel(key: string): string {

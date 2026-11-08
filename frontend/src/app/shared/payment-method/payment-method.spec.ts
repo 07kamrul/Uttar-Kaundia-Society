@@ -4,7 +4,15 @@ import { describe, expect, it, vi } from 'vitest';
 import bn from '../../../../public/i18n/bn.json';
 import type { PaymentAccount } from '../../core/models/registration.model';
 import { PaymentMethodPickerComponent } from './payment-method-picker.component';
-import { accountsForMethod, availableAccountMethods, referenceLabelKey } from './payment-methods';
+import {
+  accountsForMethod,
+  availableAccountMethods,
+  availableMfsMethods,
+  hasBankAccount,
+  isMfsMethod,
+  referenceLabelKey,
+  topLevelMethods,
+} from './payment-methods';
 
 const bkash: PaymentAccount = {
   id: 7,
@@ -44,6 +52,25 @@ const bank: PaymentAccount = {
   qrImageUrl: null,
 };
 
+const nagad: PaymentAccount = {
+  id: 11,
+  type: 'mfs',
+  method: 'nagad',
+  displayOrder: 3,
+  label: 'নগদ ০১৮২২০০০০০০',
+  bankName: null,
+  branchName: null,
+  accountName: null,
+  accountNumber: null,
+  routingNumber: null,
+  provider: 'nagad',
+  mfsNumber: '01822000000',
+  accountKind: 'agent',
+  accountHolder: null,
+  instructions: null,
+  qrImageUrl: null,
+};
+
 const accounts: PaymentAccount[] = [bkash, bank];
 
 describe('payment-methods helpers', () => {
@@ -73,6 +100,22 @@ describe('payment-methods helpers', () => {
     expect(availableAccountMethods([])).toEqual([]);
     expect(availableAccountMethods([bank, bank])).toEqual(['bank']);
   });
+
+  it('classifies methods into cash / bank / mfs groups', () => {
+    expect(isMfsMethod('bkash')).toBe(true);
+    expect(isMfsMethod('nagad')).toBe(true);
+    expect(isMfsMethod('rocket')).toBe(true);
+    expect(isMfsMethod('cash')).toBe(false);
+    expect(isMfsMethod('bank')).toBe(false);
+    expect(hasBankAccount(accounts)).toBe(true);
+    expect(hasBankAccount([bkash])).toBe(false);
+    expect(topLevelMethods(accounts)).toEqual(['cash', 'bank', 'mfs']);
+    expect(topLevelMethods([bkash])).toEqual(['cash', 'mfs']);
+    expect(topLevelMethods([bank])).toEqual(['cash', 'bank']);
+    expect(topLevelMethods([])).toEqual(['cash']);
+    expect(availableMfsMethods(accounts)).toEqual(['bkash']);
+    expect(availableMfsMethods([bank])).toEqual([]);
+  });
 });
 
 describe('PaymentMethodPickerComponent', () => {
@@ -88,29 +131,75 @@ describe('PaymentMethodPickerComponent', () => {
     return f;
   }
 
-  it('offers cash, account-backed methods in server order, then other — never a method without accounts', () => {
+  it('offers cash, then bank and mfs only when the server has an account of that type', () => {
     const f = create();
-    const keys = [...f.nativeElement.querySelectorAll('[data-testid^="method-"]')].map(
+    const keys = [...f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]')].map(
       (el) => (el as HTMLElement).dataset['testid'],
     );
-    expect(keys).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
+    expect(keys).toEqual(['method-cash', 'method-bank', 'method-mfs']);
   });
 
-  it('with no active accounts only cash and other remain (no built-in fallback)', () => {
+  it('with no active accounts only cash remains (no built-in fallback)', () => {
     const f = create('', []);
-    const keys = [...f.nativeElement.querySelectorAll('[data-testid^="method-"]')].map(
+    const keys = [...f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]')].map(
       (el) => (el as HTMLElement).dataset['testid'],
     );
-    expect(keys).toEqual(['method-cash', 'method-other']);
+    expect(keys).toEqual(['method-cash']);
     expect(f.nativeElement.querySelector('[data-testid="account-box"]')).toBeNull();
+    expect(f.nativeElement.querySelector('[data-testid="provider-row"]')).toBeNull();
   });
 
-  it('emits the chosen method key', () => {
+  it('emits cash and bank keys directly', () => {
     const f = create();
     const emitted: string[] = [];
     f.componentInstance.methodChange.subscribe((m: string) => emitted.push(m));
-    (f.nativeElement.querySelector('[data-testid="method-bkash"]') as HTMLElement).click();
+    (f.nativeElement.querySelector('[data-testid="method-cash"]') as HTMLElement).click();
+    (f.nativeElement.querySelector('[data-testid="method-bank"]') as HTMLElement).click();
+    expect(emitted).toEqual(['cash', 'bank']);
+  });
+
+  it('single MFS provider is selected automatically when the mfs card is clicked', () => {
+    const f = create();
+    const emitted: string[] = [];
+    f.componentInstance.methodChange.subscribe((m: string) => emitted.push(m));
+    (f.nativeElement.querySelector('[data-testid="method-mfs"]') as HTMLElement).click();
     expect(emitted).toEqual(['bkash']);
+  });
+
+  it('multiple MFS providers show a sub-row; picking one emits its key', () => {
+    const f = create('', [bkash, nagad, bank]);
+    const emitted: string[] = [];
+    f.componentInstance.methodChange.subscribe((m: string) => emitted.push(m));
+    expect(f.nativeElement.querySelector('[data-testid="provider-row"]')).toBeNull();
+    (f.nativeElement.querySelector('[data-testid="method-mfs"]') as HTMLElement).click();
+    f.detectChanges();
+    expect(emitted).toEqual([]); // nothing stored until a provider is picked
+    const providerKeys = [...f.nativeElement.querySelectorAll('button[data-testid^="provider-"]')].map(
+      (el) => (el as HTMLElement).dataset['testid'],
+    );
+    expect(providerKeys).toEqual(['provider-bkash', 'provider-nagad']);
+    (f.nativeElement.querySelector('[data-testid="provider-nagad"]') as HTMLElement).click();
+    expect(emitted).toEqual(['nagad']);
+  });
+
+  it('highlights the mfs card when a provider key is the selected method', () => {
+    const f = create('nagad', [bkash, nagad, bank]);
+    const mfsCard = f.nativeElement.querySelector('[data-testid="method-mfs"]') as HTMLElement;
+    const nagadCard = f.nativeElement.querySelector('[data-testid="provider-nagad"]') as HTMLElement;
+    expect(mfsCard.classList.contains('is-selected')).toBe(true);
+    expect(nagadCard.classList.contains('is-selected')).toBe(true);
+    expect(
+      (f.nativeElement.querySelector('[data-testid="method-bank"]') as HTMLElement).classList.contains('is-selected'),
+    ).toBe(false);
+  });
+
+  it('emits the chosen method key for a provider card directly', () => {
+    const f = create('bkash', accounts);
+    const emitted: string[] = [];
+    f.componentInstance.methodChange.subscribe((m: string) => emitted.push(m));
+    const bankCard = f.nativeElement.querySelector('[data-testid="method-bank"]') as HTMLElement;
+    bankCard.click();
+    expect(emitted).toEqual(['bank']);
   });
 
   it('shows the accounts of the selected method and emits their id on selection', () => {

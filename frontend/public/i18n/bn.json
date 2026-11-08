@@ -3155,8 +3155,10 @@
         "subscriptionLabel": "মাসিক চাঁদা",
         "readOnlyNote": "এটি সমিতি ঠিক করে দিয়েছে, বদলানো যাবে না।",
         "methodTitle": "কীভাবে টাকা দিলেন?",
+        "providerTitle": "কোন মোবাইল সার্ভিস?",
         "methods": {
           "cash": "নগদ টাকা",
+          "mfs": "এমএফএস",
           "bkash": "বিকাশ",
           "nagad": "নগদ",
           "rocket": "রকেট",

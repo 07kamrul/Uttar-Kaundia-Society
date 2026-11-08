@@ -97,7 +97,7 @@ describe('payment merge flow: Home to submitted', () => {
 
     // 3. bKash and the TrxID, as one "fill in how I paid" interaction.
     interactions += 1;
-    (q('[data-testid="method-bkash"]') as HTMLElement).click();
+    (q('[data-testid="method-mfs"]') as HTMLElement).click();
     const ref = q('[data-testid="reference"]') as HTMLInputElement;
     ref.value = 'TX12345';
     ref.dispatchEvent(new Event('input'));

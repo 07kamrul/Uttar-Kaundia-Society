@@ -104,43 +104,49 @@ describe('PaymentInfoComponent (simplified)', () => {
     expect(q(f, 'input[type=number]')).toBeNull();
   });
 
-  it('offers cash, the methods that actually have active accounts, and other — nothing else', () => {
+  it('offers cash, then bank and mfs only when the server has an account of that type', () => {
     const f = create();
-    const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
-    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash', 'method-bkash', 'method-bank', 'method-other']);
+    const cards = f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]') as NodeListOf<HTMLElement>;
+    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash', 'method-bank', 'method-mfs']);
   });
 
-  it('labels the account-backed cards from the society account names', () => {
+  it('labels the cards: cash and bank directly, mfs opening the provider row', () => {
     const f = create();
-    const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
+    const cards = f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]') as NodeListOf<HTMLElement>;
     expect([...cards].map((c) => (c.textContent ?? '').trim().replace(/\s+/g, ' '))).toEqual([
       '💵 নগদ টাকা',
-      '📱 বিকাশ',
       '🏦 ব্যাংক',
-      '➕ অন্যান্য',
+      '📱 এমএফএস',
     ]);
   });
 
-  it.each(['cash', 'bkash', 'bank', 'other'])('card %s stores the canonical key', (key) => {
+  it.each(['cash', 'bank'])('card %s stores the canonical key', (key) => {
     const f = create();
     choose(f, key);
     expect(form.get('paymentMethod')!.value).toBe(key);
     expect(q(f, `[data-testid="method-${key}"]`)!.getAttribute('aria-checked')).toBe('true');
   });
 
+  it('clicking the mfs card stores the single provider key (bkash) and highlights both cards', () => {
+    const f = create();
+    choose(f, 'mfs');
+    expect(form.get('paymentMethod')!.value).toBe('bkash');
+    expect(q(f, '[data-testid="method-mfs"]')!.getAttribute('aria-checked')).toBe('true');
+    expect(form.get('paymentAccountId')!.value).toBe(1);
+  });
+
   it('picking an account-backed method auto-picks its first active account', () => {
     const f = create();
-    choose(f, 'bkash');
+    choose(f, 'mfs');
     expect(form.get('paymentAccountId')!.value).toBe(1);
     choose(f, 'bank');
     expect(form.get('paymentAccountId')!.value).toBe(2);
   });
 
   it.each([
-    ['bkash', 'ট্রানজেকশন আইডি (TrxID)'],
+    ['mfs', 'ট্রানজেকশন আইডি (TrxID)'],
     ['cash', 'রসিদ নম্বর'],
     ['bank', 'রসিদ নম্বর'],
-    ['other', 'রসিদ নম্বর'],
   ])('labels the reference for %s as "%s"', (key, label) => {
     const f = create();
     choose(f, key);
@@ -149,7 +155,7 @@ describe('PaymentInfoComponent (simplified)', () => {
 
   it('keeps the reference in the receiptNo control (no API change)', () => {
     const f = create();
-    choose(f, 'bkash');
+    choose(f, 'mfs');
     const input = q(f, '#receiptNo') as HTMLInputElement;
     input.value = 'ABC123';
     input.dispatchEvent(new Event('input'));
@@ -161,7 +167,7 @@ describe('PaymentInfoComponent (simplified)', () => {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     try {
       const f = create();
-      choose(f, 'bkash');
+      choose(f, 'mfs');
       expect(text(f)).toContain('বিকাশ পার্সোনাল ০১৭১১০০০০০০');
       expect(text(f)).toContain('উত্তর কাউন্দিয়া সমিতি');
       const copy = q(f, '[data-testid="copy-account"]') as HTMLButtonElement;
@@ -179,8 +185,8 @@ describe('PaymentInfoComponent (simplified)', () => {
 
   it('offers no bank/MFS cards and no account box when the server has no active accounts', () => {
     const f = create({ simplified: true }, { consentVersion: '2026-10', paymentAccounts: [] });
-    const cards = f.nativeElement.querySelectorAll('[data-testid^="method-"]') as NodeListOf<HTMLElement>;
-    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash', 'method-other']);
+    const cards = f.nativeElement.querySelectorAll('.method-cards [data-testid^="method-"]') as NodeListOf<HTMLElement>;
+    expect([...cards].map((c) => c.dataset['testid'])).toEqual(['method-cash']);
     expect(q(f, '[data-testid="account-box"]')).toBeNull();
   });
 

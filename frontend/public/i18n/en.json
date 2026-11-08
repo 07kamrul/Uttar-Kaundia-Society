@@ -3155,8 +3155,10 @@
         "subscriptionLabel": "Monthly subscription",
         "readOnlyNote": "Set by the society. It cannot be changed.",
         "methodTitle": "How did you pay?",
+        "providerTitle": "Which mobile service?",
         "methods": {
           "cash": "Cash",
+          "mfs": "MFS",
           "bkash": "bKash",
           "nagad": "Nagad",
           "rocket": "Rocket",
