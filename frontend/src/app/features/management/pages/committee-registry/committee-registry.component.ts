@@ -51,19 +51,80 @@ interface TermFormState {
          global .card is an unpadded border, both sections need body inset). */
       .cr-card { padding: clamp(0.85rem, 2.5vw, 1.35rem); }
 
-      /* Term-form popup: wide modal card that scrolls internally when the
-         two-column form no longer fits the viewport height. */
+      /* Term-form popup: full chrome — sticky header, scrollable body, sticky
+         footer — that degrades to a full-height sheet on phones. */
       .cr-term-modal {
-        max-width: 60rem;
-        max-height: 90vh;
-        overflow-y: auto;
+        display: flex; flex-direction: column;
+        width: min(34rem, 100%);
+        max-height: min(90dvh, 44rem);
+        padding: 0;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: cr-modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .cr-card-head {
+      @keyframes cr-modal-in {
+        from { opacity: 0; transform: translateY(0.6rem) scale(0.98); }
+        to { opacity: 1; transform: none; }
+      }
+      .cr-modal-head {
         display: flex; align-items: flex-start; gap: 0.65rem;
-        padding-bottom: 0.9rem; margin-bottom: 1rem;
+        padding: 1rem 1.15rem 0.9rem;
         border-bottom: 1px solid var(--gray-200);
+        flex-shrink: 0;
       }
-      .cr-card-head .cr-section-title { margin: 0; }
+      .cr-modal-head-text { flex: 1; min-width: 0; }
+      .cr-modal-head .cr-section-title { margin: 0; }
+      .cr-modal-head .cr-section-sub { margin-top: 0.15rem; }
+      .cr-modal-close {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 2rem; height: 2rem; flex-shrink: 0;
+        border: none; border-radius: 0.5rem;
+        background: transparent; color: var(--gray-500);
+        cursor: pointer; transition: background 0.15s, color 0.15s;
+      }
+      .cr-modal-close:hover:not(:disabled) { background: var(--gray-100); color: var(--gray-800); }
+      .cr-modal-close:disabled { opacity: 0.4; cursor: default; }
+      .cr-modal-body {
+        overflow-y: auto;
+        padding: 0.5rem 1.15rem 1.15rem;
+        overscroll-behavior: contain;
+      }
+      .cr-modal-foot {
+        flex-shrink: 0;
+        border-top: 1px solid var(--gray-200);
+        background: var(--surface);
+        padding: 0.8rem 1.15rem;
+        padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
+      }
+      .cr-modal-foot .cr-form-actions {
+        margin-top: 0; padding-top: 0; border-top: none;
+        justify-content: flex-end;
+      }
+      .cr-modal-foot .btn-primary { min-width: 9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; }
+      .cr-btn-spinner {
+        width: 0.9rem; height: 0.9rem; flex-shrink: 0;
+        border: 2px solid color-mix(in srgb, #fff 40%, transparent);
+        border-top-color: #fff; border-radius: 50%;
+        animation: cr-spin 0.7s linear infinite;
+      }
+      @keyframes cr-spin { to { transform: rotate(360deg); } }
+      /* Phones: the popup becomes a near full-screen sheet so date pickers
+         and the member search stay comfortably tappable. */
+      @media (max-width: 640px) {
+        .cr-term-modal {
+          width: 100%;
+          max-height: calc(100dvh - 2rem);
+          animation: cr-sheet-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cr-modal-head { padding: 0.9rem 1rem 0.8rem; }
+        .cr-modal-body { padding: 0.4rem 1rem 1rem; }
+        .cr-modal-foot { padding: 0.7rem 1rem; padding-bottom: max(0.7rem, env(safe-area-inset-bottom)); }
+        .cr-modal-foot .btn-primary { min-width: 0; }
+      }
+      @keyframes cr-sheet-in {
+        from { opacity: 0; transform: translateY(1.5rem); }
+        to { opacity: 1; transform: none; }
+      }
       .cr-card-icon {
         display: inline-flex; align-items: center; justify-content: center;
         width: 2.1rem; height: 2.1rem; border-radius: 0.6rem; flex-shrink: 0;

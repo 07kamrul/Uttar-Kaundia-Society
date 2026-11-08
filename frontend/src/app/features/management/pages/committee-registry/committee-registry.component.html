@@ -116,16 +116,26 @@
   @if (canManage() && termForm(); as form) {
     <div class="modal-backdrop" (click)="onTermBackdropClick($event)">
     <section class="card cr-card cr-term-modal" appDialog (dismiss)="closeTermForm()">
-      <header class="cr-card-head">
+      <header class="cr-modal-head">
         <span class="cr-card-icon"><app-icon name="id-card" [size]="18" /></span>
-        <div>
+        <div class="cr-modal-head-text">
           <h2 class="cr-section-title">
             {{ (form.editingTermId !== null ? 'committeeRegistry.editTermTitle' : 'committeeRegistry.createTermTitle') | translate }}
           </h2>
           <p class="cr-section-sub">{{ 'committeeRegistry.formSubtitle' | translate }}</p>
         </div>
+        <button
+          type="button"
+          class="cr-modal-close"
+          (click)="closeTermForm()"
+          [disabled]="saving()"
+          [attr.aria-label]="'common.close' | translate"
+        >
+          <app-icon name="x" [size]="18" />
+        </button>
       </header>
       <form (ngSubmit)="saveTerm()" #termNgForm="ngForm">
+        <div class="cr-modal-body">
         <p class="cr-group-label">{{ 'committeeRegistry.groupAssignment' | translate }}</p>
         <div class="cr-form-grid">
           <div class="field">
@@ -170,12 +180,22 @@
           <label for="cr-notes">{{ 'committeeRegistry.notes' | translate }}</label>
           <textarea id="cr-notes" class="field-control" rows="2" maxlength="2000" name="notes" [(ngModel)]="form.notes"></textarea>
         </div>
-        <div class="cr-form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeTermForm()">{{ 'common.cancel' | translate }}</button>
-          <button type="submit" class="btn btn-primary" [disabled]="termNgForm.invalid || !form.memberId.length || !form.termStart || saving()">
-            {{ (form.editingTermId !== null ? 'common.save' : 'committeeRegistry.createTerm') | translate }}
-          </button>
         </div>
+        <footer class="cr-modal-foot">
+          <div class="cr-form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeTermForm()" [disabled]="saving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button type="submit" class="btn btn-primary" [disabled]="termNgForm.invalid || !form.memberId.length || !form.termStart || saving()">
+              @if (saving()) {
+                <span class="cr-btn-spinner" aria-hidden="true"></span>
+                {{ 'common.saving' | translate }}
+              } @else {
+                {{ (form.editingTermId !== null ? 'common.save' : 'committeeRegistry.createTerm') | translate }}
+              }
+            </button>
+          </div>
+        </footer>
       </form>
     </section>
     </div>
