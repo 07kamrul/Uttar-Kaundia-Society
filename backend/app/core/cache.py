@@ -64,6 +64,7 @@ TABLE_DEPENDENCIES: dict[str, tuple[CacheName, ...]] = {
     "config_list_items": (CacheName.PUBLIC_LISTS, CacheName.FINANCE_SUMMARY),
     "members": (CacheName.PUBLIC_LISTS,),
     "feature_flags": (CacheName.PUBLIC_LISTS,),
+    "app_settings": (CacheName.PUBLIC_LISTS,),
     "roadmap_items": (CacheName.PUBLIC_LISTS,),
     "roadmap_timeframes": (CacheName.PUBLIC_LISTS,),
     "fee_settings": (CacheName.FEE_RATES,),
