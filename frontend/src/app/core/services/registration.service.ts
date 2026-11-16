@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { FeatureFlagService, type FeatureFlagKey } from './feature-flag.service';
 import { toAsciiDigits } from './digits.helper';
 import { toAccount } from './payment-accounts.service';
+import { isNewUpload, storedFilePath } from '../utils/stored-file';
 import type {
   FormDataModel,
   PropertyItem,
@@ -118,15 +119,27 @@ export class RegistrationService {
   // 'member_photo' file, plus a 'doc_files' list whose order matches each
   // property's applicable_docs flattened in property order.
   submit(formData: FormDataModel): Observable<SubmissionResult> {
+    return this.http.post<SubmissionResult>(
+      `${environment.apiBaseUrl}/submissions`,
+      this.buildMultipart(formData),
+    );
+  }
+
+  /**
+   * The multipart body shared by a new submission and an applicant's
+   * correction. Only new uploads (`data:` URLs) are sent as files; a kept
+   * server file (`stored:<path>`) travels as the slot's existing_file_path.
+   */
+  buildMultipart(formData: FormDataModel): FormData {
     const body = new FormData();
 
     body.append('payload', JSON.stringify(this.buildPayload(formData)));
 
-    if (formData.memberPhoto) {
+    if (isNewUpload(formData.memberPhoto)) {
       body.append('member_photo', dataUrlToBlob(formData.memberPhoto), 'photo.jpg');
     }
 
-    if (formData.receiptFileDataUrl) {
+    if (isNewUpload(formData.receiptFileDataUrl)) {
       body.append(
         'receipt_photo',
         dataUrlToBlob(formData.receiptFileDataUrl),
@@ -136,14 +149,13 @@ export class RegistrationService {
 
     for (const property of formData.properties) {
       for (const doc of property.applicableDocs) {
-        // Same filter as the payload's applicable_docs, so order stays aligned.
-        if (doc.fileDataUrl) {
+        // One file per document slot without a kept file, in payload order.
+        if (isNewUpload(doc.fileDataUrl)) {
           body.append('doc_files', dataUrlToBlob(doc.fileDataUrl), doc.fileName || 'document');
         }
       }
     }
-
-    return this.http.post<SubmissionResult>(`${environment.apiBaseUrl}/submissions`, body);
+    return body;
   }
 
   private isOn(key: FeatureFlagKey): boolean {
@@ -214,7 +226,10 @@ export class RegistrationService {
       my_share_quantity: ascii(property.myShareQuantity),
       ownership: property.ownership,
       joint_owner_count: property.ownership === 'যৌথ' ? property.jointOwnerCount : null,
-      applicable_docs: docs.map((doc) => ({ doc_type: doc.type })),
+      applicable_docs: docs.map((doc) => {
+        const kept = storedFilePath(doc.fileDataUrl);
+        return kept ? { doc_type: doc.type, existing_file_path: kept } : { doc_type: doc.type };
+      }),
     };
     if (this.isOn('reg_dag_unknown')) payload['dag_unknown'] = property.dagUnknown === true;
     return payload;

@@ -61,6 +61,38 @@ function setPath(root: Record<string, any>, path: string, value: string): void {
   if (parent) parent[last] = value;
 }
 
+/**
+ * Resizes the form's nested arrays (properties, their documents, nominees)
+ * to match a plain form value, so a following patchValue fills every row.
+ * Shared by draft restore and the applicant's "load my application".
+ */
+export function rebuildFormArrays(
+  form: FormGroup,
+  fb: FormBuilder,
+  value: Record<string, any>,
+): void {
+  const properties = propertiesArray(form);
+  const valueProperties = Array.isArray(value['properties']) ? value['properties'] : [];
+  properties.clear();
+  valueProperties.forEach((valueProperty: Record<string, any>) => {
+    const propertyGroup = buildPropertyGroup(fb);
+    const applicableDocs: FormArray = applicableDocsArray(propertyGroup);
+    const docs = Array.isArray(valueProperty['applicableDocs']) ? valueProperty['applicableDocs'] : [];
+    docs.forEach((doc: Record<string, any>) =>
+      applicableDocs.push(buildApplicableDocGroup(fb, doc['type'] ?? '')),
+    );
+    properties.push(propertyGroup);
+  });
+
+  const nominees = nomineesArray(form);
+  const valueNominees = Array.isArray(value['nominees']) ? value['nominees'] : [];
+  nominees.clear();
+  valueNominees.forEach(() => nominees.push(buildNomineeGroup(fb)));
+  if (nominees.length === 0) {
+    nominees.push(buildNomineeGroup(fb));
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class RegistrationDraftService {
   readonly lastSaved = signal<string | null>(null);
@@ -166,23 +198,7 @@ export class RegistrationDraftService {
     // payload — the live fee settings always win over any stored amount.
     for (const field of NON_RESTORABLE_FIELDS) delete value[field];
 
-    const properties = propertiesArray(form);
-    const draftProperties = Array.isArray(value['properties']) ? value['properties'] : [];
-    properties.clear();
-    draftProperties.forEach((draftProperty: Record<string, any>) => {
-      const propertyGroup = buildPropertyGroup(fb);
-      this.restorePropertyArrays(propertyGroup, fb, draftProperty);
-      properties.push(propertyGroup);
-    });
-
-    const nominees = nomineesArray(form);
-    const draftNominees = Array.isArray(value['nominees']) ? value['nominees'] : [];
-    nominees.clear();
-    draftNominees.forEach(() => nominees.push(buildNomineeGroup(fb)));
-    if (nominees.length === 0) {
-      nominees.push(buildNomineeGroup(fb));
-    }
-
+    rebuildFormArrays(form, fb, value);
     form.patchValue(value);
     this.lastSaved.set(draft.lastSaved);
   }
@@ -202,20 +218,6 @@ export class RegistrationDraftService {
     } catch {
       // Files are lost, text stays; the member re-attaches them.
     }
-  }
-
-  private restorePropertyArrays(
-    propertyGroup: FormGroup,
-    fb: FormBuilder,
-    draftProperty: Record<string, any>,
-  ): void {
-    const applicableDocs: FormArray = applicableDocsArray(propertyGroup);
-    const draftDocs = Array.isArray(draftProperty['applicableDocs'])
-      ? draftProperty['applicableDocs']
-      : [];
-    draftDocs.forEach((doc: Record<string, any>) =>
-      applicableDocs.push(buildApplicableDocGroup(fb, doc['type'] ?? '')),
-    );
   }
 
   clear(): void {

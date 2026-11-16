@@ -11,12 +11,16 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-TokenRole = Literal["super_admin", "executive_committee", "administrator", "member"]
+# "applicant": a rejected applicant with a limited login, used only to read
+# the rejection reason, correct the application and resubmit it.
+TokenRole = Literal["super_admin", "executive_committee", "administrator", "member", "applicant"]
 
 ADMIN_ROLES: tuple[TokenRole, ...] = ("super_admin", "executive_committee", "administrator")
 
 # Every role value a token may carry; the comparison set for the normalizer.
-CANONICAL_ROLES: tuple[str, ...] = ("super_admin", "executive_committee", "administrator", "member")
+CANONICAL_ROLES: tuple[str, ...] = (
+    "super_admin", "executive_committee", "administrator", "member", "applicant"
+)
 
 
 def normalize_token_role(role: object) -> str:

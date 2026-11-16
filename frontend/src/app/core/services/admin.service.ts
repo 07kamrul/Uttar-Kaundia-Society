@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, type Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {
+  toApplicationReview,
+  type ApplicationReview,
+  type ApplicationReviewApi,
+  type CorrectionField,
+} from '../models/application-review.model';
 import type {
   AuditLogEntry,
   ConfigListItem,
@@ -114,12 +120,34 @@ export class AdminService {
     return this.http.post<{ member_id: string }>(`${this.base}/submissions/${id}/approve`, {});
   }
 
-  rejectSubmission(id: string, reason: string): Observable<RejectResult> {
+  rejectSubmission(
+    id: string,
+    reason: string,
+    correctionFields: readonly CorrectionField[] = [],
+  ): Observable<RejectResult> {
     return this.http
       .post<{ status: string; email_sent: boolean }>(`${this.base}/submissions/${id}/reject`, {
         reason,
+        correction_fields: correctionFields,
       })
       .pipe(map((res) => ({ emailSent: res.email_sent })));
+  }
+
+  /** Rotate a rejected applicant's temporary password and e-mail the login again. */
+  resendApplicantLogin(id: string): Observable<RejectResult> {
+    return this.http
+      .post<{ status: string; email_sent: boolean }>(
+        `${this.base}/submissions/${id}/resend-credentials`,
+        {},
+      )
+      .pipe(map((res) => ({ emailSent: res.email_sent })));
+  }
+
+  /** Every review round of an application, oldest first. */
+  getReviewHistory(id: string): Observable<ApplicationReview[]> {
+    return this.http
+      .get<{ reviews: ApplicationReviewApi[] }>(`${this.base}/submissions/${id}/reviews`)
+      .pipe(map((res) => res.reviews.map(toApplicationReview)));
   }
 
   resendRejectionNotification(id: string): Observable<RejectResult> {

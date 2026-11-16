@@ -21,6 +21,7 @@ from app.core.security import ADMIN_ROLES, normalize_token_role
 _SHARED_TOP_DIRS = frozenset({"photos", "finance_receipts", "cost_receipts"})
 _OWNER_DIRS_MEMBER_PREFIX = frozenset({"documents", "receipts", "installment_payments"})
 _OWNER_DIRS_BARE_ID = frozenset({"complaints"})
+_APPLICANT_DIRS = frozenset({"photos", "documents", "receipts"})
 
 
 def _member_id(payload: dict[str, Any]) -> int | None:
@@ -38,10 +39,18 @@ def can_access_upload(path: str, payload: dict[str, Any]) -> bool:
     role = normalize_token_role(payload.get("role"))
     if role in ADMIN_ROLES:
         return True
+    top, owner_dir = parts[0], parts[1]
+    if role == "applicant":
+        # Applicants see only their own application files.
+        applicant_id = _member_id(payload)
+        return (
+            applicant_id is not None
+            and top in _APPLICANT_DIRS
+            and owner_dir == f"member_{applicant_id}"
+        )
     if role != "member":
         return False
 
-    top, owner_dir = parts[0], parts[1]
     if top in _SHARED_TOP_DIRS:
         return True
 

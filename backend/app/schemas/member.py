@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.member import MemberStatus
+from app.services.applicant_access import CORRECTION_FIELDS
 from app.schemas.installment import InstallmentOut
 from app.schemas.picnic_payment import PicnicPaymentOut
 from app.schemas.common import ApplicableDocIn, CoOwner, Nominee, PropertyIn, validate_phone
@@ -119,6 +120,7 @@ class MemberSummary(BaseModel):
     member_class: str | None = None
     due_installments: int = 0
     needs_dag: bool = False
+    resubmission_count: int = 0
 
 
 class MemberDetail(MemberSummary):
@@ -155,6 +157,7 @@ class MemberDetail(MemberSummary):
     subscription: str
     receipt_no: str
     payment_method: str
+    payment_account_id: int | None = None
     # Masked name of the admin-managed account the applicant says they paid into.
     payment_account_snapshot: str | None = None
     member_signature: str | None = None
@@ -165,13 +168,40 @@ class MemberDetail(MemberSummary):
     reviewed_at: datetime | None = None
     rejection_reason: str | None = None
     notification_status: str | None = None
+    resubmitted_at: datetime | None = None
     properties: list[PropertyOut] = []
     nominees: list[NomineeOut] = []
 
 
+class ApplicationReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    round: int
+    decision: str
+    reason: str | None = None
+    correction_fields: list[str] = []
+    created_at: datetime
+
+
+class ApplicationReviewHistory(BaseModel):
+    reviews: list[ApplicationReviewOut]
+
+
 class RejectRequest(BaseModel):
     # The reason is emailed to the applicant, so a blank one is never valid.
-    reason: str = Field(min_length=1)
+    reason: str = Field(min_length=1, max_length=2000)
+    # Form sections the applicant must correct (see CORRECTION_FIELDS).
+    correction_fields: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("correction_fields")
+    @classmethod
+    def _known_fields(cls, value: list[str]) -> list[str]:
+        unknown = sorted(set(value) - set(CORRECTION_FIELDS))
+        if unknown:
+            raise ValueError(f"unknown correction fields: {', '.join(unknown)}")
+        # Keep the canonical order, drop duplicates.
+        return [field for field in CORRECTION_FIELDS if field in value]
 
     @field_validator("reason")
     @classmethod

@@ -52,6 +52,7 @@ from app.api.routes import (
     roadmap,
     society_costs,
     submissions,
+    applicant,
 )
 from app.core.config import get_settings
 from app.core.timing import TimingMiddleware, install_query_listeners
@@ -163,6 +164,7 @@ async def _validation_issue_handler(request: Request, exc: ValidationIssue) -> J
 
 api_router_prefix = "/api"
 app.include_router(submissions.router, prefix=api_router_prefix)
+app.include_router(applicant.router, prefix=api_router_prefix)
 app.include_router(auth.router, prefix=api_router_prefix)
 app.include_router(admin.router, prefix=api_router_prefix)
 app.include_router(admin_today.router, prefix=api_router_prefix)

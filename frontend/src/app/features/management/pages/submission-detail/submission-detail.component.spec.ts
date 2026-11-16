@@ -79,7 +79,10 @@ describe('SubmissionDetailComponent (OnPush + memoized derived values)', () => {
           useValue: { snapshot: { paramMap: new Map([['id', '1']]) } },
         },
         { provide: Router, useValue: { navigate: vi.fn() } },
-        { provide: AdminService, useValue: { getSubmission: () => of(submission) } },
+        {
+          provide: AdminService,
+          useValue: { getSubmission: () => of(submission), getReviewHistory: () => of([]) },
+        },
         {
           provide: AttachmentService,
           useValue: { load: attachmentLoad, download: attachmentDownload },
@@ -243,7 +246,10 @@ describe('SubmissionDetailComponent review mode (pending queue)', () => {
         { provide: Router, useValue: { navigate: vi.fn() } },
         {
           provide: AdminService,
-          useValue: { getSubmission: () => of({ ...submission, status }) },
+          useValue: {
+            getSubmission: () => of({ ...submission, status }),
+            getReviewHistory: () => of([]),
+          },
         },
         { provide: AttachmentService, useValue: { load: attachmentLoad, download: attachmentDownload } },
       ],

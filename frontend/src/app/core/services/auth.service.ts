@@ -8,7 +8,19 @@ import { MediaTokenService } from './media-token.service';
 import { LandDataService } from './land-data.service';
 import { clearHttpCache } from '../interceptors/cache.interceptor';
 
-export type UserRole = 'super_admin' | 'executive_committee' | 'administrator' | 'member';
+export type UserRole =
+  | 'super_admin'
+  | 'executive_committee'
+  | 'administrator'
+  | 'member'
+  | 'applicant';
+
+/**
+ * Rejected applicant's limited area: their application, corrections and
+ * password only. Every other authenticated route redirects here.
+ */
+export const APPLICANT_HOME = '/application';
+export const APPLICANT_CHANGE_PASSWORD = '/application/change-password';
 
 export type LandingTier = 'super_admin' | 'management' | 'member';
 
@@ -130,6 +142,15 @@ export class AuthService {
 
   hasAnyPermission(permissionKeys: string[]): boolean {
     return permissionKeys.some((key) => this.hasPermission(key));
+  }
+
+  get isApplicant(): boolean {
+    return this.roleValue() === 'applicant';
+  }
+
+  /** Where to land right after sign-in or a password change. */
+  homeUrl(): string {
+    return this.isApplicant ? APPLICANT_HOME : '/dashboard';
   }
 
   canPayAsMember(): boolean {

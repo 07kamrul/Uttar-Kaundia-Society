@@ -149,7 +149,7 @@ export class ChangePasswordComponent {
         this.success = true;
         this.auth.markPasswordChanged(tokens);
         this.form.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        setTimeout(() => this.router.navigate(['/dashboard']), REDIRECT_DELAY_MS);
+        setTimeout(() => this.router.navigateByUrl(this.auth.homeUrl()), REDIRECT_DELAY_MS);
         this.cdr.markForCheck();
       },
       error: (err: unknown) => {

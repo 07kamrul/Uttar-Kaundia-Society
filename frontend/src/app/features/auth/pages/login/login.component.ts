@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PasswordFieldComponent } from '../../../../shared/password-field/password-field.component';
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService, APPLICANT_CHANGE_PASSWORD, APPLICANT_HOME } from '../../../../core/services/auth.service';
 import { FeatureFlagService } from '../../../../core/services/feature-flag.service';
 import { errorCodeOf } from '../../../../core/errors/user-error';
 
@@ -87,7 +87,12 @@ export class LoginComponent {
       next: (res) => {
         this.submitting = false;
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        if (res.must_change_password) {
+        if (res.role === 'applicant') {
+          // Applicants only ever see their own application area.
+          this.router.navigate([
+            res.must_change_password ? APPLICANT_CHANGE_PASSWORD : APPLICANT_HOME,
+          ]);
+        } else if (res.must_change_password) {
           this.router.navigate(['/change-password']);
         } else if (returnUrl) {
           this.router.navigateByUrl(returnUrl);

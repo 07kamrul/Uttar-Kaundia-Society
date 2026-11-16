@@ -7,6 +7,7 @@ from app.models.installment import Installment, InstallmentStatus
 from app.models.rbac import Permission, Role, UserPermissionOverride, role_permissions
 from app.models.fee_settings import FeeSetting, FeeType
 from app.models.audit_log import AuditLog
+from app.models.application_review import ApplicationReview
 from app.models.config_list_item import ConfigListItem
 from app.models.feature_flag import FeatureFlag
 from app.models.phone_fix import PhoneFixQueue

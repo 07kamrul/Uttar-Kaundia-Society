@@ -11,7 +11,7 @@ from app.core.feature_flags import is_enabled
 from app.core.password_policy import check_new_password
 from app.core.rate_limit import SlidingWindowRateLimiter
 from app.core.permissions import ROLE_DEFAULT_PERMISSIONS, get_effective_permissions
-from app.core.deps import AccountActor, get_account_actor
+from app.core.deps import MediaSubject, get_media_subject
 from app.core.security import (
     MEDIA_TOKEN_EXPIRE_MINUTES,
     create_access_token,
@@ -37,6 +37,11 @@ from app.schemas.auth import (
 )
 from app.services import login_identity
 from app.services.audit import record_audit
+from app.services.applicant_access import (
+    APPLICANT_PERMISSIONS,
+    can_reset_password,
+    token_role_for,
+)
 from app.services.email import send_email
 
 router = APIRouter(tags=["auth"])
@@ -84,13 +89,22 @@ async def _admin_token_response(db: AsyncSession, admin: AdminUser) -> TokenResp
     )
 
 
-def _member_token_response(credential: MemberCredential) -> TokenResponse:
+async def _member_token_response(db: AsyncSession, credential: MemberCredential) -> TokenResponse:
+    """Full member session once a member ID exists; before that (a rejected or
+    resubmitted applicant) only the limited applicant session."""
+    row = (
+        await db.execute(
+            select(Member.member_id, Member.status).where(Member.id == credential.member_id)
+        )
+    ).first()
+    role = token_role_for(row.member_id, row.status) if row else "member"
+    permissions = MEMBER_PERMISSIONS if role == "member" else APPLICANT_PERMISSIONS
     return TokenResponse(
-        access_token=create_access_token(str(credential.member_id), "member", credential.token_version),
-        refresh_token=create_refresh_token(str(credential.member_id), "member", credential.token_version),
+        access_token=create_access_token(str(credential.member_id), role, credential.token_version),
+        refresh_token=create_refresh_token(str(credential.member_id), role, credential.token_version),
         must_change_password=credential.must_change_password,
-        role="member",
-        permissions=MEMBER_PERMISSIONS,
+        role=role,
+        permissions=permissions,
     )
 
 
@@ -129,7 +143,7 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> To
         # failed attempt: the password was right.
         raise _ambiguous_identifier(identity)
     if len(candidates) == 1 and matches:
-        return _member_token_response(matches[0])
+        return await _member_token_response(db, matches[0])
 
     raise _invalid_credentials(identity.key)
 
@@ -157,7 +171,7 @@ async def member_login(payload: MemberLoginRequest, db: AsyncSession = Depends(g
     if credential is None or not await verify_password_async(payload.password, credential.password_hash):
         raise _invalid_credentials(username)
 
-    return _member_token_response(credential)
+    return await _member_token_response(db, credential)
 
 
 RESET_TOKEN_TTL_MINUTES = 30
@@ -220,11 +234,10 @@ def _reset_email_body(identifier: str, reset_url: str) -> str:
 
 
 @router.get("/media-token", response_model=MediaTokenResponse)
-async def media_token(actor: AccountActor = Depends(get_account_actor)) -> MediaTokenResponse:
+async def media_token(subject: MediaSubject = Depends(get_media_subject)) -> MediaTokenResponse:
     """Issue a short-lived token for loading /uploads files in <img>/<a> tags."""
-    account_id = actor.member.id if actor.member is not None else actor.admin.id
     return MediaTokenResponse(
-        media_token=create_media_token(str(account_id), actor.role),
+        media_token=create_media_token(str(subject.account_id), subject.role),
         expires_in=MEDIA_TOKEN_EXPIRE_MINUTES * 60,
     )
 
@@ -260,22 +273,25 @@ async def forgot_password(
         if credential is None:
             # Also allow the registered email address, which is the identifier
             # members are most likely to remember if they lost their member ID.
-            member = (
-                await db.execute(select(Member).where(Member.email == identifier))
-            ).scalar_one_or_none()
-            if member is not None:
-                credential = (
-                    await db.execute(
-                        select(MemberCredential).where(MemberCredential.member_id == member.id)
-                    )
-                ).scalar_one_or_none()
+            # Only rows that hold a login count: an old rejected application
+            # may share the email, and an ambiguous match resets nothing.
+            rows = (
+                await db.execute(
+                    select(Member, MemberCredential)
+                    .join(MemberCredential, MemberCredential.member_id == Member.id)
+                    .where(Member.email == identifier)
+                    .limit(2)
+                )
+            ).all()
+            if len(rows) == 1:
+                member, credential = rows[0]
         elif credential is not None:
             member = (
                 await db.execute(select(Member).where(Member.id == credential.member_id))
             ).scalar_one_or_none()
-        if credential is None or member is None or member.status != "approved":
-            # Pending/rejected members have no login to reset, so treat them
-            # the same as an unknown identifier.
+        if credential is None or member is None or not can_reset_password(member):
+            # Members without a usable login are treated the same as an
+            # unknown identifier.
             user_type, member_id, admin_id, to_email = None, None, None, None
         else:
             user_type, member_id, admin_id, to_email = "member", member.id, None, member.email

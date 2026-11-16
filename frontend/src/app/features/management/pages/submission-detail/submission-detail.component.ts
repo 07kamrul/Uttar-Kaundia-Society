@@ -36,12 +36,15 @@ import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
 
 import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
+import { CorrectionFieldsPickerComponent } from '../../../../shared/application-review/correction-fields-picker.component';
+import type { CorrectionField } from '../../../../core/models/application-review.model';
+import { ApplicationHistoryPanelComponent } from './application-history-panel.component';
 
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DialogDirective, FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent],
+  imports: [DialogDirective, FormsModule, ConfirmModalComponent, TranslatePipe, IconComponent, DatePipe, SectionLoaderComponent, PhoneLinkComponent, ReasonPickerComponent, CorrectionFieldsPickerComponent, ApplicationHistoryPanelComponent],
   templateUrl: './submission-detail.component.html',
 })
 export class SubmissionDetailComponent implements OnInit, OnDestroy {
@@ -53,6 +56,8 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   error = '';
   actionError = '';
   rejectReason = '';
+  /** Sections the applicant must correct, sent with the rejection. */
+  correctionFields: CorrectionField[] = [];
   showApproveModal = false;
   showRejectModal = false;
   rejecting = false;
@@ -752,7 +757,7 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     if (this.rejecting) return;
     this.actionError = '';
     this.rejecting = true;
-    this.adminService.rejectSubmission(this.submission.id, reason).subscribe({
+    this.adminService.rejectSubmission(this.submission.id, reason, this.correctionFields).subscribe({
       next: ({ emailSent }) => {
         this.rejecting = false;
         if (emailSent) {

@@ -56,6 +56,11 @@
               <td class="cell-person" [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">
                 <span class="person"><span class="person-avatar" aria-hidden="true">{{ s.fullName.charAt(0) }}</span>
                 <span class="person-name">{{ s.fullName }}</span>
+                @if (s.resubmissionCount) {
+                  <span class="status-badge status-pending" data-testid="resubmitted-badge">
+                    {{ 'application.admin.resubmittedTimes' | translate: { n: s.resubmissionCount } }}
+                  </span>
+                }
                 @if (s.needsDag) {
                   <span class="status-badge status-pending" data-testid="needs-dag-badge">
                     {{ 'admin.submissionsList.needsDag' | translate }}

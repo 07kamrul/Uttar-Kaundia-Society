@@ -45,7 +45,7 @@ describe('AdminService route coverage', () => {
     let rejected: unknown;
     service.rejectSubmission('5', 'bad docs').subscribe((r) => (rejected = r));
     const rejectReq = http.expectOne((r) => r.url.endsWith('/admin/submissions/5/reject'));
-    expect(rejectReq.request.body).toEqual({ reason: 'bad docs' });
+    expect(rejectReq.request.body).toEqual({ reason: 'bad docs', correction_fields: [] });
     rejectReq.flush({ status: 'rejected', email_sent: true });
     expect(rejected).toEqual({ emailSent: true }); // RejectResult is emailSent-only
 

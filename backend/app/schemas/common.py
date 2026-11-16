@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.services.normalization import normalize_mobile
 
@@ -68,6 +68,9 @@ class CoOwner(BaseModel):
 
 class ApplicableDocIn(BaseModel):
     doc_type: str
+    # Applicant correction only: keep this already-uploaded file (must be one
+    # of the applicant's own stored documents) instead of uploading a new one.
+    existing_file_path: str | None = Field(default=None, max_length=500)
 
 
 class PropertyIn(BaseModel):

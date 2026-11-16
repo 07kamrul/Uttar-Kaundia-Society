@@ -1002,3 +1002,13 @@ a {
   padding: 0.75rem 2rem;
 }
 
+
+/* Applicant correction: steps holding a section the reviewer flagged. */
+.stepper-item.needs-fix .stepper-circle {
+  border-color: var(--red-600);
+  box-shadow: 0 0 0 3px var(--red-50);
+}
+.stepper-item.needs-fix .stepper-label {
+  color: var(--red-700);
+  font-weight: 600;
+}

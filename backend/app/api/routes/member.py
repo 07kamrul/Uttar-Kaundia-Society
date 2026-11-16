@@ -21,10 +21,12 @@ from sqlalchemy.orm import selectinload
 from app.core.deps import (
     AccountActor,
     get_account_actor,
+    get_current_credential_holder,
     get_current_member,
     get_current_member_detail,
 )
 from app.core.feature_flags import is_enabled
+from app.services.applicant_access import token_role_for
 from app.core.password_policy import check_new_password
 from app.core.security import (
     ADMIN_ROLES,
@@ -286,7 +288,7 @@ async def upload_my_photo(
 @router.post("/change-password", response_model=ChangePasswordResponse)
 async def change_password(
     payload: ChangePasswordRequest,
-    member: Member = Depends(get_current_member),
+    member: Member = Depends(get_current_credential_holder),
     db: AsyncSession = Depends(get_db),
 ) -> ChangePasswordResponse:
     result = await db.execute(
@@ -325,9 +327,11 @@ async def change_password(
     credential.token_version += 1
     await db.commit()
     version = credential.token_version
+    # Applicants (no member ID yet) keep their limited session role.
+    role = token_role_for(member.member_id, member.status)
     return ChangePasswordResponse(
-        access_token=create_access_token(str(member.id), "member", version),
-        refresh_token=create_refresh_token(str(member.id), "member", version),
+        access_token=create_access_token(str(member.id), role, version),
+        refresh_token=create_refresh_token(str(member.id), role, version),
     )
 
 # --- Property change requests ----------------------------------------------

@@ -53,6 +53,7 @@ function submission(over: Partial<SubmissionDetail> = {}): SubmissionDetail {
 describe('SubmissionDetailComponent: dag and photo', () => {
   const admin = {
     getSubmission: vi.fn(),
+    getReviewHistory: vi.fn(() => of([])),
     fillDag: vi.fn(),
     uploadPhoto: vi.fn(),
     approveSubmission: vi.fn(),

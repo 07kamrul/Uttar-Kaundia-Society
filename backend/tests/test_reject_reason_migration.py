@@ -60,7 +60,7 @@ def _rows(engine) -> list[tuple[str, str, str, int, int]]:
 
 def test_chained_after_app_settings_and_is_the_single_head() -> None:
     assert _load().down_revision == "e3a7c1b5d9f2"
-    assert ScriptDirectory(str(VERSIONS.parent)).get_heads() == ["b9d3f7a2c4e6"]
+    assert ScriptDirectory(str(VERSIONS.parent)).get_heads() == ["c1d2e3f4a5b6"]
 
 
 def test_upgrade_seeds_every_reason_in_order_and_active() -> None:
