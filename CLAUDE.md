@@ -20,9 +20,9 @@ conventions live in `AGENTS.md` (single source of truth, shared with every AI to
 
 ## Directory notes
 
-- `backend/` — FastAPI app. See `backend/CLAUDE.md`.
+- `backend/` — FastAPI app. Rules in the "Per-Area Layout & Conventions" section of `AGENTS.md`.
 - `frontend/` — Angular 22 member/admin web app (source of truth for behavior & design).
-- `mobile/` — Flutter port of the Angular app. See `mobile/CLAUDE.md`.
+- `mobile/` — Flutter port of the Angular app. Rules in `AGENTS.md` plus `mobile/CONVENTIONS.md`.
 - `web/` — legacy/scratch Angular workspace (hr/operations); do not extend without asking.
 - Root `README.md` documents the LEGACY Google-Sheets prototype flow — superseded by the
   FastAPI/Angular app; see `docs/BUSINESS.md` for current business logic.

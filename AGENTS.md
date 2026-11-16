@@ -59,6 +59,78 @@ flutter analyze   # must be clean
 flutter test      # must be green
 ```
 
+## Per-Area Layout & Conventions
+
+This is the only rules file in the repository — there are no per-directory
+`AGENTS.md` / `CLAUDE.md` files. All areas are covered here.
+
+### Backend (`backend/`) — FastAPI
+
+Layout:
+
+- `app/main.py` — FastAPI app (GZip middleware, routers, startup).
+- `app/api/routes/` — route modules; `app/services/` — business logic;
+  `app/models/` — SQLAlchemy models; `app/schemas/` — Pydantic schemas.
+- `app/core/cache.py` — in-process TTL caches. Any route reading a cached name must
+  have its read paths covered by `TABLE_DEPENDENCIES` or users see stale data.
+- `alembic/versions/` — migrations (write-only for AI agents).
+- `tests/` — pytest, mirrors route files. `pytest.ini`: `asyncio_mode = auto`.
+
+Conventions:
+
+- Async SQLAlchemy 2.x style; routes in `app/api/routes/`, services in
+  `app/services/`, Pydantic schemas in `app/schemas/`. Follow existing patterns in
+  the area you touch; tests mirror route files in `backend/tests/`.
+- SQLite (`sqlite+aiosqlite:///./dev.db`) is fine for local dev/tests, PostgreSQL
+  in production.
+- JWT auth (access + refresh); passwords bcrypt. File uploads under `uploads/`.
+- FORBIDDEN ACTIONS apply doubly here (especially: never run alembic/DB commands —
+  generating migration files is fine).
+
+### Frontend (`frontend/`) — Angular 22
+
+Layout:
+
+- `src/app/features/<area>/` — feature-first: pages/components per area
+  (`auth`, `home`, `dashboard`, `member`, `management`, `public-registration`,
+  `public-pages`, `public-shell`).
+- `src/app/core/` — services, guards (`auth`, `permission`, `role`), interceptors,
+  models, routing.
+- `public/i18n/{bn,en}.json` — translations. Never hard-code user-visible strings.
+- `src/styles.scss` — global styles / theme.
+
+Conventions:
+
+- Standalone components (no NgModules).
+- Permission checks go through the core guards/rbac service, not ad-hoc role strings.
+- Browser GET cache: `src/app/core/interceptors/cache.interceptor.ts` (60s, cleared on
+  writes/logout) — new write endpoints clear it; don't bypass it for authenticated GETs.
+- Behavior changes to registration/payments/admin flows: read the matching
+  `docs/batch*-contract.md` first.
+- This app is the **source of truth** for behavior and design; the Flutter app in
+  `mobile/` ports from it.
+
+### Mobile (`mobile/`) — Flutter port of the Angular frontend
+
+Read `mobile/CONVENTIONS.md` before writing any feature code.
+`mobile/ANGULAR_SOURCE_OF_TRUTH.md` maps each screen to its Angular source — port
+behavior, fields, validation and states from there; do not change backend contracts.
+
+Layout:
+
+- `lib/core/` — config, `ApiClient` (dio) + error mapping, auth/session + permissions,
+  router guards, theme, nav config, DI (`get_it`, `sl<T>()`).
+- `lib/shared/` — design-system widgets ported from Angular primitives; file utils.
+- `lib/features/<area>/{data,domain,presentation}/` — DTOs/mappers → BLoC → pages.
+
+Hard rules (from CONVENTIONS.md):
+
+- No API calls or business logic in widgets — widgets read state, dispatch events.
+- Enums for string variants (`lib/core/enums/enums.dart`); never scatter raw status strings.
+- Hand-written mappers (`toEntity()` / `toDto()` extensions); `json_serializable` for DTOs only.
+- All user-visible strings in BOTH `lib/l10n/app_bn.arb` (template) and `app_en.arb`,
+  then run `flutter gen-l10n`. Bangla default.
+
 ## Code Style & Conventions
 
 - **Python (backend)**: async SQLAlchemy 2.x style, routes in `app/api/routes/`,
@@ -93,9 +165,9 @@ flutter test      # must be green
 
 ## Rules Compliance
 
-If your tool supports nested `AGENTS.md`, prefer `backend/AGENTS.md`,
-`frontend/AGENTS.md`, or `mobile/AGENTS.md` (closest file wins) when working inside
-those directories.
+This root `AGENTS.md` (imported by root `CLAUDE.md`) is the only AI rules file in
+the repository. There are no nested per-directory rules files; everything applies
+from here.
 
 <!-- BEGIN:ai-rules -->
 <!-- GENERATED from docs/AI_RULES.md by scripts/ai/sync_rules.sh. Do not edit here. -->
