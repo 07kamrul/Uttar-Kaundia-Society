@@ -140,8 +140,23 @@ def _ensure_pending(payment: CostSharePayment) -> None:
         raise PaymentConflict("This payment has already been reviewed.", code="ALREADY_REVIEWED")
 
 
+async def _lock_payment(db: AsyncSession, payment: CostSharePayment) -> None:
+    """Lock the payment row and refresh its in-memory state from the database."""
+    await db.execute(
+        select(CostSharePayment)
+        .where(CostSharePayment.id == payment.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+
+
 async def approve_payment(db: AsyncSession, payment: CostSharePayment, admin_id: int) -> CostSplitShare:
-    """Add the amount to the share and mark the payment approved. Caller commits."""
+    """Add the amount to the share and mark the payment approved. Caller commits.
+
+    The payment row is re-read under a row lock before the pending check so two
+    concurrent approvals cannot both see "pending" and credit the share twice.
+    """
+    await _lock_payment(db, payment)
     _ensure_pending(payment)
     share = (
         await db.execute(

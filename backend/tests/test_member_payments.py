@@ -376,6 +376,29 @@ async def test_admin_approve_updates_share_audits_and_counts(client: AsyncClient
     assert share.status == "paid" and share.amount_paid == Decimal("1000")
 
 
+async def test_approve_with_stale_payment_does_not_double_credit(
+    client: AsyncClient, db_session, admin_user
+) -> None:
+    from app.models.cost_share_payment import CostSharePayment
+    from app.services.cost_share_payment import approve_payment
+    from app.services.installment_payment import PaymentConflict
+
+    # Arrange: this session holds a "pending" copy of the payment (as a racing request would).
+    _, share, pid = await _submitted(client, db_session)
+    stale = await db_session.get(CostSharePayment, pid)
+    assert stale.status == "pending"
+    headers = await _admin_headers_login(client)
+    r = await client.post(f"/api/admin/cost-share-payments/{pid}/approve", headers=headers)
+    assert r.status_code == 200, r.text
+
+    # Act / Assert: approving the stale copy must be refused, not credit again.
+    with pytest.raises(PaymentConflict):
+        await approve_payment(db_session, stale, admin_id=admin_user.id)
+    await db_session.rollback()
+    await db_session.refresh(share)
+    assert share.amount_paid == Decimal("500")
+
+
 async def test_admin_reject_keeps_share_and_frees_reference(client: AsyncClient, db_session, admin_user) -> None:
     member, share, pid = await _submitted(client, db_session)
     headers = await _admin_headers_login(client)
