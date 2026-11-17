@@ -475,7 +475,10 @@ export class MemberService {
             my_share_quantity: form.payload.myShareQuantity,
             ownership: form.payload.ownership,
             joint_owner_count: form.payload.jointOwnerCount,
-            docs: form.payload.docs,
+            docs: form.payload.docs.map((d) => ({
+              doc_type: d.docType,
+              keep_path: d.keepPath,
+            })),
           };
     body.append('payload', JSON.stringify(payloadBody));
     for (const file of form.newDocFiles) {

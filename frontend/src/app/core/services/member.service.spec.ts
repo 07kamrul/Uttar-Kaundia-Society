@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MemberService, type MemberProfile } from './member.service';
@@ -148,5 +149,60 @@ describe('MemberService neighbour directory and profile preference', () => {
     const req = http.expectOne((r) => r.url.endsWith('/member/profile'));
     expect(req.request.body).toEqual({ show_in_neighbour_directory: false });
     req.flush({ ...API_PROFILE, show_in_neighbour_directory: false });
+  });
+});
+
+describe('MemberService.createPropertyRequest payload', () => {
+  it('sends doc entries in snake_case (doc_type/keep_path) to match the backend schema', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const service = TestBed.inject(MemberService);
+    const file = new File(['pdf'], 'khajna.pdf', { type: 'application/pdf' });
+
+    const result = firstValueFrom(
+      service.createPropertyRequest({
+        action: 'edit',
+        propertyId: 4,
+        payload: {
+          propertyType: ['জমি'],
+          propertyTypeOther: null,
+          khatianNo: '2025-100801',
+          dagNoCs: '2214',
+          dagNoRs: '830',
+          holdingNumber: '2025-100801',
+          landQuantity: '9',
+          myShareQuantity: '1',
+          ownership: 'single',
+          jointOwnerCount: null,
+          docs: [
+            { docType: 'খাজনা/কর রশিদ', keepPath: 'documents/member_4/kept.pdf' },
+            { docType: 'খাজনা/কর রশিদ', keepPath: null },
+          ],
+        },
+        newDocFiles: [file],
+      }),
+    );
+
+    const req = http.expectOne((r) => r.url.endsWith('/member/property-requests'));
+    expect(req.request.method).toBe('POST');
+    const body = req.request.body as FormData;
+    const payload = JSON.parse(body.get('payload') as string);
+    expect(payload.docs).toEqual([
+      { doc_type: 'খাজনা/কর রশিদ', keep_path: 'documents/member_4/kept.pdf' },
+      { doc_type: 'খাজনা/কর রশিদ', keep_path: null },
+    ]);
+    expect(body.get('action')).toBe('edit');
+    expect(body.get('property_id')).toBe('4');
+    expect(body.getAll('doc_files')).toEqual([file]);
+    req.flush({
+      id: 1, action: 'edit', property_id: 4, payload, status: 'pending',
+      cancel_reason: null, reviewed_at: null, created_at: '2026-11-17T00:00:00',
+    });
+
+    const mapped = await result;
+    expect(mapped.status).toBe('pending');
+    expect(mapped.payload.docs[0]).toEqual({ docType: 'খাজনা/কর রশিদ', keepPath: 'documents/member_4/kept.pdf' });
   });
 });

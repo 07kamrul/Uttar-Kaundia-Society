@@ -26,6 +26,11 @@ $idcard-ink-soft: #4b5563;
   box-shadow: 0 24px 60px -18px rgba(15, 23, 42, 0.45);
   width: 100%;
   max-width: 60rem;
+  // Keep the whole dialog inside the viewport: header pinned, body scrolls.
+  max-height: calc(100dvh - 4.4rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   animation: idcard-in 0.16s ease;
 }
 
@@ -46,6 +51,7 @@ $idcard-ink-soft: #4b5563;
   justify-content: space-between;
   padding: 1.1rem 1.4rem 0.9rem;
   border-bottom: 1px solid var(--gray-200);
+  flex-shrink: 0;
 }
 
 .idcard-title {
@@ -66,6 +72,7 @@ $idcard-ink-soft: #4b5563;
   background: var(--surface);
   color: var(--gray-600);
   cursor: pointer;
+  flex-shrink: 0;
 
   &:hover {
     background: var(--gray-50);
@@ -75,6 +82,9 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-modal-body {
   padding: 1.2rem 1.4rem 1.4rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .idcard-state {
@@ -92,7 +102,9 @@ $idcard-ink-soft: #4b5563;
   padding-top: 0.75rem;
 }
 
+// Size container so the cards can scale their contents proportionally.
 .idcard-cards {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -100,12 +112,15 @@ $idcard-ink-soft: #4b5563;
 }
 
 // ---- The card (CR80 landscape, bank-card proportions) ----------------------
-
+// All inner sizes are in em so the whole card shrinks as one piece on narrow
+// screens (like a smaller printed card) instead of clipping its contents.
 .idcard {
   width: 30rem;
   max-width: 100%;
+  // 1em = 16px at the card's full 30rem width; scales down with the container.
+  font-size: min(1rem, calc(100cqi / 30));
   aspect-ratio: 1010 / 640;
-  border-radius: 0.75rem;
+  border-radius: 0.75em;
   background: #ffffff;
   color: $idcard-ink;
   border: 1px solid rgba(18, 39, 24, 0.18);
@@ -120,12 +135,12 @@ $idcard-ink-soft: #4b5563;
 .idcard-head {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.9rem;
+  gap: 0.65em;
+  padding: 0.55em 0.9em;
   background: linear-gradient(120deg, $idcard-green-900, $idcard-green-700);
-  border-bottom: 3px solid $idcard-gold;
+  border-bottom: 0.1875em solid $idcard-gold;
   color: $idcard-cream;
-  min-height: 3.2rem;
+  min-height: 3.2em;
 }
 
 .idcard-head-back {
@@ -133,8 +148,8 @@ $idcard-ink-soft: #4b5563;
 }
 
 .idcard-logo {
-  width: 2.3rem;
-  height: 2.3rem;
+  width: 2.3em;
+  height: 2.3em;
   border-radius: 999px;
   background: $idcard-cream;
   overflow: hidden;
@@ -156,7 +171,7 @@ $idcard-ink-soft: #4b5563;
 .idcard-society {
   margin: 0;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.92em;
   line-height: 1.2;
   font-family: var(--font-heading);
   white-space: nowrap;
@@ -165,8 +180,8 @@ $idcard-ink-soft: #4b5563;
 }
 
 .idcard-org {
-  margin: 0.05rem 0 0;
-  font-size: 0.53rem;
+  margin: 0.05em 0 0;
+  font-size: 0.53em;
   line-height: 1.3;
   color: $idcard-gold-light;
   white-space: nowrap;
@@ -176,18 +191,18 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-kind {
   flex-shrink: 0;
-  font-size: 0.56rem;
+  font-size: 0.56em;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgba(247, 243, 232, 0.8);
   border: 1px solid rgba(230, 207, 148, 0.5);
   border-radius: 999px;
-  padding: 0.2rem 0.65rem;
+  padding: 0.2em 0.65em;
 }
 
 .idcard-head-id {
-  font-size: 0.72rem;
+  font-size: 0.72em;
   font-weight: 700;
   color: $idcard-gold-light;
 }
@@ -196,8 +211,8 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-body {
   display: flex;
-  gap: 1.1rem;
-  padding: 0.9rem 1.1rem;
+  gap: 1.1em;
+  padding: 0.9em 1.1em;
   flex: 1;
   min-height: 0;
 }
@@ -208,9 +223,9 @@ $idcard-ink-soft: #4b5563;
 }
 
 .idcard-photo {
-  width: 5.6rem;
-  height: 6.6rem;
-  border-radius: 0.45rem;
+  width: 5.6em;
+  height: 6.6em;
+  border-radius: 0.45em;
   object-fit: cover;
   border: 1px solid rgba(18, 39, 24, 0.2);
   box-shadow: 0 5px 14px -6px rgba(18, 39, 24, 0.45);
@@ -222,7 +237,7 @@ $idcard-ink-soft: #4b5563;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.4rem;
+  font-size: 2.4em;
   font-weight: 700;
   color: $idcard-green-700;
 }
@@ -237,37 +252,37 @@ $idcard-ink-soft: #4b5563;
 .idcard-name {
   margin: 0;
   font-weight: 700;
-  font-size: 1.18rem;
+  font-size: 1.18em;
   line-height: 1.25;
   color: $idcard-green-900;
 }
 
 .idcard-chip {
   align-self: flex-start;
-  margin-top: 0.3rem;
-  padding: 0.14rem 0.75rem;
+  margin-top: 0.3em;
+  padding: 0.14em 0.75em;
   border-radius: 999px;
   background: $idcard-green-900;
   color: $idcard-gold-light;
-  font-size: 0.68rem;
+  font-size: 0.68em;
   font-weight: 700;
   letter-spacing: 0.05em;
 }
 
 .idcard-grid {
-  margin: 0.65rem 0 0;
+  margin: 0.65em 0 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem 1.1rem;
+  gap: 0.5em 1.1em;
 }
 
 .idcard-field {
-  border-left: 2px solid $idcard-gold;
-  padding-left: 0.55rem;
+  border-left: 0.125em solid $idcard-gold;
+  padding-left: 0.55em;
   min-width: 0;
 
   dt {
-    font-size: 0.54rem;
+    font-size: 0.54em;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -275,8 +290,8 @@ $idcard-ink-soft: #4b5563;
   }
 
   dd {
-    margin: 0.05rem 0 0;
-    font-size: 0.76rem;
+    margin: 0.05em 0 0;
+    font-size: 0.76em;
     font-weight: 500;
     color: $idcard-ink;
     line-height: 1.3;
@@ -290,12 +305,12 @@ $idcard-ink-soft: #4b5563;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.35rem 0.9rem;
+  gap: 0.5em;
+  padding: 0.35em 0.9em;
   background: $idcard-green-900;
-  border-top: 2px solid $idcard-gold;
+  border-top: 0.125em solid $idcard-gold;
   color: $idcard-cream;
-  font-size: 0.6rem;
+  font-size: 0.6em;
   font-weight: 600;
 }
 
@@ -307,7 +322,7 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-back-body {
   display: flex;
-  gap: 1.4rem;
+  gap: 1.4em;
 }
 
 .idcard-col {
@@ -315,13 +330,13 @@ $idcard-ink-soft: #4b5563;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  font-size: 0.66rem;
+  gap: 0.55em;
+  font-size: 0.66em;
 }
 
 .idcard-section h4 {
-  margin: 0 0 0.2rem;
-  font-size: 0.56rem;
+  margin: 0 0 0.2em;
+  font-size: 0.56em;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -331,8 +346,8 @@ $idcard-ink-soft: #4b5563;
 .idcard-row {
   display: flex;
   justify-content: space-between;
-  gap: 0.7rem;
-  padding: 0.06rem 0;
+  gap: 0.7em;
+  padding: 0.06em 0;
 
   span {
     color: $idcard-ink-soft;
@@ -358,29 +373,75 @@ $idcard-ink-soft: #4b5563;
 
 .idcard-terms {
   margin: auto 0 0;
-  padding-top: 0.5rem;
+  padding-top: 0.5em;
   border-top: 1px solid #e3ddcc;
-  font-size: 0.54rem;
+  font-size: 0.54em;
   line-height: 1.45;
   color: $idcard-ink-soft;
 }
 
 .idcard-sign {
   margin: auto 0 0;
-  padding-top: 0.8rem;
+  padding-top: 0.8em;
   border-top: 1px solid #d8d2c2;
   text-align: right;
   color: $idcard-ink-soft;
-  font-size: 0.6rem;
+  font-size: 0.6em;
 }
 
 .idcard-sign-img {
-  max-height: 1.9rem;
+  max-height: 1.9em;
   max-width: 40%;
   object-fit: contain;
   display: inline-block;
   vertical-align: middle;
-  margin-right: 0.5rem;
+  margin-right: 0.5em;
+}
+
+// ---- Very narrow cards: let the card grow taller and wrap instead of clip --
+
+@container (max-width: 339.98px) {
+  .idcard {
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+
+  // Front: photo and identity stack vertically.
+  .idcard-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75em;
+  }
+
+  .idcard-photo {
+    width: 4.6em;
+    height: 5.4em;
+  }
+
+  .idcard-main {
+    width: 100%;
+  }
+
+  .idcard-field dd {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  // Back: two columns become one.
+  .idcard-back-body {
+    flex-direction: column;
+    gap: 0.9em;
+  }
+
+  .idcard-row strong {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .idcard-terms,
+  .idcard-sign {
+    margin-top: 0.6em;
+  }
 }
 
 // ---- Actions ---------------------------------------------------------------
@@ -409,6 +470,19 @@ $idcard-ink-soft: #4b5563;
 @media (max-width: 639.98px) {
   .idcard-backdrop {
     padding: max(0.75rem, env(safe-area-inset-top)) 0.5rem max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .idcard-modal {
+    max-height: calc(100dvh - 1.5rem);
+    border-radius: 0.75rem;
+  }
+
+  .idcard-modal-head {
+    padding: 0.9rem 1rem 0.75rem;
+  }
+
+  .idcard-modal-body {
+    padding: 1rem 1rem 1.1rem;
   }
 
   .idcard-actions .btn {
