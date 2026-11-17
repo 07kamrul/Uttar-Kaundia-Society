@@ -3,12 +3,12 @@ import {
   Component,
   DestroyRef,
   computed,
-  effect,
   inject,
   input,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { ApplicationReview } from '../../../../core/models/application-review.model';
 import type { SubmissionStatus } from '../../../../core/models/admin.model';
@@ -131,24 +131,28 @@ export class ApplicationHistoryPanelComponent {
   readonly resend = signal<ResendState>('idle');
   readonly canResendLogin = computed(() => this.status() === 'rejected' && !this.memberCode());
 
-  constructor() {
-    // Reload whenever the reviewed submission or its status changes.
-    effect(() => {
-      this.status();
-      this.load(this.submissionId());
-    });
-  }
+  /** Changes whenever the reviewed submission or its status changes. */
+  private readonly historyKey = computed(() => ({
+    id: this.submissionId(),
+    status: this.status(),
+  }));
 
-  private load(id: string): void {
-    this.admin
-      .getReviewHistory(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (reviews) => {
-          this.loadError.set(false);
-          this.reviews.set(reviews);
-        },
-        error: () => this.loadError.set(true),
+  constructor() {
+    // switchMap cancels an in-flight request when the key changes, so a slow
+    // earlier response can never overwrite the history of a newer state.
+    toObservable(this.historyKey)
+      .pipe(
+        switchMap(({ id }) =>
+          this.admin.getReviewHistory(id).pipe(
+            map((reviews) => ({ reviews, failed: false })),
+            catchError(() => of({ reviews: null, failed: true })),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ reviews, failed }) => {
+        this.loadError.set(failed);
+        if (reviews) this.reviews.set(reviews);
       });
   }
 

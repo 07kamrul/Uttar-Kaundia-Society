@@ -4,14 +4,17 @@ import json
 import re
 
 import pytest
+from fastapi import HTTPException
 from httpx import AsyncClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.api.routes import admin as admin_routes
 from app.models.admin import AdminUser
 from app.models.application_review import ApplicationReview
 from app.models.credential import MemberCredential
+from app.models.feature_flag import FeatureFlag
 from app.models.member import Member, MemberStatus
+from app.services.status_transition import claim_status_transition
 from app.services.upload_access import can_access_upload
 from tests.test_submission_flow import _submission_payload
 
@@ -365,6 +368,76 @@ async def test_edit_keeps_own_document_and_ignores_foreign_path(
     assert forged.status_code == 200, forged.text
     docs = forged.json()["application"]["properties"][0]["applicable_docs"]
     assert docs[0]["file_path"] is None
+
+
+async def test_forged_existing_path_does_not_satisfy_required_proof(
+    client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
+) -> None:
+    # Arrange: proof is mandatory and the applicant owns one stored document.
+    db_session.add(FeatureFlag(key="reg_min_one_proof", enabled=True))
+    await db_session.commit()
+    res = await client.post(
+        "/api/submissions",
+        data={"payload": json.dumps(_payload_with_doc())},
+        files=[_DOC_FILE],
+    )
+    assert res.status_code == 201, res.text
+    admin = await _admin_headers(client)
+    await _reject(client, admin, res.json()["id"])
+    headers = await _applicant_headers(client, _temp_password(outbox[-1]))
+
+    # Act: point the only slot at a path the applicant does not own, no upload.
+    forged = await client.put(
+        "/api/applicant/application",
+        data={"payload": json.dumps(_payload_with_doc("documents/member_999/x/secret.pdf"))},
+        headers=headers,
+    )
+
+    # Assert: validation uses the same "own files only" rule as saving.
+    assert forged.status_code == 422, forged.text
+    assert forged.json()["detail"]["code"] == "PROPERTY_PROOF_REQUIRED"
+
+
+async def test_status_claim_loses_to_a_concurrent_decision(
+    client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
+) -> None:
+    # Arrange: a reviewer holds the PENDING row while another request rejects it.
+    member_pk = await _submit(client)
+    member = await db_session.get(Member, member_pk)
+    assert member.status == MemberStatus.PENDING
+    await db_session.execute(
+        update(Member)
+        .where(Member.id == member_pk)
+        .values(status=MemberStatus.REJECTED)
+        .execution_options(synchronize_session=False)
+    )
+    conflict = HTTPException(status_code=409, detail="raced")
+
+    # Act / Assert: the stale PENDING claim must not overwrite the rejection.
+    with pytest.raises(HTTPException) as caught:
+        await claim_status_transition(db_session, member, MemberStatus.APPROVED, conflict=conflict)
+    assert caught.value is conflict
+    stored = (
+        await db_session.execute(select(Member.status).where(Member.id == member_pk))
+    ).scalar_one()
+    assert stored == MemberStatus.REJECTED
+
+
+async def test_status_claim_applies_when_status_unchanged(
+    client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
+) -> None:
+    member_pk = await _submit(client)
+    member = await db_session.get(Member, member_pk)
+
+    await claim_status_transition(
+        db_session, member, MemberStatus.REJECTED, conflict=HTTPException(status_code=409)
+    )
+
+    assert member.status == MemberStatus.REJECTED
+    stored = (
+        await db_session.execute(select(Member.status).where(Member.id == member_pk))
+    ).scalar_one()
+    assert stored == MemberStatus.REJECTED
 
 
 async def test_rejected_existing_member_can_still_be_reapproved(

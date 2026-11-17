@@ -6,6 +6,7 @@ the ``feature_flags`` table only stores admin overrides. Unknown keys are
 rejected so a typo can never silently read as "off".
 """
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -117,3 +118,13 @@ async def is_enabled(db: AsyncSession, key: str) -> bool:
     flag = FEATURE_FLAGS[key]
     override = await db.get(FeatureFlag, key)
     return flag.default if override is None else bool(override.enabled)
+
+
+async def enabled_flags(db: AsyncSession, keys: Iterable[str]) -> dict[str, bool]:
+    """Resolve several flags in one query instead of one round-trip per key.
+    Same semantics as ``is_enabled``: unknown key -> KeyError."""
+    wanted = tuple(keys)
+    defaults = {key: FEATURE_FLAGS[key].default for key in wanted}
+    rows = await db.execute(select(FeatureFlag).where(FeatureFlag.key.in_(wanted)))
+    overrides = {row.key: bool(row.enabled) for row in rows.scalars()}
+    return {**defaults, **overrides}

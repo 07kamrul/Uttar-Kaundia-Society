@@ -54,6 +54,7 @@ from app.services.dag_guard import ensure_dag_filled, member_ids_needing_dag
 from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
 from app.services.property_duplicates import member_duplicate_plot
 from app.services.registration_installment import add_registration_installment
+from app.services.status_transition import claim_status_transition
 from app.schemas.member import (
     ApplicationReviewHistory,
     ApproveResponse,
@@ -72,6 +73,12 @@ from app.services.email import send_email, send_with_retries
 from app.services.storage import save_upload_file, slugify_path_segment
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+# Lost a race with another reviewer (or a double click) on the same submission.
+_DECIDED_CONCURRENTLY = HTTPException(
+    status_code=status.HTTP_409_CONFLICT,
+    detail="This application was just decided by another reviewer; reload it",
+)
 
 # Columns MemberSummary serialises. List endpoints load only these instead of
 # the ~40 member columns - the omitted ones include `member_signature`, a
@@ -372,7 +379,9 @@ async def approve_submission(
         )
     await ensure_dag_filled(db, member.id)
 
-    member.status = MemberStatus.APPROVED
+    await claim_status_transition(
+        db, member, MemberStatus.APPROVED, conflict=_DECIDED_CONCURRENTLY
+    )
     member.reviewed_at = datetime.now(timezone.utc)
     member.reviewed_by = admin.id
     member.rejection_reason = None
@@ -464,7 +473,11 @@ async def reject_submission(
     if member.status == MemberStatus.REJECTED:
         # Double click / two reviewers: one rejection per submitted round.
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already rejected")
-    member.status = MemberStatus.REJECTED
+    # Atomic claim: approve and reject racing on one round can no longer both
+    # commit (duplicate review rows, member ID issued on a rejected record).
+    await claim_status_transition(
+        db, member, MemberStatus.REJECTED, conflict=_DECIDED_CONCURRENTLY
+    )
     member.reviewed_at = datetime.now(timezone.utc)
     member.reviewed_by = admin.id
     member.rejection_reason = payload.reason

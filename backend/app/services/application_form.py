@@ -16,7 +16,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.constants import CONSENT_VERSION
-from app.core.feature_flags import is_enabled
+from app.core.feature_flags import enabled_flags
 from app.models.credential import MemberCredential
 from app.models.fee_settings import FeeSetting
 from app.models.member import Member, MemberStatus
@@ -238,16 +238,17 @@ class _FlagRules:
         self.min_one_proof = flags["reg_min_one_proof"]
         self.abroad_address = flags["reg_abroad_address"]
 
+    _KEYS = (
+        "reg_occupation_optional",
+        "reg_hide_nationality",
+        "reg_dag_unknown",
+        "reg_min_one_proof",
+        "reg_abroad_address",
+    )
+
     @classmethod
     async def load(cls, db: AsyncSession) -> "_FlagRules":
-        keys = (
-            "reg_occupation_optional",
-            "reg_hide_nationality",
-            "reg_dag_unknown",
-            "reg_min_one_proof",
-            "reg_abroad_address",
-        )
-        return cls(**{key: await is_enabled(db, key) for key in keys})
+        return cls(**await enabled_flags(db, cls._KEYS))
 
 
 def _resolve_occupation(data: SubmissionPayload, rules: _FlagRules) -> str:
@@ -292,25 +293,35 @@ def _resolve_dag_unknown(property_in, rules: _FlagRules) -> bool:
     return True
 
 
-def _doc_has_file(doc_in, files, allow_existing: bool) -> bool:
+def _keeps_stored_file(doc_in, kept_paths: frozenset[str]) -> bool:
+    """A slot keeps its stored file only when it names one of the applicant's
+    own stored documents. Single rule shared by validation and saving, so both
+    walk the uploads identically (any other path consumes an upload)."""
+    return bool(doc_in.existing_file_path) and doc_in.existing_file_path in kept_paths
+
+
+def _doc_has_file(doc_in, files, kept_paths: frozenset[str]) -> bool:
     """A kept file (applicant edit) consumes no upload; otherwise the next
     uploaded file belongs to this document slot."""
-    if allow_existing and doc_in.existing_file_path:
+    if _keeps_stored_file(doc_in, kept_paths):
         return True
     return _has_file(next(files, None))
 
 
 def _validate_proofs(
-    data: SubmissionPayload, doc_files: list[UploadFile], *, allow_existing: bool = False
+    data: SubmissionPayload,
+    doc_files: list[UploadFile],
+    *,
+    kept_paths: frozenset[str] = frozenset(),
 ) -> None:
     """Every property needs at least one proof file. Files are matched to
-    document slots the same way the routes walk them when saving."""
+    document slots the same way `save_document_files` walks them."""
     files = iter(doc_files)
     for property_in in data.properties:
         provided = sum(
             1
             for doc_in in property_in.applicable_docs
-            if _doc_has_file(doc_in, files, allow_existing)
+            if _doc_has_file(doc_in, files, kept_paths)
         )
         if provided == 0:
             raise _unprocessable(
@@ -363,9 +374,12 @@ async def resolve_application(
     data: SubmissionPayload,
     doc_files: list[UploadFile],
     *,
-    allow_existing_files: bool = False,
+    kept_paths: frozenset[str] = frozenset(),
 ) -> ResolvedApplication:
-    """Apply every feature-flag dependent rule; raises 422 on the first failure."""
+    """Apply every feature-flag dependent rule; raises 422 on the first failure.
+
+    `kept_paths` are the applicant's own stored document paths (edit only);
+    a public submission passes none, so every slot needs a fresh upload."""
     rules = await _FlagRules.load(db)
     occupation = _resolve_occupation(data, rules)
     nationality = _resolve_nationality(data, rules)
@@ -386,7 +400,7 @@ async def resolve_application(
             "The same plot (dag numbers and land quantity) is entered more than once.",
         )
     if rules.min_one_proof:
-        _validate_proofs(data, doc_files, allow_existing=allow_existing_files)
+        _validate_proofs(data, doc_files, kept_paths=kept_paths)
     return ResolvedApplication(
         occupation=occupation,
         nationality=nationality,
@@ -499,7 +513,7 @@ async def save_document_files(
     for property_in in data.properties:
         paths: list[str | None] = []
         for doc_in in property_in.applicable_docs:
-            if doc_in.existing_file_path and doc_in.existing_file_path in kept_paths:
+            if _keeps_stored_file(doc_in, kept_paths):
                 paths.append(doc_in.existing_file_path)
                 continue
             doc_file = next(file_iter, None)

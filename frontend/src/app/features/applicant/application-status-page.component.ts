@@ -46,8 +46,10 @@ export class ApplicationStatusPageComponent implements OnInit {
   readonly statusKey = computed(() => `application.status.${this.app()?.status ?? 'pending'}`);
 
   ngOnInit(): void {
-    const nav = this.router.getCurrentNavigation() ?? null;
-    const navState = (nav?.extras.state ?? history.state) as { resubmitted?: boolean } | null;
+    // Only the navigation that just happened counts. A `history.state`
+    // fallback would survive a page reload and repeat the notice forever.
+    const navState = this.router.getCurrentNavigation()?.extras.state as
+      { resubmitted?: boolean } | undefined;
     this.justResubmitted.set(navState?.resubmitted === true);
     this.load();
   }

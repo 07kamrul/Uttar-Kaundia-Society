@@ -41,9 +41,9 @@ export class ApplicationEditPageComponent extends RegistrationPageComponent impl
 
   /** Never touches the public registration draft: the record lives on the server. */
   override ngOnInit(): void {
-    if (this.simplified) {
-      this.loadConfig();
-    }
+    // Both UI variants render the payment picker and send consentVersion,
+    // which come from the registration config.
+    this.loadConfig();
     // Keeps "Next" disabled until the stored application is on the form.
     this.feeLoading.set(true);
     this.applicant
@@ -52,11 +52,17 @@ export class ApplicationEditPageComponent extends RegistrationPageComponent impl
       .subscribe({
         next: (app) => this.applyApplication(app),
         error: () => {
-          this.feeLoading.set(false);
+          // Leave the wizard disabled: an empty form must never be saved over
+          // the stored application. The message asks the user to go back.
           this.serverError = this.translate.instant('application.edit.loadFailed');
           this.cdr.markForCheck();
         },
       });
+  }
+
+  /** The corrected record lives on the server; no local draft is written. */
+  protected override persistDraft(): void {
+    // Intentionally empty - see RegistrationPageComponent.persistDraft.
   }
 
   private applyApplication(app: ApplicantApplication): void {

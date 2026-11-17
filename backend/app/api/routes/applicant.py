@@ -43,6 +43,7 @@ from app.services.audit import record_audit
 from app.services.email import send_email
 from app.services.normalization import normalize_email, normalize_mobile, normalize_nid
 from app.services.payment_accounts import resolve_for_submission
+from app.services.status_transition import claim_status_transition
 from app.services.storage import save_upload_file
 
 router = APIRouter(prefix="/applicant", tags=["applicant"])
@@ -57,18 +58,21 @@ _DUPLICATE_IDENTIFIER = HTTPException(
 )
 
 
+_APPLICATION_LOCKED = HTTPException(
+    status_code=status.HTTP_409_CONFLICT,
+    detail={
+        "success": False,
+        "code": "APPLICATION_LOCKED",
+        "message": "The application is under review and cannot be changed now.",
+    },
+)
+
+
 def _ensure_editable(member: Member) -> None:
     """Only a rejected application can change; once resubmitted it is locked
     until the committee decides again."""
     if member.status != MemberStatus.REJECTED:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={
-                "success": False,
-                "code": "APPLICATION_LOCKED",
-                "message": "The application is under review and cannot be changed now.",
-            },
-        )
+        raise _APPLICATION_LOCKED
 
 
 async def _application_view(db: AsyncSession, member: Member) -> ApplicantApplicationOut:
@@ -142,7 +146,10 @@ async def update_my_application(
     data = parse_submission_payload(payload)
     if not _has_file(member_photo) and not member.member_photo_path:
         raise _unprocessable("PHOTO_REQUIRED", "A member photo is required.")
-    resolved = await resolve_application(db, data, doc_files, allow_existing_files=True)
+    # Validation and saving must agree on which slots keep a stored file,
+    # otherwise uploads shift slots and the proof check can be bypassed.
+    kept_paths = _kept_document_paths(member)
+    resolved = await resolve_application(db, data, doc_files, kept_paths=kept_paths)
 
     nid = normalize_nid(data.nid)
     mobile = normalize_mobile(data.mobile)
@@ -152,7 +159,6 @@ async def update_my_application(
     await _reject_duplicate_submission(db, nid, mobile, email, exclude_member_id=member.id)
 
     snapshot = await _payment_snapshot(member, data, db)
-    kept_paths = _kept_document_paths(member)
     member_dir = f"member_{member.id}"
 
     # Disk writes first, then the object graph (same order as submissions).
@@ -215,7 +221,11 @@ async def resubmit_my_application(
     await _reject_duplicate_submission(
         db, member.nid, member.mobile, member.email, exclude_member_id=member.id
     )
-    member.status = MemberStatus.PENDING
+    # Atomic REJECTED -> PENDING: a double click or two tabs resubmitting at
+    # once yields one round (one audit row, one set of emails), not two.
+    await claim_status_transition(
+        db, member, MemberStatus.PENDING, conflict=_APPLICATION_LOCKED
+    )
     member.resubmission_count = (member.resubmission_count or 0) + 1
     member.resubmitted_at = datetime.now(timezone.utc)
     member.notification_status = None

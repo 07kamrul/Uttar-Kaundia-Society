@@ -45,7 +45,11 @@ import { mapSubmissionError } from './services/submission-error.mapper';
 import { isPossibleInternationalPhone } from '../../shared/phone-input/phone-number';
 import { CorrectionBannerComponent } from './components/correction-banner/correction-banner.component';
 
-const DUPLICATE_CODES = ['APPLICATION_PENDING', 'ALREADY_REGISTERED', 'REJECTED_CAN_RESUBMIT'] as const;
+const DUPLICATE_CODES = [
+  'APPLICATION_PENDING',
+  'ALREADY_REGISTERED',
+  'REJECTED_CAN_RESUBMIT',
+] as const;
 
 interface DuplicateSubmissionError {
   success: false;
@@ -108,22 +112,22 @@ export const REGISTRATION_STEPS: RegistrationStep[] = [
 
 /** Shared with the applicant correction page, which reuses this template. */
 export const REGISTRATION_PAGE_IMPORTS = [
-    ReactiveFormsModule,
-    MemberInfoComponent,
-    AddressInfoComponent,
-    UrgentContactComponent,
-    PropertyListComponent,
-    NomineeListComponent,
-    PaymentInfoComponent,
-    ConfirmationComponent,
-    ReviewSummaryComponent,
-    DatePickerComponent,
-    ConfirmModalComponent,
-    SignaturePadComponent,
-    CorrectionBannerComponent,
-    BnNumberPipe,
-    TranslatePipe,
-  ];
+  ReactiveFormsModule,
+  MemberInfoComponent,
+  AddressInfoComponent,
+  UrgentContactComponent,
+  PropertyListComponent,
+  NomineeListComponent,
+  PaymentInfoComponent,
+  ConfirmationComponent,
+  ReviewSummaryComponent,
+  DatePickerComponent,
+  ConfirmModalComponent,
+  SignaturePadComponent,
+  CorrectionBannerComponent,
+  BnNumberPipe,
+  TranslatePipe,
+];
 
 @Component({
   selector: 'app-registration-page',
@@ -491,7 +495,9 @@ export class RegistrationPageComponent implements OnInit {
         );
       }
       if (this.flag('reg_dag_unknown')) {
-        errs.push(...dagErrors(property, label, (key, params) => this.translate.instant(key, params)));
+        errs.push(
+          ...dagErrors(property, label, (key, params) => this.translate.instant(key, params)),
+        );
       }
       errs.push(...this.validateDocs(property, label));
     });
@@ -508,7 +514,9 @@ export class RegistrationPageComponent implements OnInit {
         : [`${label}: ${this.translate.instant('registration.validation.proofRequired')}`];
     }
     if (docs.length === 0) {
-      return [`${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`];
+      return [
+        `${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`,
+      ];
     }
     return docs
       .filter((doc) => !doc.fileDataUrl)
@@ -631,8 +639,17 @@ export class RegistrationPageComponent implements OnInit {
     }
     this.errors = [];
     this.currentStep = step;
-    this.draftService.saveNow(this.form, this.currentStep);
+    this.persistDraft();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Saves the public registration draft on every step change. The applicant
+   * correction page overrides this: its record lives on the server, and its
+   * personal data must never land in the shared public draft key.
+   */
+  protected persistDraft(): void {
+    this.draftService.saveNow(this.form, this.currentStep);
   }
 
   nextStep(): void {
@@ -647,6 +664,8 @@ export class RegistrationPageComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Enter-key submits bypass the disabled button; never send twice.
+    if (this.submitting) return;
     this.errors = [];
     this.serverError = null;
     this.submitAttempted = true;
