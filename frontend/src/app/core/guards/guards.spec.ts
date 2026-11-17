@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { authGuard } from './auth.guard';
+import { guestOnlyGuard } from './guest-only.guard';
 import { permissionGuard } from './permission.guard';
 import { roleGuard } from './role.guard';
 import { AuthService, FEE_MANAGER_PERMISSION } from '../services/auth.service';
@@ -20,6 +21,8 @@ function fakeAuth(options: {
     get role() {
       return options.role ?? null;
     },
+    // Real AuthService exposes a signal; keep the fake callable.
+    isAuthenticated: () => !!options.token,
     hasPermission: (key: string) => permissions.includes(key),
     hasAnyPermission: (keys: string[]) => keys.some((key) => permissions.includes(key)),
   } as unknown as AuthService;
@@ -127,5 +130,22 @@ describe('roleGuard (area guards)', () => {
     );
     const tree = TestBed.runInInjectionContext(() => roleGuard(['super_admin'])(route, state));
     expect(router.serializeUrl(tree as never)).toBe('/fee-settings');
+  });
+});
+
+describe('guestOnlyGuard', () => {
+  const segments = [] as never;
+  const snapshot = {} as never;
+
+  it('matches for a signed-out visitor', () => {
+    setup(fakeAuth({}));
+    const result = TestBed.runInInjectionContext(() => guestOnlyGuard(route, segments, snapshot));
+    expect(result).toBe(true);
+  });
+
+  it('does not match for a signed-in user, so routing falls through to the app shell', () => {
+    setup(fakeAuth({ token: 'tok', permissions: [] }));
+    const result = TestBed.runInInjectionContext(() => guestOnlyGuard(route, segments, snapshot));
+    expect(result).toBe(false);
   });
 });

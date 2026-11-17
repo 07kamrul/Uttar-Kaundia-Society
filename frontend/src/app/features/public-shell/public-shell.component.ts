@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ThemeService } from '../../core/services/theme.service';
 import { LanguageService } from '../../core/services/language.service';
+import { AuthService } from '../../core/services/auth.service';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { LangSwitchComponent } from '../../shared/lang-switch/lang-switch.component';
 import { IconComponent } from '../../shared/icon/icon.component';
@@ -24,6 +25,17 @@ import { NetStatusBannerComponent } from '../../shared/net-status-banner/net-sta
 export class PublicShellComponent {
   isMobileMenuOpen = false;
   private readonly flags = inject(FeatureFlagService);
+  private readonly auth = inject(AuthService);
+
+  /** Signed-in visitors see Dashboard/Logout instead of Register/Login. */
+  get isAuthenticated(): boolean {
+    return this.auth.isAuthenticated();
+  }
+
+  logout(): void {
+    this.closeMobileMenu();
+    this.auth.logout();
+  }
 
   get fiveAreas(): boolean {
     return this.flags.isEnabled('nav_five_areas');

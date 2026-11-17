@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { payMergedRedirect } from './core/guards/pay-merged-redirect.guard';
+import { guestOnlyGuard } from './core/guards/guest-only.guard';
 import {
   MANAGEMENT_AREA_PERMISSIONS,
   MEMBER_PAYMENT_ROLES,
@@ -13,6 +14,42 @@ import {
 // guards for why this, not role name, is the right check (Super Admin's full
 // permission catalog includes it too, by design).
 const MEMBER_AREA_PERMISSIONS = ['profile.view_own'];
+
+// Published notices/events - the same pages guests read, declared once and
+// mounted in both layouts. The public shell's copy is guest-only
+// (canMatch: [guestOnlyGuard]); when a signed-in user opens these URLs the
+// public copy doesn't match and routing falls through to the authenticated
+// shell's copy below, so logged-in users get the app header/sidebar.
+const PUBLIC_CONTENT_ROUTES: Routes = [
+  {
+    path: 'notices',
+    loadComponent: () =>
+      import('./features/public-pages/notices/notices-page.component').then(
+        (m) => m.NoticesPageComponent,
+      ),
+  },
+  {
+    path: 'notices/:id',
+    loadComponent: () =>
+      import('./features/public-pages/notices/notice-detail-page.component').then(
+        (m) => m.NoticeDetailPageComponent,
+      ),
+  },
+  {
+    path: 'events',
+    loadComponent: () =>
+      import('./features/public-pages/events/events-page.component').then(
+        (m) => m.EventsPageComponent,
+      ),
+  },
+  {
+    path: 'events/:id',
+    loadComponent: () =>
+      import('./features/public-pages/events/event-detail-page.component').then(
+        (m) => m.EventDetailPageComponent,
+      ),
+  },
+];
 
 // Shared by the two five-area hub routes (my-land, organisation).
 const loadHub = () => import('./features/member/pages/hubs/hub.component').then((m) => m.HubComponent);
@@ -53,33 +90,12 @@ export const routes: Routes = [
             (m) => m.ResetPasswordComponent,
           ),
       },
+      // Published content: guests only. Signed-in users match the
+      // authenticated shell's copy of PUBLIC_CONTENT_ROUTES instead.
       {
-        path: 'notices',
-        loadComponent: () =>
-          import('./features/public-pages/notices/notices-page.component').then(
-            (m) => m.NoticesPageComponent,
-          ),
-      },
-      {
-        path: 'notices/:id',
-        loadComponent: () =>
-          import('./features/public-pages/notices/notice-detail-page.component').then(
-            (m) => m.NoticeDetailPageComponent,
-          ),
-      },
-      {
-        path: 'events',
-        loadComponent: () =>
-          import('./features/public-pages/events/events-page.component').then(
-            (m) => m.EventsPageComponent,
-          ),
-      },
-      {
-        path: 'events/:id',
-        loadComponent: () =>
-          import('./features/public-pages/events/event-detail-page.component').then(
-            (m) => m.EventDetailPageComponent,
-          ),
+        path: '',
+        canMatch: [guestOnlyGuard],
+        children: PUBLIC_CONTENT_ROUTES,
       },
       {
         path: '403',
@@ -310,6 +326,10 @@ export const routes: Routes = [
         data: { hub: 'organisation' },
         loadComponent: loadHub,
       },
+      // Published notices/events - readable by every authenticated tier
+      // (same pages guests read, now inside the app shell so logged-in
+      // users keep the app header/sidebar).
+      ...PUBLIC_CONTENT_ROUTES,
       // Fund transparency sits outside the member-area guard like /dashboard:
       // every authenticated tier (member, committee, admin) may read it - the
       // backend exposes approved transactions to any logged-in account.
@@ -377,6 +397,16 @@ export const routes: Routes = [
         canActivate: [permissionGuard(MANAGEMENT_AREA_PERMISSIONS)],
         data: { requiredPermissions: MANAGEMENT_AREA_PERMISSIONS },
         loadChildren: () => import('./management.routes').then((m) => m.MANAGEMENT_ROUTES),
+      },
+      // Committee registry - every authenticated account can read the board
+      // (Module 2); admin-only actions are hidden inside the page unless the
+      // account holds committee_registry.manage (the API enforces this too).
+      {
+        path: 'committee-registry',
+        loadComponent: () =>
+          import(
+            './features/management/pages/committee-registry/committee-registry.component'
+          ).then((m) => m.CommitteeRegistryComponent),
       },
       // Super Admin area - manage_users/manage_roles/view_audit_log exist
       // only in the Super Admin's full permission catalog today.

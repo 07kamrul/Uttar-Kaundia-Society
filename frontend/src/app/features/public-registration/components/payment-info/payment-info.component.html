@@ -35,9 +35,12 @@
     <app-payment-method-picker
       [method]="selectedMethod"
       [serverAccounts]="config?.paymentAccounts ?? []"
+      [loading]="configLoading"
+      [loadError]="configError"
       [selectedAccountId]="selectedAccountId"
       (methodChange)="selectMethod($event)"
       (accountChange)="onAccountChange($event)"
+      (retry)="retryConfigLoad.emit()"
     />
     @if (showError('paymentMethod')) {
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>
@@ -169,9 +172,12 @@
     <app-payment-method-picker
       [method]="selectedMethod"
       [serverAccounts]="config?.paymentAccounts ?? []"
+      [loading]="configLoading"
+      [loadError]="configError"
       [selectedAccountId]="selectedAccountId"
       (methodChange)="selectMethod($event)"
       (accountChange)="onAccountChange($event)"
+      (retry)="retryConfigLoad.emit()"
     />
     @if (showError('paymentMethod')) {
       <p class="field-error">{{ errorMessage('paymentMethod') }}</p>

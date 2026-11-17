@@ -99,6 +99,16 @@ async def test_forgot_password_by_email_creates_token(
     assert row.member_id == member.id
 
 
+async def test_forgot_password_by_mobile_creates_token(
+    client: AsyncClient, db_session: AsyncSession, member: Member
+) -> None:
+    response = await client.post(FORGOT_URL, json={"identifier": "+8801700000000"})
+    assert response.status_code == 200
+    row = await _latest_token(db_session)
+    assert row.user_type == "member"
+    assert row.member_id == member.id
+
+
 async def test_forgot_password_for_admin_creates_token(
     client: AsyncClient, db_session: AsyncSession, admin: AdminUser
 ) -> None:

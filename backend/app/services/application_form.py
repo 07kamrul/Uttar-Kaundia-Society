@@ -23,6 +23,7 @@ from app.models.member import Member, MemberStatus
 from app.models.nominee import Nominee
 from app.models.property import ApplicableDoc, CoOwner, Property
 from app.schemas.submission import SubmissionPayload
+from app.services.property_duplicates import in_submission_duplicates
 from app.services.fee_calculation import calculate_monthly_subscription
 from app.services.storage import save_upload_file, slugify_path_segment
 from app.services.normalization import (
@@ -372,6 +373,18 @@ async def resolve_application(
     if is_abroad:
         _validate_abroad_address(data)
     dag_flags = tuple(_resolve_dag_unknown(p, rules) for p in data.properties)
+    duplicate_keys = in_submission_duplicates(
+        [
+            (p.dag_no_rs, p.dag_no_cs, p.land_quantity)
+            for p, unknown in zip(data.properties, dag_flags, strict=True)
+            if not unknown
+        ]
+    )
+    if duplicate_keys:
+        raise _unprocessable(
+            "DUPLICATE_PROPERTY",
+            "The same plot (dag numbers and land quantity) is entered more than once.",
+        )
     if rules.min_one_proof:
         _validate_proofs(data, doc_files, allow_existing=allow_existing_files)
     return ResolvedApplication(

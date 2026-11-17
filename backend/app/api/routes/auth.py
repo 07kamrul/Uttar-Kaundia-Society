@@ -43,6 +43,7 @@ from app.services.applicant_access import (
     token_role_for,
 )
 from app.services.email import send_email
+from app.services.normalization import mobile_lookup_variants
 
 router = APIRouter(tags=["auth"])
 
@@ -120,9 +121,7 @@ def _ambiguous_identifier(identity: login_identity.LoginIdentity) -> HTTPExcepti
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
-    identity = login_identity.resolve(
-        payload.identifier, by_phone=await is_enabled(db, "login_by_phone")
-    )
+    identity = login_identity.resolve(payload.identifier)
     _ensure_login_allowed(identity.key)
 
     if identity.kind != "phone":
@@ -264,13 +263,39 @@ async def forgot_password(
     if admin is not None:
         user_type, member_id, admin_id, to_email = "admin", None, admin.id, admin.email
     else:
-        credential = (
-            await db.execute(
-                select(MemberCredential).where(MemberCredential.username == identifier)
-            )
-        ).scalar_one_or_none()
+        credential = None
         member = None
-        if credential is None:
+        identity = login_identity.resolve(identifier)
+        if identity.kind == "phone":
+            # A mobile number instead: find the member, then their login.
+            member = (
+                await db.execute(
+                    select(Member).where(
+                        Member.mobile.in_(mobile_lookup_variants(identity.text))
+                    )
+                )
+            ).scalars().first()
+            if member is not None:
+                credential = (
+                    await db.execute(
+                        select(MemberCredential).where(
+                            MemberCredential.member_id == member.id
+                        )
+                    )
+                ).scalar_one_or_none()
+        else:
+            credential = (
+                await db.execute(
+                    select(MemberCredential).where(MemberCredential.username == identifier)
+                )
+            ).scalar_one_or_none()
+            if credential is not None:
+                member = (
+                    await db.execute(
+                        select(Member).where(Member.id == credential.member_id)
+                    )
+                ).scalar_one_or_none()
+        if credential is None and identity.kind != "phone":
             # Also allow the registered email address, which is the identifier
             # members are most likely to remember if they lost their member ID.
             # Only rows that hold a login count: an old rejected application

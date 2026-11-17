@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { DatePickerComponent } from '../../../../shared/date-picker/date-picker.component';
 import { MemberPickerComponent, type MemberPickerOption } from '../../../../shared/member-picker/member-picker.component';
 import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-modal.component';
+import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
 import { AdminService } from '../../../../core/services/admin.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { LanguageService } from '../../../../core/services/language.service';
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { CommitteeBoardComponent } from './committee-board/committee-board.component';
@@ -34,7 +36,7 @@ interface TermFormState {
   selector: 'app-committee-registry',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, SectionLoaderComponent, CommitteeBoardComponent],
+  imports: [TranslatePipe, FormsModule, IconComponent, DatePickerComponent, MemberPickerComponent, ConfirmModalComponent, DialogDirective, SectionLoaderComponent, CommitteeBoardComponent],
   templateUrl: './committee-registry.component.html',
   styles: [
     `
@@ -44,6 +46,149 @@ interface TermFormState {
       .cr-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
       .cr-field-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
       .cr-form-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+      /* Padded card shell for the term form and vacancies sections (the
+         global .card is an unpadded border, both sections need body inset). */
+      .cr-card { padding: clamp(0.85rem, 2.5vw, 1.35rem); }
+
+      /* Term-form popup: full chrome — sticky header, scrollable body, sticky
+         footer — that degrades to a full-height sheet on phones. */
+      .cr-term-modal {
+        display: flex; flex-direction: column;
+        width: min(40rem, 100%);
+        max-height: min(92dvh, 46rem);
+        padding: 0;
+        overflow: hidden;
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        animation: cr-modal-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes cr-modal-in {
+        from { opacity: 0; transform: translateY(0.6rem) scale(0.98); }
+        to { opacity: 1; transform: none; }
+      }
+      .cr-modal-head {
+        display: flex; align-items: flex-start; gap: 0.65rem;
+        padding: 1rem 1.15rem 0.9rem;
+        border-bottom: 1px solid var(--gray-200);
+        flex-shrink: 0;
+      }
+      .cr-modal-head-text { flex: 1; min-width: 0; }
+      .cr-modal-head .cr-section-title { margin: 0; }
+      .cr-modal-head .cr-section-sub { margin-top: 0.15rem; }
+      .cr-modal-close {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 2rem; height: 2rem; flex-shrink: 0;
+        border: none; border-radius: 0.5rem;
+        background: transparent; color: var(--gray-500);
+        cursor: pointer; transition: background 0.15s, color 0.15s;
+      }
+      .cr-modal-close:hover:not(:disabled) { background: var(--gray-100); color: var(--gray-800); }
+      .cr-modal-close:disabled { opacity: 0.4; cursor: default; }
+      /* The form sits between the flex shell and body/footer, so it must be a
+         bounded flex column too — otherwise the body never scrolls and the
+         content spills past the card. */
+      .cr-modal-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+      .cr-modal-body {
+        flex: 1 1 auto; min-height: 0;
+        overflow-y: auto;
+        padding: 0.5rem 1.25rem 1.25rem;
+        overscroll-behavior: contain;
+        display: grid; gap: 0.85rem; align-content: start;
+      }
+      .cr-modal-body .cr-group-label { margin: 0.6rem 0 -0.35rem; }
+      .cr-modal-body .cr-form-grid {
+        display: grid; gap: 0.85rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .cr-modal-body .field { margin: 0; min-width: 0; }
+      .cr-modal-body textarea { resize: vertical; min-height: 4.5rem; }
+      .cr-modal-foot {
+        flex-shrink: 0;
+        border-top: 1px solid var(--gray-200);
+        background: var(--surface);
+        padding: 0.8rem 1.15rem;
+        padding-bottom: max(0.8rem, env(safe-area-inset-bottom));
+      }
+      .cr-modal-foot .cr-form-actions {
+        margin-top: 0; padding-top: 0; border-top: none;
+        justify-content: flex-end;
+      }
+      .cr-modal-foot .btn-primary { min-width: 9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; }
+      .cr-btn-spinner {
+        width: 0.9rem; height: 0.9rem; flex-shrink: 0;
+        border: 2px solid color-mix(in srgb, #fff 40%, transparent);
+        border-top-color: #fff; border-radius: 50%;
+        animation: cr-spin 0.7s linear infinite;
+      }
+      @keyframes cr-spin { to { transform: rotate(360deg); } }
+      /* Phones: the popup becomes a near full-screen sheet so date pickers
+         and the member search stay comfortably tappable. */
+      @media (max-width: 640px) {
+        .cr-term-modal {
+          width: 100%;
+          max-height: calc(100dvh - 2rem);
+          animation: cr-sheet-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cr-modal-head { padding: 0.9rem 1rem 0.8rem; }
+        .cr-modal-body { padding: 0.4rem 1rem 1rem; }
+        .cr-modal-body .cr-form-grid { grid-template-columns: 1fr; }
+        .cr-modal-foot { padding: 0.7rem 1rem; padding-bottom: max(0.7rem, env(safe-area-inset-bottom)); }
+        .cr-modal-foot .btn-primary { min-width: 0; }
+        .cr-modal-foot .cr-form-actions > .btn { flex: 1 1 0; }
+      }
+      @keyframes cr-sheet-in {
+        from { opacity: 0; transform: translateY(1.5rem); }
+        to { opacity: 1; transform: none; }
+      }
+      .cr-card-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 2.1rem; height: 2.1rem; border-radius: 0.6rem; flex-shrink: 0;
+        background: color-mix(in srgb, var(--emerald-600) 10%, transparent);
+        color: var(--emerald-700);
+      }
+      :root[data-theme='dark'] .cr-card-icon { color: var(--emerald-500); }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) .cr-card-icon { color: var(--emerald-500); }
+      }
+      .cr-card-body { display: grid; gap: 1rem; }
+
+      /* Two-column form grid: side by side on wide screens, stacked on phones. */
+      .cr-form-grid {
+        display: grid; gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      }
+      .cr-group-label {
+        margin: 0.9rem 0 0.5rem; font-size: 0.72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500);
+      }
+      .cr-group-label:first-child { margin-top: 0; }
+
+      /* Caretaker option as a tappable card. */
+      .cr-caretaker {
+        display: flex; align-items: flex-start; gap: 0.6rem;
+        padding: 0.7rem 0.85rem; margin: 0.9rem 0;
+        border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+        background: var(--gray-50, var(--surface-2, transparent));
+        cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      }
+      .cr-caretaker input { margin-top: 0.2rem; accent-color: var(--emerald-600); }
+      .cr-caretaker-text { display: grid; gap: 0.15rem; font-weight: 600; color: var(--gray-700); }
+      .cr-caretaker-hint { font-weight: 400; font-size: 0.82rem; color: var(--gray-500); }
+      .cr-caretaker-on { border-color: var(--emerald-600); background: color-mix(in srgb, var(--emerald-600) 6%, transparent); }
+
+      /* Action bar: primary on the right on desktop, full width stack on phones. */
+      .cr-form-actions {
+        justify-content: flex-end;
+        margin-top: 1rem; padding-top: 0.9rem;
+        border-top: 1px solid var(--gray-200);
+      }
+      .cr-form-actions .btn-primary { min-width: 9rem; }
+      @media (max-width: 640px) {
+        .cr-form-actions { flex-direction: column-reverse; }
+        .cr-form-actions .btn { width: 100%; }
+      }
       .cr-history { padding: 0.35rem 0.25rem; }
       .cr-history h3 { font-size: 0.9rem; font-weight: 700; margin: 0.35rem 0; }
       .cr-history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
@@ -80,15 +225,9 @@ interface TermFormState {
         padding: 0.28rem 0.65rem; border-radius: 999px;
         font-size: 0.78rem; font-weight: 700; white-space: nowrap;
       }
-      .cr-stat-warn { background: color-mix(in srgb, #b45309 12%, transparent); color: #92400e; }
-      .cr-stat-info { background: color-mix(in srgb, #4a7fb5 12%, transparent); color: #2c5282; }
+      .cr-stat-warn { background: color-mix(in srgb, var(--amber-200) 18%, transparent); color: var(--gold-strong); }
+      .cr-stat-info { background: color-mix(in srgb, var(--gray-500) 14%, transparent); color: var(--gray-700); }
       .cr-stat-good { background: color-mix(in srgb, var(--emerald-600) 12%, transparent); color: var(--emerald-800); }
-      :root[data-theme='dark'] .cr-stat-warn { color: #fbbf24; }
-      :root[data-theme='dark'] .cr-stat-info { color: #9dc3ec; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .cr-stat-warn { color: #fbbf24; }
-        :root:not([data-theme='light']) .cr-stat-info { color: #9dc3ec; }
-      }
 
       /* Board / table switch above the registry. */
       .cr-view-toggle { display: flex; gap: 0.35rem; justify-content: flex-end; margin-bottom: 0.75rem; }
@@ -153,17 +292,16 @@ interface TermFormState {
 
       .cr-empty-title { font-weight: 700; color: var(--gray-700); }
       .cr-empty-hint { margin-top: -0.25rem !important; font-size: 0.82rem; }
+      /* Keep the card's empty state from ballooning on large screens. */
+      .cr-card .gov-empty { padding: 1.4rem 1rem; }
+      .cr-card .gov-empty-icon { width: 2.4rem; height: 2.4rem; }
       .cr-box-label {
         margin: 0 0 0.15rem; font-size: 0.72rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-500);
       }
-      .cr-response-box { width: 100%; border-inline-start: 3px solid #4a7fb5; padding-inline-start: 0.65rem; }
+      .cr-response-box { width: 100%; border-inline-start: 3px solid var(--gold); padding-inline-start: 0.65rem; }
       .cr-note-box { width: 100%; padding-inline-start: 0.65rem; }
       .cr-note-box p { color: var(--gray-700); }
-      :root[data-theme='dark'] .cr-response-box { border-inline-start-color: #7fa8d9; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .cr-response-box { border-inline-start-color: #7fa8d9; }
-      }
       .cr-inline-form {
         width: 100%; display: grid; gap: 0.6rem; padding: 0.8rem;
         border: 1px dashed var(--gray-300); border-radius: var(--radius-sm);
@@ -173,22 +311,17 @@ interface TermFormState {
       .cr-inline-form .cr-form-actions { margin-top: 0; }
       .cr-vacancy-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; width: 100%; }
       @media (max-width: 640px) {
+        .cr-vacancy-actions { flex-direction: column; }
         .cr-vacancy-actions .btn { flex: 1 1 100%; }
-        .cr-form-actions { flex-direction: column; }
-        .cr-form-actions .btn { width: 100%; }
         .cr-case-stats { width: 100%; }
         .cr-stat { flex: 1 1 auto; justify-content: center; }
       }
       .ds-warn-banner {
         display: flex; align-items: center; gap: 0.5rem;
         padding: 0.6rem 0.9rem; border-radius: 0.5rem; font-weight: 600;
-        background: color-mix(in srgb, #b45309 12%, var(--surface-2, #fff));
-        border: 1px solid color-mix(in srgb, #b45309 35%, transparent);
-        color: #92400e;
-      }
-      :root[data-theme='dark'] .ds-warn-banner { color: #fbbf24; }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme='light']) .ds-warn-banner { color: #fbbf24; }
+        background: color-mix(in srgb, var(--amber-200) 18%, var(--surface-2, #fff));
+        border: 1px solid color-mix(in srgb, var(--amber-200) 55%, transparent);
+        color: var(--gold-strong);
       }
     `,
   ],
@@ -196,10 +329,14 @@ interface TermFormState {
 export class CommitteeRegistryComponent implements OnInit {
   private readonly registry = inject(CommitteeRegistryService);
   private readonly adminService = inject(AdminService);
+  private readonly auth = inject(AuthService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
 
   readonly lang = this.language.lang;
+  /** True only for accounts holding committee_registry.manage; the board is
+   * readable by every authenticated account, admin actions are not. */
+  readonly canManage = computed(() => this.auth.hasPermission('committee_registry.manage'));
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal('');
@@ -209,6 +346,10 @@ export class CommitteeRegistryComponent implements OnInit {
   readonly members = signal<MemberPickerOption[]>([]);
 
   readonly termForm = signal<TermFormState | null>(null);
+  /** Lock page scrolling while the term-form popup is open. */
+  readonly lockPageScrollForTermForm = effect(() => {
+    document.body.style.overflow = this.termForm() ? 'hidden' : '';
+  });
   readonly histories = signal<Record<string, PostHistory | undefined>>({});
   readonly removalVacancyId = signal<number | null>(null);
   readonly decisionVacancyId = signal<number | null>(null);
@@ -248,19 +389,21 @@ export class CommitteeRegistryComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
-    this.adminService.listMembers().subscribe({
-      next: (members) =>
-        this.members.set(
-          members
-            .filter((member) => member.status === 'approved')
-            .map((member) => ({
-              id: Number(member.id),
-              fullName: member.fullName,
-              memberId: member.memberId,
-            })),
-        ),
-      error: () => this.members.set([]),
-    });
+    if (this.canManage()) {
+      this.adminService.listMembers().subscribe({
+        next: (members) =>
+          this.members.set(
+            members
+              .filter((member) => member.status === 'approved')
+              .map((member) => ({
+                id: Number(member.id),
+                fullName: member.fullName,
+                memberId: member.memberId,
+              })),
+          ),
+        error: () => this.members.set([]),
+      });
+    }
   }
 
   load(): void {
@@ -275,7 +418,9 @@ export class CommitteeRegistryComponent implements OnInit {
         this.loading.set(false);
       },
     });
-    this.loadVacancies();
+    if (this.canManage()) {
+      this.loadVacancies();
+    }
   }
 
   loadVacancies(): void {
@@ -404,8 +549,28 @@ export class CommitteeRegistryComponent implements OnInit {
     });
   }
 
+  /** Board "fill vacant seat" entry point: a fresh term form, post preselected
+   * and term start defaulting to today. */
+  assignToPost(postKey: string): void {
+    this.termForm.set({
+      editingTermId: null,
+      postKey,
+      memberId: [],
+      termStart: new Date().toISOString().slice(0, 10),
+      termEnd: '',
+      isCaretaker: false,
+      notes: '',
+    });
+  }
+
   closeTermForm(): void {
     this.termForm.set(null);
+  }
+
+  /** Close the term popup on a true backdrop click; taps inside the card
+   * bubble here too, so require the backdrop itself as the target. */
+  onTermBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeTermForm();
   }
 
   saveTerm(): void {

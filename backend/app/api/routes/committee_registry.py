@@ -13,7 +13,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import AccountActor, get_account_actor, get_current_member
@@ -50,6 +50,13 @@ from app.services.resolution_book import publish_resolution_book_notice
 router = APIRouter(tags=["committee-registry"])
 
 REMOVAL_RESPONSE_WORKING_DAYS = 15
+
+# Constitutionally multi-seat posts (e.g. কার্যকরী সদস্য (২) - two executive
+# members). Single-seat posts are the default; filling an empty seat of a
+# multi-seat post must NOT supersede a sitting sibling term (see create_term).
+POST_SEATS: dict[str, int] = {
+    "executive_member": 2,
+}
 
 
 def _today() -> date:
@@ -408,7 +415,28 @@ async def create_term(
     db.add(term)
     await db.flush()
     # If the post currently has an active holder, that term is superseded.
-    current = await supersede_current_term(db, payload.post_key, term)
+    # Multi-seat posts: filling an empty seat must not supersede a sitting
+    # sibling term, so supersede only when every seat is already occupied.
+    # (Election confirmation handles batch creation via exclude_ids instead.)
+    seats = POST_SEATS.get(payload.post_key, 1)
+    current = None
+    if seats == 1:
+        current = await supersede_current_term(db, payload.post_key, term)
+    else:
+        sitting = (
+            await db.execute(
+                select(func.count())
+                .select_from(CommitteeTerm)
+                .where(
+                    CommitteeTerm.post_key == payload.post_key,
+                    CommitteeTerm.replaced_by_term_id.is_(None),
+                    CommitteeTerm.member_id.is_not(None),
+                    CommitteeTerm.id != term.id,
+                )
+            )
+        ).scalar_one()
+        if sitting >= seats:
+            current = await supersede_current_term(db, payload.post_key, term)
     record_audit(
         db,
         actor_admin_id=admin.id,

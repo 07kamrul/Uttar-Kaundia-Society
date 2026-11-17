@@ -291,7 +291,7 @@
     "membershipReview": "Membership Review",
     "membershipGovernance": "Membership Governance",
     "complaintsAdmin": "Complaints Admin",
-    "committeeRegistry": "Committee Registry",
+    "committeeRegistry": "Elected Committee",
     "electionsAdmin": "Elections Admin",
     "elections": "Elections",
     "petitions": "Petitions",
@@ -3158,8 +3158,11 @@
         "subscriptionLabel": "Monthly subscription",
         "readOnlyNote": "Set by the society. It cannot be changed.",
         "methodTitle": "How did you pay?",
+        "providerTitle": "Which mobile service?",
+        "noAccountsNote": "Bank and mobile payment details are not set up yet. Please pay in cash or contact the office.",
         "methods": {
           "cash": "Cash",
+          "mfs": "MFS",
           "bkash": "bKash",
           "nagad": "Nagad",
           "rocket": "Rocket",
@@ -3646,7 +3649,7 @@
     }
   },
   "committeeRegistry": {
-    "title": "Committee Registry",
+    "title": "Elected Committee",
     "subtitle": "Current holders, terms and vacancies across the 11 council posts.",
     "expiredWarning": "An expired council may only handle routine work",
     "post": "Post",
@@ -3676,8 +3679,12 @@
     "createTerm": "Save term",
     "member": "Member",
     "memberPlaceholder": "Select a member…",
-    "caretaker": "Caretaker term (routine work only)",
+    "caretaker": "Caretaker term",
+    "caretakerHint": "Routine work only — no new policy decisions.",
     "notes": "Notes (optional)",
+    "formSubtitle": "Assign a member to a post and set the term period.",
+    "groupAssignment": "Assignment",
+    "groupPeriod": "Term period",
     "vacanciesTitle": "Vacancies, resignations and removals",
     "vacanciesSubtitle": "Resignation and removal cases with response deadlines, member replies and final decisions.",
     "caseCount": "{{n}} case(s)",
@@ -3733,7 +3740,17 @@
       "title": "Executive Committee",
       "standingCouncil": "Standing Council",
       "memberId": "Member ID",
-      "tagline": "Together for a stronger community"
+      "tagline": "Together for a stronger community",
+      "statPosts": "Posts",
+      "statFilled": "Filled",
+      "statVacant": "Vacant",
+      "statAttention": "Needs attention",
+      "filter": "Filter",
+      "filterFilled": "Filled",
+      "filterVacant": "Vacant",
+      "searchPlaceholder": "Search name or post…",
+      "noMatch": "No posts match this filter.",
+      "assignMember": "Add member"
     }
   },
   "elections": {

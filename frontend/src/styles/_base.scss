@@ -442,6 +442,12 @@ a {
   padding: 2.4rem 1.4rem 3.6rem;
 }
 
+/* The same pages rendered inside the authenticated shell: .app-content
+   already provides the gutters, so drop them to avoid double padding. */
+.app-content .public-page {
+  padding: 0.5rem 0 2.4rem;
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

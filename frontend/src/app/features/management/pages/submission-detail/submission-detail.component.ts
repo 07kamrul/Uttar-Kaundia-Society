@@ -34,7 +34,6 @@ import { ConfirmModalComponent } from '../../../../shared/confirm-modal/confirm-
 import { SectionLoaderComponent } from '../../../../shared/section-loader/section-loader.component';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import { PhoneLinkComponent } from '../../../../shared/phone/phone-link.component';
-
 import { DialogDirective } from '../../../../shared/dialog/dialog.directive';
 import { CorrectionFieldsPickerComponent } from '../../../../shared/application-review/correction-fields-picker.component';
 import type { CorrectionField } from '../../../../core/models/application-review.model';

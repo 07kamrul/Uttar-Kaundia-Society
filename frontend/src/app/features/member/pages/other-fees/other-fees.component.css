@@ -42,9 +42,20 @@
   gap: 0.5rem;
   align-items: center;
 
-  select,
-  input {
+  select {
     max-width: 11rem;
+    min-width: 0;
+  }
+
+  /* Pickers need room for a full date ("08 Nov 2026") without wrapping. */
+  app-date-picker {
+    flex: 1 1 9.5rem;
+    min-width: 9.5rem;
+  }
+
+  .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 
@@ -114,12 +125,6 @@
     flex-direction: column;
     align-items: stretch;
   }
-
-  .history-filters select,
-  .history-filters input {
-    max-width: none;
-    flex: 1 1 45%;
-  }
 }
 
 .of-page { width: 100%; }
@@ -138,11 +143,22 @@
 .breakdown-row { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .breakdown-total { border-top: 1px solid var(--gray-300); margin-top: 0.5rem; padding-top: 0.5rem; }
 
-.history-filters select, .history-filters input, .history-filters .btn { min-height: 44px; }
+.history-filters select, .history-filters input, .history-filters .btn, .history-filters app-date-picker { min-height: 44px; }
+
+@media (max-width: 639.98px) {
+  .history-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .history-filters select {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
 
 @media (max-width: 639.98px) {
   .of-form-card { padding: 1rem; }
-  .history-filters .btn { flex: 1 1 45%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

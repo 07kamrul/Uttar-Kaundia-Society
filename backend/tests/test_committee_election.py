@@ -149,6 +149,44 @@ async def test_admin_reassignment_replaces_the_previous_holder(client: AsyncClie
     assert [h["id"] for h in treasurer["holders"]] == [new.id]
 
 
+async def test_filling_a_vacant_multi_seat_post_keeps_the_sitting_sibling(client: AsyncClient, db_session, admin_user):
+    """executive_member has two seats: assigning an empty seat must not
+    supersede the sitting sibling; replacing a full board does."""
+    admin = await _admin_headers(client)
+    sitting, third, fourth = await _make_member(db_session, 1), await _make_member(db_session, 2), await _make_member(db_session, 3)
+    db_session.add(
+        CommitteeTerm(
+            post_key="executive_member",
+            member_id=sitting.id,
+            term_start=TODAY,
+            term_end=TODAY.replace(year=TODAY.year + 3),
+        )
+    )
+    await db_session.commit()
+
+    # Second seat is vacant -> the new term joins it, sibling stays sitting.
+    response = await client.post(
+        "/api/committee-registry/terms",
+        json={"post_key": "executive_member", "member_id": third.id, "term_start": str(TODAY)},
+        headers=admin,
+    )
+    assert response.status_code == 201
+    overview = (await client.get("/api/committee-registry", headers=_member_headers(third))).json()
+    seats = next(p for p in overview["posts"] if p["key"] == "executive_member")["holders"]
+    assert sorted(h["id"] for h in seats) == sorted([sitting.id, third.id])
+
+    # Both seats occupied -> an extra assignment supersedes the latest term.
+    response = await client.post(
+        "/api/committee-registry/terms",
+        json={"post_key": "executive_member", "member_id": fourth.id, "term_start": str(TODAY)},
+        headers=admin,
+    )
+    assert response.status_code == 201
+    overview = (await client.get("/api/committee-registry", headers=_member_headers(fourth))).json()
+    seats = next(p for p in overview["posts"] if p["key"] == "executive_member")["holders"]
+    assert sorted(h["id"] for h in seats) == sorted([sitting.id, fourth.id])
+
+
 async def test_resignation_needs_standing_council_acknowledgement(client: AsyncClient, db_session, admin_user):
     admin = await _admin_headers(client)
     member = await _make_member(db_session, 2)

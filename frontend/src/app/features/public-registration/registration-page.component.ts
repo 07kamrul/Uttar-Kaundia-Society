@@ -144,8 +144,10 @@ export class RegistrationPageComponent implements OnInit {
   duplicateSubmission: DuplicateSubmissionError | null = null;
   memberPhotoPreview = signal('');
   photoBusy = signal(false);
-  /** Society payment accounts and consent version (reg_simplified_ui); null until loaded or if unavailable. */
+  /** Society payment accounts and consent version; null until loaded or if unavailable. */
   config = signal<RegistrationConfig | null>(null);
+  configLoading = signal(true);
+  configError = signal(false);
   feeLoading = signal(true);
   feeError = signal(false);
   subscriptionBusy = signal(false);
@@ -203,8 +205,9 @@ export class RegistrationPageComponent implements OnInit {
   ngOnInit(): void {
     if (this.simplified) {
       this.draftService.useFileStore(createIndexedDbFileStore());
-      this.loadConfig();
     }
+    // Both UI variants render the payment method picker, which needs the config.
+    this.loadConfig();
     const draft = this.draftService.peekDraft();
     if (draft) {
       this.draftService.restore(this.form, this.fb, draft);
@@ -254,16 +257,23 @@ export class RegistrationPageComponent implements OnInit {
   }
 
   protected loadConfig(): void {
+    this.configLoading.set(true);
+    this.configError.set(false);
     this.registrationService
       .getRegistrationConfig()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (config) => {
+          this.configLoading.set(false);
           this.config.set(config);
           this.cdr.markForCheck();
         },
-        // Payment accounts fall back to the built-in ones; consent_version falls back to the server's current.
-        error: () => undefined,
+        // A failed load surfaces through the picker's error box with a retry.
+        error: () => {
+          this.configLoading.set(false);
+          this.configError.set(true);
+          this.cdr.markForCheck();
+        },
       });
   }
 
@@ -277,6 +287,10 @@ export class RegistrationPageComponent implements OnInit {
       return this.submitting ? 'application.edit.resubmitting' : 'application.edit.resubmit';
     }
     return this.submitting ? 'registration.nav.submitting' : 'registration.nav.submit';
+  }
+
+  retryConfig(): void {
+    this.loadConfig();
   }
 
   dismissDraftToast(): void {

@@ -7,8 +7,8 @@
 .pay-card-note { color: var(--gray-600); }
 .pay-chip { display: inline-block; align-self: flex-start; margin: 0; padding: 0.35rem 0.8rem; border-radius: 999px; background: var(--amber-50); color: var(--gold-strong); font-weight: 600; }
 .pay-now { min-height: 56px; font-size: 1.1rem; width: 100%; max-width: 24rem; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
-.chip { min-height: 44px; padding: 0 1rem; border: 1px solid var(--gray-300); border-radius: 999px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.chip-row { display: flex; flex-wrap: nowrap; gap: 0.5rem; margin-bottom: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.chip { min-height: 44px; padding: 0 0.6rem; border: 1px solid var(--gray-300); border-radius: 999px; background: transparent; color: inherit; font: inherit; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .chip.is-active { background: var(--emerald-700); border-color: var(--emerald-700); color: var(--surface); }
 .history-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .history-row { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 1rem; }

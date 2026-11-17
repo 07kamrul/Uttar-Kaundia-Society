@@ -1,5 +1,7 @@
-"""Batch 6: `/api/login` accepts mobile number and member email (flag
-`login_by_phone`) besides admin email and member ID."""
+"""`/api/login` accepts mobile number, member email, admin email and member ID.
+
+Mobile/email login used to sit behind the `login_by_phone` flag; it is now
+always on, so the flag no longer changes any behaviour."""
 
 import pytest
 from httpx import AsyncClient
@@ -9,7 +11,6 @@ from app.api.routes.auth import LOGIN_MAX_FAILURES
 from app.core.security import hash_password
 from app.models.admin import AdminUser
 from app.models.credential import MemberCredential
-from app.models.feature_flag import FeatureFlag
 from app.models.member import Member, MemberStatus
 from app.services.login_identity import classify, login_key
 
@@ -59,11 +60,6 @@ async def _member(
     return member
 
 
-async def _flag_on(db: AsyncSession) -> None:
-    db.add(FeatureFlag(key="login_by_phone", enabled=True))
-    await db.commit()
-
-
 async def _login(client: AsyncClient, identifier: str, password: str = PASSWORD):
     return await client.post("/api/login", json={"identifier": identifier, "password": password})
 
@@ -107,7 +103,7 @@ async def test_login_key_is_canonical_per_number_and_lowercase_otherwise() -> No
     assert login_key("User@Example.COM") == "user@example.com"
 
 
-# --- flag on: phone --------------------------------------------------------
+# --- phone -----------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -117,7 +113,6 @@ async def test_login_key_is_canonical_per_number_and_lowercase_otherwise() -> No
 async def test_every_bd_format_logs_in_a_member_stored_as_e164(
     client: AsyncClient, db_session: AsyncSession, typed: str
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
 
     response = await _login(client, typed)
@@ -131,7 +126,6 @@ async def test_every_bd_format_logs_in_a_member_stored_as_e164(
 async def test_legacy_digits_only_row_is_found_via_variants(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="01712345678")
 
     assert (await _login(client, "+8801712345678")).status_code == 200
@@ -139,7 +133,6 @@ async def test_legacy_digits_only_row_is_found_via_variants(
 
 
 async def test_foreign_number_needs_a_plus(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+447911123456")
 
     assert (await _login(client, "+44 7911 123456")).status_code == 200
@@ -147,23 +140,13 @@ async def test_foreign_number_needs_a_plus(client: AsyncClient, db_session: Asyn
     assert without_plus.status_code == 401
 
 
-async def test_flag_off_phone_is_not_accepted(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _member(db_session, mobile="+8801712345678")
-
-    response = await _login(client, "01712345678")
-
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Invalid credentials"}
-
-
-async def test_flag_off_member_email_is_not_accepted(client: AsyncClient, db_session: AsyncSession) -> None:
+async def test_member_email_logs_in_without_any_flag(client: AsyncClient, db_session: AsyncSession) -> None:
     await _member(db_session, mobile="+8801712345678", email="off@example.com")
 
-    assert (await _login(client, "off@example.com")).status_code == 401
+    assert (await _login(client, "off@example.com")).status_code == 200
 
 
 async def test_rejected_members_mobile_is_ignored(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678", status=MemberStatus.REJECTED)
 
     assert (await _login(client, "01712345678")).status_code == 401
@@ -172,7 +155,6 @@ async def test_rejected_members_mobile_is_ignored(client: AsyncClient, db_sessio
 async def test_wrong_password_and_unknown_number_share_the_unchanged_401(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
 
     wrong = await _login(client, "01712345678", "wrong-password")
@@ -183,7 +165,6 @@ async def test_wrong_password_and_unknown_number_share_the_unchanged_401(
 
 
 async def test_must_change_password_is_returned(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
 
     body = (await _login(client, "01712345678")).json()
@@ -192,29 +173,26 @@ async def test_must_change_password_is_returned(client: AsyncClient, db_session:
     assert body["permissions"]
 
 
-# --- flag on: email and the other identifiers ------------------------------
+# --- email and the other identifiers ---------------------------------------
 
 
 async def test_member_email_logs_in_case_insensitively(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678", email="Rahim@Example.com")
 
     assert (await _login(client, "rahim@example.com")).status_code == 200
     assert (await _login(client, " RAHIM@EXAMPLE.COM ")).status_code == 200
 
 
-async def test_member_id_still_works_with_the_flag_on(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
+async def test_member_id_still_works(client: AsyncClient, db_session: AsyncSession) -> None:
     member = await _member(db_session, mobile="+8801712345678")
 
     assert (await _login(client, member.member_id)).status_code == 200
     assert (await _login(client, member.member_id.upper())).status_code == 200
 
 
-async def test_admin_email_is_unchanged_with_the_flag_on(
+async def test_admin_email_is_unchanged(
     client: AsyncClient, db_session: AsyncSession, admin_user: AdminUser
 ) -> None:
-    await _flag_on(db_session)
 
     response = await _login(client, "admin@example.com", "adminpass123")
 
@@ -225,7 +203,6 @@ async def test_admin_email_is_unchanged_with_the_flag_on(
 async def test_member_email_of_a_rejected_member_is_ignored(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678", email="gone@example.com", status=MemberStatus.REJECTED)
 
     assert (await _login(client, "gone@example.com")).status_code == 401
@@ -237,7 +214,6 @@ async def test_member_email_of_a_rejected_member_is_ignored(
 async def test_shared_mobile_with_correct_password_is_a_409_not_a_login(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
     await _member(db_session, mobile="01712345678")  # same number, legacy format
 
@@ -250,7 +226,6 @@ async def test_shared_mobile_with_correct_password_is_a_409_not_a_login(
 async def test_shared_mobile_with_wrong_password_reveals_nothing(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
     await _member(db_session, mobile="01712345678")
 
@@ -261,7 +236,6 @@ async def test_shared_mobile_with_wrong_password_reveals_nothing(
 
 
 async def test_shared_email_is_a_409_with_kind_email(client: AsyncClient, db_session: AsyncSession) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345671", email="family@example.com")
     await _member(db_session, mobile="+8801712345672", email="Family@example.com")
 
@@ -274,7 +248,6 @@ async def test_shared_email_is_a_409_with_kind_email(client: AsyncClient, db_ses
 async def test_ambiguous_409_is_not_counted_as_a_failure(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
     await _member(db_session, mobile="01712345678")
 
@@ -285,7 +258,6 @@ async def test_ambiguous_409_is_not_counted_as_a_failure(
 async def test_a_shared_number_does_not_block_the_member_id(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     first = await _member(db_session, mobile="+8801712345678")
     await _member(db_session, mobile="01712345678")
 
@@ -295,7 +267,6 @@ async def test_a_shared_number_does_not_block_the_member_id(
 async def test_shared_number_with_one_login_less_member_is_not_ambiguous(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
     await _member(db_session, mobile="01712345678", with_login=False)
 
@@ -308,7 +279,6 @@ async def test_shared_number_with_one_login_less_member_is_not_ambiguous(
 async def test_failures_in_different_formats_share_one_bucket(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    await _flag_on(db_session)
     await _member(db_session, mobile="+8801712345678")
     formats = ["01712345678", "+8801712345678", "8801712345678", "০১৭১২৩৪৫৬৭৮", "01712-345678"]
 
@@ -321,7 +291,7 @@ async def test_failures_in_different_formats_share_one_bucket(
     assert int(blocked.headers["Retry-After"]) > 0
 
 
-async def test_flag_off_rate_limit_key_is_the_raw_lowercased_identifier(
+async def test_failure_bucket_is_canonical_across_number_formats(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
     await _member(db_session, mobile="+8801712345678")
@@ -329,6 +299,4 @@ async def test_flag_off_rate_limit_key_is_the_raw_lowercased_identifier(
     for _ in range(LOGIN_MAX_FAILURES):
         await _login(client, "01712345678", "wrong-password")
 
-    assert (await _login(client, "01712345678", "wrong-password")).status_code == 429
-    # a different spelling has its own bucket while the flag is off (as today)
-    assert (await _login(client, "+8801712345678", "wrong-password")).status_code == 401
+    assert (await _login(client, "+8801712345678", "wrong-password")).status_code == 429

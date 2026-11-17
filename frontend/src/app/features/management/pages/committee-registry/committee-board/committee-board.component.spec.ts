@@ -29,7 +29,7 @@ function post(key: string, holders: SeatHolder[], council = 'executive'): Regist
 }
 
 describe('CommitteeBoardComponent', () => {
-  function create(posts: RegistryPost[], lang = 'en'): ComponentFixture<CommitteeBoardComponent> {
+  function create(posts: RegistryPost[], lang = 'en', canManage = false): ComponentFixture<CommitteeBoardComponent> {
     TestBed.configureTestingModule({
       imports: [CommitteeBoardComponent],
       providers: [provideTranslateService()],
@@ -37,6 +37,7 @@ describe('CommitteeBoardComponent', () => {
     const fixture = TestBed.createComponent(CommitteeBoardComponent);
     fixture.componentRef.setInput('posts', posts);
     fixture.componentRef.setInput('lang', lang);
+    fixture.componentRef.setInput('canManage', canManage);
     fixture.detectChanges();
     return fixture;
   }
@@ -112,5 +113,52 @@ describe('CommitteeBoardComponent', () => {
     const fixture = create([post('new_secretary', [seat(7, 'Nina')])]);
 
     expect(fixture.componentInstance.executiveRows().map((row) => row.id)).toEqual(['other']);
+  });
+
+  it('hides the assign button from non-admin viewers', () => {
+    const fixture = create([post('president', [])]);
+
+    expect(fixture.nativeElement.querySelector('.cb-assign')).toBeNull();
+  });
+
+  it('lets admins assign a member to a vacant seat from the board', () => {
+    const fixture = create([post('president', [])], 'en', true);
+    const button = fixture.nativeElement.querySelector('.cb-assign');
+    expect(button).not.toBeNull();
+
+    let assigned = '';
+    fixture.componentInstance.assign.subscribe((postKey: string) => (assigned = postKey));
+    button.click();
+    expect(assigned).toBe('president');
+  });
+
+  it('filters the board to filled or vacant seats and matches search', () => {
+    const fixture = create([post('president', [seat(1, 'Paul')]), post('treasurer', [])]);
+    const component = fixture.componentInstance;
+
+    component.filter.set('filled');
+    expect(component.matches().map((card) => card.postKey)).toEqual(['president']);
+
+    component.filter.set('vacant');
+    expect(component.matches().map((card) => card.postKey)).toEqual(['treasurer']);
+
+    component.filter.set('all');
+    component.search.set('paul');
+    expect(component.matches().map((card) => card.postKey)).toEqual(['president']);
+  });
+
+  it('summarises total, filled, vacant and needs-attention seats', () => {
+    const fixture = create([
+      post('president', [seat(1, 'Paul', { status: 'expired' })]),
+      post('treasurer', [seat(2, 'Tara', { status: 'caretaker' })]),
+      post('general_secretary', []),
+    ]);
+
+    expect(fixture.componentInstance.stats()).toEqual({
+      total: 3,
+      filled: 2,
+      vacant: 1,
+      attention: 2,
+    });
   });
 });

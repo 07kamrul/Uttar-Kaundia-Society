@@ -7,9 +7,10 @@ import bn from '../../../../public/i18n/bn.json';
 import { FeatureFlagService } from '../../core/services/feature-flag.service';
 import { LanguageService } from '../../core/services/language.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PublicShellComponent } from './public-shell.component';
 
-function create(fiveAreas: boolean) {
+function create(fiveAreas: boolean, loggedIn = false) {
   TestBed.configureTestingModule({
     providers: [
       provideTranslateService(),
@@ -17,6 +18,7 @@ function create(fiveAreas: boolean) {
       { provide: FeatureFlagService, useValue: { isEnabled: (k: string) => fiveAreas && k === 'nav_five_areas' } },
       { provide: LanguageService, useValue: { lang: signal('bn'), toggle: () => undefined, setLang: () => undefined } },
       { provide: ThemeService, useValue: { theme: signal('light'), toggle: () => undefined } },
+      { provide: AuthService, useValue: { isAuthenticated: () => loggedIn, logout: () => undefined } },
     ],
   });
   const t = TestBed.inject(TranslateService);
@@ -39,5 +41,21 @@ describe('PublicShellComponent language control', () => {
     expect(el.querySelector('app-lang-switch')).not.toBeNull();
     expect(el.textContent).not.toMatch(/\bEN\b/);
     expect(el.querySelector('[aria-label="গাঢ় থিম"]')).not.toBeNull();
+  });
+});
+
+describe('PublicShellComponent auth-aware header actions', () => {
+  it('shows Register/Login for a signed-out visitor', () => {
+    const el = create(false, false);
+    expect(el.textContent).toContain('আবেদন করুন');
+    expect(el.textContent).toContain('লগইন');
+    expect(el.textContent).not.toContain('ড্যাশবোর্ড');
+  });
+
+  it('shows Dashboard/Logout instead of Register/Login for a signed-in user', () => {
+    const el = create(false, true);
+    expect(el.textContent).toContain('ড্যাশবোর্ড');
+    expect(el.textContent).toContain('বের হোন');
+    expect(el.textContent).not.toContain('লগইন');
   });
 });
