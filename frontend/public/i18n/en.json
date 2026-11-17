@@ -3631,6 +3631,11 @@
     "title": "View my data / request correction",
     "documents": "My uploaded documents",
     "noDocuments": "No documents uploaded.",
+    "docKinds": {
+      "photo": "Member photo",
+      "receipt": "Payment receipt",
+      "nid": "National ID"
+    },
     "downloadError": "Download failed.",
     "requestCorrection": "Request a correction",
     "field": "Field (e.g. mobile)",

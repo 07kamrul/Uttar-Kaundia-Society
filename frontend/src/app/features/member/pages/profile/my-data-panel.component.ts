@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { IconComponent } from '../../../../shared/icon/icon.component';
 import {
   DataCorrectionRequest,
@@ -17,6 +17,24 @@ function saveBlob(blob: Blob, filename: string): void {
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const MIME_EXTENSIONS: Readonly<Record<string, string>> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+  'application/pdf': '.pdf',
+};
+
+const KNOWN_DOC_KINDS: ReadonlySet<string> = new Set(['photo', 'receipt', 'nid']);
+
+/** Appends a file extension derived from the blob's MIME type so the OS can
+ * open the download. Leaves names that already carry that extension alone. */
+export function withExtension(name: string, mimeType: string): string {
+  const ext = MIME_EXTENSIONS[mimeType.split(';')[0].trim().toLowerCase()];
+  if (!ext || name.toLowerCase().endsWith(ext)) return name;
+  return `${name}${ext}`;
 }
 
 /** Profile panel: "আমার তথ্য দেখুন / সংশোধনের অনুরোধ" — lists the member's own
@@ -52,7 +70,7 @@ function saveBlob(blob: Blob, filename: string): void {
             @for (doc of documents(); track doc.url) {
               <button type="button" class="btn btn-secondary btn-sm doc-chip" (click)="download(doc)">
                 <app-icon name="doc" [size]="14" />
-                <span class="doc-name">{{ doc.label }}</span>
+                <span class="doc-name">{{ docLabel(doc) }}</span>
                 <app-icon name="download" [size]="14" />
               </button>
             }
@@ -200,6 +218,7 @@ function saveBlob(blob: Blob, filename: string): void {
 })
 export class MyDataPanelComponent implements OnInit {
   private readonly governance = inject(GovernanceService);
+  private readonly translate = inject(TranslateService);
 
   readonly documents = signal<MyDocument[]>([]);
   readonly requests = signal<DataCorrectionRequest[]>([]);
@@ -217,10 +236,19 @@ export class MyDataPanelComponent implements OnInit {
     this.governance.myCorrections().subscribe({ next: (rows) => this.requests.set(rows) });
   }
 
+  /** Translated chip label; NID rows keep their application number prefix. */
+  docLabel(doc: MyDocument): string {
+    if (!KNOWN_DOC_KINDS.has(doc.kind)) return doc.label;
+    const text = this.translate.instant(`myData.docKinds.${doc.kind}`);
+    if (doc.kind !== 'nid') return text;
+    const prefix = doc.label.replace(/\s*NID$/i, '').trim();
+    return prefix ? `${prefix} · ${text}` : text;
+  }
+
   download(doc: MyDocument): void {
     this.downloadError.set('');
     this.governance.downloadDocument(doc.url).subscribe({
-      next: (blob) => saveBlob(blob, doc.label),
+      next: (blob) => saveBlob(blob, withExtension(doc.label, blob.type)),
       error: () => this.downloadError.set('myData.downloadError'),
     });
   }
