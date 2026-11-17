@@ -313,9 +313,18 @@ export class PropertyRequestFormComponent implements OnInit {
         },
         error: (err) => {
           this.submitting = false;
-          const detail = typeof err?.error?.detail === 'string' ? err.error.detail : '';
+          const detail = err?.error?.detail;
+          let message = '';
+          if (typeof detail === 'string') {
+            message = detail;
+          } else if (detail && typeof detail === 'object' && typeof detail.message === 'string') {
+            // Payload-validation 422s arrive as {message, errors}: show the
+            // reason plus the field errors instead of the generic banner.
+            const errors = typeof detail.errors === 'string' ? detail.errors : '';
+            message = errors ? `${detail.message}: ${errors}` : detail.message;
+          }
           this.submitError =
-            detail || this.translate.instant('member.propertyRequests.errors.submitFailed');
+            message || this.translate.instant('member.propertyRequests.errors.submitFailed');
           this.cdr.markForCheck();
         },
       });

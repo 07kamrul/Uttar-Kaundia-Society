@@ -84,6 +84,17 @@ async def _create_request(client, member, action="add", *, payload=None, propert
     )
 
 
+async def test_add_request_accepts_decimal_land_quantities(
+    client: AsyncClient, db_session
+) -> None:
+    member = await _approved_member(db_session)
+    payload = _add_payload()
+    payload["land_quantity"] = "8.5"
+    payload["my_share_quantity"] = "1.25"
+    created = await _create_request(client, member, payload=payload)
+    assert created.status_code == 201
+
+
 async def test_add_request_full_cycle(
     client: AsyncClient, db_session, admin_user
 ) -> None:

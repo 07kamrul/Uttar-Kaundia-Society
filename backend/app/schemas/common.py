@@ -1,15 +1,18 @@
 from datetime import datetime, timezone
+import re
 
 from pydantic import BaseModel, Field, field_validator
 
 from app.services.normalization import normalize_mobile
 
 DIGITS_ONLY_PATTERN = r"^\d+$"
+DECIMAL_PATTERN = re.compile(r"^\d+(\.\d+)?$")
 
 
 def validate_digits_only(value: str | None) -> str | None:
-    if value is not None and value != "" and not value.isdigit():
-        raise ValueError("must contain digits only")
+    """Land/share quantities: whole or decimal digits (e.g. '9', '8.5')."""
+    if value is not None and value != "" and not DECIMAL_PATTERN.match(value):
+        raise ValueError("must contain digits only (decimals allowed)")
     return value
 
 
