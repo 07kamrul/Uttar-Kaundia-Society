@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.common import CoOwner, validate_digits_only
 
@@ -15,8 +15,11 @@ class PropertyRequestDocPayload(BaseModel):
     valid in a stored payload: the route fills them in from the uploads.
     """
 
-    doc_type: str
-    keep_path: str | None = None
+    # camelCase aliases tolerate stale frontend bundles that sent docType/keepPath.
+    doc_type: str = Field(validation_alias=AliasChoices("doc_type", "docType"))
+    keep_path: str | None = Field(
+        default=None, validation_alias=AliasChoices("keep_path", "keepPath")
+    )
 
 
 class PropertyRequestPayload(BaseModel):

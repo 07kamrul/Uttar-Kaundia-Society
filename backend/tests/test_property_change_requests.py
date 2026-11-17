@@ -254,3 +254,22 @@ async def test_delete_request_for_foreign_property_is_404(
 
     response = await _create_request(client, member, "delete", payload={}, property_id=property_.id)
     assert response.status_code == 404
+
+
+async def test_doc_payload_accepts_snake_and_camel_case_keys():
+    from app.schemas.property_request import PropertyRequestPayload
+
+    payload = PropertyRequestPayload.model_validate(
+        {
+            "docs": [
+                {"doc_type": "খাজনা/কর রশিদ", "keep_path": "documents/member_4/a.pdf"},
+                {"docType": "খাজনা/কর রশিদ", "keepPath": None},
+            ]
+        }
+    )
+
+    assert [d.doc_type for d in payload.docs] == ["খাজনা/কর রশিদ", "খাজনা/কর রশিদ"]
+    assert payload.docs[0].keep_path == "documents/member_4/a.pdf"
+    assert payload.docs[1].keep_path is None
+    # Stored payload stays snake_case.
+    assert payload.model_dump()["docs"][1] == {"doc_type": "খাজনা/কর রশিদ", "keep_path": None}
