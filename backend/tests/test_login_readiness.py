@@ -160,7 +160,7 @@ async def test_endpoint_shape_and_counts(client: AsyncClient, db_session: AsyncS
         "open_phone_fixes",
         "duplicate_email_groups",
     }
-    assert body["login_by_phone_enabled"] is False
+    assert body["login_by_phone_enabled"] is True  # retired flag, now on by default
     assert body["members_with_login"] == 2
     assert body["duplicate_group_count"] == 1
     assert body["blocking_group_count"] == 1

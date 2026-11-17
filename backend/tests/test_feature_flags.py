@@ -37,15 +37,19 @@ EXPECTED_KEYS = {
 }
 
 
+# Easy-to-use rollout (stages A-D): everything on except the money-flow change.
+DEFAULT_ON = EXPECTED_KEYS - {"pay_verify_other_fees"}
+
+
 def _exec_headers(admin_user) -> dict:
     return _headers(admin_user.id, "executive_committee")
 
 
-async def test_registry_has_expected_keys_all_default_off():
+async def test_registry_has_expected_keys_and_rollout_defaults():
     assert set(FEATURE_FLAGS) == EXPECTED_KEYS
     for key, flag in FEATURE_FLAGS.items():
         assert flag.key == key
-        assert flag.default is False
+        assert flag.default is (key in DEFAULT_ON)
         assert flag.description
 
 
@@ -53,26 +57,26 @@ async def test_public_endpoint_returns_defaults_without_auth(client):
     response = await client.get("/api/public/feature-flags")
 
     assert response.status_code == 200
-    assert response.json() == {"flags": {key: False for key in EXPECTED_KEYS}}
+    assert response.json() == {"flags": {key: key in DEFAULT_ON for key in EXPECTED_KEYS}}
 
 
 async def test_admin_update_is_reflected_in_public_endpoint(client, admin_user):
     headers = _exec_headers(admin_user)
-    assert (await client.get("/api/public/feature-flags")).json()["flags"]["reg_road_optional"] is False
+    assert (await client.get("/api/public/feature-flags")).json()["flags"]["pay_verify_other_fees"] is False
 
     response = await client.put(
-        "/api/admin/feature-flags/reg_road_optional", json={"enabled": True}, headers=headers
+        "/api/admin/feature-flags/pay_verify_other_fees", json={"enabled": True}, headers=headers
     )
 
     assert response.status_code == 200
     body = response.json()
-    assert body["key"] == "reg_road_optional"
+    assert body["key"] == "pay_verify_other_fees"
     assert body["enabled"] is True
     assert body["default"] is False
     assert body["updated_at"] is not None
     public = (await client.get("/api/public/feature-flags")).json()["flags"]
-    assert public["reg_road_optional"] is True
-    assert sum(public.values()) == 1
+    assert public["pay_verify_other_fees"] is True
+    assert sum(public.values()) == 1 + len(DEFAULT_ON)
 
 
 async def test_admin_can_turn_flag_back_off(client, admin_user):
@@ -89,19 +93,19 @@ async def test_admin_can_turn_flag_back_off(client, admin_user):
 
 async def test_admin_list_returns_every_flag_with_metadata(client, admin_user):
     headers = _exec_headers(admin_user)
-    await client.put("/api/admin/feature-flags/reg_dag_unknown", json={"enabled": True}, headers=headers)
+    await client.put("/api/admin/feature-flags/admin_bulk_verify", json={"enabled": True}, headers=headers)
 
     response = await client.get("/api/admin/feature-flags", headers=headers)
 
     assert response.status_code == 200
     rows = {row["key"]: row for row in response.json()}
     assert set(rows) == EXPECTED_KEYS
-    assert rows["reg_dag_unknown"]["enabled"] is True
-    assert rows["reg_dag_unknown"]["updated_at"] is not None
-    assert rows["reg_road_optional"]["enabled"] is False
-    assert rows["reg_road_optional"]["updated_at"] is None
-    assert rows["reg_road_optional"]["default"] is False
-    assert rows["reg_road_optional"]["description"] == FEATURE_FLAGS["reg_road_optional"].description
+    assert rows["admin_bulk_verify"]["enabled"] is True
+    assert rows["admin_bulk_verify"]["updated_at"] is not None
+    assert rows["pay_verify_other_fees"]["enabled"] is False
+    assert rows["pay_verify_other_fees"]["updated_at"] is None
+    assert rows["pay_verify_other_fees"]["default"] is False
+    assert rows["pay_verify_other_fees"]["description"] == FEATURE_FLAGS["pay_verify_other_fees"].description
 
 
 async def test_update_unknown_key_returns_404(client, admin_user):
@@ -114,7 +118,7 @@ async def test_update_unknown_key_returns_404(client, admin_user):
 
 async def test_update_rejects_non_boolean_body(client, admin_user):
     response = await client.put(
-        "/api/admin/feature-flags/reg_road_optional", json={"enabled": "maybe"}, headers=_exec_headers(admin_user)
+        "/api/admin/feature-flags/pay_verify_other_fees", json={"enabled": "maybe"}, headers=_exec_headers(admin_user)
     )
 
     assert response.status_code == 422
@@ -126,7 +130,7 @@ async def test_anonymous_and_members_cannot_use_admin_endpoints(client, db_sessi
     for headers in ({}, _headers(member.id, "member")):
         assert (await client.get("/api/admin/feature-flags", headers=headers)).status_code in (401, 403)
         response = await client.put(
-            "/api/admin/feature-flags/reg_road_optional", json={"enabled": True}, headers=headers
+            "/api/admin/feature-flags/pay_verify_other_fees", json={"enabled": True}, headers=headers
         )
         assert response.status_code in (401, 403)
 
@@ -141,7 +145,7 @@ async def test_admin_without_permission_gets_403(client, db_session, admin_user)
 
     assert (await client.get("/api/admin/feature-flags", headers=headers)).status_code == 403
     response = await client.put(
-        "/api/admin/feature-flags/reg_road_optional", json={"enabled": True}, headers=headers
+        "/api/admin/feature-flags/pay_verify_other_fees", json={"enabled": True}, headers=headers
     )
     assert response.status_code == 403
     assert (await db_session.execute(select(FeatureFlag))).scalars().all() == []
@@ -150,39 +154,39 @@ async def test_admin_without_permission_gets_403(client, db_session, admin_user)
 async def test_update_writes_audit_row_with_old_and_new(client, db_session, admin_user):
     headers = _exec_headers(admin_user)
 
-    await client.put("/api/admin/feature-flags/nav_merged_entries", json={"enabled": True}, headers=headers)
+    await client.put("/api/admin/feature-flags/pay_verify_other_fees", json={"enabled": True}, headers=headers)
 
     audit = (
         await db_session.execute(select(AuditLog).where(AuditLog.action == "feature_flag.update"))
     ).scalar_one()
     assert audit.actor_admin_id == admin_user.id
     assert audit.entity_type == "feature_flag"
-    assert audit.entity_id == "nav_merged_entries"
+    assert audit.entity_id == "pay_verify_other_fees"
     assert "false" in audit.detail.lower() and "true" in audit.detail.lower()
 
 
 async def test_is_enabled_returns_default_then_db_override(db_session):
-    assert await is_enabled(db_session, "reg_min_one_proof") is False
+    assert await is_enabled(db_session, "pay_verify_other_fees") is False
 
-    db_session.add(FeatureFlag(key="reg_min_one_proof", enabled=True))
+    db_session.add(FeatureFlag(key="pay_verify_other_fees", enabled=True))
     await db_session.commit()
 
-    assert await is_enabled(db_session, "reg_min_one_proof") is True
-    assert await is_enabled(db_session, "reg_hide_nationality") is False
+    assert await is_enabled(db_session, "pay_verify_other_fees") is True
+    assert await is_enabled(db_session, "admin_console") is True
 
 
 async def test_enabled_flags_resolves_defaults_and_overrides_in_one_call(db_session):
-    db_session.add(FeatureFlag(key="reg_min_one_proof", enabled=True))
+    db_session.add(FeatureFlag(key="pay_verify_other_fees", enabled=True))
     await db_session.commit()
 
-    flags = await enabled_flags(db_session, ("reg_min_one_proof", "reg_hide_nationality"))
+    flags = await enabled_flags(db_session, ("pay_verify_other_fees", "admin_console"))
 
-    assert flags == {"reg_min_one_proof": True, "reg_hide_nationality": False}
+    assert flags == {"pay_verify_other_fees": True, "admin_console": True}
 
 
 async def test_enabled_flags_unknown_key_raises_key_error(db_session):
     with pytest.raises(KeyError):
-        await enabled_flags(db_session, ("reg_min_one_proof", "nope"))
+        await enabled_flags(db_session, ("pay_verify_other_fees", "nope"))
 
 
 async def test_is_enabled_unknown_key_raises_key_error(db_session):

@@ -19,6 +19,7 @@ from app.models.installment_payment import InstallmentPayment
 from app.models.rbac import Permission, UserPermissionOverride
 from app.models.society_cost import CostSplitShare
 from tests.test_installment_payments import _member_headers, _seed_accounts, _seed_due, _seed_member
+from tests.conftest import set_flag
 from tests.test_member_payments import (
     INST,
     SUBMIT,
@@ -48,8 +49,7 @@ async def _world(client: AsyncClient, db, *, bulk_flag: bool = True) -> _World:
     w = _World()
     await _seed_accounts(db)
     await _flag_on(db)  # pay_merged_page: cost-share submissions
-    if bulk_flag:
-        await _flag_on(db, "admin_bulk_verify")
+    await set_flag(db, "admin_bulk_verify", bulk_flag)
     w.member_a = await _seed_member(db, "bulk-a@example.com")
     w.member_b = await _seed_member(db, "bulk-b@example.com")
     w.due_a = (await _seed_due(db, w.member_a, [1], amount=200))[0]

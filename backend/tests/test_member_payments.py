@@ -39,6 +39,12 @@ async def _flag_on(db, key="pay_merged_page"):
     await db.commit()
 
 
+async def _flag_off(db, key="pay_merged_page"):
+    """pay_merged_page now defaults on; pin it off for flag-off behaviour."""
+    db.add(FeatureFlag(key=key, enabled=False))
+    await db.commit()
+
+
 async def _seed_share(db, member, due="1000", paid="0", title="রাস্তা") -> CostSplitShare:
     cost = SocietyCost(title=title, total_amount=Decimal(due), incurred_date=date(2026, 1, 1))
     db.add(cost)
@@ -168,6 +174,7 @@ async def test_history_merges_filters_paginates_and_isolates(client: AsyncClient
 
 
 async def test_submit_flag_off_returns_feature_disabled(client: AsyncClient, db_session) -> None:
+    await _flag_off(db_session)
     await _seed_accounts(db_session)
     member = await _seed_member(db_session, "off@example.com")
     share = await _seed_share(db_session, member)

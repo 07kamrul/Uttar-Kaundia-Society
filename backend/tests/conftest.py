@@ -1,4 +1,5 @@
 import asyncio
+import json
 from collections.abc import AsyncGenerator
 from datetime import date
 
@@ -16,6 +17,7 @@ from app.main import app
 from app.core.security import hash_password
 from app.models.admin import AdminRole, AdminUser
 from app.models.fee_settings import FeeSetting
+from app.models.feature_flag import FeatureFlag
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -112,20 +114,66 @@ NO_PHOTO_HEADER = "x-test-no-photo"
 _TEST_PHOTO = ("member_photo", ("photo.jpg", b"\xff\xd8\xff\xe0fakejpeg", "image/jpeg"))
 
 
+async def set_flag(db_session: AsyncSession, key: str, enabled: bool) -> None:
+    """Pin a feature flag via an admin-style override row. Most flags now
+    default on, so tests of the old ("flag off") behaviour pin them off."""
+    db_session.add(FeatureFlag(key=key, enabled=enabled))
+    await db_session.commit()
+
+
+NO_PROOF_HEADER = "x-test-no-proof"
+_TEST_PROOF_DOC_TYPE = "খতিয়ান/পর্চা"
+
+
+def _files_list(files) -> list:
+    return list(files.items() if isinstance(files, dict) else files or [])
+
+
+def _with_default_proofs(data: dict, files: list) -> tuple[dict, list]:
+    """reg_min_one_proof (on by default) needs one proof file per property.
+    When the test sent no document files, give every property without a
+    document slot a default slot plus a tiny PDF. Returns new objects."""
+    if any(name in ("doc_files", "docFiles") for name, _ in files):
+        return data, files
+    raw = data.get("payload")
+    if not isinstance(raw, str):
+        return data, files
+    try:
+        payload = json.loads(raw)
+    except ValueError:
+        return data, files
+    properties = payload.get("properties")
+    if not isinstance(properties, list):
+        return data, files
+    extra_files: list = []
+    new_properties = []
+    for prop in properties:
+        if isinstance(prop, dict) and not prop.get("applicable_docs"):
+            prop = {**prop, "applicable_docs": [{"doc_type": _TEST_PROOF_DOC_TYPE}]}
+            extra_files.append(("doc_files", ("proof.pdf", b"%PDF-1.4 proof", "application/pdf")))
+        new_properties.append(prop)
+    if not extra_files:
+        return data, files
+    new_data = {**data, "payload": json.dumps({**payload, "properties": new_properties})}
+    return new_data, [*files, *extra_files]
+
+
 class _PhotoDefaultClient(AsyncClient):
-    """The member photo is mandatory on /api/submissions. Most tests are not
-    about the photo, so POSTs there get a tiny default one unless the test
-    sends its own photo or the `x-test-no-photo` header."""
+    """The member photo and (with reg_min_one_proof) one proof per property are
+    mandatory on /api/submissions. Most tests are about neither, so POSTs there
+    get tiny defaults unless the test sends its own files or the
+    `x-test-no-photo` / `x-test-no-proof` header."""
 
     async def post(self, url, *args, **kwargs):  # type: ignore[override]
         if str(url).endswith("/api/submissions"):
             headers = dict(kwargs.get("headers") or {})
+            files = _files_list(kwargs.get("files"))
             if headers.pop(NO_PHOTO_HEADER, None) is None:
-                files = kwargs.get("files")
-                files = list(files.items() if isinstance(files, dict) else files or [])
                 if not any(name in ("member_photo", "memberPhoto") for name, _ in files):
-                    files.insert(0, _TEST_PHOTO)
-                kwargs["files"] = files
+                    files = [_TEST_PHOTO, *files]
+            if headers.pop(NO_PROOF_HEADER, None) is None and isinstance(kwargs.get("data"), dict):
+                kwargs["data"], files = _with_default_proofs(kwargs["data"], files)
+            kwargs["files"] = files
             kwargs["headers"] = headers
         return await super().post(url, *args, **kwargs)
 

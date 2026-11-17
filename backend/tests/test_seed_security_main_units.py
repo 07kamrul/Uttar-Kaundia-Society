@@ -132,10 +132,15 @@ async def test_health_endpoint(client: AsyncClient) -> None:
 
 
 async def test_cors_middleware_allows_configured_origin(client: AsyncClient) -> None:
+    # The allowed origin comes from settings.cors_origins_list (frontend dev
+    # server port); the test must follow the config, not a hardcoded port.
+    from app.core.config import get_settings
+
+    origin = get_settings().cors_origins_list[0]
     response = await client.options(
         "/health",
         headers={
-            "Origin": "http://localhost:4200",
+            "Origin": origin,
             "Access-Control-Request-Method": "GET",
         },
     )

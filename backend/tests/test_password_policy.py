@@ -23,6 +23,7 @@ from app.models.feature_flag import FeatureFlag
 from app.models.member import Member, MemberStatus
 from app.models.password_reset import PasswordResetToken
 from app.schemas.auth import validate_new_password
+from tests.conftest import set_flag
 
 pytestmark = pytest.mark.asyncio
 
@@ -187,8 +188,9 @@ def _far_future():
 
 class TestChangePasswordEndpoint:
     async def test_v2_off_still_demands_a_digit_and_adds_a_code(
-        self, client: AsyncClient, member: Member
+        self, client: AsyncClient, db_session, member: Member
     ) -> None:
+        await set_flag(db_session, "password_policy_v2", False)
         response = await client.post(
             CHANGE_URL, json={"current_password": CURRENT, "new_password": "abcdefgh"}, headers=_auth(member)
         )
@@ -252,8 +254,9 @@ class TestChangePasswordEndpoint:
 
 class TestResetPasswordEndpoint:
     async def test_v2_off_reset_error_gains_a_code_and_keeps_errors(
-        self, client: AsyncClient, member: Member
+        self, client: AsyncClient, db_session, member: Member
     ) -> None:
+        await set_flag(db_session, "password_policy_v2", False)
         response = await client.post(RESET_URL, json={"token": "whatever", "new_password": "abcdefgh"})
 
         assert response.status_code == 422

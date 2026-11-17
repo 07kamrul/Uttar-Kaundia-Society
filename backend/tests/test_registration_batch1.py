@@ -15,7 +15,7 @@ from app.models.config_list_item import ConfigListItem
 from app.models.feature_flag import FeatureFlag
 from app.models.member import Member
 from app.models.property import Property
-from tests.conftest import NO_PHOTO_HEADER
+from tests.conftest import NO_PHOTO_HEADER, NO_PROOF_HEADER
 from tests.test_finance import _headers
 from tests.test_submission_flow import _submission_payload
 
@@ -27,6 +27,13 @@ _SEQ = {"n": 100}
 async def _flags(db_session, *keys: str) -> None:
     for key in keys:
         db_session.add(FeatureFlag(key=key, enabled=True))
+    await db_session.commit()
+
+
+async def _flags_off(db_session, *keys: str) -> None:
+    """Pin flags off explicitly; some registration flags now default on."""
+    for key in keys:
+        db_session.add(FeatureFlag(key=key, enabled=False))
     await db_session.commit()
 
 
@@ -53,9 +60,9 @@ def _code(response) -> str:
     return response.json()["detail"]["code"]
 
 
-async def test_new_flags_registered_default_off():
+async def test_new_flags_registered_default_on():
     for key in ("reg_abroad_address", "reg_simplified_ui"):
-        assert FEATURE_FLAGS[key].default is False
+        assert FEATURE_FLAGS[key].default is True
         assert FEATURE_FLAGS[key].description
 
 
@@ -80,7 +87,8 @@ async def test_photo_alias_member_photo_camel_case_accepted(client: AsyncClient,
 # --- optional fields, flags off vs on ----------------------------------------
 
 
-async def test_occupation_missing_rejected_when_flag_off(client: AsyncClient):
+async def test_occupation_missing_rejected_when_flag_off(client: AsyncClient, db_session):
+    await _flags_off(db_session, "reg_occupation_optional")
     payload = _payload()
     del payload["occupation"]
     response = await _post(client, payload)
@@ -116,7 +124,8 @@ async def test_nationality_defaults_when_hidden_flag_on(client: AsyncClient, db_
     assert member.nationality == "বাংলাদেশী"
 
 
-async def test_nationality_missing_rejected_when_flag_off(client: AsyncClient):
+async def test_nationality_missing_rejected_when_flag_off(client: AsyncClient, db_session):
+    await _flags_off(db_session, "reg_hide_nationality")
     payload = _payload()
     del payload["nationality"]
     response = await _post(client, payload)
@@ -131,6 +140,7 @@ async def test_road_not_enforced_server_side(client: AsyncClient, db_session):
 
 
 async def test_dag_unknown_ignored_when_flag_off(client: AsyncClient, db_session):
+    await _flags_off(db_session, "reg_dag_unknown")
     payload = _payload()
     payload["properties"][0].update(dag_no_cs="", dag_no_rs="", dag_unknown=True)
     response = await _post(client, payload)
@@ -166,14 +176,15 @@ def _with_doc(payload: dict) -> dict:
     return payload
 
 
-async def test_proof_not_required_when_flag_off(client: AsyncClient):
-    response = await _post(client, _payload())
+async def test_proof_not_required_when_flag_off(client: AsyncClient, db_session):
+    await _flags_off(db_session, "reg_min_one_proof")
+    response = await _post(client, _payload(), headers={NO_PROOF_HEADER: "1"})
     assert response.status_code == 201
 
 
 async def test_proof_required_when_flag_on(client: AsyncClient, db_session):
     await _flags(db_session, "reg_min_one_proof")
-    response = await _post(client, _payload())
+    response = await _post(client, _payload(), headers={NO_PROOF_HEADER: "1"})
     assert response.status_code == 422
     assert _code(response) == "PROPERTY_PROOF_REQUIRED"
 
@@ -216,6 +227,7 @@ async def test_abroad_stored_when_flag_on(client: AsyncClient, db_session):
 
 
 async def test_abroad_flag_off_keeps_today_behaviour(client: AsyncClient, db_session):
+    await _flags_off(db_session, "reg_abroad_address")
     response = await _post(client, _abroad())
     assert response.status_code == 201
     member = await db_session.get(Member, response.json()["id"])

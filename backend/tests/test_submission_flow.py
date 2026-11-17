@@ -7,6 +7,7 @@ from httpx import AsyncClient
 
 from app.api.routes import admin as admin_routes
 from app.models.admin import AdminUser
+from tests.conftest import set_flag
 
 pytestmark = pytest.mark.asyncio
 
@@ -376,8 +377,11 @@ async def test_submission_ignores_client_sent_subscription_amount(
 
 
 async def test_admin_replaces_missing_document(
-    client: AsyncClient, admin_user: AdminUser, tmp_path, monkeypatch: pytest.MonkeyPatch
+    client: AsyncClient, db_session, admin_user: AdminUser, tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # A document slot with no file only exists when the proof rule is off
+    # (legacy records); that is the case the admin replacement fixes.
+    await set_flag(db_session, "reg_min_one_proof", False)
     from app.services import storage
 
     monkeypatch.setattr(storage.settings, "upload_dir", str(tmp_path))

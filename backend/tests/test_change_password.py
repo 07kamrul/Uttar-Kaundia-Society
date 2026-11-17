@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token, hash_password
 from app.models.credential import MemberCredential
 from app.models.member import Member, MemberStatus
+from tests.conftest import set_flag
 
 pytestmark = pytest.mark.asyncio
 
@@ -79,8 +80,9 @@ async def test_wrong_current_password_returns_field_error(
 
 @pytest.mark.parametrize("weak", ["short1", "nodigitshere"])
 async def test_weak_new_password_returns_policy_message(
-    client: AsyncClient, member_headers: dict[str, str], weak: str
+    client: AsyncClient, db_session, member_headers: dict[str, str], weak: str
 ) -> None:
+    await set_flag(db_session, "password_policy_v2", False)  # v1 message under test
     response = await client.post(
         URL,
         json={"current_password": CURRENT_PASSWORD, "new_password": weak},

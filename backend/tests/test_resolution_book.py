@@ -201,7 +201,11 @@ async def test_resolution_status_update_audited_and_noticed(client: AsyncClient,
     assert response.status_code == 200, response.text
     assert response.json()["resolution"]["status"] == "done"
     audits = (
-        await db_session.execute(sa_select(AuditLog).where(AuditLog.action == "resolution.update"))
+        await db_session.execute(
+            sa_select(AuditLog).where(
+                AuditLog.action.in_(["resolution.update", "resolution.update_correction"])
+            )
+        )
     ).scalars().all()
     assert audits
     notices = (await db_session.execute(sa_select(Notice))).scalars().all()

@@ -17,6 +17,7 @@ from app.models.member import Member, MemberStatus
 from app.services.status_transition import claim_status_transition
 from app.services.upload_access import can_access_upload
 from tests.test_submission_flow import _submission_payload
+from tests.conftest import set_flag
 
 pytestmark = pytest.mark.asyncio
 
@@ -179,6 +180,7 @@ async def test_applicant_can_change_password_and_keeps_applicant_role(
 async def test_edit_updates_same_record_and_resubmit_queues_it(
     client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
 ) -> None:
+    await set_flag(db_session, "reg_min_one_proof", False)  # edit flow, not proofs
     member_pk, _admin, headers = await _rejected_applicant(client, outbox)
     corrected = _submission_payload() | {"full_name": "Corrected Name", "nid": "9876543210"}
 
@@ -208,8 +210,9 @@ async def test_edit_updates_same_record_and_resubmit_queues_it(
 
 
 async def test_edit_refuses_identifier_of_another_live_application(
-    client: AsyncClient, admin_user: AdminUser, outbox: list[dict]
+    client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
 ) -> None:
+    await set_flag(db_session, "reg_min_one_proof", False)  # identity check, not proofs
     _pk, _admin, headers = await _rejected_applicant(client, outbox)
     other = _submission_payload() | {
         "nid": "5555555555",
@@ -335,8 +338,11 @@ _DOC_FILE = ("doc_files", ("deed.pdf", b"%PDF-1.4 fake", "application/pdf"))
 
 
 async def test_edit_keeps_own_document_and_ignores_foreign_path(
-    client: AsyncClient, admin_user: AdminUser, outbox: list[dict]
+    client: AsyncClient, db_session, admin_user: AdminUser, outbox: list[dict]
 ) -> None:
+    # Flag off: a forged path is silently dropped. Flag on is covered by
+    # test_forged_existing_path_does_not_satisfy_required_proof.
+    await set_flag(db_session, "reg_min_one_proof", False)
     res = await client.post(
         "/api/submissions",
         data={"payload": json.dumps(_payload_with_doc())},
