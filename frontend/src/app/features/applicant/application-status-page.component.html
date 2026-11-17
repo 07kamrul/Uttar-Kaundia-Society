@@ -1,0 +1,100 @@
+<main class="asp" aria-labelledby="asp-title">
+  @switch (state()) {
+    @case ('loading') {
+      <div class="asp-card asp-skeleton" aria-busy="true">
+        <p>{{ 'application.status.loading' | translate }}</p>
+      </div>
+    }
+    @case ('error') {
+      <div class="asp-card" role="alert">
+        <p>{{ 'application.status.loadFailed' | translate }}</p>
+        <button type="button" class="btn btn-secondary asp-btn" (click)="load()">
+          {{ 'application.status.retry' | translate }}
+        </button>
+      </div>
+    }
+    @case ('ready') {
+      @if (app(); as a) {
+        <header class="asp-hero">
+          <div class="asp-identity">
+            @if (a.photoUrl) {
+              <img class="asp-avatar" [src]="a.photoUrl" alt="" />
+            }
+            <div class="asp-identity-text">
+              <p class="asp-kicker">{{ 'application.status.kicker' | translate }}</p>
+              <h1 id="asp-title" class="asp-title">{{ a.fullName }}</h1>
+              <p class="asp-email">{{ a.email }}</p>
+            </div>
+          </div>
+          <span
+            class="asp-pill"
+            [class.asp-pill--rejected]="a.status === 'rejected'"
+            [class.asp-pill--pending]="a.status === 'pending'"
+            data-testid="application-status"
+          >
+            {{ statusKey() | translate }}
+          </span>
+        </header>
+
+        @if (justResubmitted()) {
+          <div class="asp-note asp-note--ok" role="status">
+            {{ 'application.status.resubmittedNotice' | translate }}
+          </div>
+        }
+
+        @if (a.canEdit) {
+          <section class="asp-card asp-card--alert" aria-labelledby="asp-fix">
+            <h2 id="asp-fix" class="asp-h2">{{ 'application.status.needsCorrection' | translate }}</h2>
+            @if (a.rejectionReason) {
+              <p class="asp-reason">
+                <strong>{{ 'application.status.reasonLabel' | translate }}:</strong>
+                {{ a.rejectionReason }}
+              </p>
+            }
+            @if (fieldsToFix().length) {
+              <p class="asp-sub">{{ 'application.edit.fixThese' | translate }}</p>
+              <ul class="asp-chips">
+                @for (f of fieldsToFix(); track f.key) {
+                  <li>{{ f.labelKey | translate }}</li>
+                }
+              </ul>
+            }
+            <div class="asp-actions">
+              <a class="btn btn-primary asp-btn" routerLink="/application/edit" data-testid="start-correction">
+                {{ 'application.status.correctCta' | translate }}
+              </a>
+            </div>
+          </section>
+        } @else {
+          <section class="asp-card" aria-labelledby="asp-review">
+            <h2 id="asp-review" class="asp-h2">{{ 'application.status.underReviewTitle' | translate }}</h2>
+            <p class="asp-muted">{{ 'application.status.underReviewBody' | translate }}</p>
+          </section>
+        }
+
+        <ol class="asp-steps" [attr.aria-label]="'application.steps.label' | translate">
+          <li class="done">{{ 'application.steps.submitted' | translate }}</li>
+          <li [class.done]="a.reviews.length > 0">{{ 'application.steps.reviewed' | translate }}</li>
+          <li [class.current]="a.canEdit" [class.done]="!a.canEdit && a.resubmissionCount > 0">
+            {{ 'application.steps.corrected' | translate }}
+          </li>
+          <li [class.current]="!a.canEdit">{{ 'application.steps.finalReview' | translate }}</li>
+        </ol>
+
+        <section class="asp-card" aria-labelledby="asp-history">
+          <h2 id="asp-history" class="asp-h2">{{ 'application.timeline.title' | translate }}</h2>
+          <app-review-timeline [reviews]="a.reviews" />
+        </section>
+
+        <footer class="asp-footer">
+          <a class="btn btn-secondary asp-btn" routerLink="/application/change-password">
+            {{ 'application.status.changePassword' | translate }}
+          </a>
+          <button type="button" class="btn btn-secondary asp-btn" (click)="logout()">
+            {{ 'application.status.logout' | translate }}
+          </button>
+        </footer>
+      }
+    }
+  }
+</main>

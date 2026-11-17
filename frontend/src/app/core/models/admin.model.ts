@@ -9,6 +9,8 @@ export interface SubmissionSummary {
   propertiesCount?: number;
   /** A property is marked "dag unknown" and still has no dag: approval is blocked. */
   needsDag?: boolean;
+  /** Times a rejected applicant corrected and resubmitted this application. */
+  resubmissionCount?: number;
 }
 
 export interface ApplicableDoc {
@@ -94,6 +96,10 @@ export interface SubmissionDetail extends SubmissionSummary {
   rejectionReason?: string;
   /** Rejection email outcome; 'failed' means the applicant was not notified. */
   notificationStatus?: 'sent' | 'failed';
+  /** Member ID once approved; null for an applicant still in review. */
+  memberCode?: string | null;
+  resubmissionCount?: number;
+  resubmittedAt?: string | null;
 }
 
 export interface Member {

@@ -2472,7 +2472,6 @@
         "type": "Object"
       }
     }
-<<<<<<< Updated upstream
   },
   "regStepWord": "Step",
   "regOptionalSuffix": "(optional)",
@@ -3277,7 +3276,4 @@
   "apiErrorFeeAlreadyPaid": "This fee has already been paid.",
   "apiErrorAlreadyReviewed": "This payment was already reviewed.",
   "apiErrorNotPending": "This payment is no longer waiting for review."
-=======
-  }
->>>>>>> Stashed changes
 }

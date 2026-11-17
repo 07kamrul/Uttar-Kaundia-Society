@@ -104,6 +104,37 @@ export const routes: Routes = [
       },
     ],
   },
+  // Rejected applicant's limited area: own application, corrections, password.
+  // authGuard keeps applicants inside it; roleGuard keeps everyone else out.
+  {
+    path: 'application',
+    canActivate: [authGuard, roleGuard(['applicant'])],
+    loadComponent: () =>
+      import('./features/public-shell/public-shell.component').then((m) => m.PublicShellComponent),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/applicant/application-status-page.component').then(
+            (m) => m.ApplicationStatusPageComponent,
+          ),
+      },
+      {
+        path: 'edit',
+        loadComponent: () =>
+          import('./features/applicant/application-edit-page.component').then(
+            (m) => m.ApplicationEditPageComponent,
+          ),
+      },
+      {
+        path: 'change-password',
+        loadComponent: () =>
+          import('./features/member/pages/change-password/change-password.component').then(
+            (m) => m.ChangePasswordComponent,
+          ),
+      },
+    ],
+  },
   {
     path: '',
     canActivate: [authGuard],

@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   MAX_PHOTO_BYTES,
+  type FormDataModel,
   type RegistrationConfig,
 } from '../../core/models/registration.model';
 import { accountsForMethod } from '../../shared/payment-method/payment-methods';
@@ -42,20 +43,32 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal.
 import { buildRegistrationForm, propertiesArray, nomineesArray } from './registration-form.builder';
 import { mapSubmissionError } from './services/submission-error.mapper';
 import { isPossibleInternationalPhone } from '../../shared/phone-input/phone-number';
+import { CorrectionBannerComponent } from './components/correction-banner/correction-banner.component';
+
+const DUPLICATE_CODES = [
+  'APPLICATION_PENDING',
+  'ALREADY_REGISTERED',
+  'REJECTED_CAN_RESUBMIT',
+] as const;
 
 interface DuplicateSubmissionError {
   success: false;
-  code: 'APPLICATION_PENDING' | 'ALREADY_REGISTERED';
+  code: (typeof DUPLICATE_CODES)[number];
   message: string;
 }
 
-function isDuplicateSubmissionError(body: unknown): body is DuplicateSubmissionError {
-  return (
-    !!body &&
-    typeof body === 'object' &&
-    ((body as { code?: unknown }).code === 'APPLICATION_PENDING' ||
-      (body as { code?: unknown }).code === 'ALREADY_REGISTERED')
-  );
+export function isDuplicateSubmissionError(body: unknown): body is DuplicateSubmissionError {
+  const code = !!body && typeof body === 'object' ? (body as { code?: unknown }).code : undefined;
+  return DUPLICATE_CODES.includes(code as DuplicateSubmissionError['code']);
+}
+
+/** What the correction page passes to the wizard. */
+export interface CorrectionContext {
+  reason: string | null;
+  fieldLabelKeys: string[];
+  /** Wizard steps holding flagged sections. */
+  steps: number[];
+  round: number;
 }
 
 export interface RegistrationStep {
@@ -97,26 +110,30 @@ export const REGISTRATION_STEPS: RegistrationStep[] = [
   },
 ];
 
+/** Shared with the applicant correction page, which reuses this template. */
+export const REGISTRATION_PAGE_IMPORTS = [
+  ReactiveFormsModule,
+  MemberInfoComponent,
+  AddressInfoComponent,
+  UrgentContactComponent,
+  PropertyListComponent,
+  NomineeListComponent,
+  PaymentInfoComponent,
+  ConfirmationComponent,
+  ReviewSummaryComponent,
+  DatePickerComponent,
+  ConfirmModalComponent,
+  SignaturePadComponent,
+  CorrectionBannerComponent,
+  BnNumberPipe,
+  TranslatePipe,
+];
+
 @Component({
   selector: 'app-registration-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    MemberInfoComponent,
-    AddressInfoComponent,
-    UrgentContactComponent,
-    PropertyListComponent,
-    NomineeListComponent,
-    PaymentInfoComponent,
-    ConfirmationComponent,
-    ReviewSummaryComponent,
-    DatePickerComponent,
-    ConfirmModalComponent,
-    SignaturePadComponent,
-    BnNumberPipe,
-    TranslatePipe,
-  ],
+  imports: REGISTRATION_PAGE_IMPORTS,
   templateUrl: './registration-page.component.html',
   styleUrl: './registration-simplified.scss',
   encapsulation: ViewEncapsulation.None,
@@ -147,18 +164,25 @@ export class RegistrationPageComponent implements OnInit {
 
   showDraftRestoredToast = false;
 
-  private readonly translate = inject(TranslateService);
-  private readonly draftService = inject(RegistrationDraftService);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly destroyRef = inject(DestroyRef);
+  /**
+   * Set by the applicant correction page (subclass): shows the rejection
+   * banner, marks flagged steps and turns "submit" into "save & resubmit".
+   * Null for the public registration form.
+   */
+  correction: CorrectionContext | null = null;
+
+  protected readonly translate = inject(TranslateService);
+  protected readonly draftService = inject(RegistrationDraftService);
+  protected readonly cdr = inject(ChangeDetectorRef);
+  protected readonly destroyRef = inject(DestroyRef);
   private readonly flags = inject(FeatureFlagService);
 
   readonly draftLastSaved = this.draftService.lastSaved;
 
   constructor(
-    private fb: FormBuilder,
-    private registrationService: RegistrationService,
-    private router: Router,
+    protected fb: FormBuilder,
+    protected registrationService: RegistrationService,
+    protected router: Router,
   ) {
     this.ui = readUiFlags((key) => this.flags.isEnabled(key));
     this.form = this.newForm();
@@ -236,7 +260,7 @@ export class RegistrationPageComponent implements OnInit {
       });
   }
 
-  private loadConfig(): void {
+  protected loadConfig(): void {
     this.configLoading.set(true);
     this.configError.set(false);
     this.registrationService
@@ -255,6 +279,18 @@ export class RegistrationPageComponent implements OnInit {
           this.cdr.markForCheck();
         },
       });
+  }
+
+  /** True when the reviewer flagged a section that lives on this step. */
+  stepNeedsFix(stepId: number): boolean {
+    return this.correction?.steps.includes(stepId) ?? false;
+  }
+
+  get submitLabelKey(): string {
+    if (this.correction) {
+      return this.submitting ? 'application.edit.resubmitting' : 'application.edit.resubmit';
+    }
+    return this.submitting ? 'registration.nav.submitting' : 'registration.nav.submit';
   }
 
   retryConfig(): void {
@@ -459,7 +495,9 @@ export class RegistrationPageComponent implements OnInit {
         );
       }
       if (this.flag('reg_dag_unknown')) {
-        errs.push(...dagErrors(property, label, (key, params) => this.translate.instant(key, params)));
+        errs.push(
+          ...dagErrors(property, label, (key, params) => this.translate.instant(key, params)),
+        );
       }
       errs.push(...this.validateDocs(property, label));
     });
@@ -476,7 +514,9 @@ export class RegistrationPageComponent implements OnInit {
         : [`${label}: ${this.translate.instant('registration.validation.proofRequired')}`];
     }
     if (docs.length === 0) {
-      return [`${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`];
+      return [
+        `${label}: ${this.translate.instant('registration.validation.applicableDocsRequired')}`,
+      ];
     }
     return docs
       .filter((doc) => !doc.fileDataUrl)
@@ -599,8 +639,17 @@ export class RegistrationPageComponent implements OnInit {
     }
     this.errors = [];
     this.currentStep = step;
-    this.draftService.saveNow(this.form, this.currentStep);
+    this.persistDraft();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /**
+   * Saves the public registration draft on every step change. The applicant
+   * correction page overrides this: its record lives on the server, and its
+   * personal data must never land in the shared public draft key.
+   */
+  protected persistDraft(): void {
+    this.draftService.saveNow(this.form, this.currentStep);
   }
 
   nextStep(): void {
@@ -615,6 +664,8 @@ export class RegistrationPageComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Enter-key submits bypass the disabled button; never send twice.
+    if (this.submitting) return;
     this.errors = [];
     this.serverError = null;
     this.submitAttempted = true;
@@ -633,9 +684,12 @@ export class RegistrationPageComponent implements OnInit {
 
     this.submitting = true;
     this.cdr.markForCheck();
-    this.registrationService
-      .submit({ ...this.form.getRawValue(), consentVersion: this.config()?.consentVersion })
-      .subscribe({
+    this.submitForm({ ...this.form.getRawValue(), consentVersion: this.config()?.consentVersion });
+  }
+
+  /** Sends the validated form. The applicant correction page overrides this. */
+  protected submitForm(data: FormDataModel): void {
+    this.registrationService.submit(data).subscribe({
       next: (res) => {
         this.submitting = false;
         // Reaching `next` means a 2xx response, which for POST /submissions
@@ -649,14 +703,7 @@ export class RegistrationPageComponent implements OnInit {
         if (err.status === 409 && isDuplicateSubmissionError(err.error?.detail)) {
           this.duplicateSubmission = err.error.detail;
         } else {
-          const mapped = mapSubmissionError(err, (key, params) =>
-            this.translate.instant(key, params),
-          );
-          // goToStep clears `errors`, so jump first, then show the messages.
-          if (mapped.step) {
-            this.goToStep(mapped.step);
-          }
-          this.errors = mapped.messages;
+          this.showServerError(err);
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         this.cdr.markForCheck();
@@ -664,10 +711,23 @@ export class RegistrationPageComponent implements OnInit {
     });
   }
 
+  /** Maps a failed request onto the step it concerns and lists its messages. */
+  protected showServerError(err: HttpErrorResponse): void {
+    const mapped = mapSubmissionError(err, (key, params) => this.translate.instant(key, params));
+    // goToStep clears `errors`, so jump first, then show the messages.
+    if (mapped.step) {
+      this.goToStep(mapped.step);
+    }
+    this.errors = mapped.messages;
+  }
+
   dismissDuplicateSubmission(): void {
-    const wasApproved = this.duplicateSubmission?.code === 'ALREADY_REGISTERED';
+    // Approved members and rejected applicants both continue by logging in.
+    const goToLogin =
+      this.duplicateSubmission?.code === 'ALREADY_REGISTERED' ||
+      this.duplicateSubmission?.code === 'REJECTED_CAN_RESUBMIT';
     this.duplicateSubmission = null;
-    if (wasApproved) {
+    if (goToLogin) {
       this.router.navigate(['/login']);
     }
   }

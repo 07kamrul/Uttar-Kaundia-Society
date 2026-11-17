@@ -3,7 +3,7 @@
 import pytest
 from sqlalchemy import select
 
-from app.core.feature_flags import FEATURE_FLAGS, is_enabled
+from app.core.feature_flags import FEATURE_FLAGS, enabled_flags, is_enabled
 from app.models.audit_log import AuditLog
 from app.models.feature_flag import FeatureFlag
 from app.models.rbac import Permission, UserPermissionOverride
@@ -169,6 +169,20 @@ async def test_is_enabled_returns_default_then_db_override(db_session):
 
     assert await is_enabled(db_session, "reg_min_one_proof") is True
     assert await is_enabled(db_session, "reg_hide_nationality") is False
+
+
+async def test_enabled_flags_resolves_defaults_and_overrides_in_one_call(db_session):
+    db_session.add(FeatureFlag(key="reg_min_one_proof", enabled=True))
+    await db_session.commit()
+
+    flags = await enabled_flags(db_session, ("reg_min_one_proof", "reg_hide_nationality"))
+
+    assert flags == {"reg_min_one_proof": True, "reg_hide_nationality": False}
+
+
+async def test_enabled_flags_unknown_key_raises_key_error(db_session):
+    with pytest.raises(KeyError):
+        await enabled_flags(db_session, ("reg_min_one_proof", "nope"))
 
 
 async def test_is_enabled_unknown_key_raises_key_error(db_session):

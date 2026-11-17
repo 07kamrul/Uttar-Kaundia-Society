@@ -11557,7 +11557,6 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'{number}-এ হোয়াটসঅ্যাপে বার্তা পাঠান'**
   String phoneDisplayWhatsappAria(Object number);
-<<<<<<< Updated upstream
 
   /// No description provided for @regStepWord.
   ///
@@ -14828,8 +14827,6 @@ abstract class AppLocalizations {
   /// In bn, this message translates to:
   /// **'এই পেমেন্ট আর যাচাইয়ের অপেক্ষায় নেই।'**
   String get apiErrorNotPending;
-=======
->>>>>>> Stashed changes
 }
 
 class _AppLocalizationsDelegate

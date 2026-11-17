@@ -5,10 +5,13 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestOnlyGuard } from './core/guards/guest-only.guard';
 
 /** The public shell hosts /login among its children; the authenticated
-    shell is the one canActivate-guarded by authGuard. */
+    shell is the root-path route canActivate-guarded by authGuard (the
+    applicant area at /application is also authGuard-protected). */
 function findLayouts(): { publicShell: Route; shell: Route } {
   const publicShell = routes.find((r) => r.children?.some((c) => c.path === 'login'));
-  const shell = routes.find((r) => (r.canActivate ?? []).includes(authGuard));
+  const shell = routes.find(
+    (r) => r.path === '' && (r.canActivate ?? []).includes(authGuard),
+  );
   if (!publicShell || !shell) throw new Error('layout routes not found');
   return { publicShell, shell };
 }

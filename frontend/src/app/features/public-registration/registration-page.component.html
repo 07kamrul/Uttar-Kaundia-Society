@@ -11,7 +11,8 @@
     [title]="'registration.submit.duplicateTitle' | translate"
     [message]="duplicateSubmission?.message ?? ''"
     [confirmLabel]="
-      duplicateSubmission?.code === 'ALREADY_REGISTERED'
+      duplicateSubmission?.code === 'ALREADY_REGISTERED' ||
+      duplicateSubmission?.code === 'REJECTED_CAN_RESUBMIT'
         ? ('nav.login' | translate)
         : ('common.confirmModal.confirmButton' | translate)
     "
@@ -77,9 +78,18 @@
         </div>
       }
 
+      @if (correction) {
+        <app-correction-banner [context]="correction" />
+      }
+
       <nav class="stepper" [attr.aria-label]="'registration.header.stepperAriaLabel' | translate">
         @for (step of steps; track step.id; let last = $last) {
-          <div class="stepper-item" [class.active]="currentStep === step.id" [class.done]="currentStep > step.id">
+          <div
+            class="stepper-item"
+            [class.active]="currentStep === step.id"
+            [class.done]="currentStep > step.id"
+            [class.needs-fix]="stepNeedsFix(step.id)"
+          >
             <button
               type="button"
               class="stepper-circle"
@@ -108,12 +118,12 @@
                   }
           }}
         </h2>
-        @if (draftLastSaved()) {
+        @if (!correction && draftLastSaved()) {
           <p class="draft-saved-indicator draft-saved-line" role="status">
             {{ 'registration.draft.savedLine' | translate }}
           </p>
         }
-      } @else if (draftLastSaved()) {
+      } @else if (!correction && draftLastSaved()) {
         <p class="draft-saved-indicator">{{ 'registration.draft.draftSaved' | translate }}</p>
       }
 
@@ -219,7 +229,7 @@
           </button>
         } @else {
           <button type="submit" class="btn btn-primary submit-btn" [disabled]="submitting">
-            {{ (submitting ? 'registration.nav.submitting' : 'registration.nav.submit') | translate }}
+            {{ submitLabelKey | translate }}
           </button>
         }
       </div>

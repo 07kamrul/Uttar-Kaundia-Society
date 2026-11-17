@@ -463,25 +463,10 @@
       "PASSWORD_TOO_SHORT": "The password must be at least 8 characters.",
       "PASSWORD_TOO_COMMON": "This password is too common. Choose another one.",
       "PASSWORD_SAME_AS_CURRENT": "The new password cannot be the same as the old one.",
-      "PASSWORD_TOO_WEAK": "This password is not strong enough — choose another one"
-    }
-  },
-  "errors": {
-    "network": "No internet connection. Check your connection and try again.",
-    "unauthorized": "Your session has expired. Please log in again.",
-    "forbidden": "You don't have permission to do this. Contact the committee if you need access.",
-    "notFound": "We couldn't find what you were looking for. Reload the page and try again.",
-    "conflict": "This already exists or someone else has changed it. Reload the page and try again.",
-    "fileTooLarge": "The file is too large. Choose a smaller file or photo.",
-    "validation": "Some details are not correct. Check the highlighted fields and fix them.",
-    "tooManyRequests": "Too many attempts. Please wait a little and try again.",
-    "server": "Something went wrong on our side. Please try again in a little while.",
-    "unknown": "Something went wrong. Please try again. If it keeps happening, contact the committee.",
-    "field": {
-      "required": "This field is required",
-      "mobile": "Mobile number must be 11 digits, for example 017XXXXXXXX",
-      "nid": "National ID number must be 10, 13 or 17 digits",
-      "invalid": "This field is not valid, please check it"
+      "PASSWORD_TOO_WEAK": "This password is not strong enough — choose another one",
+      "REJECTED_CAN_RESUBMIT": "Your earlier application needs corrections. Please log in with your e-mail to correct and resubmit it.",
+      "APPLICATION_LOCKED": "This application is under review and cannot be changed now.",
+      "DUPLICATE_IDENTIFIER": "This NID, mobile or e-mail is already used by another application."
     }
   },
   "forbidden": {
@@ -4316,5 +4301,77 @@
     "offline": "No internet connection — try again when it is back",
     "slow": "Slow internet — please wait a moment",
     "reconnected": "Connected again"
+  },
+  "application": {
+    "fields": {
+      "personal_info": "Personal information",
+      "photo": "Photo",
+      "nid": "NID",
+      "contact": "Mobile & email",
+      "address": "Address",
+      "properties": "Land details",
+      "documents": "Documents",
+      "nominees": "Nominee",
+      "urgent_contact": "Emergency contact",
+      "payment": "Payment",
+      "signature": "Signature"
+    },
+    "decision": {
+      "rejected": "Returned for correction",
+      "approved": "Approved"
+    },
+    "picker": {
+      "legend": "What must the applicant correct?",
+      "hint": "Optional. Ticked sections are highlighted for the applicant and listed in the e-mail."
+    },
+    "timeline": {
+      "title": "Review history",
+      "empty": "No review yet.",
+      "round": "Round {{n}}"
+    },
+    "steps": {
+      "label": "Application progress",
+      "submitted": "Submitted",
+      "reviewed": "Reviewed",
+      "corrected": "Corrected",
+      "finalReview": "Final review"
+    },
+    "status": {
+      "kicker": "Membership application",
+      "loading": "Loading your application…",
+      "loadFailed": "Your application could not be loaded. Check your connection and try again.",
+      "retry": "Try again",
+      "pending": "Under review",
+      "rejected": "Needs correction",
+      "approved": "Approved",
+      "reasonLabel": "Reason",
+      "needsCorrection": "Your application needs a few corrections",
+      "correctCta": "Correct and resubmit",
+      "underReviewTitle": "Your corrected application is under review",
+      "underReviewBody": "The committee will review it again. You will get an e-mail with the decision; once approved you will receive your member ID.",
+      "resubmittedNotice": "Thank you! Your corrected application has been sent for review.",
+      "changePassword": "Change password",
+      "logout": "Log out"
+    },
+    "edit": {
+      "bannerTitle": "Correction round {{n}} — please fix the items below",
+      "fixThese": "Please correct:",
+      "stepHint": "Steps marked in red contain items to fix. Review every step, then confirm the declaration and resubmit.",
+      "resubmit": "Save & resubmit",
+      "resubmitting": "Resubmitting…",
+      "loadFailed": "Your application could not be loaded. Please go back and try again.",
+      "duplicate": "This NID, mobile number or e-mail is already used by another application. Please check it.",
+      "locked": "This application is already under review and can no longer be changed."
+    },
+    "admin": {
+      "historyTitle": "Review history",
+      "historyLoadFailed": "Review history could not be loaded.",
+      "resubmittedTimes": "Resubmitted ×{{n}}",
+      "resendLogin": "Resend login e-mail",
+      "resendingLogin": "Sending…",
+      "loginResent": "Login e-mail sent with a new temporary password.",
+      "loginResendFailed": "The e-mail could not be sent. Try again later.",
+      "resendLoginHint": "Creates a new temporary password and e-mails it with the rejection reason and the website link."
+    }
   }
 }

@@ -104,6 +104,7 @@ export interface SubmissionSummaryApiModel {
   mobile: string;
   created_at: string;
   needs_dag?: boolean;
+  resubmission_count?: number;
 }
 
 export interface ApplicableDocApiModel {
@@ -178,6 +179,8 @@ export interface SubmissionDetailApiModel {
   rejection_reason: string | null;
   notification_status?: 'sent' | 'failed' | null;
   needs_dag?: boolean;
+  resubmission_count?: number;
+  resubmitted_at?: string | null;
   properties: SubmissionPropertyApiModel[];
   nominees: NomineeApiModel[];
 }
@@ -319,6 +322,7 @@ export function toSubmissionSummary(api: SubmissionSummaryApiModel): SubmissionS
     status: api.status,
     createdAt: api.created_at,
     needsDag: !!api.needs_dag,
+    resubmissionCount: api.resubmission_count ?? 0,
   };
 }
 
@@ -427,6 +431,9 @@ export function toSubmissionDetail(api: SubmissionDetailApiModel): SubmissionDet
     rejectionReason: api.rejection_reason ?? undefined,
     notificationStatus: api.notification_status ?? undefined,
     needsDag: !!api.needs_dag,
+    memberCode: api.member_id ?? null,
+    resubmissionCount: api.resubmission_count ?? 0,
+    resubmittedAt: api.resubmitted_at ?? null,
   };
 }
 

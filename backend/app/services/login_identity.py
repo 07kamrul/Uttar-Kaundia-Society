@@ -15,7 +15,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Literal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.credential import MemberCredential
@@ -88,7 +88,12 @@ def _with_credential(*conditions):
     return (
         select(MemberCredential)
         .join(Member, Member.id == MemberCredential.member_id)
-        .where(Member.status != MemberStatus.REJECTED, *conditions)
+        # A rejected applicant (no member ID yet) keeps a limited login to
+        # correct and resubmit; other rejected rows stay unreachable.
+        .where(
+            or_(Member.status != MemberStatus.REJECTED, Member.member_id.is_(None)),
+            *conditions,
+        )
         .order_by(MemberCredential.id)
         .limit(MAX_CANDIDATES)
     )

@@ -130,6 +130,12 @@ class Member(Base):
     rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Outcome of the rejection email: "sent" or "failed" (None = not attempted).
     notification_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    # Applicant correction loop: how many times a rejected application was
+    # corrected and sent back for review (unlimited), and when it last was.
+    resubmission_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    resubmitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     properties: Mapped[list["Property"]] = relationship(
         back_populates="member", cascade="all, delete-orphan"

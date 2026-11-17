@@ -6249,7 +6249,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String phoneDisplayWhatsappAria(Object number) {
     return '$number-এ হোয়াটসঅ্যাপে বার্তা পাঠান';
   }
-<<<<<<< Updated upstream
 
   @override
   String get regStepWord => 'ধাপ';
@@ -8019,6 +8018,4 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get apiErrorNotPending => 'এই পেমেন্ট আর যাচাইয়ের অপেক্ষায় নেই।';
-=======
->>>>>>> Stashed changes
 }

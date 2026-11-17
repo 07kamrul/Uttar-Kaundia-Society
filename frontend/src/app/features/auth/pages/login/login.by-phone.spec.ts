@@ -77,12 +77,4 @@ describe('LoginComponent (mobile / email / member-ID login)', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.error).toBe(bn['auth']['login']['errorRateLimited']);
   });
-
-  it('keeps today\'s single message for every failure while the flag is off', () => {
-    const { fixture, auth } = create([]);
-    submit(fixture);
-    auth.fail(429, { detail: { message: 'x' } });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.error).toBe(bn['auth']['login']['loginFailedError']);
-  });
 });

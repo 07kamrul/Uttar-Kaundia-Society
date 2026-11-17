@@ -113,7 +113,6 @@ describe('i18n catalogue', () => {
     );
   });
 });
-<<<<<<< Updated upstream
 
 describe('known server detail codes', () => {
   it.each([
@@ -167,5 +166,3 @@ describe('known server detail codes', () => {
     },
   );
 });
-=======
->>>>>>> Stashed changes

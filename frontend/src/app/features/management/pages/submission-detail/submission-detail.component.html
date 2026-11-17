@@ -118,6 +118,13 @@
         </div>
       }
 
+      <app-application-history-panel
+        [submissionId]="submission.id"
+        [status]="submission.status"
+        [memberCode]="submission.memberCode"
+        [resubmissionCount]="submission.resubmissionCount ?? 0"
+      />
+
       <h3 class="section-title">{{ 'admin.submissionDetail.personalInfo' | translate }}</h3>
       @if (uploadError) {
         <div class="error-box" role="alert">
@@ -1072,5 +1079,9 @@
       [placeholder]="'admin.submissionDetail.rejectModal.placeholder' | translate"
     ></textarea>
     }
+    <app-correction-fields-picker
+      [value]="correctionFields"
+      (valueChange)="correctionFields = $event"
+    />
   </app-confirm-modal>
 </div>

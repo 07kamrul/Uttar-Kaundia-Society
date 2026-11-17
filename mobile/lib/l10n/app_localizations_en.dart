@@ -6263,7 +6263,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String phoneDisplayWhatsappAria(Object number) {
     return 'Message $number on WhatsApp';
   }
-<<<<<<< Updated upstream
 
   @override
   String get regStepWord => 'Step';
@@ -8049,6 +8048,4 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get apiErrorNotPending =>
       'This payment is no longer waiting for review.';
-=======
->>>>>>> Stashed changes
 }

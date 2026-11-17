@@ -52,11 +52,15 @@
         <tbody>
           @for (s of submissions; track s.id) {
             <tr>
-<<<<<<< Updated upstream
               <td class="cell-mono cell-nowrap" [attr.data-label]="'admin.submissionsList.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
               <td class="cell-person" [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">
                 <span class="person"><span class="person-avatar" aria-hidden="true">{{ s.fullName.charAt(0) }}</span>
                 <span class="person-name">{{ s.fullName }}</span>
+                @if (s.resubmissionCount) {
+                  <span class="status-badge status-pending" data-testid="resubmitted-badge">
+                    {{ 'application.admin.resubmittedTimes' | translate: { n: s.resubmissionCount } }}
+                  </span>
+                }
                 @if (s.needsDag) {
                   <span class="status-badge status-pending" data-testid="needs-dag-badge">
                     {{ 'admin.submissionsList.needsDag' | translate }}
@@ -66,12 +70,6 @@
               </td>
               <td [attr.data-label]="'admin.submissionsList.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" [compact]="true" /></td>
               <td class="cell-nowrap" [attr.data-label]="'admin.submissionsList.tableHeaders.status' | translate">
-=======
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.reference' | translate">{{ referenceFor(s) }}</td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.name' | translate">{{ s.fullName }}</td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.mobile' | translate"><app-phone-link [value]="s.mobile" /></td>
-              <td [attr.data-label]="'admin.submissionsList.tableHeaders.status' | translate">
->>>>>>> Stashed changes
                 <span
                   class="status-badge"
                   [class.status-pending]="s.status === 'pending'"

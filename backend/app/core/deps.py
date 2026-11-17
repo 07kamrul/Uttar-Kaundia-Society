@@ -15,6 +15,9 @@ from app.models.property import Property
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
+MEMBER_TOKEN_ROLE = "member"
+APPLICANT_TOKEN_ROLE = "applicant"
+
 
 async def _get_token_payload(
     credentials: HTTPAuthorizationCredentials | None,
@@ -80,9 +83,10 @@ async def _resolve_member(
     db: AsyncSession,
     *,
     eager: bool,
+    roles: tuple[str, ...] = (MEMBER_TOKEN_ROLE,),
 ) -> Member:
     payload = await _get_token_payload(credentials)
-    if normalize_token_role(payload.get("role")) != "member":
+    if normalize_token_role(payload.get("role")) not in roles:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Member access required")
 
     # The credential's token_version rides along on the same row (LEFT JOIN), so
@@ -116,6 +120,51 @@ async def get_current_member(
     db: AsyncSession = Depends(get_db),
 ) -> Member:
     return await _resolve_member(credentials, db, eager=False)
+
+
+async def get_current_applicant(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Member:
+    """A rejected applicant's limited session (role=applicant). Member tokens
+    are refused: an approved member's application is no longer editable here."""
+    member = await _resolve_member(credentials, db, eager=True, roles=(APPLICANT_TOKEN_ROLE,))
+    if member.member_id is not None or member.status == MemberStatus.APPROVED:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Applicant access required")
+    return member
+
+
+async def get_current_credential_holder(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Member:
+    """Member or applicant: anyone holding a MemberCredential (e.g. to change
+    their own password)."""
+    return await _resolve_member(
+        credentials, db, eager=False, roles=(MEMBER_TOKEN_ROLE, APPLICANT_TOKEN_ROLE)
+    )
+
+
+@dataclass(frozen=True)
+class MediaSubject:
+    account_id: int
+    role: str
+
+
+async def get_media_subject(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> MediaSubject:
+    """Who a /uploads media token is minted for: any member, applicant or admin."""
+    payload = await _get_token_payload(credentials)
+    if normalize_token_role(payload.get("role")) == APPLICANT_TOKEN_ROLE:
+        applicant = await _resolve_member(
+            credentials, db, eager=False, roles=(APPLICANT_TOKEN_ROLE,)
+        )
+        return MediaSubject(account_id=applicant.id, role=APPLICANT_TOKEN_ROLE)
+    actor = await get_account_actor(credentials, db)
+    account_id = actor.member.id if actor.member is not None else actor.admin.id
+    return MediaSubject(account_id=account_id, role=actor.role)
 
 
 async def get_current_member_optional(

@@ -35,11 +35,28 @@ from app.schemas.fee_settings import FeeSettingCreate, FeeSettingOut
 from app.schemas.installment import InstallmentCreate, InstallmentOut, InstallmentUpdate
 from app.models.audit_log import AuditLog
 from app.services.audit import record_audit
+from app.models.application_review import (
+    DECISION_APPROVED,
+    DECISION_REJECTED,
+    ApplicationReview,
+)
+from app.services.applicant_access import (
+    IssuedLogin,
+    ensure_applicant_login,
+    review_history,
+    find_credential,
+    login_url,
+    promote_applicant_credential,
+    rejection_email_body,
+    rotate_temp_password,
+)
 from app.services.dag_guard import ensure_dag_filled, member_ids_needing_dag
 from app.services.member_search import SEARCH_MAX_LENGTH, member_search_clause
 from app.services.property_duplicates import member_duplicate_plot
 from app.services.registration_installment import add_registration_installment
+from app.services.status_transition import claim_status_transition
 from app.schemas.member import (
+    ApplicationReviewHistory,
     ApproveResponse,
     MemberAuditEntry,
     MemberDetail,
@@ -57,6 +74,12 @@ from app.services.storage import save_upload_file, slugify_path_segment
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+# Lost a race with another reviewer (or a double click) on the same submission.
+_DECIDED_CONCURRENTLY = HTTPException(
+    status_code=status.HTTP_409_CONFLICT,
+    detail="This application was just decided by another reviewer; reload it",
+)
+
 # Columns MemberSummary serialises. List endpoints load only these instead of
 # the ~40 member columns - the omitted ones include `member_signature`, a
 # base64 blob in a Text column that used to be pulled for every row on every
@@ -70,6 +93,7 @@ _SUMMARY_COLUMNS = (
     Member.email,
     Member.created_at,
     Member.member_class,
+    Member.resubmission_count,
 )
 
 # Bound on audit rows returned with a member profile.
@@ -129,6 +153,18 @@ async def get_submission(
 ) -> Member:
     member = await _get_member_or_404(db, member_id)
     return member
+
+
+@router.get("/submissions/{member_id}/reviews", response_model=ApplicationReviewHistory)
+async def list_submission_reviews(
+    member_id: int,
+    db: AsyncSession = Depends(get_db),
+    _admin: AdminUser = Depends(require_permission("membership.review")),
+) -> ApplicationReviewHistory:
+    """Every review round of an application, oldest first."""
+    await _get_member_or_404(db, member_id, eager=False)
+    reviews = await review_history(db, member_id)
+    return ApplicationReviewHistory(reviews=reviews)
 
 
 class DagFillPayload(BaseModel):
@@ -246,6 +282,84 @@ async def replace_document(
     return member
 
 
+def _approval_email_body(full_name: str, member_code: str, username: str, temp_password: str) -> str:
+    return (
+        f"<p>Dear {html.escape(full_name)},</p>"
+        "<p>Your membership has been approved.</p>"
+        f"<p>Member ID: <b>{html.escape(member_code)}</b><br/>"
+        f"Username: <b>{html.escape(username)}</b><br/>"
+        f"Temporary password: <b>{html.escape(temp_password)}</b></p>"
+        f'<p>Login: <a href="{html.escape(login_url())}">{html.escape(login_url())}</a></p>'
+        "<p>Please log in with your member ID and change your password.</p>"
+    )
+
+
+def _record_review(
+    db: AsyncSession,
+    member: Member,
+    admin: AdminUser,
+    decision: str,
+    reason: str | None = None,
+    correction_fields: list[str] | None = None,
+) -> None:
+    db.add(
+        ApplicationReview(
+            member_id=member.id,
+            round=(member.resubmission_count or 0) + 1,
+            decision=decision,
+            reason=reason,
+            correction_fields=list(correction_fields or []),
+            reviewed_by=admin.id,
+        )
+    )
+
+
+async def _reapprove(db: AsyncSession, member: Member, admin: AdminUser) -> ApproveResponse:
+    """A member re-queued to PENDING by their own core-field edit keeps the
+    member ID and login from their original approval."""
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="member.reapprove",
+        entity_type="member",
+        entity_id=str(member.id),
+        detail=f"reapproved {member.member_id}",
+    )
+    await db.commit()
+    email_sent = await send_email(
+        to=member.email,
+        subject="Kaundia Member Registry - Membership Re-approved",
+        html_body=(
+            f"<p>Dear {html.escape(member.full_name)},</p>"
+            "<p>Your membership has been reviewed and re-approved. "
+            "Your existing member ID and login remain unchanged.</p>"
+        ),
+    )
+    return ApproveResponse(member_id=member.member_id, email_sent=email_sent)
+
+
+async def _issue_member_login(
+    db: AsyncSession, member: Member, member_code: str
+) -> tuple[str, str]:
+    """First approval: a brand-new login, or the applicant's login promoted
+    to sign in with the member ID. Returns (username, temporary password)."""
+    credential = await find_credential(db, member.id)
+    if credential is not None:
+        temp_password = await promote_applicant_credential(credential, member_code)
+        return credential.username, temp_password
+    temp_password = generate_temp_password()
+    username = member_code.lower()
+    db.add(
+        MemberCredential(
+            member_id=member.id,
+            username=username,
+            password_hash=await hash_password_async(temp_password),
+            must_change_password=True,
+        )
+    )
+    return username, temp_password
+
+
 @router.post("/submissions/{member_id}/approve", response_model=ApproveResponse)
 async def approve_submission(
     member_id: int,
@@ -255,45 +369,27 @@ async def approve_submission(
     member = await _get_member_or_404(db, member_id, eager=False)
     if member.status == MemberStatus.APPROVED:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already approved")
+    if member.status == MemberStatus.REJECTED and member.member_id is None:
+        # A first-time applicant must correct and resubmit first; approving
+        # directly would skip that loop. (A re-reviewed existing member has
+        # no correction login, so the committee may still approve them.)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Application is rejected; wait for the applicant to resubmit",
+        )
     await ensure_dag_filled(db, member.id)
 
-    # A member re-queued to PENDING by their own core-field edit (see
-    # app/api/routes/member.py's re-approval workflow) already has a
-    # member_id and MemberCredential from their original approval - only a
-    # first-time approval needs a freshly generated id/credential/temp password.
-    credential_result = await db.execute(
-        select(MemberCredential).where(MemberCredential.member_id == member.id)
+    await claim_status_transition(
+        db, member, MemberStatus.APPROVED, conflict=_DECIDED_CONCURRENTLY
     )
-    existing_credential = credential_result.scalar_one_or_none()
-    is_reapproval = existing_credential is not None
-
-    member.status = MemberStatus.APPROVED
     member.reviewed_at = datetime.now(timezone.utc)
     member.reviewed_by = admin.id
     member.rejection_reason = None
 
-    if is_reapproval:
-        generated_member_id = member.member_id
-        record_audit(
-            db,
-            actor_admin_id=admin.id,
-            action="member.reapprove",
-            entity_type="member",
-            entity_id=str(member.id),
-            detail=f"reapproved {generated_member_id}",
-        )
-        await db.commit()
-
-        email_sent = await send_email(
-            to=member.email,
-            subject="Kaundia Member Registry - Membership Re-approved",
-            html_body=(
-                f"<p>Dear {member.full_name},</p>"
-                "<p>Your membership has been reviewed and re-approved. "
-                "Your existing member ID and login remain unchanged.</p>"
-            ),
-        )
-        return ApproveResponse(member_id=generated_member_id, email_sent=email_sent)
+    # A member ID is what marks an earlier approval - NOT an existing login:
+    # rejected applicants hold a login but must still get their first ID.
+    if member.member_id is not None:
+        return await _reapprove(db, member, admin)
 
     generated_member_id = await _generate_member_id(db)
     if not is_valid_member_id(generated_member_id):
@@ -301,73 +397,64 @@ async def approve_submission(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="generated member id is malformed",
         )
-    temp_password = generate_temp_password()
-    username = generated_member_id.lower()
     member.member_id = generated_member_id
-
-    credential = MemberCredential(
-        member_id=member.id,
-        username=username,
-        password_hash=await hash_password_async(temp_password),
-        must_change_password=True,
-    )
-    db.add(credential)
+    username, temp_password = await _issue_member_login(db, member, generated_member_id)
     await add_registration_installment(db, member)
+    _record_review(db, member, admin, DECISION_APPROVED)
     record_audit(
         db,
         actor_admin_id=admin.id,
         action="member.approve",
         entity_type="member",
         entity_id=str(member.id),
-        detail=f"approved as {generated_member_id}",
+        detail=f"approved as {generated_member_id} (round {(member.resubmission_count or 0) + 1})",
     )
     await db.commit()
 
     email_sent = await send_email(
         to=member.email,
         subject="Kaundia Member Registry - Membership Approved",
-        html_body=(
-            f"<p>Dear {member.full_name},</p>"
-            f"<p>Your membership has been approved.</p>"
-            f"<p>Member ID: <b>{generated_member_id}</b><br/>"
-            f"Username: <b>{username}</b><br/>"
-            f"Temporary password: <b>{temp_password}</b></p>"
-            f"<p>Please log in and change your password.</p>"
-        ),
+        html_body=_approval_email_body(member.full_name, generated_member_id, username, temp_password),
     )
-
     return ApproveResponse(member_id=generated_member_id, email_sent=email_sent)
 
 
-def _rejection_email_body(full_name: str, reason: str) -> str:
-    """Bilingual (Bangla + English) rejection notice. Every interpolated value
-    is HTML-escaped: the reason is free text typed by an admin."""
-    name = html.escape(full_name)
-    safe_reason = html.escape(reason)
-    contact = html.escape(get_settings().smtp_from)
-    return (
-        f"<p>প্রিয় {name},</p>"
-        "<p>আপনার সদস্যপদের আবেদনটি অনুমোদিত হয়নি।</p>"
-        f"<p><b>কারণ:</b> {safe_reason}</p>"
-        "<p>প্রয়োজনীয় সংশোধন করে আপনি নতুন করে আবেদন করতে পারবেন। "
-        f"যোগাযোগ: {contact}</p>"
-        "<hr/>"
-        f"<p>Dear {name},</p>"
-        "<p>Your membership application was not approved.</p>"
-        f"<p><b>Reason:</b> {safe_reason}</p>"
-        "<p>You may correct the issue and submit a new application "
-        f"(for example, re-upload any missing photo). Contact: {contact}</p>"
-    )
+def _rejection_email_body(
+    full_name: str,
+    reason: str,
+    fields: list[str] | None = None,
+    login: IssuedLogin | None = None,
+) -> str:
+    return rejection_email_body(full_name, reason, fields, login)
 
 
-async def _notify_rejection(db: AsyncSession, member: Member) -> bool:
+async def _latest_correction_fields(db: AsyncSession, member_pk: int) -> list[str]:
+    latest = (
+        await db.execute(
+            select(ApplicationReview.correction_fields)
+            .where(
+                ApplicationReview.member_id == member_pk,
+                ApplicationReview.decision == DECISION_REJECTED,
+            )
+            .order_by(ApplicationReview.id.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return list(latest or [])
+
+
+async def _notify_rejection(
+    db: AsyncSession, member: Member, login: IssuedLogin | None, fields: list[str]
+) -> bool:
     """Email the applicant their rejection (with retries) and record the
     outcome on the member so a failure stays visible and re-sendable."""
     sent = await send_with_retries(
         lambda: send_email(
             to=member.email,
             subject="উত্তর কাউন্দিয়া আবাসন মালিক কল্যাণ সোসাইটি - আবেদনের আপডেট",
-            html_body=_rejection_email_body(member.full_name, member.rejection_reason or ""),
+            html_body=_rejection_email_body(
+                member.full_name, member.rejection_reason or "", fields, login
+            ),
         )
     )
     member.notification_status = "sent" if sent else "failed"
@@ -383,10 +470,23 @@ async def reject_submission(
     admin: AdminUser = Depends(require_permission("approve_membership")),
 ) -> RejectResponse:
     member = await _get_member_or_404(db, member_id, eager=False)
-    member.status = MemberStatus.REJECTED
+    if member.status == MemberStatus.REJECTED:
+        # Double click / two reviewers: one rejection per submitted round.
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already rejected")
+    # Atomic claim: approve and reject racing on one round can no longer both
+    # commit (duplicate review rows, member ID issued on a rejected record).
+    await claim_status_transition(
+        db, member, MemberStatus.REJECTED, conflict=_DECIDED_CONCURRENTLY
+    )
     member.reviewed_at = datetime.now(timezone.utc)
     member.reviewed_by = admin.id
     member.rejection_reason = payload.reason
+    # Only a first-time applicant (no member ID) gets the correction login; a
+    # rejected re-review of an existing member keeps their member login.
+    login = await ensure_applicant_login(db, member) if member.member_id is None else None
+    _record_review(
+        db, member, admin, DECISION_REJECTED, payload.reason, payload.correction_fields
+    )
     record_audit(
         db,
         actor_admin_id=admin.id,
@@ -397,8 +497,21 @@ async def reject_submission(
     )
     await db.commit()
 
-    email_sent = await _notify_rejection(db, member)
+    email_sent = await _notify_rejection(db, member, login, payload.correction_fields)
     return RejectResponse(status="rejected", email_sent=email_sent)
+
+
+async def _fresh_applicant_login(db: AsyncSession, member: Member) -> IssuedLogin | None:
+    """Re-issue the applicant's login with a new temporary password (the old
+    one is only stored hashed). None for a member who already has an ID."""
+    if member.member_id is not None:
+        return None
+    credential = await find_credential(db, member.id)
+    if credential is None:
+        return await ensure_applicant_login(db, member)
+    return IssuedLogin(
+        username=credential.username, temp_password=await rotate_temp_password(credential)
+    )
 
 
 @router.post(
@@ -415,7 +528,41 @@ async def resend_rejection_notification(
             status_code=status.HTTP_409_CONFLICT,
             detail="No failed rejection notification to resend",
         )
-    email_sent = await _notify_rejection(db, member)
+    # The failed email carried the only copy of the temporary password.
+    login = await _fresh_applicant_login(db, member)
+    fields = await _latest_correction_fields(db, member.id)
+    email_sent = await _notify_rejection(db, member, login, fields)
+    return RejectResponse(status="rejected", email_sent=email_sent)
+
+
+@router.post(
+    "/submissions/{member_id}/resend-credentials", response_model=RejectResponse
+)
+async def resend_applicant_credentials(
+    member_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: AdminUser = Depends(require_permission("approve_membership")),
+) -> RejectResponse:
+    """Applicant lost their login: rotate the temporary password and re-send
+    the rejection email (reason, corrections, login link)."""
+    member = await _get_member_or_404(db, member_id, eager=False)
+    if member.status != MemberStatus.REJECTED or member.member_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only a rejected applicant's login can be re-sent",
+        )
+    login = await _fresh_applicant_login(db, member)
+    record_audit(
+        db,
+        actor_admin_id=admin.id,
+        action="member.applicant_login_resent",
+        entity_type="member",
+        entity_id=str(member.id),
+        detail=None,
+    )
+    await db.commit()
+    fields = await _latest_correction_fields(db, member.id)
+    email_sent = await _notify_rejection(db, member, login, fields)
     return RejectResponse(status="rejected", email_sent=email_sent)
 
 

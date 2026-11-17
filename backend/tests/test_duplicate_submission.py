@@ -96,15 +96,38 @@ async def test_duplicate_approved_submission_rejected(
     assert body["code"] == "ALREADY_REGISTERED"
 
 
-async def test_resubmission_allowed_after_rejection(
+async def test_rejected_applicant_is_sent_to_correct_same_application(
     client: AsyncClient, admin_user: AdminUser
 ) -> None:
+    """A rejection issues a correction login, so a fresh public application
+    with the same identifiers is refused: the applicant fixes that record."""
     first = await client.post(
         "/api/submissions", data={"payload": json.dumps(_submission_payload())}
     )
     member_pk = first.json()["id"]
     admin_headers = await _admin_headers(client)
     await _reject(client, admin_headers, member_pk)
+
+    second = await client.post(
+        "/api/submissions", data={"payload": json.dumps(_submission_payload())}
+    )
+    assert second.status_code == 409
+    assert second.json()["detail"]["code"] == "REJECTED_CAN_RESUBMIT"
+
+
+async def test_legacy_rejected_row_without_login_does_not_block(
+    client: AsyncClient, db_session, admin_user: AdminUser
+) -> None:
+    """Rows rejected before correction logins existed hold no credential;
+    those applicants may still file a new application."""
+    from app.models.member import Member, MemberStatus
+
+    first = await client.post(
+        "/api/submissions", data={"payload": json.dumps(_submission_payload())}
+    )
+    member = await db_session.get(Member, first.json()["id"])
+    member.status = MemberStatus.REJECTED
+    await db_session.commit()
 
     second = await client.post(
         "/api/submissions", data={"payload": json.dumps(_submission_payload())}
