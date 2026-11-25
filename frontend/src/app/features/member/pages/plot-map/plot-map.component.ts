@@ -91,6 +91,7 @@ import {
 } from './plot-map.constants';
 export { TILES_OK_KEY, type PlotMapMode } from './plot-map.constants';
 import { ownerErrorKey, saveErrorKey, normalizeDagNo } from './plot-map.errors';
+import { findBdsFeatureAt } from './bds-hit-test';
 export { ownerErrorKey, saveErrorKey, normalizeDagNo, boundaryErrorKey } from './plot-map.errors';
 
 interface SelectedFeature {
@@ -424,6 +425,10 @@ export class PlotMapComponent implements AfterViewInit {
       setTimeout(() => popup.update(), MOVE_DEBOUNCE_MS + 50);
       requestAnimationFrame(() => popup.update());
     });
+    // BDS dags live on a canvas *under* the RS canvas, which swallows every
+    // click that misses an RS parcel. Resolve the dag from the click point at
+    // map level instead (RS parcel clicks stop propagation to keep their popup).
+    map.on('click', (event: L.LeafletMouseEvent) => this.onMapClick(event));
     map.on('zoomend', () =>
       this.zone.runOutsideAngular(() => {
         this.updateBdsLabels();
@@ -833,14 +838,17 @@ export class PlotMapComponent implements AfterViewInit {
       snapIgnore: true,
       style: (feature?: unknown) =>
         this.bdsStyle((feature as LandPlotFeature | undefined)?.properties),
-      onEachFeature: (feature: unknown, layer: L.Layer) =>
-        layer.on('click', () =>
-          this.zone.run(() => this.openDagDialog((feature as LandPlotFeature).properties)),
-        ),
     };
     this.bdsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
     this.updateBdsLabels();
     this.refreshSearchHitOverlay();
+  }
+
+  /** Map-level click: open the dialog for the BDS dag under the pointer. */
+  private onMapClick(event: L.LeafletMouseEvent): void {
+    if (!this.bdsLayer || this.drawStep() === 'draw') return;
+    const props = findBdsFeatureAt(this.bdsLayer, event.latlng);
+    if (props) this.zone.run(() => this.openDagDialog(props));
   }
 
   /** Opens the official-style dialog for a clicked BDS dag and lights it up. */
@@ -942,10 +950,13 @@ export class PlotMapComponent implements AfterViewInit {
       style: (feature?: unknown) =>
         this.rsStyle((feature as LandPlotFeature | undefined)?.properties),
       onEachFeature: (feature: unknown, layer: L.Layer) =>
-        layer.bindPopup(
-          () => this.rsPopupHtml(feature as LandPlotFeature, layer as L.Polygon),
-          this.externalPopupOptions(),
-        ),
+        layer
+          .bindPopup(
+            () => this.rsPopupHtml(feature as LandPlotFeature, layer as L.Polygon),
+            this.externalPopupOptions(),
+          )
+          // Keep the RS popup; don't also open the BDS dialog underneath.
+          .on('click', (event: L.LeafletMouseEvent) => L.DomEvent.stopPropagation(event)),
     };
     this.rsLayer = L.geoJSON(collection as never, options as L.GeoJSONOptions).addTo(map);
     void this.loadRsMatch(); // popups show the area once the module is in
