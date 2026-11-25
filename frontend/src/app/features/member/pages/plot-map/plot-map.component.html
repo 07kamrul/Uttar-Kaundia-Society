@@ -2,8 +2,9 @@
   <div class="map-wrap">
     <div #mapEl class="map-canvas" [class.map-plain]="showTileGate()" [attr.aria-label]="'member.plotMap.title' | translate"></div>
 
-    @if (showTileGate()) {
+    @if (showTileGate() && !layersSheetOpen()) {
       <button type="button" class="tile-gate" data-testid="tile-gate" (click)="requestTiles()">
+        <app-icon class="tile-gate-icon" name="map" [size]="28" />
         <strong class="tile-gate-title">{{ 'member.plotMap.wizard.showMap' | translate }}</strong>
         <span class="tile-gate-sub">{{ 'member.plotMap.wizard.showMapSub' | translate }}</span>
       </button>

@@ -1248,7 +1248,10 @@
           "bds": "Government mouza map (BDS)",
           "rs": "Show RAJUK RS plot lines",
           "snap": "Snap to plot lines",
-          "satellite": "Satellite"
+          "satellite": "Satellite",
+          "typeTitle": "Map type",
+          "extraTitle": "Extra layers",
+          "snapHint": "Turn on RS plot lines first"
         },
         "legend": {
           "approved": "Approved",
