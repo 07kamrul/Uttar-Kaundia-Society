@@ -47,9 +47,12 @@
   position: absolute;
   z-index: 900;
   top: 0.65rem;
-  inset-inline: 0.65rem;
+  inset-inline-start: 0.65rem;
+  width: fit-content;
+  max-width: calc(100% - 1.3rem);
   display: flex;
-  flex-direction: column;
+  flex-flow: row wrap;
+  align-items: center;
   gap: 0.45rem;
   padding: 0.55rem;
   padding-top: calc(0.55rem + env(safe-area-inset-top, 0px));
@@ -63,6 +66,7 @@
 
 .toolbar-row {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   gap: 0.45rem;
   align-items: center;
@@ -139,8 +143,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  flex: 1 1 200px;
-  max-width: 360px;
+  flex: 1 1 220px;
+  max-width: 320px;
   min-height: 2.5rem;
   padding: 0.3rem 0.75rem;
   background: var(--surface);
@@ -892,7 +896,7 @@
   .details-sheet.draw-panel {
     left: 0.75rem;
     right: auto;
-    top: 8.2rem;
+    top: 5rem;
     bottom: auto;
     max-height: calc(100% - 9rem);
   }
@@ -911,6 +915,19 @@
 
   .details-sheet {
     width: 420px;
+  }
+}
+
+/* Tablets: icon-only secondary actions so the toolbar stays on one row. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .locate-btn .btn-label,
+  .layers-open-btn .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
 
@@ -950,7 +967,7 @@
 
   .legend {
     bottom: auto;
-    top: 11.5rem;
+    top: 8.5rem;
     max-width: 11rem;
   }
 
