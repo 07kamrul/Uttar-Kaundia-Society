@@ -107,6 +107,13 @@ export type WizardStep = 'find' | 'adjust' | 'submit';
 type RsLookupState = 'idle' | 'loading' | 'found' | 'none' | 'error';
 type RsMatchModule = typeof import('./rs-match');
 
+import type { LayersAnchor } from './layers-sheet/layers-sheet.component';
+
+/** Desktop layers popover geometry (matches 22rem in layers-sheet styles). */
+const POPOVER_WIDTH_PX = 352;
+const POPOVER_GAP_PX = 8;
+const POPOVER_EDGE_PX = 8;
+
 @Component({
   selector: 'app-plot-map',
   standalone: true,
@@ -195,6 +202,7 @@ export class PlotMapComponent implements AfterViewInit {
   readonly showTileGate = computed(() => this.wizardOn() && !this.tilesOn());
   readonly layersSheetOpen = signal(false);
   readonly helpMenuOpen = signal(false);
+  readonly layersAnchor = signal<LayersAnchor | null>(null);
   readonly noticeExpanded = signal(false);
   readonly tourOpen = signal(this.flags.isEnabled('map_wizard') && !isMapTourDone());
   readonly wizardStep = signal<WizardStep>('find');
@@ -711,8 +719,26 @@ export class PlotMapComponent implements AfterViewInit {
   }
 
   /** map_wizard: "আরও লেয়ার" sheet and the "?" menu. */
-  openLayersSheet(): void {
+  openLayersSheet(trigger?: HTMLElement): void {
+    this.helpMenuOpen.set(false);
+    this.layersAnchor.set(trigger ? this.popoverAnchorFor(trigger) : null);
     this.layersSheetOpen.set(true);
+  }
+
+  toggleHelpMenu(): void {
+    this.helpMenuOpen.update((open) => !open);
+  }
+
+  /** Place the desktop popover right under its trigger, right edges aligned,
+   *  clamped so it never leaves the map area. */
+  private popoverAnchorFor(trigger: HTMLElement): LayersAnchor | null {
+    const wrap = this.mapContainer().nativeElement.parentElement;
+    if (!wrap) return null;
+    const btn = trigger.getBoundingClientRect();
+    const area = wrap.getBoundingClientRect();
+    const maxLeft = Math.max(POPOVER_EDGE_PX, area.width - POPOVER_WIDTH_PX - POPOVER_EDGE_PX);
+    const left = Math.min(Math.max(btn.right - area.left - POPOVER_WIDTH_PX, POPOVER_EDGE_PX), maxLeft);
+    return { top: btn.bottom - area.top + POPOVER_GAP_PX, left };
   }
 
   closeLayersSheet(): void {

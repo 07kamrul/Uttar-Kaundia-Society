@@ -34,6 +34,17 @@ describe('LayersSheetComponent', () => {
     expect(emitted).toHaveBeenCalledWith('bds');
   });
 
+  it('positions itself from the anchor input as a dropdown', () => {
+    const { fixture, el } = setup();
+    expect(tid(el, 'layers-sheet')?.classList).not.toContain('anchored');
+    fixture.componentRef.setInput('anchor', { top: 64, left: 120 });
+    fixture.detectChanges();
+    const sheet = tid(el, 'layers-sheet')!;
+    expect(sheet.classList).toContain('anchored');
+    expect(sheet.style.getPropertyValue('--anchor-top')).toBe('64px');
+    expect(sheet.style.getPropertyValue('--anchor-left')).toBe('120px');
+  });
+
   it('renders the switch rows with their translated labels', () => {
     const { el } = setup({ rs: true });
     expect(el.textContent).toContain('মানচিত্রের ধরন');

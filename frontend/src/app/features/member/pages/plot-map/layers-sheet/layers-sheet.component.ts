@@ -14,6 +14,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { IconComponent } from '../../../../../shared/icon/icon.component';
 import type { PlotMapMode } from '../plot-map.constants';
 
+/** Popover position (px, relative to the map area) under its trigger button. */
+export interface LayersAnchor {
+  readonly top: number;
+  readonly left: number;
+}
+
 /**
  * "আরও লেয়ার" sheet (map_wizard): one place for the map view (segmented
  * আমার জমি / সরকারি মৌজা ম্যাপ) and the RS lines / snapping / satellite
@@ -31,6 +37,9 @@ import type { PlotMapMode } from '../plot-map.constants';
     <section
       #sheetEl
       class="layers-sheet"
+      [class.anchored]="anchor() !== null"
+      [style.--anchor-top.px]="anchor()?.top"
+      [style.--anchor-left.px]="anchor()?.left"
       role="dialog"
       data-testid="layers-sheet"
       [attr.aria-label]="'member.plotMap.wizard.layers.title' | translate"
@@ -167,7 +176,13 @@ import type { PlotMapMode } from '../plot-map.constants';
       }
     }
 
+    /* Tablet/desktop: a light dropdown under the "আরও লেয়ার" button — no
+       dimming, the map stays visible and usable around it. */
     @media (min-width: 768px) {
+      .sheet-backdrop {
+        background: transparent;
+      }
+
       .layers-sheet {
         left: auto;
         right: 0.75rem;
@@ -175,7 +190,15 @@ import type { PlotMapMode } from '../plot-map.constants';
         top: 4.6rem;
         width: 22rem;
         max-height: calc(100% - 5.5rem);
+        transform-origin: top right;
         animation: sheet-down 0.18s ease;
+      }
+
+      .layers-sheet.anchored {
+        right: auto;
+        top: var(--anchor-top);
+        left: var(--anchor-left);
+        max-height: calc(100% - var(--anchor-top) - 0.75rem);
       }
     }
 
@@ -351,6 +374,7 @@ export class LayersSheetComponent implements AfterViewInit, OnDestroy {
   readonly snap = input(false);
   readonly satellite = input(false);
   readonly showSatellite = input(true);
+  readonly anchor = input<LayersAnchor | null>(null);
 
   readonly modeChange = output<PlotMapMode>();
   readonly rsToggle = output<void>();

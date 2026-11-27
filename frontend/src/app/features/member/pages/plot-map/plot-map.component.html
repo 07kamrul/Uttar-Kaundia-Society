@@ -55,6 +55,7 @@
           class="toolbar-btn locate-btn"
           (click)="locateMe()"
           [attr.aria-label]="'member.plotMap.myLocation' | translate"
+          [title]="'member.plotMap.myLocation' | translate"
         >
           <app-icon name="pin" [size]="16" />
           <span class="btn-label">{{ 'member.plotMap.myLocation' | translate }}</span>
@@ -69,11 +70,19 @@
             <span class="btn-label">{{ 'member.plotMap.draw.open' | translate }}</span>
           </button>
         }
-      </div>
-
-      @if (wizardOn()) {
-        <div class="wizard-tools">
-          <button type="button" class="toolbar-btn layers-open-btn" data-testid="layers-open" (click)="openLayersSheet()">
+        @if (wizardOn()) {
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <button
+            #layersBtn
+            type="button"
+            class="toolbar-btn layers-open-btn"
+            data-testid="layers-open"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="layersSheetOpen()"
+            [attr.aria-label]="'member.plotMap.wizard.moreLayers' | translate"
+            [title]="'member.plotMap.wizard.moreLayers' | translate"
+            (click)="openLayersSheet(layersBtn)"
+          >
             <app-icon name="layers" [size]="16" />
             <span class="btn-label">{{ 'member.plotMap.wizard.moreLayers' | translate }}</span>
           </button>
@@ -82,18 +91,24 @@
               type="button"
               class="toolbar-btn help-btn"
               data-testid="help-open"
+              aria-haspopup="menu"
               [attr.aria-expanded]="helpMenuOpen()"
               [attr.aria-label]="'member.plotMap.wizard.tour.helpButton' | translate"
-              (click)="helpMenuOpen.set(!helpMenuOpen())"
+              [title]="'member.plotMap.wizard.tour.helpButton' | translate"
+              (click)="toggleHelpMenu()"
             >?</button>
             @if (helpMenuOpen()) {
-              <button type="button" class="toolbar-btn help-item" data-testid="tour-again" (click)="restartTour()">
-                {{ 'member.plotMap.wizard.tour.again' | translate }}
-              </button>
+              <div class="help-menu" role="menu">
+                <button type="button" role="menuitem" class="help-item" data-testid="tour-again" (click)="restartTour()">
+                  {{ 'member.plotMap.wizard.tour.again' | translate }}
+                </button>
+              </div>
             }
           </span>
-        </div>
-      } @else {
+        }
+      </div>
+
+      @if (!wizardOn()) {
       <!-- Layer switcher: collapses into an expandable panel on phones -->
       <div class="map-layers" [class.open]="layersPanelOpen()">
         <button
@@ -332,6 +347,7 @@
         [rs]="rsOverlayOn()"
         [snap]="snapEnabled()"
         [satellite]="satelliteOn()"
+        [anchor]="layersAnchor()"
         (modeChange)="selectMapMode($event)"
         (rsToggle)="toggleRsOverlay()"
         (snapToggle)="toggleSnap()"

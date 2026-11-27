@@ -319,6 +319,21 @@ describe('PlotMapComponent with map_wizard on: tiles and layers', () => {
     expect(component.mapMode()).toBe('boundaries');
   });
 
+  it('keeps layers and help inside the single toolbar row', () => {
+    const { fixture } = setup({ flags: ['map_wizard'] });
+    const row = fixture.nativeElement.querySelector('.toolbar-row') as HTMLElement;
+    expect(row.querySelector('[data-testid="layers-open"]')).not.toBeNull();
+    expect(row.querySelector('[data-testid="help-open"]')).not.toBeNull();
+  });
+
+  it('anchors the layers popover under the button that opened it', async () => {
+    const { fixture, component } = setup({ flags: ['map_wizard'] });
+    await click(fixture, 'layers-open');
+    expect(component.layersAnchor()).not.toBeNull();
+    expect(tid(fixture, 'layers-open')?.getAttribute('aria-expanded')).toBe('true');
+    expect(tid(fixture, 'layers-sheet')?.classList).toContain('anchored');
+  });
+
   it('the layers sheet toggles RS lines, snapping and satellite', async () => {
     const { fixture, component } = setup({ flags: ['map_wizard'] });
     await click(fixture, 'layers-open');
